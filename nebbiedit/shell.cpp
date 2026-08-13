@@ -14,13 +14,28 @@ namespace nebbiedit {
 
 namespace {
 
+std::string trim_copy(const std::string& value) {
+    std::size_t start = 0;
+    while (start < value.size()
+           && std::isspace(static_cast<unsigned char>(value[start])) != 0) {
+        ++start;
+    }
+    std::size_t end = value.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(value[end - 1])) != 0) {
+        --end;
+    }
+    return value.substr(start, end - start);
+}
+
 bool strings_equal_ci(const std::string& left, const std::string& right) {
-    if (left.size() != right.size()) {
+    const std::string a = trim_copy(left);
+    const std::string b = trim_copy(right);
+    if (a.size() != b.size()) {
         return false;
     }
-    for (std::size_t i = 0; i < left.size(); ++i) {
-        if (std::tolower(static_cast<unsigned char>(left[i]))
-            != std::tolower(static_cast<unsigned char>(right[i]))) {
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        if (std::tolower(static_cast<unsigned char>(a[i]))
+            != std::tolower(static_cast<unsigned char>(b[i]))) {
             return false;
         }
     }
@@ -28,21 +43,23 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
 }
 
 bool is_prefix_label_ci(const std::string& shorter, const std::string& full) {
-    if (shorter.empty() || full.size() < shorter.size()) {
+    const std::string a = trim_copy(shorter);
+    const std::string b = trim_copy(full);
+    if (a.empty() || b.size() < a.size()) {
         return false;
     }
-    if (!strings_equal_ci(full.substr(0, shorter.size()), shorter)) {
+    if (!strings_equal_ci(b.substr(0, a.size()), a)) {
         return false;
     }
-    if (full.size() == shorter.size()) {
+    if (b.size() == a.size()) {
         return true;
     }
-    const char next = static_cast<char>(std::tolower(static_cast<unsigned char>(full[shorter.size()])));
+    const char next = static_cast<char>(std::tolower(static_cast<unsigned char>(b[a.size()])));
     return next == ' ' || next == '\'' || next == '.';
 }
 
 const char* inbound_exit_status(const std::string& exit_description, const std::string& destination_name) {
-    if (exit_description.empty()) {
+    if (trim_copy(exit_description).empty()) {
         return "vuota";
     }
     if (strings_equal_ci(exit_description, destination_name)) {
