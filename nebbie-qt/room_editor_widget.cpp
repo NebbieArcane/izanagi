@@ -356,10 +356,11 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* exit_layout = new QVBoxLayout(exit_tab);
     exit_layout->addWidget(makeLegend(
         "Exit directions: 0=north, 1=east, 2=south, 3=west, 4=up, 5=down. Description is "
-        "usually the destination room name (shown when looking that way). Keyword is the door "
-        "name used by open/close/unlock commands. Key vnum is the object number that unlocks a "
-        "locked door (-1 = no key). Renaming a room updates inbound exit labels automatically; "
-        "use Allinea uscite in entrata for manual myst.wld edits.",
+        "usually the destination room name (shown when looking that way), but can be custom "
+        "look text for doors and passages. Keyword is the door name used by open/close/unlock "
+        "commands. Key vnum is the object number that unlocks a locked door (-1 = no key). "
+        "Renaming a room updates only inbound exit labels that matched the previous name; "
+        "custom descriptions are preserved. Use Allinea uscite in entrata to fill empty labels.",
         exit_tab));
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(140);

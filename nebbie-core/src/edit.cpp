@@ -57,6 +57,33 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
     return true;
 }
 
+bool should_align_exit_description(const std::string& exit_description,
+                                     const std::string& destination_name,
+                                     const std::string* previous_name) {
+    if (strings_equal_ci(exit_description, destination_name)) {
+        return false;
+    }
+    if (trim_copy(exit_description).empty()) {
+        return true;
+    }
+    if (previous_name != nullptr && strings_equal_ci(exit_description, *previous_name)) {
+        return true;
+    }
+    return false;
+}
+
+bool apply_exit_description_alignment(Exit& exit,
+                                      const std::string& destination_name,
+                                      const std::string* previous_name,
+                                      std::size_t& updated) {
+    if (!should_align_exit_description(exit.description, destination_name, previous_name)) {
+        return false;
+    }
+    exit.description = destination_name;
+    ++updated;
+    return true;
+}
+
 template <typename Map>
 long max_vnum_in_map(const Map& entities) {
     long max_vnum = 0;
@@ -490,7 +517,7 @@ bool edit_room(World& world, long vnum, const RoomEdit& edit) {
     const std::string old_name = room->name;
     apply_room_edit(*room, edit);
     if (!edit.name.empty() && !strings_equal_ci(old_name, room->name)) {
-        refresh_inbound_exit_descriptions(world, vnum);
+        refresh_inbound_exit_descriptions(world, vnum, &old_name);
     }
     return true;
 }
@@ -608,7 +635,9 @@ const Exit* find_room_exit(const Room& room, int direction) {
     return nullptr;
 }
 
-std::size_t refresh_inbound_exit_descriptions(World& world, long target_vnum) {
+std::size_t refresh_inbound_exit_descriptions(World& world,
+                                              const long target_vnum,
+                                              const std::string* previous_name) {
     const Room* destination = world.find_room(target_vnum);
     if (!destination) {
         return 0;
@@ -620,11 +649,7 @@ std::size_t refresh_inbound_exit_descriptions(World& world, long target_vnum) {
             if (exit.to_room != target_vnum) {
                 continue;
             }
-            if (strings_equal_ci(exit.description, destination->name)) {
-                continue;
-            }
-            exit.description = destination->name;
-            ++updated;
+            apply_exit_description_alignment(exit, destination->name, previous_name, updated);
         }
         (void)from_vnum;
     }
@@ -648,6 +673,11 @@ ExitAlignmentReport align_all_inbound_exit_descriptions(World& world) {
 
             if (strings_equal_ci(exit.description, destination->name)) {
                 ++report.exits_already_ok;
+                continue;
+            }
+
+            if (!should_align_exit_description(exit.description, destination->name, nullptr)) {
+                ++report.exits_skipped_custom;
                 continue;
             }
 

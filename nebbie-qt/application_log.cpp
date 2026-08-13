@@ -42,16 +42,21 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
     if (!library_path.isEmpty()) {
         lines << QStringLiteral("Libreria: %1").arg(library_path);
     }
-    lines << QStringLiteral("Nota: vengono modificate solo le descrizioni delle uscite (exit.description).");
+    lines << QStringLiteral(
+        "Nota: vengono modificate solo le descrizioni delle uscite (exit.description). "
+        "Le descrizioni personalizzate (es. porte, simboli runici) non vengono toccate; "
+        "si riempiono solo quelle vuote con il nome della stanza di destinazione.");
     lines << QStringLiteral("Uscite controllate: %1").arg(static_cast<qlonglong>(report.exits_checked));
     lines << QStringLiteral("Già allineate: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
-    lines << QStringLiteral("Allineate: %1").arg(static_cast<qlonglong>(report.exits_aligned));
+    lines << QStringLiteral("Descrizioni vuote riempite: %1").arg(static_cast<qlonglong>(report.exits_aligned));
+    lines << QStringLiteral("Descrizioni personalizzate lasciate invariate: %1")
+                 .arg(static_cast<qlonglong>(report.exits_skipped_custom));
     lines << QStringLiteral("Destinazione mancante: %1")
                  .arg(static_cast<qlonglong>(report.exits_missing_destination));
 
     if (!report.changes.empty()) {
         lines << QStringLiteral("");
-        lines << QStringLiteral("Dettaglio modifiche:");
+        lines << QStringLiteral("Dettaglio modifiche (solo uscite con descrizione vuota):");
         for (const auto& change : report.changes) {
             lines << QStringLiteral("  Stanza #%1 uscita %2 -> #%3: \"%4\" -> \"%5\"")
                          .arg(change.from_vnum)

@@ -1470,7 +1470,7 @@ void MainWindow::applyRoomChanges() {
 
     std::size_t aligned = 0;
     if (name_changed) {
-        aligned = nebbie::refresh_inbound_exit_descriptions(world_, vnum);
+        aligned = nebbie::refresh_inbound_exit_descriptions(world_, vnum, &old_name);
         if (aligned > 0) {
             refreshRoomEditorIfInboundExitsChanged(vnum);
         }
@@ -1525,12 +1525,16 @@ void MainWindow::showExitAlignmentReport(const QString& text,
     auto* summary = new QLabel;
     summary->setWordWrap(true);
     if (report.exits_aligned > 0) {
-        summary->setText(QString("Allineate %1 uscite su %2 controllate.")
+        summary->setText(QString("Riempite %1 descrizioni vuote su %2 uscite controllate "
+                                   "(%3 personalizzate lasciate invariate).")
                            .arg(static_cast<qlonglong>(report.exits_aligned))
-                           .arg(static_cast<qlonglong>(report.exits_checked)));
+                           .arg(static_cast<qlonglong>(report.exits_checked))
+                           .arg(static_cast<qlonglong>(report.exits_skipped_custom)));
     } else {
-        summary->setText(QString("Tutte le %1 uscite controllate erano già allineate.")
-                           .arg(static_cast<qlonglong>(report.exits_checked)));
+        summary->setText(QString("Nessuna descrizione vuota da riempire su %1 uscite controllate "
+                                   "(%2 personalizzate lasciate invariate).")
+                           .arg(static_cast<qlonglong>(report.exits_checked))
+                           .arg(static_cast<qlonglong>(report.exits_skipped_custom)));
     }
     layout->addWidget(summary);
 
@@ -1578,11 +1582,11 @@ void MainWindow::alignAllInboundExitDescriptions(const bool on_library_open) {
     }
 
     if (on_library_open) {
-        setStatus(QString("Libreria caricata: %1 uscite allineate, %2 già corrette.")
+        setStatus(QString("Libreria caricata: %1 descrizioni vuote riempite, %2 già corrette.")
                       .arg(static_cast<qlonglong>(report.exits_aligned))
                       .arg(static_cast<qlonglong>(report.exits_already_ok)));
     } else {
-        setStatus(QString("Allineamento uscite: %1 modificate, %2 già corrette.")
+        setStatus(QString("Allineamento uscite: %1 descrizioni vuote riempite, %2 già corrette.")
                       .arg(static_cast<qlonglong>(report.exits_aligned))
                       .arg(static_cast<qlonglong>(report.exits_already_ok)));
     }

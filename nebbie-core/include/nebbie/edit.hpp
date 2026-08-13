@@ -136,9 +136,14 @@ bool set_room_exit(World& world, long room_vnum, const ExitEdit& edit);
 bool remove_room_exit(World& world, long room_vnum, int direction);
 const Exit* find_room_exit(const Room& room, int direction);
 
-// Set exit.description on every exit that leads to target_vnum to the destination room name.
+// Update inbound exit.description for exits leading to target_vnum.
+// When previous_name is set (room rename), updates exits whose description matched the old name.
+// Otherwise only fills empty exit descriptions with the destination room name.
+// Custom look text (e.g. door descriptions) is never overwritten.
 // Only exit.description is modified; keyword, key, exit_info and other fields are untouched.
-std::size_t refresh_inbound_exit_descriptions(World& world, long target_vnum);
+std::size_t refresh_inbound_exit_descriptions(World& world,
+                                              long target_vnum,
+                                              const std::string* previous_name = nullptr);
 
 struct ExitAlignmentChange {
     long from_vnum = 0;
@@ -152,12 +157,13 @@ struct ExitAlignmentReport {
     std::size_t exits_checked = 0;
     std::size_t exits_aligned = 0;
     std::size_t exits_already_ok = 0;
+    std::size_t exits_skipped_custom = 0;
     std::size_t exits_missing_destination = 0;
     std::vector<ExitAlignmentChange> changes;
 };
 
-// Align every inbound exit description to its destination room name.
-// Only exit.description is modified; room data and other exit fields are untouched.
+// Fill empty inbound exit descriptions with the destination room name.
+// Custom look text is preserved. Only exit.description is modified.
 ExitAlignmentReport align_all_inbound_exit_descriptions(World& world);
 
 Zone* find_zone(World& world, int zone_num);

@@ -117,22 +117,6 @@ void validate_rooms(const World& world, ValidationReport& report) {
                           vnum);
                 continue;
             }
-
-            const Room* destination = world.find_room(exit.to_room);
-            if (destination && !exit.description.empty()
-                && !strings_equal_ci(exit.description, destination->name)) {
-                add_issue(report,
-                          ValidationSeverity::warning,
-                          "room",
-                          "room " + std::to_string(vnum) + " exit "
-                              + exit_direction_name(exit.direction) + " -> "
-                              + std::to_string(exit.to_room)
-                              + " has description \"" + trim_copy(exit.description)
-                              + "\" but destination name is \"" + trim_copy(destination->name)
-                              + "\"",
-                          ValidationTarget::room,
-                          vnum);
-            }
         }
     }
 }
