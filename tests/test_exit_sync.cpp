@@ -81,12 +81,32 @@ int main() {
         mismatch_source.exits.push_back(mismatch_exit);
         world.rooms.emplace(mismatch_source.vnum, mismatch_source);
 
+        nebbie::Exit& aligned_source_exit = world.find_room(34022)->exits.front();
+        aligned_source_exit.keyword = "porta di ferro";
+        aligned_source_exit.key = 3120;
+        aligned_source_exit.exit_info = 7;
+        aligned_source_exit.open_cmd = 42;
+        const std::string source_name = world.find_room(34022)->name;
+        const std::string source_desc = world.find_room(34022)->description;
+        const std::string dest_name = world.find_room(34020)->name;
+
         const nebbie::ExitAlignmentReport bulk = nebbie::align_all_inbound_exit_descriptions(world);
         if (bulk.exits_checked < 2 || bulk.exits_aligned != 1 || bulk.changes.size() != 1) {
             throw std::runtime_error("bulk alignment did not update the mismatched exit");
         }
         if (world.find_room(34022)->exits.front().description != world.find_room(34020)->name) {
             throw std::runtime_error("bulk alignment left mismatched exit description");
+        }
+        const nebbie::Exit& aligned_exit = world.find_room(34022)->exits.front();
+        if (aligned_exit.keyword != "porta di ferro" || aligned_exit.key != 3120 || aligned_exit.exit_info != 7
+            || aligned_exit.open_cmd != 42) {
+            throw std::runtime_error("bulk alignment modified exit fields other than description");
+        }
+        if (world.find_room(34022)->name != source_name || world.find_room(34022)->description != source_desc) {
+            throw std::runtime_error("bulk alignment modified room fields");
+        }
+        if (world.find_room(34020)->name != dest_name) {
+            throw std::runtime_error("bulk alignment modified destination room");
         }
 
         const nebbie::ExitAlignmentReport second_pass = nebbie::align_all_inbound_exit_descriptions(world);

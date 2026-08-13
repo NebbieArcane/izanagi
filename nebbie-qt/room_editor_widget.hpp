@@ -18,6 +18,7 @@ class RoomEditorWidget : public QWidget {
 
 public:
     explicit RoomEditorWidget(QWidget* parent = nullptr);
+    ~RoomEditorWidget() override;
 
     void loadFromRoom(const nebbie::Room& room);
     void saveToRoom(nebbie::Room& room) const;
@@ -41,6 +42,7 @@ private:
     void setComboIntValue(QComboBox* combo, int value) const;
 
     bool loading_ = false;
+    bool overview_updates_enabled_ = true;
     QTextEdit* overview_ = nullptr;
 
     QLineEdit* name_ = nullptr;

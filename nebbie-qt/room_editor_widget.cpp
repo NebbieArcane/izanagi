@@ -417,6 +417,11 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     moblim_panel_->setVisible(false);
 }
 
+RoomEditorWidget::~RoomEditorWidget() {
+    overview_updates_enabled_ = false;
+    disconnect(this);
+}
+
 void RoomEditorWidget::connectOverviewUpdates() {
     const auto refresh = [this]() { refreshOverview(); };
 
@@ -453,7 +458,7 @@ void RoomEditorWidget::connectOverviewUpdates() {
 }
 
 void RoomEditorWidget::refreshOverview() {
-    if (loading_ || overview_ == nullptr) {
+    if (loading_ || !overview_updates_enabled_ || overview_ == nullptr) {
         return;
     }
 

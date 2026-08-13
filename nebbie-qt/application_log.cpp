@@ -42,6 +42,7 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
     if (!library_path.isEmpty()) {
         lines << QStringLiteral("Libreria: %1").arg(library_path);
     }
+    lines << QStringLiteral("Nota: vengono modificate solo le descrizioni delle uscite (exit.description).");
     lines << QStringLiteral("Uscite controllate: %1").arg(static_cast<qlonglong>(report.exits_checked));
     lines << QStringLiteral("Già allineate: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
     lines << QStringLiteral("Allineate: %1").arg(static_cast<qlonglong>(report.exits_aligned));
