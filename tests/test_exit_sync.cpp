@@ -27,12 +27,13 @@ int main() {
         source.exits.push_back(exit);
         world.rooms.emplace(source.vnum, source);
 
-        const std::size_t skipped_custom = nebbie::refresh_inbound_exit_descriptions(world, 34020);
+        const std::size_t skipped_custom = nebbie::refresh_inbound_exit_descriptions(
+            world, 34020, nullptr, nebbie::InboundExitAlignPolicy::FillEmptyOnly);
         if (skipped_custom != 0) {
-            throw std::runtime_error("custom inbound exit description should not be overwritten");
+            throw std::runtime_error("fill-empty refresh should not update non-empty labels");
         }
         if (world.find_room(34021)->exits.front().description != "di fronte al castello") {
-            throw std::runtime_error("custom inbound exit description was modified");
+            throw std::runtime_error("non-empty inbound exit description was modified during fill-empty refresh");
         }
 
         nebbie::Room empty_source;
@@ -47,7 +48,8 @@ int main() {
         empty_source.exits.push_back(empty_exit);
         world.rooms.emplace(empty_source.vnum, empty_source);
 
-        const std::size_t filled = nebbie::refresh_inbound_exit_descriptions(world, 34020);
+        const std::size_t filled = nebbie::refresh_inbound_exit_descriptions(
+            world, 34020, nullptr, nebbie::InboundExitAlignPolicy::FillEmptyOnly);
         if (filled != 1) {
             throw std::runtime_error("expected one empty inbound exit to be filled");
         }
@@ -154,6 +156,66 @@ int main() {
         const nebbie::ExitAlignmentReport second_pass = nebbie::align_all_inbound_exit_descriptions(world);
         if (second_pass.exits_aligned != 0) {
             throw std::runtime_error("second bulk alignment pass should not modify exits");
+        }
+
+        nebbie::Room courtyard;
+        courtyard.vnum = 34021;
+        courtyard.name = "Il cortile interno della roccaforte orientale";
+        courtyard.description = "Un cortile.";
+        courtyard.sector_type = 1;
+        world.rooms.clear();
+        world.rooms.emplace(courtyard.vnum, courtyard);
+
+        nebbie::Room scuderie;
+        scuderie.vnum = 34023;
+        scuderie.name = "Le scuderie del Marchese";
+        scuderie.description = "Scuderie.";
+        scuderie.sector_type = 1;
+        nebbie::Exit west_exit;
+        west_exit.direction = 3;
+        west_exit.description = "Il cortile interno";
+        west_exit.to_room = 34021;
+        scuderie.exits.push_back(west_exit);
+        world.rooms.emplace(scuderie.vnum, scuderie);
+
+        nebbie::RoomEdit courtyard_edit;
+        courtyard_edit.name = "Cortile orientale rinominato";
+        if (!nebbie::edit_room(world, 34021, courtyard_edit)) {
+            throw std::runtime_error("courtyard rename failed");
+        }
+        if (world.find_room(34023)->exits.front().description != courtyard_edit.name) {
+            throw std::runtime_error("abbreviated inbound label was not updated on rename");
+        }
+
+        west_exit.description = "Il cortile interno";
+        world.find_room(34023)->exits.front().description = west_exit.description;
+        world.find_room(34021)->name = "Nuovo nome cortile";
+        const std::size_t manual_synced = nebbie::refresh_inbound_exit_descriptions(world, 34021);
+        if (manual_synced != 1) {
+            throw std::runtime_error("manual inbound sync should update abbreviated room labels");
+        }
+        if (world.find_room(34023)->exits.front().description != "Nuovo nome cortile") {
+            throw std::runtime_error("manual inbound sync did not update abbreviated label");
+        }
+
+        nebbie::Room door_source;
+        door_source.vnum = 34030;
+        door_source.name = "Ingresso";
+        door_source.description = "Ingresso.";
+        door_source.sector_type = 1;
+        nebbie::Exit door_exit;
+        door_exit.direction = 0;
+        door_exit.description = "La porta e' fatta di mithril. Non sembra chiusa a chiave.";
+        door_exit.to_room = 34021;
+        door_source.exits.push_back(door_exit);
+        world.rooms.emplace(door_source.vnum, door_source);
+
+        const std::size_t door_synced = nebbie::refresh_inbound_exit_descriptions(world, 34021);
+        if (door_synced != 0) {
+            throw std::runtime_error("custom door look text should not be overwritten on manual sync");
+        }
+        if (world.find_room(34030)->exits.front().description.find("mithril") == std::string::npos) {
+            throw std::runtime_error("mithril door description was modified");
         }
 
         std::cout << "OK\n";
