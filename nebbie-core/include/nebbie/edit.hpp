@@ -153,6 +153,7 @@ bool is_custom_exit_look_text(const std::string& exit_description);
 
 struct ExitAlignmentChange {
     long from_vnum = 0;
+    std::string from_room_name;
     int direction = 0;
     long to_vnum = 0;
     std::string old_description;

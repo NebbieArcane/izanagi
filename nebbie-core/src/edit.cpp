@@ -738,6 +738,7 @@ ExitAlignmentReport align_all_inbound_exit_descriptions(World& world) {
 
             ExitAlignmentChange change;
             change.from_vnum = from_vnum;
+            change.from_room_name = room.name;
             change.direction = exit.direction;
             change.to_vnum = exit.to_room;
             change.old_description = exit.description;

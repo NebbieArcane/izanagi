@@ -58,8 +58,9 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
         lines << QStringLiteral("");
         lines << QStringLiteral("Dettaglio modifiche:");
         for (const auto& change : report.changes) {
-            lines << QStringLiteral("  Stanza #%1 uscita %2 -> #%3: \"%4\" -> \"%5\"")
+            lines << QStringLiteral("  Stanza #%1 \"%2\" uscita %3 -> #%4: \"%5\" -> \"%6\"")
                          .arg(change.from_vnum)
+                         .arg(QString::fromStdString(change.from_room_name))
                          .arg(QString::fromUtf8(nebbie::exit_direction_name(change.direction)))
                          .arg(change.to_vnum)
                          .arg(QString::fromStdString(change.old_description))
