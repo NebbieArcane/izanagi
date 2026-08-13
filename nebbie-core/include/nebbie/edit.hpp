@@ -151,6 +151,17 @@ std::size_t refresh_inbound_exit_descriptions(World& world,
 
 bool is_custom_exit_look_text(const std::string& exit_description);
 
+struct ExitLabelAlignResult {
+    bool updated = false;
+    bool already_ok = false;
+    bool skipped_custom = false;
+    bool missing_destination = false;
+    bool exit_not_found = false;
+};
+
+// Align one outbound exit.description to the destination room name (SyncRoomLabels rules).
+ExitLabelAlignResult align_room_exit_description(World& world, long room_vnum, int direction);
+
 struct ExitAlignmentChange {
     long from_vnum = 0;
     std::string from_room_name;

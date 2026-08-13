@@ -202,6 +202,39 @@ int main() {
             throw std::runtime_error("mithril door description was modified");
         }
 
+        nebbie::Room outbound_source;
+        outbound_source.vnum = 34040;
+        outbound_source.name = "Sorgente uscita singola";
+        outbound_source.description = "Test.";
+        outbound_source.sector_type = 1;
+        nebbie::Exit outbound_exit;
+        outbound_exit.direction = 2;
+        outbound_exit.description = "etichetta corta";
+        outbound_exit.to_room = 34021;
+        outbound_source.exits.push_back(outbound_exit);
+        world.rooms.emplace(outbound_source.vnum, outbound_source);
+
+        const nebbie::ExitLabelAlignResult single =
+            nebbie::align_room_exit_description(world, 34040, 2);
+        if (!single.updated) {
+            throw std::runtime_error("per-exit alignment should update stale label");
+        }
+        if (world.find_room(34040)->exits.front().description != world.find_room(34021)->name) {
+            throw std::runtime_error("per-exit alignment did not set full destination name");
+        }
+
+        const nebbie::ExitLabelAlignResult second_single =
+            nebbie::align_room_exit_description(world, 34040, 2);
+        if (!second_single.already_ok) {
+            throw std::runtime_error("second per-exit alignment should report already_ok");
+        }
+
+        const nebbie::ExitLabelAlignResult custom =
+            nebbie::align_room_exit_description(world, 34030, 0);
+        if (!custom.skipped_custom) {
+            throw std::runtime_error("per-exit alignment should skip custom door text");
+        }
+
         std::cout << "OK\n";
         return 0;
     } catch (const std::exception& ex) {

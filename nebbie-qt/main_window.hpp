@@ -64,7 +64,8 @@ private slots:
     void onObjSelected();
     void applyRoomChanges();
     void syncInboundExitLabels();
-    void alignAllInboundExitDescriptions(bool on_library_open);
+    void alignCurrentExitLabel();
+    void alignAllInboundExitDescriptions();
     void applyMobChanges();
     void applyObjChanges();
     void applyZoneChanges();
@@ -114,6 +115,7 @@ private:
     void showExitAlignmentReport(const QString& text, const nebbie::ExitAlignmentReport& report);
     void showValidation(const nebbie::ValidationReport& report);
     void navigateToIssue(const nebbie::ValidationIssue& issue);
+    void navigateToRoomExit(long vnum, int direction);
     bool confirmSaveIfDirty();
     void markDirty();
     void markClean();

@@ -294,10 +294,9 @@ void MainWindow::setupUi() {
     connect(obj_list_, &QListWidget::currentRowChanged, this, [this](int) { onObjSelected(); });
     connect(room_apply, &QPushButton::clicked, this, &MainWindow::applyRoomChanges);
     connect(room_sync_exits, &QPushButton::clicked, this, &MainWindow::syncInboundExitLabels);
-    connect(room_align_all_exits, &QPushButton::clicked, this, [this]() {
-        alignAllInboundExitDescriptions(false);
-    });
+    connect(room_align_all_exits, &QPushButton::clicked, this, &MainWindow::alignAllInboundExitDescriptions);
     connect(room_goto_exit, &QPushButton::clicked, this, &MainWindow::goToExitTarget);
+    connect(room_editor_, &RoomEditorWidget::alignExitLabelRequested, this, &MainWindow::alignCurrentExitLabel);
     connect(mob_apply, &QPushButton::clicked, this, &MainWindow::applyMobChanges);
     connect(obj_apply, &QPushButton::clicked, this, &MainWindow::applyObjChanges);
     connect(room_page.create_button, &QPushButton::clicked, this, &MainWindow::createRoom);
@@ -435,9 +434,7 @@ void MainWindow::setupMenus() {
     auto* export_overlays_action = tools_menu->addAction("Esporta overlay...");
     connect(export_overlays_action, &QAction::triggered, this, &MainWindow::exportOverlays);
     auto* align_all_exits_action = tools_menu->addAction("Allinea tutte le uscite in entrata...");
-    connect(align_all_exits_action, &QAction::triggered, this, [this]() {
-        alignAllInboundExitDescriptions(false);
-    });
+    connect(align_all_exits_action, &QAction::triggered, this, &MainWindow::alignAllInboundExitDescriptions);
 
     auto* coordinator_menu = menuBar()->addMenu("&Coordinator");
     auto* coordinator_config_action = coordinator_menu->addAction("Configuration...");
@@ -562,7 +559,6 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     lib_label_->setText(label);
     last_version_time_ = std::chrono::system_clock::now();
     autosave_timer_->start();
-    alignAllInboundExitDescriptions(true);
 }
 
 void MainWindow::refreshRoomList() {
@@ -1516,6 +1512,54 @@ void MainWindow::syncInboundExitLabels() {
                   .arg(QString::fromStdString(room->name)));
 }
 
+void MainWindow::alignCurrentExitLabel() {
+    const long vnum = currentRoomVnum();
+    if (vnum <= 0) {
+        QMessageBox::information(this, "Uscite", "Seleziona una stanza.");
+        return;
+    }
+
+    const int direction = room_editor_->selectedExitDirection();
+    if (direction < 0) {
+        QMessageBox::information(this, "Uscite", "Seleziona un'uscita nel tab Exits.");
+        return;
+    }
+
+    const nebbie::ExitLabelAlignResult result =
+        nebbie::align_room_exit_description(world_, vnum, direction);
+    if (result.exit_not_found) {
+        QMessageBox::warning(this, "Uscite", "Uscita non trovata.");
+        return;
+    }
+    if (result.missing_destination) {
+        QMessageBox::warning(this, "Uscite", "Destinazione mancante o non valida.");
+        return;
+    }
+    if (result.skipped_custom) {
+        setStatus("Etichetta personalizzata: non modificata.");
+        return;
+    }
+    if (result.already_ok) {
+        setStatus("Etichetta già allineata al nome completo della destinazione.");
+        return;
+    }
+    if (!result.updated) {
+        return;
+    }
+
+    markDirty();
+    reloadRoomEditor(vnum);
+    room_editor_->focusExitTab(direction);
+
+    const nebbie::Room* room = world_.find_room(vnum);
+    const nebbie::Exit* exit = room ? nebbie::find_room_exit(*room, direction) : nullptr;
+    if (exit) {
+        setStatus(QString("Uscita %1 allineata: \"%2\".")
+                      .arg(QString::fromUtf8(nebbie::exit_direction_name(direction)))
+                      .arg(QString::fromStdString(exit->description)));
+    }
+}
+
 void MainWindow::showExitAlignmentReport(const QString& text,
                                          const nebbie::ExitAlignmentReport& report) {
     QDialog dialog(this);
@@ -1526,7 +1570,8 @@ void MainWindow::showExitAlignmentReport(const QString& text,
     summary->setWordWrap(true);
     if (report.exits_aligned > 0) {
         summary->setText(QString("Aggiornate %1 etichette su %2 uscite controllate "
-                                   "(%3 personalizzate lasciate invariate).")
+                                   "(%3 personalizzate lasciate invariate). "
+                                   "Doppio clic su una riga per aprire la stanza e l'uscita.")
                            .arg(static_cast<qlonglong>(report.exits_aligned))
                            .arg(static_cast<qlonglong>(report.exits_checked))
                            .arg(static_cast<qlonglong>(report.exits_skipped_custom)));
@@ -1538,11 +1583,42 @@ void MainWindow::showExitAlignmentReport(const QString& text,
     }
     layout->addWidget(summary);
 
-    auto* details = new QTextEdit(&dialog);
-    details->setReadOnly(true);
-    details->setPlainText(text);
-    details->setMinimumSize(720, 420);
-    layout->addWidget(details, 1);
+    auto* changes_list = new QListWidget(&dialog);
+    changes_list->setMinimumHeight(360);
+    for (std::size_t i = 0; i < report.changes.size(); ++i) {
+        const auto& change = report.changes[i];
+        const QString old_label = QString::fromStdString(change.old_description).trimmed().isEmpty()
+                                      ? QStringLiteral("(vuota)")
+                                      : QString::fromStdString(change.old_description);
+        const QString label = QStringLiteral(
+                                  "[#%1 \"%2\"] uscita %3 -> #%4, exit.description: \"%5\" -> \"%6\"")
+                                  .arg(change.from_vnum)
+                                  .arg(QString::fromStdString(change.from_room_name))
+                                  .arg(QString::fromUtf8(nebbie::exit_direction_name(change.direction)))
+                                  .arg(change.to_vnum)
+                                  .arg(old_label)
+                                  .arg(QString::fromStdString(change.new_description));
+        auto* item = new QListWidgetItem(label, changes_list);
+        item->setData(Qt::UserRole, static_cast<qlonglong>(i));
+    }
+    if (changes_list->count() == 0) {
+        auto* item = new QListWidgetItem(QStringLiteral("Nessuna modifica necessaria."), changes_list);
+        item->setFlags(Qt::ItemIsEnabled);
+    }
+    layout->addWidget(changes_list, 1);
+
+    connect(changes_list, &QListWidget::itemDoubleClicked, &dialog, [this, &dialog, &report](QListWidgetItem* item) {
+        if (!item) {
+            return;
+        }
+        const int index = static_cast<int>(item->data(Qt::UserRole).toLongLong());
+        if (index < 0 || index >= static_cast<int>(report.changes.size())) {
+            return;
+        }
+        const auto& change = report.changes[static_cast<std::size_t>(index)];
+        dialog.accept();
+        navigateToRoomExit(change.from_vnum, change.direction);
+    });
 
     auto* log_hint = new QLabel(QString("Log applicazione: %1").arg(nebbie::qt::application_log_path()),
                                 &dialog);
@@ -1556,18 +1632,28 @@ void MainWindow::showExitAlignmentReport(const QString& text,
 
     dialog.resize(820, 560);
     dialog.exec();
+
+    (void)text;
 }
 
-void MainWindow::alignAllInboundExitDescriptions(const bool on_library_open) {
+void MainWindow::navigateToRoomExit(const long vnum, const int direction) {
+    if (!world_.find_room(vnum)) {
+        setStatus(QString("Stanza #%1 non trovata nella libreria.").arg(vnum));
+        return;
+    }
+    tabs_->setCurrentIndex(0);
+    selectRoomByVnum(vnum);
+    room_editor_->focusExitTab(direction);
+}
+
+void MainWindow::alignAllInboundExitDescriptions() {
     if (lib_path_.empty()) {
         QMessageBox::information(this, "Stanze", "Apri prima una libreria.");
         return;
     }
 
     const nebbie::ExitAlignmentReport report = nebbie::align_all_inbound_exit_descriptions(world_);
-    const QString context = on_library_open
-                                ? QStringLiteral("Allineamento uscite in entrata (apertura libreria)")
-                                : QStringLiteral("Allineamento uscite in entrata (manuale)");
+    const QString context = QStringLiteral("Allineamento uscite in entrata (manuale)");
     const QString text = nebbie::qt::format_exit_alignment_report(
         report, context, nebbie::qt::qstring_from_path(lib_path_));
     nebbie::qt::append_application_log(text);
@@ -1581,15 +1667,9 @@ void MainWindow::alignAllInboundExitDescriptions(const bool on_library_open) {
         }
     }
 
-    if (on_library_open) {
-        setStatus(QString("Libreria caricata: %1 etichette aggiornate, %2 già corrette.")
-                      .arg(static_cast<qlonglong>(report.exits_aligned))
-                      .arg(static_cast<qlonglong>(report.exits_already_ok)));
-    } else {
-        setStatus(QString("Allineamento uscite: %1 etichette aggiornate, %2 già corrette.")
-                      .arg(static_cast<qlonglong>(report.exits_aligned))
-                      .arg(static_cast<qlonglong>(report.exits_already_ok)));
-    }
+    setStatus(QString("Allineamento uscite: %1 etichette aggiornate, %2 già corrette.")
+                  .arg(static_cast<qlonglong>(report.exits_aligned))
+                  .arg(static_cast<qlonglong>(report.exits_already_ok)));
 }
 
 void MainWindow::reloadRoomEditor(long vnum) {

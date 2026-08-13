@@ -689,6 +689,53 @@ const Exit* find_room_exit(const Room& room, int direction) {
     return nullptr;
 }
 
+ExitLabelAlignResult align_room_exit_description(World& world,
+                                                 const long room_vnum,
+                                                 const int direction) {
+    ExitLabelAlignResult result;
+    Room* room = world.find_room(room_vnum);
+    if (!room) {
+        result.exit_not_found = true;
+        return result;
+    }
+
+    Exit* exit = nullptr;
+    for (auto& candidate : room->exits) {
+        if (candidate.direction == direction) {
+            exit = &candidate;
+            break;
+        }
+    }
+    if (!exit) {
+        result.exit_not_found = true;
+        return result;
+    }
+
+    if (exit->to_room <= 0) {
+        result.missing_destination = true;
+        return result;
+    }
+
+    const Room* destination = world.find_room(exit->to_room);
+    if (!destination) {
+        result.missing_destination = true;
+        return result;
+    }
+
+    if (!should_align_exit_description(exit->description, destination->name, false)) {
+        if (is_custom_exit_look_text(exit->description)) {
+            result.skipped_custom = true;
+        } else {
+            result.already_ok = true;
+        }
+        return result;
+    }
+
+    exit->description = destination->name;
+    result.updated = true;
+    return result;
+}
+
 std::size_t refresh_inbound_exit_descriptions(World& world,
                                               const long target_vnum,
                                               const InboundExitAlignPolicy policy) {

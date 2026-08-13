@@ -22,6 +22,30 @@
 
 namespace {
 
+constexpr int kOverviewTabText = 1;
+constexpr int kOverviewTabSector = 2;
+constexpr int kOverviewTabTeleport = 3;
+constexpr int kOverviewTabEnvironment = 4;
+constexpr int kOverviewTabExtra = 5;
+constexpr int kOverviewTabExits = 6;
+
+void addOverviewItem(QListWidget* list, const QString& text, const int tab, const int extra = -1) {
+    auto* item = new QListWidgetItem(text);
+    item->setData(Qt::UserRole, tab);
+    item->setData(Qt::UserRole + 1, extra);
+    list->addItem(item);
+}
+
+void addOverviewHeader(QListWidget* list, const QString& text) {
+    auto* item = new QListWidgetItem(text);
+    item->setData(Qt::UserRole, -1);
+    item->setFlags(Qt::ItemIsEnabled);
+    QFont font = item->font();
+    font.setBold(true);
+    item->setFont(font);
+    list->addItem(item);
+}
+
 void configureLineField(QLineEdit* field) {
     field->setMinimumWidth(420);
     field->setMinimumHeight(30);
@@ -115,78 +139,89 @@ void writeExitItem(QListWidgetItem* item, const nebbie::Exit& exit) {
                       .arg(details));
 }
 
-QString buildOverviewText(const nebbie::Room& room) {
-    QStringList lines;
+void populateOverviewList(QListWidget* list, const nebbie::Room& room) {
+    list->clear();
 
     const QString name = QString::fromStdString(room.name).trimmed();
     if (!name.isEmpty()) {
-        lines << QString("Nome: %1").arg(name);
+        addOverviewItem(list, QString("Nome: %1").arg(name), kOverviewTabText);
     }
 
     const QString description = QString::fromStdString(room.description).trimmed();
     if (!description.isEmpty()) {
         const QString first_line = description.split('\n').constFirst().left(160);
-        lines << QString("Descrizione: %1").arg(first_line);
+        QString line = QString("Descrizione: %1").arg(first_line);
         if (description.count('\n') > 0 || description.size() > 160) {
-            lines << QString("  (%1 caratteri totali)").arg(description.size());
+            line += QString(" (%1 caratteri totali)").arg(description.size());
         }
+        addOverviewItem(list, line, kOverviewTabText);
     }
 
-    lines << QString("Settore: %1").arg(QString::fromStdString(nebbie::room_sector_name(room.sector_type)));
+    addOverviewItem(list,
+                    QString("Settore: %1").arg(QString::fromStdString(nebbie::room_sector_name(room.sector_type))),
+                    kOverviewTabSector);
 
     const QString room_flags = formatActiveFlags(room.room_flags, nebbie::room_flag_defs());
     if (!room_flags.isEmpty()) {
-        lines << QString("Flag stanza: %1").arg(room_flags);
+        addOverviewItem(list, QString("Flag stanza: %1").arg(room_flags), kOverviewTabSector);
     }
 
     if (room.tele_time != 0 || room.tele_targ != 0 || room.tele_mask != 0 || room.tele_cnt != 0) {
-        lines << "Teletrasporto:";
+        addOverviewHeader(list, "Teletrasporto");
         if (room.tele_time != 0) {
-            lines << QString("  tele_time: %1").arg(room.tele_time);
+            addOverviewItem(list, QString("  tele_time: %1").arg(room.tele_time), kOverviewTabTeleport);
         }
         if (room.tele_targ != 0) {
-            lines << QString("  tele_targ: %1").arg(room.tele_targ);
+            addOverviewItem(list, QString("  tele_targ: %1").arg(room.tele_targ), kOverviewTabTeleport);
         }
         if (room.tele_mask != 0) {
-            lines << QString("  tele_mask: %1").arg(room.tele_mask);
+            addOverviewItem(list, QString("  tele_mask: %1").arg(room.tele_mask), kOverviewTabTeleport);
         }
         if (room.tele_cnt != 0) {
-            lines << QString("  tele_cnt: %1").arg(room.tele_cnt);
+            addOverviewItem(list, QString("  tele_cnt: %1").arg(room.tele_cnt), kOverviewTabTeleport);
         }
     }
 
     if (nebbie::room_sector_uses_river(room.sector_type)
         && (room.river_speed != 0 || room.river_dir != 0)) {
-        lines << "Fiume:";
+        addOverviewHeader(list, "Fiume");
         if (room.river_speed != 0) {
-            lines << QString("  river_speed: %1").arg(room.river_speed);
+            addOverviewItem(list, QString("  river_speed: %1").arg(room.river_speed), kOverviewTabEnvironment);
         }
         if (room.river_dir != 0) {
-            lines << QString("  river_dir: %1").arg(room.river_dir);
+            addOverviewItem(list, QString("  river_dir: %1").arg(room.river_dir), kOverviewTabEnvironment);
         }
     }
 
     if (nebbie::room_flags_use_moblim(room.room_flags) && room.moblim > 0) {
-        lines << QString("moblim (TUNNEL): %1").arg(room.moblim);
+        addOverviewItem(list, QString("moblim (TUNNEL): %1").arg(room.moblim), kOverviewTabEnvironment);
     }
 
     if (!room.bright_at_night.empty()) {
-        lines << QString("Bright at night: %1").arg(QString::fromStdString(room.bright_at_night));
+        addOverviewItem(list,
+                        QString("Bright at night: %1").arg(QString::fromStdString(room.bright_at_night)),
+                        kOverviewTabEnvironment);
     }
     if (!room.bright_at_day.empty()) {
-        lines << QString("Bright at day: %1").arg(QString::fromStdString(room.bright_at_day));
+        addOverviewItem(list,
+                        QString("Bright at day: %1").arg(QString::fromStdString(room.bright_at_day)),
+                        kOverviewTabEnvironment);
     }
 
     if (!room.extra_descs.empty()) {
-        lines << QString("Extra descriptions (%1):").arg(room.extra_descs.size());
-        for (const auto& extra : room.extra_descs) {
+        addOverviewHeader(list, QString("Extra descriptions (%1)").arg(room.extra_descs.size()));
+        for (int i = 0; i < static_cast<int>(room.extra_descs.size()); ++i) {
+            const auto& extra = room.extra_descs[static_cast<std::size_t>(i)];
             const QString keyword = QString::fromStdString(extra.keyword).trimmed();
-            lines << QString("  - %1").arg(keyword.isEmpty() ? "(senza keyword)" : keyword);
+            addOverviewItem(list,
+                            QString("  - %1").arg(keyword.isEmpty() ? "(senza keyword)" : keyword),
+                            kOverviewTabExtra,
+                            i);
         }
     }
 
     if (!room.exits.empty()) {
-        lines << QString("Uscite (%1):").arg(room.exits.size());
+        addOverviewHeader(list, QString("Uscite (%1)").arg(room.exits.size()));
         for (const auto& exit : room.exits) {
             QStringList parts;
             parts << QString("%1 -> #%2")
@@ -208,14 +243,18 @@ QString buildOverviewText(const nebbie::Room& room) {
             if (exit.open_cmd >= 0) {
                 parts << QString("open_cmd=%1").arg(exit.open_cmd);
             }
-            lines << QString("  - %1").arg(parts.join(" | "));
+            addOverviewItem(list,
+                            QString("  - %1").arg(parts.join(" | ")),
+                            kOverviewTabExits,
+                            exit.direction);
         }
     }
 
-    if (lines.isEmpty()) {
-        return QStringLiteral("(nessuna configurazione attiva)");
+    if (list->count() == 0) {
+        auto* item = new QListWidgetItem(QStringLiteral("(nessuna configurazione attiva)"));
+        item->setFlags(Qt::ItemIsEnabled);
+        list->addItem(item);
     }
-    return lines.join('\n');
 }
 
 } // namespace
@@ -227,22 +266,19 @@ void RoomEditorWidget::setComboIntValue(QComboBox* combo, const int value) const
 
 RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
-    auto* tabs = new QTabWidget;
+    tabs_ = new QTabWidget;
 
     auto* overview_tab = new QWidget;
     auto* overview_layout = new QVBoxLayout(overview_tab);
     overview_layout->addWidget(makeLegend(
         "Riepilogo in tempo reale della stanza: mostra solo settori, flag, uscite e altri "
-        "campi attivi o valorizzati. La chiave di una porta si configura nel tab Exits "
-        "(campo Key vnum).",
+        "campi attivi o valorizzati. Doppio clic su una riga apre la scheda corrispondente. "
+        "La chiave di una porta si configura nel tab Exits (campo Key vnum).",
         overview_tab));
-    overview_ = new QTextEdit;
-    overview_->setReadOnly(true);
-    overview_->setLineWrapMode(QTextEdit::WidgetWidth);
-    overview_->setAcceptRichText(false);
-    configureTextField(overview_, 420);
-    overview_layout->addWidget(overview_, 1);
-    tabs->addTab(overview_tab, "Riepilogo");
+    overview_list_ = new QListWidget;
+    overview_list_->setMinimumHeight(420);
+    overview_layout->addWidget(overview_list_, 1);
+    tabs_->addTab(overview_tab, "Riepilogo");
 
     auto* text_tab = new QWidget;
     auto* text_layout = new QVBoxLayout(text_tab);
@@ -254,7 +290,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     text_layout->addWidget(name_);
     text_layout->addWidget(new QLabel("Description:"));
     text_layout->addWidget(description_, 1);
-    tabs->addTab(text_tab, "Text");
+    tabs_->addTab(text_tab, "Text");
 
     auto* sector_tab = new QWidget;
     auto* sector_layout = new QVBoxLayout(sector_tab);
@@ -270,9 +306,9 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     sector_layout->addLayout(sector_form);
     sector_layout->addWidget(new QLabel("Room flags"));
     sector_layout->addWidget(room_flags_);
-    tabs->addTab(new QScrollArea, "Sector / Flags");
+    tabs_->addTab(new QScrollArea, "Sector / Flags");
     {
-        auto* scroll = qobject_cast<QScrollArea*>(tabs->widget(2));
+        auto* scroll = qobject_cast<QScrollArea*>(tabs_->widget(2));
         scroll->setWidgetResizable(true);
         scroll->setWidget(sector_tab);
     }
@@ -296,7 +332,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     tele_form->addRow("tele_mask:", tele_mask_);
     tele_form->addRow("tele_cnt:", tele_cnt_);
     tele_layout->addLayout(tele_form);
-    tabs->addTab(tele_tab, "Teleport");
+    tabs_->addTab(tele_tab, "Teleport");
 
     auto* env_tab = new QWidget;
     auto* env_layout = new QVBoxLayout(env_tab);
@@ -328,7 +364,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     env_layout->addWidget(river_panel_);
     env_layout->addWidget(moblim_panel_);
     env_layout->addLayout(bright_form);
-    tabs->addTab(env_tab, "Environment");
+    tabs_->addTab(env_tab, "Environment");
 
     auto* extra_tab = new QWidget;
     auto* extra_layout = new QVBoxLayout(extra_tab);
@@ -350,7 +386,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_layout->addWidget(extra_desc_list_, 1);
     extra_layout->addLayout(extra_desc_form);
     extra_layout->addLayout(extra_desc_buttons);
-    tabs->addTab(extra_tab, "Extra descriptions");
+    tabs_->addTab(extra_tab, "Extra descriptions");
 
     auto* exit_tab = new QWidget;
     auto* exit_layout = new QVBoxLayout(exit_tab);
@@ -359,9 +395,9 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
         "usually the destination room name (shown when looking that way), but can be custom "
         "look text for doors and passages. Keyword is the door name used by open/close/unlock "
         "commands. Key vnum is the object number that unlocks a locked door (-1 = no key). "
-        "Renaming a room updates inbound exit labels to the full destination room name. "
-        "Custom door look text (mithril, runes, secret passages) is preserved. "
-        "Use Allinea uscite in entrata to refresh stale labels manually.",
+        "Description is the look text (exit.description) and is usually the destination room "
+        "name. Use «Allinea etichetta uscita» to set it to the destination name for the "
+        "selected exit. Custom door look text (mithril, runes, secret passages) is preserved.",
         exit_tab));
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(140);
@@ -393,15 +429,20 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* exit_buttons = new QHBoxLayout;
     auto* exit_apply = new QPushButton("Add / update exit");
     auto* exit_remove = new QPushButton("Remove exit");
+    auto* exit_align_label = new QPushButton("Allinea etichetta uscita");
     exit_buttons->addWidget(exit_apply);
     exit_buttons->addWidget(exit_remove);
+    exit_buttons->addWidget(exit_align_label);
     exit_buttons->addStretch();
     exit_layout->addWidget(exit_list_);
     exit_layout->addLayout(exit_form);
     exit_layout->addLayout(exit_buttons);
-    tabs->addTab(exit_tab, "Exits");
+    tabs_->addTab(exit_tab, "Exits");
 
-    root->addWidget(tabs);
+    root->addWidget(tabs_);
+
+    connect(overview_list_, &QListWidget::itemDoubleClicked, this,
+            [this](QListWidgetItem* item) { navigateOverviewItem(item); });
 
     connect(sector_type_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int) { updateConditionalFields(); });
@@ -412,6 +453,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(exit_list_, &QListWidget::currentRowChanged, this, [this](int) { onExitSelected(); });
     connect(exit_apply, &QPushButton::clicked, this, &RoomEditorWidget::addOrUpdateExit);
     connect(exit_remove, &QPushButton::clicked, this, &RoomEditorWidget::removeExit);
+    connect(exit_align_label, &QPushButton::clicked, this, &RoomEditorWidget::alignExitLabelRequested);
 
     connectOverviewUpdates();
 
@@ -460,7 +502,7 @@ void RoomEditorWidget::connectOverviewUpdates() {
 }
 
 void RoomEditorWidget::refreshOverview() {
-    if (loading_ || !overview_updates_enabled_ || overview_ == nullptr) {
+    if (loading_ || !overview_updates_enabled_ || overview_list_ == nullptr) {
         return;
     }
 
@@ -491,7 +533,49 @@ void RoomEditorWidget::refreshOverview() {
         }
     }
 
-    overview_->setPlainText(buildOverviewText(snapshot));
+    populateOverviewList(overview_list_, snapshot);
+}
+
+void RoomEditorWidget::navigateOverviewItem(const QListWidgetItem* item) {
+    if (!item || tabs_ == nullptr) {
+        return;
+    }
+    const int tab = item->data(Qt::UserRole).toInt();
+    if (tab < 0) {
+        return;
+    }
+    tabs_->setCurrentIndex(tab);
+    const int extra = item->data(Qt::UserRole + 1).toInt();
+    if (tab == kOverviewTabExtra && extra >= 0 && extra < extra_desc_list_->count()) {
+        extra_desc_list_->setCurrentRow(extra);
+    } else if (tab == kOverviewTabExits && extra >= 0) {
+        focusExitTab(extra);
+    }
+}
+
+int RoomEditorWidget::selectedExitDirection() const {
+    const auto* item = exit_list_->currentItem();
+    if (item) {
+        return item->data(Qt::UserRole).toInt();
+    }
+    if (exit_to_room_->value() > 0) {
+        return comboIntValue(exit_direction_);
+    }
+    return -1;
+}
+
+void RoomEditorWidget::focusExitTab(const int direction) {
+    if (tabs_ != nullptr) {
+        tabs_->setCurrentIndex(kOverviewTabExits);
+    }
+    for (int i = 0; i < exit_list_->count(); ++i) {
+        auto* item = exit_list_->item(i);
+        if (item->data(Qt::UserRole).toInt() == direction) {
+            exit_list_->setCurrentItem(item);
+            return;
+        }
+    }
+    setComboIntValue(exit_direction_, direction);
 }
 
 void RoomEditorWidget::updateConditionalFields() {
