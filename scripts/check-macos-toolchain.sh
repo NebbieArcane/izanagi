@@ -14,30 +14,42 @@ macOS toolchain check FAILED.
 The error 'cstdio file not found' (or similar) means the C++ compiler cannot
 see Apple system headers. This is not a Nebbie Editor bug.
 
+If xcode-select -p shows CommandLineTools but clang++ still fails, the CLT
+install is incomplete — reinstall from scratch (see step 2).
+
 Fix (try in order):
 
-  1. Install or reinstall Xcode Command Line Tools:
-       xcode-select --install
+  1. Diagnose (paste output if you need help):
+       xcode-select -p
+       which clang++
+       clang++ --version
+       ls /Library/Developer/CommandLineTools/SDKs/
+       ls /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio 2>&1
 
-  2. Point xcode-select at the CLT or full Xcode:
+  2. Reinstall Command Line Tools completely:
+       sudo rm -rf /Library/Developer/CommandLineTools
+       xcode-select --install
+     Wait for the GUI installer to finish, open a NEW terminal, then re-run step 1.
+
+  3. Or install full Xcode from the App Store, then:
+       sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+       sudo xcodebuild -runFirstLaunch
+
+  4. Point xcode-select (only if step 2/3 already installed tools):
        sudo xcode-select -s /Library/Developer/CommandLineTools
-     or, if you use Xcode.app:
+     or:
        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-  3. Accept the Xcode license (if prompted):
-       sudo xcodebuild -license accept
-
-  4. After a macOS upgrade, reset and reinstall:
-       sudo xcode-select --reset
-       xcode-select --install
+  Note: 'sudo xcodebuild -license accept' works only with full Xcode.app,
+  not with Command Line Tools alone — skip it if you only use CLT.
 
   5. Clean and rebuild Nebbie Editor:
        rm -rf build
        ./scripts/build.sh
 
 Verify manually:
-       xcode-select -p
        clang++ -std=c++17 -x c++ -c - -o /dev/null <<< '#include <cstdio>'
+       echo $?    # must print 0
 
 EOF
     exit 1

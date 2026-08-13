@@ -126,27 +126,37 @@ Manuale installazione completo (Linux `.deb`, macOS `.dmg`, Windows zip/installe
 
 Il compilatore non trova gli header di sistema Apple. **Non è un bug del progetto.**
 
+Se `xcode-select -p` mostra `CommandLineTools` ma `clang++` fallisce comunque, l’installazione CLT è **incompleta o corrotta** — va reinstallata da zero (passo 2).
+
 ```bash
-# 1. Installa o reinstalla Xcode Command Line Tools
-xcode-select --install
-
-# 2. Verifica percorso developer
+# Diagnosi
 xcode-select -p
-# atteso: /Library/Developer/CommandLineTools
-# oppure: /Applications/Xcode.app/Contents/Developer
+which clang++
+clang++ --version
+ls /Library/Developer/CommandLineTools/SDKs/
+ls /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio
 
-# 3. Se il percorso è sbagliato:
-sudo xcode-select -s /Library/Developer/CommandLineTools
+# 1. Reinstallazione completa CLT (soluzione più comune)
+sudo rm -rf /Library/Developer/CommandLineTools
+xcode-select --install
+# Attendi fine installazione, apri un NUOVO terminale
 
-# 4. Test rapido
+# 2. Oppure Xcode completo (App Store), poi:
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -runFirstLaunch
+
+# 3. Test
 clang++ -std=c++17 -x c++ -c - -o /dev/null <<< '#include <cstdio>'
+echo $?    # deve essere 0
 
-# 5. Ricompila
+# 4. Ricompila
 rm -rf build
 ./scripts/build.sh
 ```
 
-Il progetto esegue lo stesso controllo automaticamente: `./scripts/check-macos-toolchain.sh`
+**Nota:** `sudo xcodebuild -license accept` funziona solo con **Xcode.app** installato, non con le sole Command Line Tools — puoi ignorare quell’errore se usi solo CLT.
+
+Controllo automatico: `./scripts/check-macos-toolchain.sh`
 
 ### Windows: Qt non trovato
 
