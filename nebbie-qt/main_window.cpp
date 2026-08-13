@@ -122,8 +122,10 @@ void MainWindow::setupUi() {
     room_panel_layout->addWidget(room_scroll, 1);
     auto* room_buttons = new QHBoxLayout;
     auto* room_apply = new QPushButton("Apply changes");
+    auto* room_sync_exits = new QPushButton("Sincronizza uscite in entrata");
     auto* room_goto_exit = new QPushButton("Go to exit target");
     room_buttons->addWidget(room_apply);
+    room_buttons->addWidget(room_sync_exits);
     room_buttons->addWidget(room_goto_exit);
     room_buttons->addStretch();
     room_panel_layout->addLayout(room_buttons);
@@ -288,6 +290,7 @@ void MainWindow::setupUi() {
     connect(mob_list_, &QListWidget::currentRowChanged, this, [this](int) { onMobSelected(); });
     connect(obj_list_, &QListWidget::currentRowChanged, this, [this](int) { onObjSelected(); });
     connect(room_apply, &QPushButton::clicked, this, &MainWindow::applyRoomChanges);
+    connect(room_sync_exits, &QPushButton::clicked, this, &MainWindow::syncInboundExitLabels);
     connect(room_goto_exit, &QPushButton::clicked, this, &MainWindow::goToExitTarget);
     connect(mob_apply, &QPushButton::clicked, this, &MainWindow::applyMobChanges);
     connect(obj_apply, &QPushButton::clicked, this, &MainWindow::applyObjChanges);
@@ -1449,13 +1452,85 @@ void MainWindow::applyRoomChanges() {
         return;
     }
 
+    const std::string old_name = room->name;
     nebbie::Room updated = *room;
     room_editor_->saveToRoom(updated);
     nebbie::assign_room_fields(*room, updated);
 
+    std::size_t synced = 0;
+    if (old_name != room->name) {
+        synced = nebbie::refresh_inbound_exit_descriptions(world_, vnum);
+        refreshRoomEditorIfInboundExitsChanged(vnum);
+    }
+
     item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(room->name)));
     markDirty();
-    setStatus(QString("Room %1 updated in memory.").arg(vnum));
+    if (synced > 0) {
+        setStatus(QString("Room %1 updated; %2 inbound exit label(s) synchronized.")
+                      .arg(vnum)
+                      .arg(static_cast<qlonglong>(synced)));
+    } else {
+        setStatus(QString("Room %1 updated in memory.").arg(vnum));
+    }
+}
+
+void MainWindow::syncInboundExitLabels() {
+    const long vnum = currentRoomVnum();
+    if (vnum <= 0) {
+        QMessageBox::information(this, "Rooms", "Select a room.");
+        return;
+    }
+
+    const nebbie::Room* room = world_.find_room(vnum);
+    if (!room) {
+        QMessageBox::warning(this, "Rooms", "Room not found.");
+        return;
+    }
+
+    const std::size_t synced = nebbie::refresh_inbound_exit_descriptions(world_, vnum);
+    refreshRoomEditorIfInboundExitsChanged(vnum);
+    markDirty();
+
+    if (synced == 0) {
+        setStatus(QString("Room %1: inbound exit labels already match \"%2\".")
+                      .arg(vnum)
+                      .arg(QString::fromStdString(room->name)));
+        return;
+    }
+
+    setStatus(QString("Room %1: synchronized %2 inbound exit label(s) to \"%3\".")
+                  .arg(vnum)
+                  .arg(static_cast<qlonglong>(synced))
+                  .arg(QString::fromStdString(room->name)));
+}
+
+void MainWindow::reloadRoomEditor(long vnum) {
+    const nebbie::Room* room = world_.find_room(vnum);
+    if (room) {
+        room_editor_->loadFromRoom(*room);
+    }
+}
+
+void MainWindow::refreshRoomEditorIfInboundExitsChanged(long target_vnum) {
+    const long current = currentRoomVnum();
+    if (current <= 0) {
+        return;
+    }
+    if (current == target_vnum) {
+        reloadRoomEditor(current);
+        return;
+    }
+
+    const nebbie::Room* room = world_.find_room(current);
+    if (!room) {
+        return;
+    }
+    for (const auto& exit : room->exits) {
+        if (exit.to_room == target_vnum) {
+            reloadRoomEditor(current);
+            return;
+        }
+    }
 }
 
 void MainWindow::applyMobChanges() {

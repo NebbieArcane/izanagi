@@ -208,8 +208,10 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* exit_tab = new QWidget;
     auto* exit_layout = new QVBoxLayout(exit_tab);
     exit_layout->addWidget(makeLegend(
-        "Exit directions: 0=north, 1=east, 2=south, 3=west, 4=up, 5=down. exit_info uses exit "
-        "bits (ISDOOR, CLOSED, LOCKED, ...). open_cmd is the open command vnum (-1 if unused).",
+        "Exit directions: 0=north, 1=east, 2=south, 3=west, 4=up, 5=down. Description is "
+        "usually the destination room name (shown when looking that way). Renaming a room "
+        "updates inbound exit labels automatically; use Sync inbound exit labels for manual "
+        "myst.wld edits.",
         exit_tab));
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(140);

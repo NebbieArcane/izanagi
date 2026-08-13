@@ -459,7 +459,11 @@ bool edit_room(World& world, long vnum, const RoomEdit& edit) {
     if (!room) {
         return false;
     }
+    const std::string old_name = room->name;
     apply_room_edit(*room, edit);
+    if (!edit.name.empty() && old_name != room->name) {
+        refresh_inbound_exit_descriptions(world, vnum);
+    }
     return true;
 }
 
@@ -574,6 +578,29 @@ const Exit* find_room_exit(const Room& room, int direction) {
         }
     }
     return nullptr;
+}
+
+std::size_t refresh_inbound_exit_descriptions(World& world, long target_vnum) {
+    const Room* destination = world.find_room(target_vnum);
+    if (!destination) {
+        return 0;
+    }
+
+    std::size_t updated = 0;
+    for (auto& [from_vnum, room] : world.rooms) {
+        for (auto& exit : room.exits) {
+            if (exit.to_room != target_vnum) {
+                continue;
+            }
+            if (exit.description == destination->name) {
+                continue;
+            }
+            exit.description = destination->name;
+            ++updated;
+        }
+        (void)from_vnum;
+    }
+    return updated;
 }
 
 bool set_room_exit(World& world, long room_vnum, const ExitEdit& edit) {

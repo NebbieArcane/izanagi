@@ -1,6 +1,9 @@
 #include "nebbie/validate.hpp"
 
+#include "nebbie/edit.hpp"
+
 #include <algorithm>
+#include <cctype>
 
 namespace nebbie {
 
@@ -43,6 +46,34 @@ bool room_in_zone(long vnum, const Zone& zone) {
     return vnum >= zone.bottom && vnum <= zone.top;
 }
 
+std::string trim_copy(const std::string& value) {
+    std::size_t start = 0;
+    while (start < value.size()
+           && std::isspace(static_cast<unsigned char>(value[start])) != 0) {
+        ++start;
+    }
+    std::size_t end = value.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(value[end - 1])) != 0) {
+        --end;
+    }
+    return value.substr(start, end - start);
+}
+
+bool strings_equal_ci(const std::string& left, const std::string& right) {
+    const std::string a = trim_copy(left);
+    const std::string b = trim_copy(right);
+    if (a.size() != b.size()) {
+        return false;
+    }
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        if (std::tolower(static_cast<unsigned char>(a[i]))
+            != std::tolower(static_cast<unsigned char>(b[i]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void validate_rooms(const World& world, ValidationReport& report) {
     for (const auto& [vnum, room] : world.rooms) {
         if (vnum != room.vnum) {
@@ -82,6 +113,23 @@ void validate_rooms(const World& world, ValidationReport& report) {
                           "room",
                           "room " + std::to_string(vnum) + " exit " + std::to_string(i)
                               + " points to missing room " + std::to_string(exit.to_room),
+                          ValidationTarget::room,
+                          vnum);
+                continue;
+            }
+
+            const Room* destination = world.find_room(exit.to_room);
+            if (destination && !exit.description.empty()
+                && !strings_equal_ci(exit.description, destination->name)) {
+                add_issue(report,
+                          ValidationSeverity::warning,
+                          "room",
+                          "room " + std::to_string(vnum) + " exit "
+                              + exit_direction_name(exit.direction) + " -> "
+                              + std::to_string(exit.to_room)
+                              + " has description \"" + trim_copy(exit.description)
+                              + "\" but destination name is \"" + trim_copy(destination->name)
+                              + "\"",
                           ValidationTarget::room,
                           vnum);
             }

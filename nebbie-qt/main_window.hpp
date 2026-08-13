@@ -61,6 +61,7 @@ private slots:
     void onMobSelected();
     void onObjSelected();
     void applyRoomChanges();
+    void syncInboundExitLabels();
     void applyMobChanges();
     void applyObjChanges();
     void applyZoneChanges();
@@ -100,6 +101,8 @@ private:
     void updateWorldZoneDetails(int zone_num);
     int currentZoneNum() const;
     void selectZoneByNum(int zone_num);
+    void reloadRoomEditor(long vnum);
+    void refreshRoomEditorIfInboundExitsChanged(long target_vnum);
     void selectRoomByVnum(long vnum);
     void selectMobByVnum(long vnum);
     void selectObjectByVnum(long vnum);

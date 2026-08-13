@@ -135,6 +135,9 @@ bool set_room_exit(World& world, long room_vnum, const ExitEdit& edit);
 bool remove_room_exit(World& world, long room_vnum, int direction);
 const Exit* find_room_exit(const Room& room, int direction);
 
+// Set exit.description on every exit that leads to target_vnum to the destination room name.
+std::size_t refresh_inbound_exit_descriptions(World& world, long target_vnum);
+
 Zone* find_zone(World& world, int zone_num);
 const Zone* find_zone(const World& world, int zone_num);
 

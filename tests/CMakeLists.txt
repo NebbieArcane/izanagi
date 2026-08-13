@@ -46,6 +46,10 @@ target_link_libraries(nebbie-overlay-tests PRIVATE nebbie-core)
 add_test(NAME overlay-fixtures
          COMMAND nebbie-overlay-tests ${CMAKE_SOURCE_DIR}/tests/fixtures)
 
+add_executable(nebbie-exit-sync-tests test_exit_sync.cpp)
+target_link_libraries(nebbie-exit-sync-tests PRIVATE nebbie-core)
+add_test(NAME exit-sync-workflow COMMAND nebbie-exit-sync-tests)
+
 add_executable(nebbie-nebbietest-mob-tests test_nebbietest_mob.cpp)
 target_link_libraries(nebbie-nebbietest-mob-tests PRIVATE nebbie-core)
 
