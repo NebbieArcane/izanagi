@@ -43,9 +43,10 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
         lines << QStringLiteral("Libreria: %1").arg(library_path);
     }
     lines << QStringLiteral(
-        "Nota: vengono modificate solo le descrizioni delle uscite (exit.description). "
-        "Ogni etichetta non personalizzata viene impostata al nome completo della stanza di destinazione. "
-        "Le descrizioni di porte/dettagli (mithril, rune, passaggi segreti) restano invariate.");
+        "Nota: vengono modificate solo le etichette look delle uscite (campo exit.description, "
+        "quello che vedi con «look nord» ecc.), NON il name né la description della stanza. "
+        "La stanza indicata è solo la sorgente dell'uscita modificata. "
+        "Ogni etichetta non personalizzata viene impostata al name completo della destinazione.");
     lines << QStringLiteral("Uscite controllate: %1").arg(static_cast<qlonglong>(report.exits_checked));
     lines << QStringLiteral("Già allineate: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
     lines << QStringLiteral("Etichette aggiornate: %1").arg(static_cast<qlonglong>(report.exits_aligned));
@@ -56,14 +57,18 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
 
     if (!report.changes.empty()) {
         lines << QStringLiteral("");
-        lines << QStringLiteral("Dettaglio modifiche:");
+        lines << QStringLiteral("Dettaglio modifiche (exit.description):");
         for (const auto& change : report.changes) {
-            lines << QStringLiteral("  Stanza #%1 \"%2\" uscita %3 -> #%4: \"%5\" -> \"%6\"")
+            const QString old_label = QString::fromStdString(change.old_description).trimmed().isEmpty()
+                                          ? QStringLiteral("(vuota)")
+                                          : QString::fromStdString(change.old_description);
+            lines << QStringLiteral(
+                         "  [#%1 \"%2\"] uscita %3 -> #%4, exit.description: \"%5\" -> \"%6\"")
                          .arg(change.from_vnum)
                          .arg(QString::fromStdString(change.from_room_name))
                          .arg(QString::fromUtf8(nebbie::exit_direction_name(change.direction)))
                          .arg(change.to_vnum)
-                         .arg(QString::fromStdString(change.old_description))
+                         .arg(old_label)
                          .arg(QString::fromStdString(change.new_description));
         }
     } else {
