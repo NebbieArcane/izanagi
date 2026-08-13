@@ -1,5 +1,10 @@
 #include "nebbie/validate.hpp"
 
+#include "nebbie/edit.hpp"
+
+#include <algorithm>
+#include <cctype>
+
 namespace nebbie {
 
 namespace {
@@ -9,8 +14,20 @@ constexpr long kNowhere = -1;
 void add_issue(ValidationReport& report,
                ValidationSeverity severity,
                const std::string& category,
-               const std::string& message) {
-    report.issues.push_back({severity, category, message});
+               const std::string& message,
+               ValidationTarget target = ValidationTarget::none,
+               long target_vnum = 0,
+               int zone_num = 0,
+               int reset_index = -1) {
+    ValidationIssue issue;
+    issue.severity = severity;
+    issue.category = category;
+    issue.message = message;
+    issue.target = target;
+    issue.target_vnum = target_vnum;
+    issue.zone_num = zone_num;
+    issue.reset_index = reset_index;
+    report.issues.push_back(std::move(issue));
 }
 
 bool has_mobile(const World& world, long vnum) {
@@ -29,6 +46,34 @@ bool room_in_zone(long vnum, const Zone& zone) {
     return vnum >= zone.bottom && vnum <= zone.top;
 }
 
+std::string trim_copy(const std::string& value) {
+    std::size_t start = 0;
+    while (start < value.size()
+           && std::isspace(static_cast<unsigned char>(value[start])) != 0) {
+        ++start;
+    }
+    std::size_t end = value.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(value[end - 1])) != 0) {
+        --end;
+    }
+    return value.substr(start, end - start);
+}
+
+bool strings_equal_ci(const std::string& left, const std::string& right) {
+    const std::string a = trim_copy(left);
+    const std::string b = trim_copy(right);
+    if (a.size() != b.size()) {
+        return false;
+    }
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        if (std::tolower(static_cast<unsigned char>(a[i]))
+            != std::tolower(static_cast<unsigned char>(b[i]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void validate_rooms(const World& world, ValidationReport& report) {
     for (const auto& [vnum, room] : world.rooms) {
         if (vnum != room.vnum) {
@@ -36,7 +81,9 @@ void validate_rooms(const World& world, ValidationReport& report) {
                       ValidationSeverity::error,
                       "room",
                       "room map key " + std::to_string(vnum)
-                          + " differs from entry vnum " + std::to_string(room.vnum));
+                          + " differs from entry vnum " + std::to_string(room.vnum),
+                      ValidationTarget::room,
+                      vnum);
         }
 
         bool in_any_zone = world.zones.empty();
@@ -50,7 +97,9 @@ void validate_rooms(const World& world, ValidationReport& report) {
             add_issue(report,
                       ValidationSeverity::warning,
                       "room",
-                      "room " + std::to_string(vnum) + " is outside all zone ranges");
+                      "room " + std::to_string(vnum) + " is outside all zone ranges",
+                      ValidationTarget::room,
+                      vnum);
         }
 
         for (std::size_t i = 0; i < room.exits.size(); ++i) {
@@ -63,7 +112,10 @@ void validate_rooms(const World& world, ValidationReport& report) {
                           ValidationSeverity::error,
                           "room",
                           "room " + std::to_string(vnum) + " exit " + std::to_string(i)
-                              + " points to missing room " + std::to_string(exit.to_room));
+                              + " points to missing room " + std::to_string(exit.to_room),
+                          ValidationTarget::room,
+                          vnum);
+                continue;
             }
         }
     }
@@ -90,13 +142,21 @@ void validate_resets(const World& world, ValidationReport& report) {
                     add_issue(report,
                               ValidationSeverity::error,
                               "reset",
-                              where + "M references missing mobile " + std::to_string(cmd.arg1));
+                              where + "M references missing mobile " + std::to_string(cmd.arg1),
+                              ValidationTarget::zone,
+                              cmd.arg1,
+                              zone.num,
+                              static_cast<int>(i));
                 }
                 if (!world.rooms.empty() && cmd.arg3 > 0 && !has_room(world, cmd.arg3)) {
                     add_issue(report,
                               ValidationSeverity::error,
                               "reset",
-                              where + "M references missing room " + std::to_string(cmd.arg3));
+                              where + "M references missing room " + std::to_string(cmd.arg3),
+                              ValidationTarget::zone,
+                              cmd.arg3,
+                              zone.num,
+                              static_cast<int>(i));
                 }
                 break;
             case 'C':
@@ -169,13 +229,17 @@ void validate_shops(const World& world, ValidationReport& report) {
             add_issue(report,
                       ValidationSeverity::error,
                       "shop",
-                      where + "keeper mobile " + std::to_string(shop.keeper) + " not found");
+                      where + "keeper mobile " + std::to_string(shop.keeper) + " not found",
+                      ValidationTarget::shop,
+                      shop.vnum);
         }
         if (!world.rooms.empty() && shop.in_room > 0 && !has_room(world, shop.in_room)) {
             add_issue(report,
                       ValidationSeverity::error,
                       "shop",
-                      where + "room " + std::to_string(shop.in_room) + " not found");
+                      where + "room " + std::to_string(shop.in_room) + " not found",
+                      ValidationTarget::shop,
+                      shop.vnum);
         }
         if (!world.objects.empty()) {
             for (int obj_vnum : shop.producing) {
@@ -183,7 +247,9 @@ void validate_shops(const World& world, ValidationReport& report) {
                     add_issue(report,
                               ValidationSeverity::error,
                               "shop",
-                              where + "produces missing object " + std::to_string(obj_vnum));
+                              where + "produces missing object " + std::to_string(obj_vnum),
+                              ValidationTarget::shop,
+                              shop.vnum);
                 }
             }
         }

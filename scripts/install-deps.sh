@@ -13,6 +13,7 @@ Installs CMake, a C++17 compiler, and optionally Qt 6 for nebbieedit.
 
 Linux (Debian/Ubuntu): build-essential, cmake, qt6-base-dev
 macOS (Homebrew): cmake, qt@6
+Windows: Visual Studio 2022 Build Tools, CMake, Qt 6 (MSVC) — see install-deps.ps1
 EOF
 }
 
@@ -40,6 +41,14 @@ install_linux() {
 }
 
 install_macos() {
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        if ! xcode-select -p >/dev/null 2>&1; then
+            echo "Installing Xcode Command Line Tools (required for C++ headers)..."
+            xcode-select --install || true
+            echo "Complete the CLT installer dialog, then re-run: ./scripts/install-deps.sh" >&2
+        fi
+    fi
+
     if ! command -v brew >/dev/null 2>&1; then
         cat >&2 <<'EOF'
 Homebrew is required on macOS: https://brew.sh
@@ -54,13 +63,19 @@ EOF
         echo "Qt 6 prefix: $(brew --prefix qt@6)"
         echo "Build with: CMAKE_PREFIX_PATH=\"$(brew --prefix qt@6)\" ./scripts/build.sh"
     fi
+
+    "${ROOT}/scripts/check-macos-toolchain.sh"
 }
 
 case "$uname_s" in
     Linux) install_linux ;;
     Darwin) install_macos ;;
+    MINGW*|MSYS*|CYGWIN*)
+        echo "On Windows use: .\\scripts\\install-deps.ps1" >&2
+        exit 1
+        ;;
     *)
-        echo "Unsupported OS: $uname_s (supported: Linux, Darwin/macOS)" >&2
+        echo "Unsupported OS: $uname_s (supported: Linux, Darwin/macOS, Windows via PowerShell)" >&2
         exit 1
         ;;
 esac
