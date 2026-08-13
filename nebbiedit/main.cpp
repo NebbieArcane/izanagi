@@ -17,58 +17,20 @@ namespace {
 
 nebbie::World g_world;
 
-bool strings_equal_ci(const std::string& left, const std::string& right) {
-    if (left.size() != right.size()) {
-        return false;
-    }
-    for (std::size_t i = 0; i < left.size(); ++i) {
-        if (std::tolower(static_cast<unsigned char>(left[i]))
-            != std::tolower(static_cast<unsigned char>(right[i]))) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool is_prefix_label_ci(const std::string& shorter, const std::string& full) {
-    if (shorter.empty() || full.size() < shorter.size()) {
-        return false;
-    }
-    if (!strings_equal_ci(full.substr(0, shorter.size()), shorter)) {
-        return false;
-    }
-    if (full.size() == shorter.size()) {
-        return true;
-    }
-    const char next = static_cast<char>(std::tolower(static_cast<unsigned char>(full[shorter.size()])));
-    return next == ' ' || next == '\'' || next == '.';
-}
-
-const char* inbound_exit_status(const std::string& exit_description, const std::string& destination_name) {
-    if (exit_description.empty()) {
-        return "vuota";
-    }
-    if (strings_equal_ci(exit_description, destination_name)) {
-        return "allineata";
-    }
-    if (is_prefix_label_ci(exit_description, destination_name)) {
-        return "abbreviata";
-    }
-    return "diversa";
-}
-
 void usage() {
     std::cout
         << "Nebbie Arcane World Editor (CLI)\n\n"
         << "Usage:\n"
         << "  nebbiedit info <lib-directory>\n"
-        << "  nebbiedit load <lib-directory>\n"
+        << "  nebbiedit load <lib-directory>   (loads in-process; use edit for a session)\n"
+        << "  nebbiedit edit <lib-directory> (interactive session)\n"
         << "  nebbiedit zone list\n"
         << "  nebbiedit zone show <zone-number>\n"
         << "  nebbiedit zone rooms <zone-number>\n"
         << "  nebbiedit zone graph <zone-number> [--dot]\n"
-        << "  nebbiedit room show <vnum>\n"
-        << "  nebbiedit room inbound <vnum>\n"
+        << "  nebbiedit room list <lib-directory> [vnum-prefix]\n"
+        << "  nebbiedit room show <lib-directory> <vnum>\n"
+        << "  nebbiedit room inbound <lib-directory> <vnum>\n"
         << "  nebbiedit mob list\n"
         << "  nebbiedit mob show <vnum>\n"
         << "  nebbiedit obj list\n"
@@ -215,64 +177,19 @@ bool run(int argc, char** argv) {
             }
         }
 
-        if (cmd == "room" && argc >= 4 && std::string(argv[2]) == "show") {
-            const long vnum = std::stol(argv[3]);
-            const nebbie::Room* room = g_world.find_room(vnum);
-            if (!room) {
-                std::cerr << "Room not loaded: " << vnum << '\n';
-                return false;
-            }
-            std::cout << "#" << room->vnum << " " << room->name << '\n';
-            std::cout << room->description << '\n';
-            std::cout << "Flags: " << room->room_flags
-                      << " Sector: " << room->sector_type << '\n';
-            std::cout << "Exits: " << room->exits.size() << '\n';
-            for (const auto& exit : room->exits) {
-                const nebbie::Room* target = g_world.find_room(exit.to_room);
-                std::cout << "  " << nebbie::exit_direction_name(exit.direction) << " -> #"
-                          << exit.to_room;
-                if (target) {
-                    std::cout << " \"" << target->name << "\"";
-                }
-                std::cout << "  desc=\"" << exit.description << "\"";
-                if (!exit.keyword.empty()) {
-                    std::cout << "  kw=\"" << exit.keyword << "\"";
-                }
-                if (exit.key >= 0) {
-                    std::cout << "  key=" << exit.key;
-                }
-                std::cout << '\n';
-            }
-            return true;
+        if (cmd == "room" && argc >= 5 && std::string(argv[2]) == "show") {
+            const long vnum = std::stol(argv[4]);
+            return nebbiedit::run_room_show(argv[3], vnum);
         }
 
-        if (cmd == "room" && argc >= 4 && std::string(argv[2]) == "inbound") {
-            const long vnum = std::stol(argv[3]);
-            const nebbie::Room* destination = g_world.find_room(vnum);
-            if (!destination) {
-                std::cerr << "Room not loaded: " << vnum << '\n';
-                return false;
-            }
-            std::cout << "Inbound exits to #" << vnum << " \"" << destination->name << "\":\n";
-            std::size_t count = 0;
-            for (const auto& [from_vnum, room] : g_world.rooms) {
-                for (const auto& exit : room.exits) {
-                    if (exit.to_room != vnum) {
-                        continue;
-                    }
-                    ++count;
-                    std::cout << "  #" << from_vnum << " \"" << room.name << "\" "
-                              << nebbie::exit_direction_name(exit.direction) << " -> #" << vnum
-                              << "  desc=\"" << exit.description << "\""
-                              << "  [" << inbound_exit_status(exit.description, destination->name)
-                              << "]\n";
-                }
-                (void)from_vnum;
-            }
-            if (count == 0) {
-                std::cout << "  (nessuna)\n";
-            }
-            return true;
+        if (cmd == "room" && argc >= 5 && std::string(argv[2]) == "inbound") {
+            const long vnum = std::stol(argv[4]);
+            return nebbiedit::run_room_inbound(argv[3], vnum);
+        }
+
+        if (cmd == "room" && argc >= 4 && std::string(argv[2]) == "list") {
+            const std::string prefix = argc >= 5 ? argv[4] : std::string{};
+            return nebbiedit::run_room_list(argv[3], prefix);
         }
 
         if (cmd == "mob") {

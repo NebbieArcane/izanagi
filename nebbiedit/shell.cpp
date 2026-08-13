@@ -14,6 +14,46 @@ namespace nebbiedit {
 
 namespace {
 
+bool strings_equal_ci(const std::string& left, const std::string& right) {
+    if (left.size() != right.size()) {
+        return false;
+    }
+    for (std::size_t i = 0; i < left.size(); ++i) {
+        if (std::tolower(static_cast<unsigned char>(left[i]))
+            != std::tolower(static_cast<unsigned char>(right[i]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool is_prefix_label_ci(const std::string& shorter, const std::string& full) {
+    if (shorter.empty() || full.size() < shorter.size()) {
+        return false;
+    }
+    if (!strings_equal_ci(full.substr(0, shorter.size()), shorter)) {
+        return false;
+    }
+    if (full.size() == shorter.size()) {
+        return true;
+    }
+    const char next = static_cast<char>(std::tolower(static_cast<unsigned char>(full[shorter.size()])));
+    return next == ' ' || next == '\'' || next == '.';
+}
+
+const char* inbound_exit_status(const std::string& exit_description, const std::string& destination_name) {
+    if (exit_description.empty()) {
+        return "vuota";
+    }
+    if (strings_equal_ci(exit_description, destination_name)) {
+        return "allineata";
+    }
+    if (is_prefix_label_ci(exit_description, destination_name)) {
+        return "abbreviata";
+    }
+    return "diversa";
+}
+
 void print_validation(const nebbie::ValidationReport& report) {
     for (const auto& issue : report.issues) {
         const char* level = issue.severity == nebbie::ValidationSeverity::error ? "ERROR" : "WARN";
@@ -55,6 +95,7 @@ void print_shell_help() {
         << "  validate\n"
         << "  save [--force]\n"
         << "  room show <vnum>\n"
+        << "  room inbound <vnum>\n"
         << "  room set <vnum> --name <text> [--desc <text>] [--sector N] [--flags N]\n"
         << "  mob show <vnum>\n"
         << "  mob set <vnum> --short <text> [--long <text>] [--level N] [--alignment N]\n"
@@ -95,14 +136,11 @@ bool handle_shell_command(const std::vector<std::string>& tokens,
     if (cmd == "room" && tokens.size() >= 3) {
         const long vnum = std::stol(tokens[2]);
         if (tokens[1] == "show") {
-            const nebbie::Room* room = world.find_room(vnum);
-            if (!room) {
-                std::cerr << "Room not found: " << vnum << '\n';
-                return true;
-            }
-            std::cout << "#" << room->vnum << " " << room->name << '\n';
-            std::cout << room->description << '\n';
-            std::cout << "Sector: " << room->sector_type << " Flags: " << room->room_flags << '\n';
+            print_room_show(world, vnum);
+            return true;
+        }
+        if (tokens[1] == "inbound") {
+            print_room_inbound(world, vnum);
             return true;
         }
         if (tokens[1] == "set") {
@@ -171,6 +209,97 @@ bool handle_shell_command(const std::vector<std::string>& tokens,
 }
 
 } // namespace
+
+void print_room_show(const nebbie::World& world, const long vnum) {
+    const nebbie::Room* room = world.find_room(vnum);
+    if (!room) {
+        std::cerr << "Room not found: " << vnum << '\n';
+        return;
+    }
+    std::cout << "#" << room->vnum << " " << room->name << '\n';
+    std::cout << room->description << '\n';
+    std::cout << "Flags: " << room->room_flags << " Sector: " << room->sector_type << '\n';
+    std::cout << "Exits: " << room->exits.size() << '\n';
+    for (const auto& exit : room->exits) {
+        const nebbie::Room* target = world.find_room(exit.to_room);
+        std::cout << "  " << nebbie::exit_direction_name(exit.direction) << " -> #"
+                  << exit.to_room;
+        if (target) {
+            std::cout << " \"" << target->name << "\"";
+        }
+        std::cout << "  desc=\"" << exit.description << "\"";
+        if (!exit.keyword.empty()) {
+            std::cout << "  kw=\"" << exit.keyword << "\"";
+        }
+        if (exit.key >= 0) {
+            std::cout << "  key=" << exit.key;
+        }
+        std::cout << '\n';
+    }
+}
+
+void print_room_inbound(const nebbie::World& world, const long vnum) {
+    const nebbie::Room* destination = world.find_room(vnum);
+    if (!destination) {
+        std::cerr << "Room not found: " << vnum << '\n';
+        return;
+    }
+    std::cout << "Inbound exits to #" << vnum << " \"" << destination->name << "\":\n";
+    std::size_t count = 0;
+    for (const auto& [from_vnum, room] : world.rooms) {
+        for (const auto& exit : room.exits) {
+            if (exit.to_room != vnum) {
+                continue;
+            }
+            ++count;
+            std::cout << "  #" << from_vnum << " \"" << room.name << "\" "
+                      << nebbie::exit_direction_name(exit.direction) << " -> #" << vnum
+                      << "  desc=\"" << exit.description << "\""
+                      << "  [" << inbound_exit_status(exit.description, destination->name)
+                      << "]\n";
+        }
+        (void)from_vnum;
+    }
+    if (count == 0) {
+        std::cout << "  (nessuna)\n";
+    }
+}
+
+bool run_room_show(const std::filesystem::path& lib_root, const long vnum) {
+    nebbie::World world;
+    nebbie::load_lib(world, lib_root, [](const std::string& msg) {
+        std::cout << msg << '\n';
+    });
+    print_room_show(world, vnum);
+    return world.find_room(vnum) != nullptr;
+}
+
+bool run_room_inbound(const std::filesystem::path& lib_root, const long vnum) {
+    nebbie::World world;
+    nebbie::load_lib(world, lib_root, [](const std::string& msg) {
+        std::cout << msg << '\n';
+    });
+    print_room_inbound(world, vnum);
+    return world.find_room(vnum) != nullptr;
+}
+
+bool run_room_list(const std::filesystem::path& lib_root, const std::string& prefix) {
+    nebbie::World world;
+    nebbie::load_lib(world, lib_root, [](const std::string& msg) {
+        std::cout << msg << '\n';
+    });
+    std::cout << "Rooms: " << world.rooms.size() << '\n';
+    for (const auto& [vnum, room] : world.rooms) {
+        if (!prefix.empty()) {
+            const std::string vnum_text = std::to_string(vnum);
+            if (vnum_text.rfind(prefix, 0) != 0) {
+                continue;
+            }
+        }
+        std::cout << "#" << vnum << " " << room.name << '\n';
+    }
+    return true;
+}
 
 int run_shell(const std::filesystem::path& lib_root) {
     nebbie::World world;
