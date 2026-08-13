@@ -7,6 +7,8 @@
 
 namespace nebbie {
 
+bool is_custom_exit_look_text(const std::string& exit_description);
+
 namespace {
 
 constexpr const char* EXIT_NAMES[EXIT_DIR_COUNT] = {
@@ -57,97 +59,26 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
     return true;
 }
 
-bool is_prefix_label_ci(const std::string& shorter, const std::string& full) {
-    const std::string a = trim_copy(shorter);
-    const std::string b = trim_copy(full);
-    if (a.empty() || b.size() < a.size()) {
-        return false;
-    }
-    if (!strings_equal_ci(b.substr(0, a.size()), a)) {
-        return false;
-    }
-    if (b.size() == a.size()) {
-        return true;
-    }
-    const char next = static_cast<char>(std::tolower(static_cast<unsigned char>(b[a.size()])));
-    return next == ' ' || next == '\'' || next == '.';
-}
-
-bool describes_room_name(const std::string& exit_description, const std::string& room_name) {
-    return strings_equal_ci(exit_description, room_name)
-        || is_prefix_label_ci(exit_description, room_name);
-}
-
-bool is_custom_exit_look_text(const std::string& exit_description) {
-    const std::string text = trim_copy(exit_description);
-    if (text.empty()) {
-        return false;
-    }
-    std::string lower = text;
-    for (char& c : lower) {
-        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-    }
-    static const char* markers[] = {
-        "porta",
-        "portone",
-        "portale",
-        "botola",
-        "mithril",
-        "osservando",
-        "vedi un",
-        "vedi il",
-        "vedi la",
-        "vedi uno",
-        "non sembra",
-        "cesellato",
-        "runich",
-        "chiusa a chiave",
-        "simboli",
-        "illuminat",
-        "passaggio segreto",
-        "enorme portale",
-        "un muro",
-        "vedi un altare",
-        "una botola",
-        "una grande porta",
-        "una porta",
-    };
-    for (const char* marker : markers) {
-        if (lower.find(marker) != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool should_align_exit_description(const std::string& exit_description,
                                    const std::string& destination_name,
-                                   const std::string* previous_name,
                                    const bool fill_empty_only) {
     if (strings_equal_ci(exit_description, destination_name)) {
         return false;
     }
-    if (trim_copy(exit_description).empty()) {
-        return true;
-    }
-    if (fill_empty_only) {
-        if (previous_name != nullptr && strings_equal_ci(exit_description, *previous_name)) {
-            return true;
-        }
+    if (is_custom_exit_look_text(exit_description)) {
         return false;
     }
-    if (previous_name != nullptr) {
-        return describes_room_name(exit_description, *previous_name);
+    if (fill_empty_only) {
+        return trim_copy(exit_description).empty();
     }
-    return !is_custom_exit_look_text(exit_description);
+    return true;
 }
 
 bool apply_exit_description_alignment(Exit& exit,
                                       const std::string& destination_name,
-                                      const std::string* previous_name,
                                       const bool fill_empty_only,
                                       std::size_t& updated) {
-    if (!should_align_exit_description(exit.description, destination_name, previous_name, fill_empty_only)) {
+    if (!should_align_exit_description(exit.description, destination_name, fill_empty_only)) {
         return false;
     }
     exit.description = destination_name;
@@ -245,6 +176,58 @@ long first_object_vnum(const World& world) {
 }
 
 } // namespace
+
+bool is_custom_exit_look_text(const std::string& exit_description) {
+    std::size_t start = 0;
+    while (start < exit_description.size()
+           && std::isspace(static_cast<unsigned char>(exit_description[start])) != 0) {
+        ++start;
+    }
+    std::size_t end = exit_description.size();
+    while (end > start
+           && std::isspace(static_cast<unsigned char>(exit_description[end - 1])) != 0) {
+        --end;
+    }
+    const std::string text = exit_description.substr(start, end - start);
+    if (text.empty()) {
+        return false;
+    }
+    std::string lower = text;
+    for (char& c : lower) {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+    static const char* markers[] = {
+        "porta",
+        "portone",
+        "portale",
+        "botola",
+        "mithril",
+        "osservando",
+        "vedi un",
+        "vedi il",
+        "vedi la",
+        "vedi uno",
+        "non sembra",
+        "cesellato",
+        "runich",
+        "chiusa a chiave",
+        "simboli",
+        "illuminat",
+        "passaggio segreto",
+        "enorme portale",
+        "un muro",
+        "vedi un altare",
+        "una botola",
+        "una grande porta",
+        "una porta",
+    };
+    for (const char* marker : markers) {
+        if (lower.find(marker) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
 
 const char* exit_direction_name(int direction) {
     if (direction < 0 || direction >= EXIT_DIR_COUNT) {
@@ -588,7 +571,7 @@ bool edit_room(World& world, long vnum, const RoomEdit& edit) {
     const std::string old_name = room->name;
     apply_room_edit(*room, edit);
     if (!edit.name.empty() && !strings_equal_ci(old_name, room->name)) {
-        refresh_inbound_exit_descriptions(world, vnum, &old_name, InboundExitAlignPolicy::SyncRoomLabels);
+        refresh_inbound_exit_descriptions(world, vnum, InboundExitAlignPolicy::SyncRoomLabels);
     }
     return true;
 }
@@ -708,7 +691,6 @@ const Exit* find_room_exit(const Room& room, int direction) {
 
 std::size_t refresh_inbound_exit_descriptions(World& world,
                                               const long target_vnum,
-                                              const std::string* previous_name,
                                               const InboundExitAlignPolicy policy) {
     const Room* destination = world.find_room(target_vnum);
     if (!destination) {
@@ -722,7 +704,7 @@ std::size_t refresh_inbound_exit_descriptions(World& world,
             if (exit.to_room != target_vnum) {
                 continue;
             }
-            apply_exit_description_alignment(exit, destination->name, previous_name, fill_empty_only, updated);
+            apply_exit_description_alignment(exit, destination->name, fill_empty_only, updated);
         }
         (void)from_vnum;
     }
@@ -749,7 +731,7 @@ ExitAlignmentReport align_all_inbound_exit_descriptions(World& world) {
                 continue;
             }
 
-            if (!should_align_exit_description(exit.description, destination->name, nullptr, true)) {
+            if (!should_align_exit_description(exit.description, destination->name, false)) {
                 ++report.exits_skipped_custom;
                 continue;
             }

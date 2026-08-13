@@ -3,6 +3,7 @@
 #include "cli_parse.hpp"
 
 #include "nebbie/edit.hpp"
+#include "nebbie/edit.hpp"
 #include "nebbie/io.hpp"
 #include "nebbie/validate.hpp"
 
@@ -42,22 +43,6 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
     return true;
 }
 
-bool is_prefix_label_ci(const std::string& shorter, const std::string& full) {
-    const std::string a = trim_copy(shorter);
-    const std::string b = trim_copy(full);
-    if (a.empty() || b.size() < a.size()) {
-        return false;
-    }
-    if (!strings_equal_ci(b.substr(0, a.size()), a)) {
-        return false;
-    }
-    if (b.size() == a.size()) {
-        return true;
-    }
-    const char next = static_cast<char>(std::tolower(static_cast<unsigned char>(b[a.size()])));
-    return next == ' ' || next == '\'' || next == '.';
-}
-
 const char* inbound_exit_status(const std::string& exit_description, const std::string& destination_name) {
     if (trim_copy(exit_description).empty()) {
         return "vuota";
@@ -65,10 +50,10 @@ const char* inbound_exit_status(const std::string& exit_description, const std::
     if (strings_equal_ci(exit_description, destination_name)) {
         return "allineata";
     }
-    if (is_prefix_label_ci(exit_description, destination_name)) {
-        return "abbreviata";
+    if (nebbie::is_custom_exit_look_text(exit_description)) {
+        return "personalizzata";
     }
-    return "diversa";
+    return "da allineare";
 }
 
 void print_validation(const nebbie::ValidationReport& report) {

@@ -359,9 +359,9 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
         "usually the destination room name (shown when looking that way), but can be custom "
         "look text for doors and passages. Keyword is the door name used by open/close/unlock "
         "commands. Key vnum is the object number that unlocks a locked door (-1 = no key). "
-        "Renaming a room updates inbound exit labels that matched the previous name, including "
-        "abbreviated forms (e.g. \"Il cortile interno\"). Custom descriptions (doors, runes) are "
-        "preserved. Use Allinea uscite in entrata to refresh stale room-name labels.",
+        "Renaming a room updates inbound exit labels to the full destination room name. "
+        "Custom door look text (mithril, runes, secret passages) is preserved. "
+        "Use Allinea uscite in entrata to refresh stale labels manually.",
         exit_tab));
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(140);

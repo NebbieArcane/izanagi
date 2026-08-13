@@ -137,9 +137,9 @@ bool remove_room_exit(World& world, long room_vnum, int direction);
 const Exit* find_room_exit(const Room& room, int direction);
 
 // Update inbound exit.description for exits leading to target_vnum.
-// FillEmptyOnly (bulk): only empty descriptions, plus exact old-name matches on rename.
-// SyncRoomLabels (manual button / rename): also updates abbreviated room-name labels;
-// custom look text (doors, runes, etc.) is never overwritten.
+// SyncRoomLabels: set every non-custom inbound label to the destination room name.
+// FillEmptyOnly: only fill empty descriptions (optional conservative mode).
+// Custom look text (doors, runes, etc.) is never overwritten.
 enum class InboundExitAlignPolicy {
     FillEmptyOnly,
     SyncRoomLabels,
@@ -147,8 +147,9 @@ enum class InboundExitAlignPolicy {
 
 std::size_t refresh_inbound_exit_descriptions(World& world,
                                               long target_vnum,
-                                              const std::string* previous_name = nullptr,
                                               InboundExitAlignPolicy policy = InboundExitAlignPolicy::SyncRoomLabels);
+
+bool is_custom_exit_look_text(const std::string& exit_description);
 
 struct ExitAlignmentChange {
     long from_vnum = 0;
@@ -167,7 +168,7 @@ struct ExitAlignmentReport {
     std::vector<ExitAlignmentChange> changes;
 };
 
-// Fill empty inbound exit descriptions with the destination room name.
+// Set inbound exit descriptions to the destination room name where appropriate.
 // Custom look text is preserved. Only exit.description is modified.
 ExitAlignmentReport align_all_inbound_exit_descriptions(World& world);
 

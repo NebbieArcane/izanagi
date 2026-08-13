@@ -28,7 +28,7 @@ int main() {
         world.rooms.emplace(source.vnum, source);
 
         const std::size_t skipped_custom = nebbie::refresh_inbound_exit_descriptions(
-            world, 34020, nullptr, nebbie::InboundExitAlignPolicy::FillEmptyOnly);
+            world, 34020, nebbie::InboundExitAlignPolicy::FillEmptyOnly);
         if (skipped_custom != 0) {
             throw std::runtime_error("fill-empty refresh should not update non-empty labels");
         }
@@ -49,7 +49,7 @@ int main() {
         world.rooms.emplace(empty_source.vnum, empty_source);
 
         const std::size_t filled = nebbie::refresh_inbound_exit_descriptions(
-            world, 34020, nullptr, nebbie::InboundExitAlignPolicy::FillEmptyOnly);
+            world, 34020, nebbie::InboundExitAlignPolicy::FillEmptyOnly);
         if (filled != 1) {
             throw std::runtime_error("expected one empty inbound exit to be filled");
         }
@@ -57,27 +57,25 @@ int main() {
             throw std::runtime_error("empty inbound exit description was not filled");
         }
 
+        const std::size_t synced = nebbie::refresh_inbound_exit_descriptions(world, 34020);
+        if (synced != 1) {
+            throw std::runtime_error("manual sync should update stale room-name labels");
+        }
+        if (world.find_room(34021)->exits.front().description != destination.name) {
+            throw std::runtime_error("manual sync did not update stale room-name label");
+        }
+
         nebbie::RoomEdit edit;
         edit.name = "Nuovo titolo destinazione";
+        world.find_room(34021)->exits.front().description = "di fronte al castello";
         if (!nebbie::edit_room(world, 34020, edit)) {
             throw std::runtime_error("edit_room failed");
         }
-        if (world.find_room(34021)->exits.front().description != "di fronte al castello") {
-            throw std::runtime_error("edit_room overwrote custom inbound exit description");
+        if (world.find_room(34021)->exits.front().description != edit.name) {
+            throw std::runtime_error("edit_room did not refresh stale inbound exit labels on rename");
         }
         if (world.find_room(34022)->exits.front().description != edit.name) {
-            throw std::runtime_error("edit_room did not refresh inbound exit with previous name");
-        }
-
-        const std::string previous_name = destination.name;
-        world.find_room(34021)->exits.front().description = previous_name;
-        const std::size_t renamed = nebbie::refresh_inbound_exit_descriptions(
-            world, 34020, &previous_name);
-        if (renamed != 1) {
-            throw std::runtime_error("rename refresh should update exits matching previous name");
-        }
-        if (world.find_room(34021)->exits.front().description != "Nuovo titolo destinazione") {
-            throw std::runtime_error("rename refresh did not update matching inbound exit");
+            throw std::runtime_error("edit_room did not refresh empty inbound exit on rename");
         }
 
         world.find_room(34021)->exits.front().description = "etichetta personalizzata";
@@ -129,14 +127,11 @@ int main() {
         const std::string dest_name = world.find_room(34020)->name;
 
         const nebbie::ExitAlignmentReport bulk = nebbie::align_all_inbound_exit_descriptions(world);
-        if (bulk.exits_checked < 4 || bulk.exits_aligned != 1 || bulk.changes.size() != 1) {
-            throw std::runtime_error("bulk alignment should fill only empty exit descriptions");
+        if (bulk.exits_checked < 4 || bulk.exits_aligned != 2 || bulk.changes.size() != 2) {
+            throw std::runtime_error("bulk alignment should update stale non-custom labels");
         }
-        if (bulk.exits_skipped_custom < 1) {
-            throw std::runtime_error("bulk alignment should skip custom exit descriptions");
-        }
-        if (world.find_room(34023)->exits.front().description != "etichetta errata") {
-            throw std::runtime_error("bulk alignment overwrote custom exit description");
+        if (world.find_room(34023)->exits.front().description != world.find_room(34020)->name) {
+            throw std::runtime_error("bulk alignment did not update stale exit description");
         }
         if (world.find_room(34024)->exits.front().description != world.find_room(34020)->name) {
             throw std::runtime_error("bulk alignment did not fill empty exit description");
@@ -158,12 +153,12 @@ int main() {
             throw std::runtime_error("second bulk alignment pass should not modify exits");
         }
 
+        world.rooms.clear();
         nebbie::Room courtyard;
         courtyard.vnum = 34021;
         courtyard.name = "Il cortile interno della roccaforte orientale";
         courtyard.description = "Un cortile.";
         courtyard.sector_type = 1;
-        world.rooms.clear();
         world.rooms.emplace(courtyard.vnum, courtyard);
 
         nebbie::Room scuderie;
@@ -184,18 +179,7 @@ int main() {
             throw std::runtime_error("courtyard rename failed");
         }
         if (world.find_room(34023)->exits.front().description != courtyard_edit.name) {
-            throw std::runtime_error("abbreviated inbound label was not updated on rename");
-        }
-
-        west_exit.description = "Il cortile interno";
-        world.find_room(34023)->exits.front().description = west_exit.description;
-        world.find_room(34021)->name = "Nuovo nome cortile";
-        const std::size_t manual_synced = nebbie::refresh_inbound_exit_descriptions(world, 34021);
-        if (manual_synced != 1) {
-            throw std::runtime_error("manual inbound sync should update abbreviated room labels");
-        }
-        if (world.find_room(34023)->exits.front().description != "Nuovo nome cortile") {
-            throw std::runtime_error("manual inbound sync did not update abbreviated label");
+            throw std::runtime_error("rename did not update stale inbound label to full room name");
         }
 
         nebbie::Room door_source;

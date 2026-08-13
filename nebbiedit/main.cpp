@@ -1,5 +1,4 @@
 #include "nebbie/io.hpp"
-#include "nebbie/edit.hpp"
 #include "nebbie/overlay_io.hpp"
 #include "nebbie/validate.hpp"
 #include "nebbie/world.hpp"
