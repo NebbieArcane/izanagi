@@ -51,6 +51,7 @@ CMAKE_ARGS=(
 )
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
+    "${ROOT}/scripts/check-macos-toolchain.sh"
     CMAKE_ARGS+=(-DNEBBIE_MACOS_BUNDLE="$MACOS_BUNDLE")
     if [[ -z "${CMAKE_PREFIX_PATH:-}" ]] && command -v brew >/dev/null 2>&1; then
         if brew --prefix qt@6 >/dev/null 2>&1; then

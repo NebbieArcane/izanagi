@@ -122,6 +122,7 @@ Manuale installazione completo (Linux `.deb`, macOS `.dmg`, Windows zip/installe
 
 ## Risoluzione problemi
 
+<<<<<<< HEAD
 ### Windows: Qt non trovato
 
 ```powershell
@@ -132,6 +133,33 @@ $env:CMAKE_PREFIX_PATH = "C:\Qt\6.5.3\msvc2019_64"
 ### Windows: percorsi Unicode
 
 Usa `QCoreApplication::arguments()` e seleziona la libreria dalla GUI; il core apre i file con `_wfopen` / path wide.
+=======
+### macOS: `'cstdio' file not found` (o altri header standard mancanti)
+
+Il compilatore non trova gli header di sistema Apple. **Non è un bug del progetto.**
+
+```bash
+# 1. Installa o reinstalla Xcode Command Line Tools
+xcode-select --install
+
+# 2. Verifica percorso developer
+xcode-select -p
+# atteso: /Library/Developer/CommandLineTools
+# oppure: /Applications/Xcode.app/Contents/Developer
+
+# 3. Se il percorso è sbagliato:
+sudo xcode-select -s /Library/Developer/CommandLineTools
+
+# 4. Test rapido
+clang++ -std=c++17 -x c++ -c - -o /dev/null <<< '#include <cstdio>'
+
+# 5. Ricompila
+rm -rf build
+./scripts/build.sh
+```
+
+Il progetto esegue lo stesso controllo automaticamente: `./scripts/check-macos-toolchain.sh`
+>>>>>>> ce1f524 (macOS: detect missing Xcode CLT before build (cstdio not found))
 
 ### macOS: Qt non trovato
 

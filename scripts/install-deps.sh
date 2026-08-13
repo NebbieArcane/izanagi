@@ -41,6 +41,14 @@ install_linux() {
 }
 
 install_macos() {
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        if ! xcode-select -p >/dev/null 2>&1; then
+            echo "Installing Xcode Command Line Tools (required for C++ headers)..."
+            xcode-select --install || true
+            echo "Complete the CLT installer dialog, then re-run: ./scripts/install-deps.sh" >&2
+        fi
+    fi
+
     if ! command -v brew >/dev/null 2>&1; then
         cat >&2 <<'EOF'
 Homebrew is required on macOS: https://brew.sh
@@ -55,6 +63,8 @@ EOF
         echo "Qt 6 prefix: $(brew --prefix qt@6)"
         echo "Build with: CMAKE_PREFIX_PATH=\"$(brew --prefix qt@6)\" ./scripts/build.sh"
     fi
+
+    "${ROOT}/scripts/check-macos-toolchain.sh"
 }
 
 case "$uname_s" in
