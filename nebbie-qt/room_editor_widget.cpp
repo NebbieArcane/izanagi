@@ -391,13 +391,13 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* exit_tab = new QWidget;
     auto* exit_layout = new QVBoxLayout(exit_tab);
     exit_layout->addWidget(makeLegend(
-        "Exit directions: 0=north, 1=east, 2=south, 3=west, 4=up, 5=down. Description is "
-        "usually the destination room name (shown when looking that way), but can be custom "
-        "look text for doors and passages. Keyword is the door name used by open/close/unlock "
-        "commands. Key vnum is the object number that unlocks a locked door (-1 = no key). "
-        "Description is the look text (exit.description) and is usually the destination room "
-        "name. Use «Allinea etichetta uscita» to set it to the destination name for the "
-        "selected exit. Custom door look text (mithril, runes, secret passages) is preserved.",
+        "Direzioni: 0=nord, 1=est, 2=sud, 3=ovest, 4=su, 5=giù. "
+        "Description è il testo look dell'uscita: ciò che il giocatore vede con «look nord», "
+        "«look est», ecc. Di solito coincide con il name della stanza di destinazione, ma può "
+        "essere un testo personalizzato per porte e passaggi. Keyword è il nome della porta per "
+        "open/close/unlock. Key vnum è l'oggetto che sblocca una porta (-1 = nessuna chiave). "
+        "«Look = nome destinazione» imposta Description dell'uscita selezionata al name completo "
+        "della stanza di destinazione; i testi personalizzati non vengono toccati.",
         exit_tab));
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(140);
@@ -421,7 +421,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* exit_form = new QFormLayout;
     exit_form->addRow("Direction:", exit_direction_);
     exit_form->addRow("To room #:", exit_to_room_);
-    exit_form->addRow("Description:", exit_description_);
+    exit_form->addRow("Description (testo look):", exit_description_);
     exit_form->addRow("Keyword (porta):", exit_keyword_);
     exit_form->addRow("Exit flags (exit_info):", exit_flags_);
     exit_form->addRow("Key vnum (oggetto):", exit_key_);
@@ -429,7 +429,11 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* exit_buttons = new QHBoxLayout;
     auto* exit_apply = new QPushButton("Add / update exit");
     auto* exit_remove = new QPushButton("Remove exit");
-    auto* exit_align_label = new QPushButton("Allinea etichetta uscita");
+    auto* exit_align_label = new QPushButton("Look = nome destinazione");
+    exit_align_label->setToolTip(
+        "Imposta il campo Description dell'uscita selezionata al name completo della stanza "
+        "di destinazione (il testo mostrato con look in quella direzione). "
+        "I testi personalizzati (mithril, rune, passaggi segreti) non vengono modificati.");
     exit_buttons->addWidget(exit_apply);
     exit_buttons->addWidget(exit_remove);
     exit_buttons->addWidget(exit_align_label);

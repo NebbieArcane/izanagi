@@ -43,14 +43,14 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
         lines << QStringLiteral("Libreria: %1").arg(library_path);
     }
     lines << QStringLiteral(
-        "Nota: vengono modificate solo le etichette look delle uscite (campo exit.description, "
-        "quello che vedi con «look nord» ecc.), NON il name né la description della stanza. "
-        "La stanza indicata è solo la sorgente dell'uscita modificata. "
-        "Ogni etichetta non personalizzata viene impostata al name completo della destinazione.");
+        "Nota: si modifica solo il campo Description delle uscite (testo look: ciò che vedi con "
+        "«look nord», «look est», ecc.), NON il name né la description della stanza. "
+        "La stanza indicata nel dettaglio è quella da cui parte l'uscita modificata. "
+        "Ogni testo look non personalizzato viene impostato al name completo della destinazione.");
     lines << QStringLiteral("Uscite controllate: %1").arg(static_cast<qlonglong>(report.exits_checked));
-    lines << QStringLiteral("Già allineate: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
-    lines << QStringLiteral("Etichette aggiornate: %1").arg(static_cast<qlonglong>(report.exits_aligned));
-    lines << QStringLiteral("Descrizioni personalizzate lasciate invariate: %1")
+    lines << QStringLiteral("Già corrette: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
+    lines << QStringLiteral("Testi look aggiornati: %1").arg(static_cast<qlonglong>(report.exits_aligned));
+    lines << QStringLiteral("Testi look personalizzati lasciati invariati: %1")
                  .arg(static_cast<qlonglong>(report.exits_skipped_custom));
     lines << QStringLiteral("Destinazione mancante: %1")
                  .arg(static_cast<qlonglong>(report.exits_missing_destination));
