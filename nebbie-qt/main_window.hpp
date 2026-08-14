@@ -38,6 +38,7 @@ class MobEditorWidget;
 class ObjEditorWidget;
 class RoomEditorWidget;
 class ZoneEditorWidget;
+class WorldDataEditorWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -64,7 +65,8 @@ private slots:
     void onObjSelected();
     void applyRoomChanges();
     void syncInboundExitLabels();
-    void alignAllInboundExitDescriptions(bool on_library_open);
+    void alignCurrentExitLabel();
+    void alignAllInboundExitDescriptions();
     void applyMobChanges();
     void applyObjChanges();
     void applyZoneChanges();
@@ -114,6 +116,7 @@ private:
     void showExitAlignmentReport(const QString& text, const nebbie::ExitAlignmentReport& report);
     void showValidation(const nebbie::ValidationReport& report);
     void navigateToIssue(const nebbie::ValidationIssue& issue);
+    void navigateToRoomExit(long vnum, int direction);
     bool confirmSaveIfDirty();
     void markDirty();
     void markClean();
@@ -162,6 +165,8 @@ private:
     std::vector<nebbie::ValidationIssue> validation_issues_;
     QWidget* validation_tab_ = nullptr;
     QWidget* zone_tab_ = nullptr;
+    QWidget* world_data_tab_ = nullptr;
+    WorldDataEditorWidget* world_data_editor_ = nullptr;
     QWidget* map_tab_ = nullptr;
     QTabWidget* map_tabs_ = nullptr;
     int selected_world_zone_ = -1;

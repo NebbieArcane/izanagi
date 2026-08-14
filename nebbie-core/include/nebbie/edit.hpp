@@ -136,17 +136,41 @@ bool set_room_exit(World& world, long room_vnum, const ExitEdit& edit);
 bool remove_room_exit(World& world, long room_vnum, int direction);
 const Exit* find_room_exit(const Room& room, int direction);
 
-// Update inbound exit.description for exits leading to target_vnum.
-// When previous_name is set (room rename), updates exits whose description matched the old name.
-// Otherwise only fills empty exit descriptions with the destination room name.
-// Custom look text (e.g. door descriptions) is never overwritten.
-// Only exit.description is modified; keyword, key, exit_info and other fields are untouched.
+// Exit description sync policy (production mudroot/lib):
+// - Empty descriptions stay empty (server shows destination name at runtime).
+// - Legacy bracket form "[vnum (name)]" is preserved.
+// - Custom look text (Vedi..., prose, etc.) is preserved unless explicitly forced.
+enum class InboundExitAlignPolicy {
+    FillEmptyOnly,
+    SyncDestinationName,
+};
+
+// True for "[003013 (strada commerciale)" style legacy descriptions.
+bool is_legacy_bracket_exit_description(const std::string& exit_description);
+
+// Automatic sync: rename propagation and whitespace normalization only.
+bool should_auto_sync_exit_description(const std::string& exit_description,
+                                       const std::string& destination_name,
+                                       const std::string* previous_destination_name = nullptr);
+
 std::size_t refresh_inbound_exit_descriptions(World& world,
                                               long target_vnum,
-                                              const std::string* previous_name = nullptr);
+                                              InboundExitAlignPolicy policy = InboundExitAlignPolicy::SyncDestinationName,
+                                              const std::string* previous_destination_name = nullptr);
+
+struct ExitLabelAlignResult {
+    bool updated = false;
+    bool already_ok = false;
+    bool missing_destination = false;
+    bool exit_not_found = false;
+};
+
+// Set one outbound exit.description to the destination room name (explicit user action).
+ExitLabelAlignResult align_room_exit_description(World& world, long room_vnum, int direction);
 
 struct ExitAlignmentChange {
     long from_vnum = 0;
+    std::string from_room_name;
     int direction = 0;
     long to_vnum = 0;
     std::string old_description;
@@ -157,13 +181,12 @@ struct ExitAlignmentReport {
     std::size_t exits_checked = 0;
     std::size_t exits_aligned = 0;
     std::size_t exits_already_ok = 0;
-    std::size_t exits_skipped_custom = 0;
     std::size_t exits_missing_destination = 0;
     std::vector<ExitAlignmentChange> changes;
 };
 
-// Fill empty inbound exit descriptions with the destination room name.
-// Custom look text is preserved. Only exit.description is modified.
+// Normalize inbound exit descriptions (whitespace only) and apply rename propagation.
+// Custom look text, empty descriptions, and legacy bracket form are preserved.
 ExitAlignmentReport align_all_inbound_exit_descriptions(World& world);
 
 Zone* find_zone(World& world, int zone_num);

@@ -43,26 +43,33 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
         lines << QStringLiteral("Libreria: %1").arg(library_path);
     }
     lines << QStringLiteral(
-        "Nota: vengono modificate solo le descrizioni delle uscite (exit.description). "
-        "Le descrizioni personalizzate (es. porte, simboli runici) non vengono toccate; "
-        "si riempiono solo quelle vuote con il nome della stanza di destinazione.");
+        "Nota: si modifica solo il campo Description delle uscite (prima stringa D# in myst.wld). "
+        "Le description vuote, il formato legacy [vnum (nome)] e i testi di look personalizzati "
+        "non vengono toccati. NON si modificano name né description della stanza. "
+        "La stanza indicata nel dettaglio è quella da cui parte l'uscita.");
+    lines << QStringLiteral(
+        "I backup in .nebbie/versions includono i file myst.* e le directory overlay "
+        "(rooms/, objects/, zones/, mobiles/).");
     lines << QStringLiteral("Uscite controllate: %1").arg(static_cast<qlonglong>(report.exits_checked));
-    lines << QStringLiteral("Già allineate: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
-    lines << QStringLiteral("Descrizioni vuote riempite: %1").arg(static_cast<qlonglong>(report.exits_aligned));
-    lines << QStringLiteral("Descrizioni personalizzate lasciate invariate: %1")
-                 .arg(static_cast<qlonglong>(report.exits_skipped_custom));
+    lines << QStringLiteral("Già corrette: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
+    lines << QStringLiteral("Description aggiornate: %1").arg(static_cast<qlonglong>(report.exits_aligned));
     lines << QStringLiteral("Destinazione mancante: %1")
                  .arg(static_cast<qlonglong>(report.exits_missing_destination));
 
     if (!report.changes.empty()) {
         lines << QStringLiteral("");
-        lines << QStringLiteral("Dettaglio modifiche (solo uscite con descrizione vuota):");
+        lines << QStringLiteral("Dettaglio modifiche (exit.description):");
         for (const auto& change : report.changes) {
-            lines << QStringLiteral("  Stanza #%1 uscita %2 -> #%3: \"%4\" -> \"%5\"")
+            const QString old_label = QString::fromStdString(change.old_description).trimmed().isEmpty()
+                                          ? QStringLiteral("(vuota)")
+                                          : QString::fromStdString(change.old_description);
+            lines << QStringLiteral(
+                         "  [#%1 \"%2\"] uscita %3 -> #%4, exit.description: \"%5\" -> \"%6\"")
                          .arg(change.from_vnum)
+                         .arg(QString::fromStdString(change.from_room_name))
                          .arg(QString::fromUtf8(nebbie::exit_direction_name(change.direction)))
                          .arg(change.to_vnum)
-                         .arg(QString::fromStdString(change.old_description))
+                         .arg(old_label)
                          .arg(QString::fromStdString(change.new_description));
         }
     } else {

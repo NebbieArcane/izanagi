@@ -21,12 +21,15 @@ void usage() {
         << "Nebbie Arcane World Editor (CLI)\n\n"
         << "Usage:\n"
         << "  nebbiedit info <lib-directory>\n"
-        << "  nebbiedit load <lib-directory>\n"
+        << "  nebbiedit load <lib-directory>   (loads in-process; use edit for a session)\n"
+        << "  nebbiedit edit <lib-directory> (interactive session)\n"
         << "  nebbiedit zone list\n"
         << "  nebbiedit zone show <zone-number>\n"
         << "  nebbiedit zone rooms <zone-number>\n"
         << "  nebbiedit zone graph <zone-number> [--dot]\n"
-        << "  nebbiedit room show <vnum>\n"
+        << "  nebbiedit room list <lib-directory> [vnum-prefix]\n"
+        << "  nebbiedit room show <lib-directory> <vnum>\n"
+        << "  nebbiedit room inbound <lib-directory> <vnum>\n"
         << "  nebbiedit mob list\n"
         << "  nebbiedit mob show <vnum>\n"
         << "  nebbiedit obj list\n"
@@ -173,19 +176,19 @@ bool run(int argc, char** argv) {
             }
         }
 
-        if (cmd == "room" && argc >= 4 && std::string(argv[2]) == "show") {
-            const long vnum = std::stol(argv[3]);
-            const nebbie::Room* room = g_world.find_room(vnum);
-            if (!room) {
-                std::cerr << "Room not loaded: " << vnum << '\n';
-                return false;
-            }
-            std::cout << "#" << room->vnum << " " << room->name << '\n';
-            std::cout << room->description << '\n';
-            std::cout << "Flags: " << room->room_flags
-                      << " Sector: " << room->sector_type << '\n';
-            std::cout << "Exits: " << room->exits.size() << '\n';
-            return true;
+        if (cmd == "room" && argc >= 5 && std::string(argv[2]) == "show") {
+            const long vnum = std::stol(argv[4]);
+            return nebbiedit::run_room_show(argv[3], vnum);
+        }
+
+        if (cmd == "room" && argc >= 5 && std::string(argv[2]) == "inbound") {
+            const long vnum = std::stol(argv[4]);
+            return nebbiedit::run_room_inbound(argv[3], vnum);
+        }
+
+        if (cmd == "room" && argc >= 4 && std::string(argv[2]) == "list") {
+            const std::string prefix = argc >= 5 ? argv[4] : std::string{};
+            return nebbiedit::run_room_list(argv[3], prefix);
         }
 
         if (cmd == "mob") {

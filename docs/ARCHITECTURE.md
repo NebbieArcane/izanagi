@@ -29,7 +29,7 @@ world/      # stato runtime stanza (oggetti/mob a terra), NON prototipi
 | `zones/<n>.zon` | Reset di una zona | **Sovrascrive** i comandi reset della zona | ✅ export/apply |
 | `myst.mob` | Catalogo mob | Base | ✅ |
 | `mobiles/<vnum>` | Mob singolo | Indicizzato come oggetti, ma `read_mobile()` **non** legge `pos==-1` | ⚠️ export/apply (sperimentale) |
-| `myst.shp/spe/dam/act/pos/gui` | Tabelle monolitiche | Solo file | ✅ |
+| `myst.shp/spe/dam/act/pos/gui` | Tabelle monolitiche | Solo file | ✅ GUI tab Dati mondo |
 | `world/<vnum>` | Inventario stanza live | Dopo boot | ❌ (non è editing mondo) |
 
 **Ordine boot** (`boot_db`): `myst.zon` → `zones/*` → `myst.wld` → `rooms/*` → indici `myst.mob`+`mobiles/` → indici `myst.obj`+`objects/` → …

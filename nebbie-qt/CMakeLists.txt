@@ -27,6 +27,8 @@ add_executable(nebbieedit
     zone_editor_widget.hpp
     world_zone_map_widget.cpp
     world_zone_map_widget.hpp
+    world_data_editor_widget.cpp
+    world_data_editor_widget.hpp
     zone_map_widget.cpp
     zone_map_widget.hpp
     nebbieedit.qrc
@@ -72,6 +74,13 @@ if(NOT (APPLE AND NEBBIE_MACOS_BUNDLE))
     if(NOT WIN32)
         install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/nebbieedit.desktop"
                 DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+        foreach(_icon_size 16 22 24 32 48 64 128 256 512 1024)
+            set(_icon_path "${CMAKE_CURRENT_SOURCE_DIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps/nebbieedit.png")
+            if(EXISTS "${_icon_path}")
+                install(FILES "${_icon_path}"
+                        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps")
+            endif()
+        endforeach()
     endif()
 endif()
 

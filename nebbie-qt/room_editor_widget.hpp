@@ -8,6 +8,7 @@ class QCheckBox;
 class QComboBox;
 class QLineEdit;
 class QListWidget;
+class QListWidgetItem;
 class QSpinBox;
 class QTabWidget;
 class QTextEdit;
@@ -24,6 +25,11 @@ public:
     void saveToRoom(nebbie::Room& room) const;
 
     long selectedExitToRoom() const;
+    int selectedExitDirection() const;
+    void focusExitTab(int direction);
+
+signals:
+    void alignExitLabelRequested();
 
 private slots:
     void onExtraDescSelected();
@@ -40,10 +46,12 @@ private:
     void refreshOverview();
     void connectOverviewUpdates();
     void setComboIntValue(QComboBox* combo, int value) const;
+    void navigateOverviewItem(const QListWidgetItem* item);
 
     bool loading_ = false;
     bool overview_updates_enabled_ = true;
-    QTextEdit* overview_ = nullptr;
+    QTabWidget* tabs_ = nullptr;
+    QListWidget* overview_list_ = nullptr;
 
     QLineEdit* name_ = nullptr;
     QTextEdit* description_ = nullptr;

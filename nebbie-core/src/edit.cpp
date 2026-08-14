@@ -58,25 +58,22 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
 }
 
 bool should_align_exit_description(const std::string& exit_description,
-                                     const std::string& destination_name,
-                                     const std::string* previous_name) {
-    if (strings_equal_ci(exit_description, destination_name)) {
+                                   const std::string& destination_name,
+                                   const bool fill_empty_only,
+                                   const std::string* previous_destination_name) {
+    if (fill_empty_only) {
         return false;
     }
-    if (trim_copy(exit_description).empty()) {
-        return true;
-    }
-    if (previous_name != nullptr && strings_equal_ci(exit_description, *previous_name)) {
-        return true;
-    }
-    return false;
+    return should_auto_sync_exit_description(exit_description, destination_name, previous_destination_name);
 }
 
 bool apply_exit_description_alignment(Exit& exit,
                                       const std::string& destination_name,
-                                      const std::string* previous_name,
+                                      const bool fill_empty_only,
+                                      const std::string* previous_destination_name,
                                       std::size_t& updated) {
-    if (!should_align_exit_description(exit.description, destination_name, previous_name)) {
+    if (!should_align_exit_description(
+            exit.description, destination_name, fill_empty_only, previous_destination_name)) {
         return false;
     }
     exit.description = destination_name;
@@ -174,6 +171,70 @@ long first_object_vnum(const World& world) {
 }
 
 } // namespace
+
+bool is_legacy_bracket_exit_description(const std::string& exit_description) {
+    std::size_t start = 0;
+    while (start < exit_description.size()
+           && std::isspace(static_cast<unsigned char>(exit_description[start])) != 0) {
+        ++start;
+    }
+    std::size_t end = exit_description.size();
+    while (end > start
+           && std::isspace(static_cast<unsigned char>(exit_description[end - 1])) != 0) {
+        --end;
+    }
+    const std::string trimmed = exit_description.substr(start, end - start);
+    if (trimmed.size() < 5 || trimmed.front() != '[') {
+        return false;
+    }
+    std::size_t index = 1;
+    while (index < trimmed.size() && std::isdigit(static_cast<unsigned char>(trimmed[index])) != 0) {
+        ++index;
+    }
+    while (index < trimmed.size() && std::isspace(static_cast<unsigned char>(trimmed[index])) != 0) {
+        ++index;
+    }
+    return index > 1 && index < trimmed.size() && trimmed[index] == '(';
+}
+
+bool should_auto_sync_exit_description(const std::string& exit_description,
+                                       const std::string& destination_name,
+                                       const std::string* previous_destination_name) {
+    const auto trim = [](const std::string& value) {
+        std::size_t start = 0;
+        while (start < value.size() && std::isspace(static_cast<unsigned char>(value[start])) != 0) {
+            ++start;
+        }
+        std::size_t end = value.size();
+        while (end > start && std::isspace(static_cast<unsigned char>(value[end - 1])) != 0) {
+            --end;
+        }
+        return value.substr(start, end - start);
+    };
+
+    const std::string trimmed = trim(exit_description);
+    if (trimmed.empty()) {
+        return false;
+    }
+    if (is_legacy_bracket_exit_description(exit_description)) {
+        return false;
+    }
+    if (exit_description == destination_name) {
+        return false;
+    }
+    if (previous_destination_name != nullptr) {
+        if (exit_description == *previous_destination_name) {
+            return true;
+        }
+        if (trimmed == trim(*previous_destination_name)) {
+            return true;
+        }
+    }
+    if (trimmed == trim(destination_name)) {
+        return true;
+    }
+    return false;
+}
 
 const char* exit_direction_name(int direction) {
     if (direction < 0 || direction >= EXIT_DIR_COUNT) {
@@ -517,7 +578,8 @@ bool edit_room(World& world, long vnum, const RoomEdit& edit) {
     const std::string old_name = room->name;
     apply_room_edit(*room, edit);
     if (!edit.name.empty() && !strings_equal_ci(old_name, room->name)) {
-        refresh_inbound_exit_descriptions(world, vnum, &old_name);
+        refresh_inbound_exit_descriptions(
+            world, vnum, InboundExitAlignPolicy::SyncDestinationName, &old_name);
     }
     return true;
 }
@@ -635,21 +697,67 @@ const Exit* find_room_exit(const Room& room, int direction) {
     return nullptr;
 }
 
+ExitLabelAlignResult align_room_exit_description(World& world,
+                                                 const long room_vnum,
+                                                 const int direction) {
+    ExitLabelAlignResult result;
+    Room* room = world.find_room(room_vnum);
+    if (!room) {
+        result.exit_not_found = true;
+        return result;
+    }
+
+    Exit* exit = nullptr;
+    for (auto& candidate : room->exits) {
+        if (candidate.direction == direction) {
+            exit = &candidate;
+            break;
+        }
+    }
+    if (!exit) {
+        result.exit_not_found = true;
+        return result;
+    }
+
+    if (exit->to_room <= 0) {
+        result.missing_destination = true;
+        return result;
+    }
+
+    const Room* destination = world.find_room(exit->to_room);
+    if (!destination) {
+        result.missing_destination = true;
+        return result;
+    }
+
+    if (exit->description == destination->name) {
+        result.already_ok = true;
+        return result;
+    }
+
+    exit->description = destination->name;
+    result.updated = true;
+    return result;
+}
+
 std::size_t refresh_inbound_exit_descriptions(World& world,
                                               const long target_vnum,
-                                              const std::string* previous_name) {
+                                              const InboundExitAlignPolicy policy,
+                                              const std::string* previous_destination_name) {
     const Room* destination = world.find_room(target_vnum);
     if (!destination) {
         return 0;
     }
 
+    const bool fill_empty_only = policy == InboundExitAlignPolicy::FillEmptyOnly;
     std::size_t updated = 0;
     for (auto& [from_vnum, room] : world.rooms) {
         for (auto& exit : room.exits) {
             if (exit.to_room != target_vnum) {
                 continue;
             }
-            apply_exit_description_alignment(exit, destination->name, previous_name, updated);
+            apply_exit_description_alignment(
+                exit, destination->name, fill_empty_only, previous_destination_name, updated);
         }
         (void)from_vnum;
     }
@@ -671,18 +779,18 @@ ExitAlignmentReport align_all_inbound_exit_descriptions(World& world) {
                 continue;
             }
 
-            if (strings_equal_ci(exit.description, destination->name)) {
+            if (exit.description == destination->name) {
                 ++report.exits_already_ok;
                 continue;
             }
 
-            if (!should_align_exit_description(exit.description, destination->name, nullptr)) {
-                ++report.exits_skipped_custom;
+            if (!should_auto_sync_exit_description(exit.description, destination->name)) {
                 continue;
             }
 
             ExitAlignmentChange change;
             change.from_vnum = from_vnum;
+            change.from_room_name = room.name;
             change.direction = exit.direction;
             change.to_vnum = exit.to_room;
             change.old_description = exit.description;

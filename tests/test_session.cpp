@@ -1,4 +1,5 @@
 #include "nebbie/session.hpp"
+#include "nebbie/constants.hpp"
 #include "nebbie/zone_graph.hpp"
 #include "nebbie/io.hpp"
 
@@ -22,6 +23,30 @@ int main(int argc, char** argv) {
         nebbie::save_snapshot(world, context, workspace, "test");
         if (!std::filesystem::exists(workspace / "myst.wld")) {
             throw std::runtime_error("workspace snapshot missing myst.wld");
+        }
+        if (std::filesystem::exists(lib / nebbie::OVERLAY_OBJECTS_DIR)
+            && !std::filesystem::exists(workspace / nebbie::OVERLAY_OBJECTS_DIR)) {
+            throw std::runtime_error("workspace snapshot missing objects overlay directory");
+        }
+        if (std::filesystem::exists(lib / nebbie::OVERLAY_ROOMS_DIR)) {
+            std::size_t room_overlay_count = 0;
+            for (const auto& entry : std::filesystem::directory_iterator(lib / nebbie::OVERLAY_ROOMS_DIR)) {
+                if (entry.is_regular_file()) {
+                    ++room_overlay_count;
+                }
+            }
+            std::size_t snapshot_room_overlay_count = 0;
+            if (std::filesystem::exists(workspace / nebbie::OVERLAY_ROOMS_DIR)) {
+                for (const auto& entry :
+                     std::filesystem::directory_iterator(workspace / nebbie::OVERLAY_ROOMS_DIR)) {
+                    if (entry.is_regular_file()) {
+                        ++snapshot_room_overlay_count;
+                    }
+                }
+            }
+            if (snapshot_room_overlay_count != room_overlay_count) {
+                throw std::runtime_error("workspace snapshot room overlay count mismatch");
+            }
         }
 
         nebbie::World restored;
