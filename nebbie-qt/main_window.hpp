@@ -8,6 +8,7 @@
 #include "nebbie/validate.hpp"
 #include "nebbie/world.hpp"
 #include "nebbie/world_index.hpp"
+#include "nebbie/zone_partition.hpp"
 
 #include <QMainWindow>
 #include <QTimer>
@@ -83,6 +84,7 @@ private slots:
     void loadWorldIndexFromFile();
     void exportLocalWorldIndex();
     void exportOverlays();
+    void exportZonePacks();
     void reserveVnums();
 
 protected:

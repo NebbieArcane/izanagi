@@ -3,18 +3,48 @@
 #include "nebbie/validate.hpp"
 #include "nebbie/world.hpp"
 #include "nebbie/zone_graph.hpp"
+#include "nebbie/zone_partition.hpp"
 
 #include "cli_parse.hpp"
 #include "shell.hpp"
 
 #include <filesystem>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <cctype>
 
 namespace {
 
 nebbie::World g_world;
+
+nebbie::ZonePartitionOptions parse_zone_partition_options(int argc, char** argv, int start_index) {
+    nebbie::ZonePartitionOptions options;
+    for (int i = start_index; i < argc; ++i) {
+        const std::string flag = argv[i];
+        if (flag == "--no-overlays") {
+            options.write_overlay_dirs = false;
+        } else if (flag == "--no-monoliths") {
+            options.write_monolith_files = false;
+        } else if (flag == "--no-shops") {
+            options.include_shop_entities = false;
+        } else {
+            throw std::runtime_error("Unknown zone partition flag: " + flag);
+        }
+    }
+    return options;
+}
+
+void print_zone_partition_report(const nebbie::ZonePartitionReport& report) {
+    std::cout << "Zone packs written: " << report.zones_written << '\n';
+    std::cout << "Rooms: " << report.rooms
+              << " Objects: " << report.objects
+              << " Mobiles: " << report.mobiles
+              << " Zone resets: " << report.zone_resets << '\n';
+    for (const auto& warning : report.warnings) {
+        std::cout << "WARN: " << warning << '\n';
+    }
+}
 
 void usage() {
     std::cout
@@ -27,6 +57,9 @@ void usage() {
         << "  nebbiedit zone show <zone-number>\n"
         << "  nebbiedit zone rooms <zone-number>\n"
         << "  nebbiedit zone graph <zone-number> [--dot]\n"
+        << "  nebbiedit zone split <lib-directory> <output-directory> [--no-overlays|--no-monoliths|--no-shops]\n"
+        << "  nebbiedit zone split-one <lib-directory> <zone-number> <output-directory> [--no-overlays|--no-monoliths|--no-shops]\n"
+        << "  nebbiedit zone merge <zones-root> <merged-lib-directory>\n"
         << "  nebbiedit room list <lib-directory> [vnum-prefix]\n"
         << "  nebbiedit room show <lib-directory> <vnum>\n"
         << "  nebbiedit room inbound <lib-directory> <vnum>\n"
@@ -172,6 +205,41 @@ bool run(int argc, char** argv) {
                               << " Edges: " << graph.edges.size() << '\n';
                     std::cout << "Use --dot for Graphviz output.\n";
                 }
+                return true;
+            }
+            if (sub == "split" && argc >= 5) {
+                nebbie::World world;
+                nebbie::load_lib(world, argv[3], [](const std::string& msg) {
+                    std::cout << msg << '\n';
+                });
+                const auto options = parse_zone_partition_options(argc, argv, 5);
+                const auto report = nebbie::export_all_zone_packs(world, argv[4], options,
+                                                                  [](const std::string& msg) {
+                                                                      std::cout << msg << '\n';
+                                                                  });
+                print_zone_partition_report(report);
+                return true;
+            }
+            if (sub == "split-one" && argc >= 6) {
+                nebbie::World world;
+                nebbie::load_lib(world, argv[3], [](const std::string& msg) {
+                    std::cout << msg << '\n';
+                });
+                const int zone_num = std::stoi(argv[4]);
+                const auto options = parse_zone_partition_options(argc, argv, 6);
+                const auto report = nebbie::export_zone_pack(world, argv[5], zone_num, options,
+                                                              [](const std::string& msg) {
+                                                                  std::cout << msg << '\n';
+                                                                  });
+                print_zone_partition_report(report);
+                return true;
+            }
+            if (sub == "merge" && argc >= 5) {
+                const auto report = nebbie::merge_zone_packs(argv[3], argv[4],
+                                                             [](const std::string& msg) {
+                                                                 std::cout << msg << '\n';
+                                                             });
+                print_zone_partition_report(report);
                 return true;
             }
         }

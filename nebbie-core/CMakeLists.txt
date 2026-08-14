@@ -24,6 +24,7 @@ add_library(nebbie-core
     src/zone_catalog.cpp
     src/world_index.cpp
     src/overlay_io.cpp
+    src/zone_partition.cpp
 )
 
 target_include_directories(nebbie-core PUBLIC include)

@@ -50,6 +50,11 @@ add_executable(nebbie-exit-sync-tests test_exit_sync.cpp)
 target_link_libraries(nebbie-exit-sync-tests PRIVATE nebbie-core)
 add_test(NAME exit-sync-workflow COMMAND nebbie-exit-sync-tests)
 
+add_executable(nebbie-zone-partition-tests test_zone_partition.cpp)
+target_link_libraries(nebbie-zone-partition-tests PRIVATE nebbie-core)
+add_test(NAME zone-partition-fixtures
+         COMMAND nebbie-zone-partition-tests ${CMAKE_SOURCE_DIR}/tests/fixtures)
+
 add_executable(nebbie-nebbietest-mob-tests test_nebbietest_mob.cpp)
 target_link_libraries(nebbie-nebbietest-mob-tests PRIVATE nebbie-core)
 
