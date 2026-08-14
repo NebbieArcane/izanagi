@@ -3,7 +3,6 @@
 #include "cli_parse.hpp"
 
 #include "nebbie/edit.hpp"
-#include "nebbie/edit.hpp"
 #include "nebbie/io.hpp"
 #include "nebbie/validate.hpp"
 
@@ -50,7 +49,10 @@ const char* inbound_exit_status(const std::string& exit_description, const std::
     if (exit_description == destination_name) {
         return "allineata";
     }
-    return "da aggiornare";
+    if (nebbie::is_legacy_bracket_exit_description(exit_description)) {
+        return "legacy [vnum]";
+    }
+    return "personalizzata";
 }
 
 void print_validation(const nebbie::ValidationReport& report) {

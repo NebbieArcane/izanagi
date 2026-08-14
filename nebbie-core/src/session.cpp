@@ -41,6 +41,29 @@ void copy_if_exists(const std::filesystem::path& from, const std::filesystem::pa
     std::filesystem::copy_file(from, to, std::filesystem::copy_options::overwrite_existing, ec);
 }
 
+void copy_overlay_directory(const std::filesystem::path& from_root,
+                            const std::filesystem::path& to_root,
+                            const char* subdir) {
+    const std::filesystem::path from = from_root / subdir;
+    std::error_code ec;
+    if (!std::filesystem::exists(from, ec)) {
+        return;
+    }
+    std::filesystem::copy(from,
+                          to_root / subdir,
+                          std::filesystem::copy_options::recursive
+                              | std::filesystem::copy_options::overwrite_existing,
+                          ec);
+}
+
+void copy_overlay_directories(const std::filesystem::path& from_root,
+                              const std::filesystem::path& to_root) {
+    copy_overlay_directory(from_root, to_root, OVERLAY_ROOMS_DIR);
+    copy_overlay_directory(from_root, to_root, OVERLAY_OBJECTS_DIR);
+    copy_overlay_directory(from_root, to_root, OVERLAY_MOBILES_DIR);
+    copy_overlay_directory(from_root, to_root, OVERLAY_ZONES_DIR);
+}
+
 void copy_lib_files(const LibContext& context,
                     const std::filesystem::path& from_root,
                     const std::filesystem::path& to_root) {
@@ -69,6 +92,7 @@ void copy_lib_files(const LibContext& context,
         }
         copy_if_exists(from_root / file.name, to_root / file.name);
     }
+    copy_overlay_directories(from_root, to_root);
 }
 
 std::filesystem::path version_path(const std::filesystem::path& versions_root,
@@ -111,6 +135,7 @@ void save_snapshot(const World& world,
     std::error_code ec;
     std::filesystem::create_directories(destination, ec);
     save_lib(world, snapshot_context);
+    copy_overlay_directories(context.root, destination);
     if (!label.empty()) {
         write_version_meta(destination, label);
     }
