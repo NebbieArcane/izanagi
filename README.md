@@ -6,18 +6,18 @@ Questo repository è indipendente dal codice del server: non servono permessi su
 
 ## File supportati
 
-| File | Contenuto | Stato |
-|------|-----------|-------|
-| `myst.zon` | Zone e reset | Lettura/scrittura |
-| `myst.wld` | Stanze | Lettura/scrittura |
-| `myst.mob` | Mob | Lettura/scrittura |
-| `myst.obj` | Oggetti | Lettura/scrittura |
-| `myst.shp` | Negozi | Lettura/scrittura |
-| `myst.spe` | Special proc | Lettura/scrittura |
-| `myst.dam` | Messaggi danno | Lettura/scrittura |
-| `myst.act` | Social | Lettura/scrittura |
-| `myst.pos` | Pose | Lettura/scrittura |
-| `myst.gui` | Gilde | Lettura/scrittura |
+| File | Contenuto | Stato | GUI |
+|------|-----------|-------|-----|
+| `myst.zon` | Zone e reset | Lettura/scrittura | ✅ |
+| `myst.wld` | Stanze | Lettura/scrittura | ✅ |
+| `myst.mob` | Mob | Lettura/scrittura | ✅ |
+| `myst.obj` | Oggetti | Lettura/scrittura | ✅ |
+| `myst.shp` | Negozi | Lettura/scrittura | ✅ Dati mondo |
+| `myst.spe` | Special proc | Lettura/scrittura | ✅ Dati mondo |
+| `myst.dam` | Messaggi danno | Lettura/scrittura | ✅ Dati mondo |
+| `myst.act` | Social | Lettura/scrittura | ✅ Dati mondo |
+| `myst.pos` | Pose | Lettura/scrittura | ✅ Dati mondo |
+| `myst.gui` | Gilde | Lettura/scrittura | ✅ Dati mondo |
 
 ## Build (Linux, macOS, Windows)
 

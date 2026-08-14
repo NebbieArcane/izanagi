@@ -38,6 +38,7 @@ class MobEditorWidget;
 class ObjEditorWidget;
 class RoomEditorWidget;
 class ZoneEditorWidget;
+class WorldDataEditorWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -164,6 +165,8 @@ private:
     std::vector<nebbie::ValidationIssue> validation_issues_;
     QWidget* validation_tab_ = nullptr;
     QWidget* zone_tab_ = nullptr;
+    QWidget* world_data_tab_ = nullptr;
+    WorldDataEditorWidget* world_data_editor_ = nullptr;
     QWidget* map_tab_ = nullptr;
     QTabWidget* map_tabs_ = nullptr;
     int selected_world_zone_ = -1;

@@ -7,6 +7,7 @@
 #include "obj_editor_widget.hpp"
 #include "room_editor_widget.hpp"
 #include "zone_editor_widget.hpp"
+#include "world_data_editor_widget.hpp"
 #include "world_zone_map_widget.hpp"
 #include "zone_map_widget.hpp"
 #include "path_util.hpp"
@@ -206,6 +207,11 @@ void MainWindow::setupUi() {
     zone_layout->addWidget(zone_splitter);
     zone_tab_ = zone_page;
     tabs_->addTab(zone_page, "Zone");
+
+    world_data_editor_ = new WorldDataEditorWidget;
+    world_data_tab_ = world_data_editor_;
+    tabs_->addTab(world_data_tab_, "Dati mondo");
+    connect(world_data_editor_, &WorldDataEditorWidget::modified, this, &MainWindow::markDirty);
 
     map_tab_ = new QWidget;
     auto* map_layout = new QVBoxLayout(map_tab_);
@@ -560,13 +566,15 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     refreshZoneMap();
     refreshWorldZoneMap();
     zone_editor_->setWorld(&world_);
+    world_data_editor_->setWorld(&world_);
 
-    const QString label = QString("Libreria: %1 — %2 zone, %3 stanze, %4 mob, %5 oggetti")
+    const QString label = QString("Libreria: %1 — %2 zone, %3 stanze, %4 mob, %5 oggetti, %6 negozi")
                               .arg(nebbie::qt::qstring_from_path(path))
                               .arg(world_.zones.size())
                               .arg(world_.rooms.size())
                               .arg(world_.mobiles.size())
-                              .arg(world_.objects.size());
+                              .arg(world_.objects.size())
+                              .arg(world_.shops.size());
     lib_label_->setText(label);
     last_version_time_ = std::chrono::system_clock::now();
     autosave_timer_->start();
@@ -1888,7 +1896,12 @@ void MainWindow::navigateToIssue(const nebbie::ValidationIssue& issue) {
         }
         break;
     case nebbie::ValidationTarget::shop:
-        setStatus(QString("Shop #%1 — usa la CLI per i dettagli shop.").arg(issue.target_vnum));
+        if (world_data_tab_) {
+            tabs_->setCurrentWidget(world_data_tab_);
+        }
+        if (world_data_editor_) {
+            world_data_editor_->selectShop(issue.target_vnum);
+        }
         break;
     default:
         break;
@@ -2015,6 +2028,7 @@ void MainWindow::restoreFromWorkspace() {
         refreshMobList();
         refreshObjectList();
         refreshZoneList();
+        world_data_editor_->setWorld(&world_);
         setStatus("Ripristinato autosalvataggio workspace.");
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, "Errore", QString::fromUtf8(ex.what()));
@@ -2066,6 +2080,7 @@ void MainWindow::restoreVersion() {
         refreshMobList();
         refreshObjectList();
         refreshZoneList();
+        world_data_editor_->setWorld(&world_);
         setStatus(QString("Ripristinata versione %1.").arg(chosen));
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, "Errore", QString::fromUtf8(ex.what()));

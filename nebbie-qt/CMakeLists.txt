@@ -27,6 +27,8 @@ add_executable(nebbieedit
     zone_editor_widget.hpp
     world_zone_map_widget.cpp
     world_zone_map_widget.hpp
+    world_data_editor_widget.cpp
+    world_data_editor_widget.hpp
     zone_map_widget.cpp
     zone_map_widget.hpp
     nebbieedit.qrc
