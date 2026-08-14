@@ -43,13 +43,13 @@ QString format_exit_alignment_report(const ExitAlignmentReport& report,
         lines << QStringLiteral("Libreria: %1").arg(library_path);
     }
     lines << QStringLiteral(
-        "Nota: si modifica solo il campo Description delle uscite (prima stringa D# in myst.wld), "
-        "che deve corrispondere al name della stanza di destinazione. "
-        "NON si modificano name né description della stanza. "
+        "Nota: si modifica solo il campo Description delle uscite (prima stringa D# in myst.wld). "
+        "Le description vuote, il formato legacy [vnum (nome)] e i testi di look personalizzati "
+        "non vengono toccati. NON si modificano name né description della stanza. "
         "La stanza indicata nel dettaglio è quella da cui parte l'uscita.");
     lines << QStringLiteral("Uscite controllate: %1").arg(static_cast<qlonglong>(report.exits_checked));
     lines << QStringLiteral("Già corrette: %1").arg(static_cast<qlonglong>(report.exits_already_ok));
-    lines << QStringLiteral("Nomi destinazione aggiornati: %1").arg(static_cast<qlonglong>(report.exits_aligned));
+    lines << QStringLiteral("Description aggiornate: %1").arg(static_cast<qlonglong>(report.exits_aligned));
     lines << QStringLiteral("Destinazione mancante: %1")
                  .arg(static_cast<qlonglong>(report.exits_missing_destination));
 
