@@ -117,6 +117,20 @@ void validate_rooms(const World& world, ValidationReport& report) {
                           vnum);
                 continue;
             }
+            const nebbie::Room* destination = world.find_room(exit.to_room);
+            if (destination != nullptr && !exit.description.empty()
+                && exit.description != destination->name) {
+                add_issue(report,
+                          ValidationSeverity::warning,
+                          "room",
+                          "room " + std::to_string(vnum) + " exit "
+                              + nebbie::exit_direction_name(exit.direction)
+                              + " -> #" + std::to_string(exit.to_room)
+                              + " has description that does not match destination name \""
+                              + destination->name + "\"",
+                          ValidationTarget::room,
+                          vnum);
+            }
         }
     }
 }

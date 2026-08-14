@@ -47,13 +47,10 @@ const char* inbound_exit_status(const std::string& exit_description, const std::
     if (trim_copy(exit_description).empty()) {
         return "vuota";
     }
-    if (strings_equal_ci(exit_description, destination_name)) {
+    if (exit_description == destination_name) {
         return "allineata";
     }
-    if (nebbie::is_custom_exit_look_text(exit_description)) {
-        return "personalizzata";
-    }
-    return "da allineare";
+    return "da aggiornare";
 }
 
 void print_validation(const nebbie::ValidationReport& report) {

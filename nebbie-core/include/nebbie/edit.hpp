@@ -136,30 +136,26 @@ bool set_room_exit(World& world, long room_vnum, const ExitEdit& edit);
 bool remove_room_exit(World& world, long room_vnum, int direction);
 const Exit* find_room_exit(const Room& room, int direction);
 
-// Update inbound exit.description for exits leading to target_vnum.
-// SyncRoomLabels: set every non-custom inbound label to the destination room name.
-// FillEmptyOnly: only fill empty descriptions (optional conservative mode).
-// Custom look text (doors, runes, etc.) is never overwritten.
+// Update inbound exit.description (first D# string in myst.wld) for exits leading to target_vnum.
+// SyncDestinationName: set description to the destination room name (exact string).
+// FillEmptyOnly: only fill empty descriptions.
 enum class InboundExitAlignPolicy {
     FillEmptyOnly,
-    SyncRoomLabels,
+    SyncDestinationName,
 };
 
 std::size_t refresh_inbound_exit_descriptions(World& world,
                                               long target_vnum,
-                                              InboundExitAlignPolicy policy = InboundExitAlignPolicy::SyncRoomLabels);
-
-bool is_custom_exit_look_text(const std::string& exit_description);
+                                              InboundExitAlignPolicy policy = InboundExitAlignPolicy::SyncDestinationName);
 
 struct ExitLabelAlignResult {
     bool updated = false;
     bool already_ok = false;
-    bool skipped_custom = false;
     bool missing_destination = false;
     bool exit_not_found = false;
 };
 
-// Align one outbound exit.description to the destination room name (SyncRoomLabels rules).
+// Set one outbound exit.description to the destination room name (exact string).
 ExitLabelAlignResult align_room_exit_description(World& world, long room_vnum, int direction);
 
 struct ExitAlignmentChange {
@@ -175,13 +171,12 @@ struct ExitAlignmentReport {
     std::size_t exits_checked = 0;
     std::size_t exits_aligned = 0;
     std::size_t exits_already_ok = 0;
-    std::size_t exits_skipped_custom = 0;
     std::size_t exits_missing_destination = 0;
     std::vector<ExitAlignmentChange> changes;
 };
 
-// Set inbound exit descriptions to the destination room name where appropriate.
-// Custom look text is preserved. Only exit.description is modified.
+// Set inbound exit descriptions to the destination room name where they differ.
+// Only exit.description is modified.
 ExitAlignmentReport align_all_inbound_exit_descriptions(World& world);
 
 Zone* find_zone(World& world, int zone_num);

@@ -27,10 +27,10 @@ int main() {
         source.exits.push_back(exit);
         world.rooms.emplace(source.vnum, source);
 
-        const std::size_t skipped_custom = nebbie::refresh_inbound_exit_descriptions(
+        const std::size_t skipped_fill = nebbie::refresh_inbound_exit_descriptions(
             world, 34020, nebbie::InboundExitAlignPolicy::FillEmptyOnly);
-        if (skipped_custom != 0) {
-            throw std::runtime_error("fill-empty refresh should not update non-empty labels");
+        if (skipped_fill != 0) {
+            throw std::runtime_error("fill-empty refresh should not update non-empty descriptions");
         }
         if (world.find_room(34021)->exits.front().description != "di fronte al castello") {
             throw std::runtime_error("non-empty inbound exit description was modified during fill-empty refresh");
@@ -59,10 +59,10 @@ int main() {
 
         const std::size_t synced = nebbie::refresh_inbound_exit_descriptions(world, 34020);
         if (synced != 1) {
-            throw std::runtime_error("manual sync should update stale room-name labels");
+            throw std::runtime_error("manual sync should update stale destination names");
         }
         if (world.find_room(34021)->exits.front().description != destination.name) {
-            throw std::runtime_error("manual sync did not update stale room-name label");
+            throw std::runtime_error("manual sync did not update stale destination name");
         }
 
         nebbie::RoomEdit edit;
@@ -72,35 +72,43 @@ int main() {
             throw std::runtime_error("edit_room failed");
         }
         if (world.find_room(34021)->exits.front().description != edit.name) {
-            throw std::runtime_error("edit_room did not refresh stale inbound exit labels on rename");
+            throw std::runtime_error("edit_room did not refresh stale inbound destination names on rename");
         }
         if (world.find_room(34022)->exits.front().description != edit.name) {
             throw std::runtime_error("edit_room did not refresh empty inbound exit on rename");
         }
 
-        world.find_room(34021)->exits.front().description = "etichetta personalizzata";
-        const nebbie::ValidationReport report = nebbie::validate_world(world);
-        for (const auto& issue : report.issues) {
+        world.find_room(34021)->exits.front().description = "nome destinazione errato";
+        const nebbie::ValidationReport mismatch_report = nebbie::validate_world(world);
+        bool found_mismatch_warning = false;
+        for (const auto& issue : mismatch_report.issues) {
             if (issue.category == "room" && issue.severity == nebbie::ValidationSeverity::warning
-                && issue.message.find("has description") != std::string::npos) {
-                throw std::runtime_error("custom exit labels should not trigger validation warnings");
+                && issue.message.find("does not match destination name") != std::string::npos) {
+                found_mismatch_warning = true;
+                break;
             }
+        }
+        if (!found_mismatch_warning) {
+            throw std::runtime_error("validation should warn when exit description mismatches destination name");
         }
 
         world.find_room(34021)->exits.front().description = "nuovo titolo destinazione";
         const std::size_t realigned = nebbie::refresh_inbound_exit_descriptions(world, 34020);
-        if (realigned != 0) {
-            throw std::runtime_error("case-only exit label mismatch should not trigger alignment");
+        if (realigned != 1) {
+            throw std::runtime_error("case mismatch should trigger destination name alignment");
+        }
+        if (world.find_room(34021)->exits.front().description != edit.name) {
+            throw std::runtime_error("case mismatch was not corrected to exact destination name");
         }
 
         nebbie::Room mismatch_source;
         mismatch_source.vnum = 34023;
-        mismatch_source.name = "Sorgente con etichetta errata";
+        mismatch_source.name = "Sorgente con nome errato";
         mismatch_source.description = "Test.";
         mismatch_source.sector_type = 1;
         nebbie::Exit mismatch_exit;
         mismatch_exit.direction = 1;
-        mismatch_exit.description = "etichetta errata";
+        mismatch_exit.description = "nome errato";
         mismatch_exit.to_room = 34020;
         mismatch_source.exits.push_back(mismatch_exit);
         world.rooms.emplace(mismatch_source.vnum, mismatch_source);
@@ -128,7 +136,7 @@ int main() {
 
         const nebbie::ExitAlignmentReport bulk = nebbie::align_all_inbound_exit_descriptions(world);
         if (bulk.exits_checked < 4 || bulk.exits_aligned != 2 || bulk.changes.size() != 2) {
-            throw std::runtime_error("bulk alignment should update stale non-custom labels");
+            throw std::runtime_error("bulk alignment should update stale destination names");
         }
         if (world.find_room(34023)->exits.front().description != world.find_room(34020)->name) {
             throw std::runtime_error("bulk alignment did not update stale exit description");
@@ -179,7 +187,7 @@ int main() {
             throw std::runtime_error("courtyard rename failed");
         }
         if (world.find_room(34023)->exits.front().description != courtyard_edit.name) {
-            throw std::runtime_error("rename did not update stale inbound label to full room name");
+            throw std::runtime_error("rename did not update stale inbound destination name to full room name");
         }
 
         nebbie::Room door_source;
@@ -191,15 +199,20 @@ int main() {
         door_exit.direction = 0;
         door_exit.description = "La porta e' fatta di mithril. Non sembra chiusa a chiave.";
         door_exit.to_room = 34021;
+        door_exit.keyword = "porta";
+        door_exit.exit_info = 1;
         door_source.exits.push_back(door_exit);
         world.rooms.emplace(door_source.vnum, door_source);
 
         const std::size_t door_synced = nebbie::refresh_inbound_exit_descriptions(world, 34021);
-        if (door_synced != 0) {
-            throw std::runtime_error("custom door look text should not be overwritten on manual sync");
+        if (door_synced != 1) {
+            throw std::runtime_error("misplaced prose in exit description should be corrected on sync");
         }
-        if (world.find_room(34030)->exits.front().description.find("mithril") == std::string::npos) {
-            throw std::runtime_error("mithril door description was modified");
+        if (world.find_room(34030)->exits.front().description != world.find_room(34021)->name) {
+            throw std::runtime_error("sync should replace misplaced exit description with destination name");
+        }
+        if (world.find_room(34030)->exits.front().keyword != "porta") {
+            throw std::runtime_error("sync should not modify door keyword");
         }
 
         nebbie::Room outbound_source;
@@ -217,22 +230,16 @@ int main() {
         const nebbie::ExitLabelAlignResult single =
             nebbie::align_room_exit_description(world, 34040, 2);
         if (!single.updated) {
-            throw std::runtime_error("per-exit alignment should update stale label");
+            throw std::runtime_error("per-exit alignment should update stale destination name");
         }
         if (world.find_room(34040)->exits.front().description != world.find_room(34021)->name) {
-            throw std::runtime_error("per-exit alignment did not set full destination name");
+            throw std::runtime_error("per-exit alignment did not set exact destination name");
         }
 
         const nebbie::ExitLabelAlignResult second_single =
             nebbie::align_room_exit_description(world, 34040, 2);
         if (!second_single.already_ok) {
             throw std::runtime_error("second per-exit alignment should report already_ok");
-        }
-
-        const nebbie::ExitLabelAlignResult custom =
-            nebbie::align_room_exit_description(world, 34030, 0);
-        if (!custom.skipped_custom) {
-            throw std::runtime_error("per-exit alignment should skip custom door text");
         }
 
         std::cout << "OK\n";

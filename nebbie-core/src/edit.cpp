@@ -7,8 +7,6 @@
 
 namespace nebbie {
 
-bool is_custom_exit_look_text(const std::string& exit_description);
-
 namespace {
 
 constexpr const char* EXIT_NAMES[EXIT_DIR_COUNT] = {
@@ -62,10 +60,7 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
 bool should_align_exit_description(const std::string& exit_description,
                                    const std::string& destination_name,
                                    const bool fill_empty_only) {
-    if (strings_equal_ci(exit_description, destination_name)) {
-        return false;
-    }
-    if (is_custom_exit_look_text(exit_description)) {
+    if (exit_description == destination_name) {
         return false;
     }
     if (fill_empty_only) {
@@ -176,58 +171,6 @@ long first_object_vnum(const World& world) {
 }
 
 } // namespace
-
-bool is_custom_exit_look_text(const std::string& exit_description) {
-    std::size_t start = 0;
-    while (start < exit_description.size()
-           && std::isspace(static_cast<unsigned char>(exit_description[start])) != 0) {
-        ++start;
-    }
-    std::size_t end = exit_description.size();
-    while (end > start
-           && std::isspace(static_cast<unsigned char>(exit_description[end - 1])) != 0) {
-        --end;
-    }
-    const std::string text = exit_description.substr(start, end - start);
-    if (text.empty()) {
-        return false;
-    }
-    std::string lower = text;
-    for (char& c : lower) {
-        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-    }
-    static const char* markers[] = {
-        "porta",
-        "portone",
-        "portale",
-        "botola",
-        "mithril",
-        "osservando",
-        "vedi un",
-        "vedi il",
-        "vedi la",
-        "vedi uno",
-        "non sembra",
-        "cesellato",
-        "runich",
-        "chiusa a chiave",
-        "simboli",
-        "illuminat",
-        "passaggio segreto",
-        "enorme portale",
-        "un muro",
-        "vedi un altare",
-        "una botola",
-        "una grande porta",
-        "una porta",
-    };
-    for (const char* marker : markers) {
-        if (lower.find(marker) != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
-}
 
 const char* exit_direction_name(int direction) {
     if (direction < 0 || direction >= EXIT_DIR_COUNT) {
@@ -571,7 +514,7 @@ bool edit_room(World& world, long vnum, const RoomEdit& edit) {
     const std::string old_name = room->name;
     apply_room_edit(*room, edit);
     if (!edit.name.empty() && !strings_equal_ci(old_name, room->name)) {
-        refresh_inbound_exit_descriptions(world, vnum, InboundExitAlignPolicy::SyncRoomLabels);
+        refresh_inbound_exit_descriptions(world, vnum, InboundExitAlignPolicy::SyncDestinationName);
     }
     return true;
 }
@@ -723,11 +666,7 @@ ExitLabelAlignResult align_room_exit_description(World& world,
     }
 
     if (!should_align_exit_description(exit->description, destination->name, false)) {
-        if (is_custom_exit_look_text(exit->description)) {
-            result.skipped_custom = true;
-        } else {
-            result.already_ok = true;
-        }
+        result.already_ok = true;
         return result;
     }
 
@@ -773,13 +712,12 @@ ExitAlignmentReport align_all_inbound_exit_descriptions(World& world) {
                 continue;
             }
 
-            if (strings_equal_ci(exit.description, destination->name)) {
+            if (exit.description == destination->name) {
                 ++report.exits_already_ok;
                 continue;
             }
 
             if (!should_align_exit_description(exit.description, destination->name, false)) {
-                ++report.exits_skipped_custom;
                 continue;
             }
 

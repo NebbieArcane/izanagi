@@ -123,16 +123,15 @@ void MainWindow::setupUi() {
     room_panel_layout->addWidget(room_scroll, 1);
     auto* room_buttons = new QHBoxLayout;
     auto* room_apply = new QPushButton("Apply changes");
-    auto* room_sync_exits = new QPushButton("Aggiorna look verso questa stanza");
+    auto* room_sync_exits = new QPushButton("Aggiorna nomi destinazione verso questa stanza");
     room_sync_exits->setToolTip(
-        "Cerca tutte le altre stanze che hanno un'uscita verso la stanza selezionata e "
-        "imposta il loro campo Description (testo mostrato con «look nord», «look est», ecc.) "
-        "al nome completo di questa stanza. Non modifica name né description della stanza.");
-    auto* room_align_all_exits = new QPushButton("Aggiorna tutti i look (mondo)");
+        "Per ogni altra stanza con un'uscita verso la stanza selezionata, imposta il campo "
+        "Description (prima stringa del blocco D# in myst.wld) al name esatto della stanza "
+        "di destinazione.");
+    auto* room_align_all_exits = new QPushButton("Aggiorna tutti i nomi destinazione (mondo)");
     room_align_all_exits->setToolTip(
-        "Per ogni uscita del mondo, imposta Description al nome completo della stanza di "
-        "destinazione. I testi look personalizzati (porte, rune, passaggi segreti) restano "
-        "invariati.");
+        "Per ogni uscita del mondo, imposta Description al name esatto della stanza di "
+        "destinazione. Porte e passaggi segreti usano keyword e flag (EX_SECRET), non questo campo.");
     auto* room_goto_exit = new QPushButton("Go to exit target");
     room_buttons->addWidget(room_apply);
     room_buttons->addWidget(room_sync_exits);
@@ -441,10 +440,9 @@ void MainWindow::setupMenus() {
     tools_menu->addSeparator();
     auto* export_overlays_action = tools_menu->addAction("Esporta overlay...");
     connect(export_overlays_action, &QAction::triggered, this, &MainWindow::exportOverlays);
-    auto* align_all_exits_action = tools_menu->addAction("Aggiorna tutti i look (mondo)...");
+    auto* align_all_exits_action = tools_menu->addAction("Aggiorna tutti i nomi destinazione (mondo)...");
     align_all_exits_action->setToolTip(
-        "Per ogni uscita del mondo, imposta Description al nome completo della stanza di "
-        "destinazione. I testi look personalizzati restano invariati.");
+        "Per ogni uscita, imposta Description al name esatto della stanza di destinazione.");
     connect(align_all_exits_action, &QAction::triggered, this, &MainWindow::alignAllInboundExitDescriptions);
 
     auto* coordinator_menu = menuBar()->addMenu("&Coordinator");
@@ -1486,7 +1484,7 @@ void MainWindow::applyRoomChanges() {
     item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(room->name)));
     markDirty();
     if (aligned > 0) {
-        setStatus(QString("Stanza %1 aggiornata: %2 testo/i look aggiornato/i nelle stanze collegate.")
+        setStatus(QString("Stanza %1 aggiornata: %2 nome/i destinazione aggiornato/i nelle stanze collegate.")
                       .arg(vnum)
                       .arg(static_cast<qlonglong>(aligned)));
     } else {
@@ -1511,14 +1509,14 @@ void MainWindow::syncInboundExitLabels() {
     if (aligned > 0) {
         refreshRoomEditorIfInboundExitsChanged(vnum);
         markDirty();
-        setStatus(QString("Stanza %1: aggiornati %2 testi look in altre stanze (uscite verso \"%3\").")
+        setStatus(QString("Stanza %1: aggiornati %2 nomi destinazione in altre stanze (uscite verso \"%3\").")
                       .arg(vnum)
                       .arg(static_cast<qlonglong>(aligned))
                       .arg(QString::fromStdString(room->name)));
         return;
     }
 
-    setStatus(QString("Stanza %1: i testi look nelle altre stanze puntano già a \"%2\".")
+    setStatus(QString("Stanza %1: i nomi destinazione nelle altre stanze corrispondono già a \"%2\".")
                   .arg(vnum)
                   .arg(QString::fromStdString(room->name)));
 }
@@ -1546,12 +1544,8 @@ void MainWindow::alignCurrentExitLabel() {
         QMessageBox::warning(this, "Uscite", "Destinazione mancante o non valida.");
         return;
     }
-    if (result.skipped_custom) {
-        setStatus("Testo look personalizzato (porta, rune, ecc.): non modificato.");
-        return;
-    }
     if (result.already_ok) {
-        setStatus("Il testo look è già uguale al nome completo della destinazione.");
+        setStatus("Il nome destinazione corrisponde già al name della stanza di destinazione.");
         return;
     }
     if (!result.updated) {
@@ -1565,7 +1559,7 @@ void MainWindow::alignCurrentExitLabel() {
     const nebbie::Room* room = world_.find_room(vnum);
     const nebbie::Exit* exit = room ? nebbie::find_room_exit(*room, direction) : nullptr;
     if (exit) {
-        setStatus(QString("Look %1 aggiornato: \"%2\".")
+        setStatus(QString("Uscita %1: nome destinazione impostato a \"%2\".")
                       .arg(QString::fromUtf8(nebbie::exit_direction_name(direction)))
                       .arg(QString::fromStdString(exit->description)));
     }
@@ -1574,23 +1568,19 @@ void MainWindow::alignCurrentExitLabel() {
 void MainWindow::showExitAlignmentReport(const QString& text,
                                          const nebbie::ExitAlignmentReport& report) {
     QDialog dialog(this);
-    dialog.setWindowTitle("Sincronizzazione testi look");
+    dialog.setWindowTitle("Sincronizzazione nomi destinazione");
 
     auto* layout = new QVBoxLayout(&dialog);
     auto* summary = new QLabel;
     summary->setWordWrap(true);
     if (report.exits_aligned > 0) {
-        summary->setText(QString("Aggiornati %1 testi look (campo Description) su %2 uscite controllate "
-                                   "(%3 personalizzati lasciati invariati). "
+        summary->setText(QString("Aggiornati %1 nomi destinazione (campo Description) su %2 uscite controllate. "
                                    "Doppio clic su una riga per aprire la stanza sorgente e l'uscita.")
                            .arg(static_cast<qlonglong>(report.exits_aligned))
-                           .arg(static_cast<qlonglong>(report.exits_checked))
-                           .arg(static_cast<qlonglong>(report.exits_skipped_custom)));
+                           .arg(static_cast<qlonglong>(report.exits_checked)));
     } else {
-        summary->setText(QString("Nessun testo look da aggiornare su %1 uscite controllate "
-                                   "(%2 personalizzati lasciati invariati).")
-                           .arg(static_cast<qlonglong>(report.exits_checked))
-                           .arg(static_cast<qlonglong>(report.exits_skipped_custom)));
+        summary->setText(QString("Nessun nome destinazione da aggiornare su %1 uscite controllate.")
+                           .arg(static_cast<qlonglong>(report.exits_checked)));
     }
     layout->addWidget(summary);
 
@@ -1664,7 +1654,7 @@ void MainWindow::alignAllInboundExitDescriptions() {
     }
 
     const nebbie::ExitAlignmentReport report = nebbie::align_all_inbound_exit_descriptions(world_);
-    const QString context = QStringLiteral("Sincronizzazione testi look (mondo)");
+    const QString context = QStringLiteral("Sincronizzazione nomi destinazione (mondo)");
     const QString text = nebbie::qt::format_exit_alignment_report(
         report, context, nebbie::qt::qstring_from_path(lib_path_));
     nebbie::qt::append_application_log(text);
@@ -1678,7 +1668,7 @@ void MainWindow::alignAllInboundExitDescriptions() {
         }
     }
 
-    setStatus(QString("Sincronizzazione look: %1 testi aggiornati, %2 già corretti.")
+    setStatus(QString("Sincronizzazione nomi destinazione: %1 aggiornati, %2 già corretti.")
                   .arg(static_cast<qlonglong>(report.exits_aligned))
                   .arg(static_cast<qlonglong>(report.exits_already_ok)));
 }
