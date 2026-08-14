@@ -1,0 +1,33 @@
+#3004
+La zona occidentale della Piazza delle Nebbie~
+Sulla parte ovest della piazza si trovai l'ingresso della famosa
+osteria  "Soffio del Drago", noto in tutti i reami per essere
+il  luogo  di  partenza delle piu' famose spedizioni di caccia ai
+draghi.  A sud vedi un Ufficio Postale, mentre a nord, immerso in
+un quieto giardino si erge un piccolo tempio.
+Un cartello attira la tua attenzione, c'e' scritto sopra:
+scrivi 'dimensione' per le Dimensioni Effimere.
+~
+25 8388608 1
+D0
+Un  vialetto percorre un tranquillo giardino fino all'ingresso di
+un piccolo tempio in marmo bianco.
+~
+~
+0 0 11100 -1
+D1
+La piazza delle Nebbie
+~
+~
+0 0 3001 -1
+D2
+L'Ufficio Postale
+~
+~
+0 0 3065 -1
+D3
+L'osteria "Soffio del Drago"
+~
+~
+0 0 3002 -1
+S

@@ -1,0 +1,3602 @@
+#34000
+$c0001Castelli - stanza di raccordo$c0007~
+~
+0 0 0
+D0
+~
+~
+0 0 34001 -1
+S
+#34001
+Ingresso al Castello del Primo Principe delle Nebbie~
+Improvvisamente un senso di ansia e di paura ti invade.
+Hai trovato quello che non avresti mai voluto cercare.
+Ti trovi davanti al castello del primo Lord devoto al Signore delle Ombre ......
+Montero il Mercenario.
+~
+0 12 0
+D0
+Osservando meglio la porta vedi dei simboli runici.
+~
+amici~
+1 0 34002 -1
+D1
+~
+~
+0 0 34006 -1
+D2
+~
+~
+0 0 6109 -1
+E
+simboli runici~
+C'e' scritto 'Mellon' .... non ricordi il significato della parola
+~
+E
+mellon~
+Amici ..... mellon vuol dire amici
+~
+S
+#34002
+Piazza d'armi~
+Il senso di inquietudine aumenta ...... ora ti trovi nel mezzo di una piazza d'armi.
+Molti coraggiosi guerrieri hanno imparato a combattere in questo luogo.
+Tutto intorno a te solo resti di ossa e macerie.
+A nord vedi l'ingresso al Maschio.
+~
+0 9 0
+D0
+~
+~
+0 0 34003 -1
+D2
+Osservando meglio la porta vedi dei simboli runici.
+~
+amici~
+1 0 34001 -1
+E
+ossa~
+Gli scheletri di molti guerrieri .... tra i quali il Guardiano del Tempio.
+~
+S
+#34003
+Ingresso al Maschio~
+Ti trovi davanti all'ingresso di una mastodontica costruzione.
+A sud vedi la piazza d'armi e quasi avvolto dalle tenebre l'ingresso del castello...
+Torna indietro... Non sai cosa ti attende.
+~
+0 9 0
+D0
+La porta e' fatta di mithril. Non sembra chiusa a chiave.
+~
+~
+545 0 34004 -1
+D2
+~
+~
+0 0 34002 -1
+S
+#34004
+Postazione di Ingresso~
+Sei all'interno del Maschio del castello. La paura adesso ti sta assalendo...
+Guardandoti intorno vedi due statue.
+Non trovi altre uscite oltre alla porta dalla quale sei entrato.
+Hai un solo desiderio... uscire di qui!
+~
+0 50380873 0
+1
+D2
+La porta e' fatta di mithril.
+~
+~
+545 34001 34003 -1
+D5
+~
+~
+809 34001 34005 -1
+E
+statue~
+Due enormi statue di pietra raffiguranti due Mezzi-Giganti.
+~
+E
+statua~
+Un'enorme statua di pietra raffigurante un Mezzo-Gigante.
+~
+S
+#34005
+Stanza del Principe Montero~
+Una bellissima camera con un'enorme letto a baldacchino.
+Appesi alle pareti vedi degli stupendi arazzi.
+Qui passa le sue ore a riposarsi Montero il Mercenario.
+Non c'e' uscita da questa stanza...    Sei in trappola.
+~
+0 33481 0
+1
+D4
+~
+~
+809 34001 34004 -1
+E
+arazzi~
+Raffigurano le storiche imprese di Montero, il Primo Principe.
+I massacri nelle terre di Camelot, l'uccisione del Principe Mardren e del suo fido Lord.
+L'uccisione a mani nude del Guardiano del Tempio.
+Ed infine l'ultimo suo scontro, quello contro il temibile Poseidon.
+~
+S
+#34006
+Lato Est delle mura~
+Stai percorrendo il viottolo che porta alla riserva di caccia del Castello.
+Enormi alberi ti circondano. riesci a malapena a vedere le mura del Castello sulla tua sinistra.
+Il viottolo continua ad est.
+~
+0 1 3
+D1
+~
+~
+0 0 34007 -1
+D3
+~
+~
+0 0 34001 -1
+S
+#34007
+La radura~
+La vegetazione si fa piu' rada, nello spiazzo c'e' un solo albero con appeso un
+cartello. Di fronte a te c'e' un piccolo laghetto dalle acque limpide.
+A nord vedi le mura del Castello mentre il sentiero ora svolta verso sud.
+~
+0 0 3
+D1
+~
+~
+0 0 34008 -1
+D3
+~
+~
+0 0 34006 -1
+E
+cartello~
+noti una freccia verso sud ed una scritta in oro:
+"$c0011Ingresso alla Riserva di Caccia del Principe Montero.$c0007"
+~
+S
+#34008
+Il laghetto~
+Sei entrato nel laghetto. L'acqua e' limpida e cosi' profonda che non riesci a vedere il fondale del lago.
+Sei circondato da cigni e anatroccoli.
+L'unica uscita e' quella dalla quale sei venuto (a meno che tu non sia un pesce)
+~
+0 0 6
+D3
+~
+~
+0 0 34007 -1
+D5
+~
+fondale~
+264 0 34009 495
+S
+#34009
+L'antro~
+Ti trovi in una caverna sott'acqua, sicuramente la tana di qualche mostro
+La via dalla quale sei passato si e' stranamente richiusa.
+Sei in trappola!
+~
+0 50380865 9
+1
+D0
+~
+fessura~
+265 0 34010 495
+D4
+~
+fondale~
+265 0 34008 495
+E
+caverna~
+guardando meglio noti una piccola fessura
+~
+S
+#34010
+Il pozzo~
+Ti trovi all'interno di un pozzo. Vedi delle scale appese alla parete che portano in superficie.
+~
+0 49409 9
+D2
+~
+fessura~
+265 0 34009 495
+D4
+~
+~
+0 0 34002 -1
+S
+#34020
+Di fronte alla Roccaforte della Marca Orientale~
+Di fronte a te si ergono le possenti mura della roccaforte della Marca Est.
+Sul pennone, in cima ad un torrione, svetta la bandiera del Principato.
+Sopra lo stipite del portone, e' scolpito lo stemma araldico di un Principe.
+~
+0 20 1
+D0
+Il cortile interno della roccaforte orientale~
+portone~
+673 34202 34021 -1
+D2
+una strada
+~
+~
+0 0 97 -1
+E
+bandiera~
+si muove dolcemente, cullata dal vento e
+identifica questa roccaforte come quella del Marchesato Orientale
+~
+E
+stemma~
+e' lo stemma del Principe al quale il Gran Consiglio di Myst
+ha assegnato questo castello.
+~
+S
+#34021
+Il cortile interno della roccaforte orientale~
+Questo e' il cortile interno del castello. A pianta quadrata, e' circondato
+da alte mura di pietra bianca.
+A est vi sono le scuderie, a ovest una porta di metallo ed a nord un
+portone in legno di quercia. Una botola conduce ad un passaggio segreto.
+~
+0 32832 1
+1
+D0
+Il salone della Roccaforte~
+portone~
+129 0 34025 -1
+D1
+Le scuderie del Marchese~
+porta~
+1 0 34023 -1
+D2
+Di fronte alla Roccaforte della Marca Orientale~
+portone~
+673 34202 34020 -1
+D3
+L'armeria del Marchesato d'Oriente~
+porta~
+1 0 34022 -1
+D5
+Di fronte alla Roccaforte della Marca Orientale~
+botola~
+1 0 34020 373
+S
+#34022
+L'armeria del Marchesato d'Oriente~
+Questa e' l'armeria del Clan.
+Qui il Principe ed i suoi vassalli custodiscono armi
+ed equipaggiamenti militari.
+La stanza e' angusta ed e' illuminata solo dalla luce che filtra
+da una finestrella posta sulla porta metallica dell'ingresso.
+~
+0 32840 0
+1
+D1
+Il cortile interno della roccaforte orientale~
+porta~
+1 0 34021 -1
+S
+#34023
+Le scuderie del Marchese~
+La stalla non e' molto pulita, ma i cavalli sembrano tenuti bene.
+Il pavimento in terra battuta e' coperto da paglia e stallatico.
+~
+0 32840 0
+1
+D3
+Il cortile interno della roccaforte orientale~
+porta~
+1 0 34021 -1
+S
+#34024
+La camera del Principe della Marca D'Oriente~
+La stanza e' arredata secondo il gusto personale del Principe.
+Alle pareti vi sono degli arazzi che raffigurano le imprese
+eroiche del Principe e dei suoi vassalli.
+~
+0 32856 0
+1
+D1
+Il salone della Roccaforte~
+~
+0 0 34025 -1
+S
+#34025
+Il salone della Roccaforte~
+Questo e' il salone principale del castello.
+Alle pareti vi sono gli stemmi araldici dei vassalli e trofei di guerra.
+Al centro del salone vi e' una tavola rotonda che ricorda quella di Artu'.
+Una scala a chiocciola porta di sopra.
+~
+0 32840 0
+1
+D0
+La cappella~
+porta~
+1 0 34027 -1
+D1
+Gli alloggi dei vassalli del Marchese~
+~
+0 0 34026 -1
+D2
+Il cortile interno della roccaforte orientale~
+portone~
+129 0 34021 -1
+D3
+La camera del Principe della Marca D'Oriente~
+~
+0 0 34024 -1
+D4
+La cima della torre~
+~
+0 0 34028 -1
+E
+tavola rotonda~
+e' una tavola rotonda fatta in legno di abete.
+vi sono diverse sedie tutt'attorno, tante quanti i
+vassalli del Principe.
+~
+S
+#34026
+Gli alloggi dei vassalli del Marchese~
+Questa stanza assomiglia ad una camerata, vi sono diversi
+letti, armadi e bauli. Alle pareti, sono appesi dei ritratti che
+non sarebbero adatti a dei bambini...
+~
+0 32840 0
+1
+D3
+Il salone della Roccaforte~
+~
+0 0 34025 -1
+S
+#34027
+La cappella~
+Questa e' la cappella privata del Marchesato, dedicata agli
+dei buoni che proteggono il Principato di Myst.
+L'arredamento e' essenziale: un altare verso la parete nord
+ed un inginocchiatoio.
+~
+0 32856 0
+1
+D2
+Il salone della Roccaforte~
+porta~
+1 0 34025 -1
+S
+#34028
+La cima della torre~
+Dalla cima della torre lo sguardo  puo' spaziare per qualche
+chilometro nel paesaggio sottostante.
+Sul pennone svetta la bandiera del Principato di Myst.
+~
+0 32832 1
+1
+D5
+Il salone della Roccaforte~
+~
+0 0 34025 -1
+S
+#34029
+di fronte al castello~
+Di fronte a te si ergono le possenti mura di un castello.
+Sul pennone, in cima ad un torrione, svetta la bandiera del Principato.
+Sopra lo stipite del portone, e' scolpito lo stemma araldico di un Principe.
+~
+0 20 1
+D0
+Il cortile interno~
+portone~
+673 34023 34030 -1
+D1
+una strada
+~
+~
+0 0 92 -1
+E
+bandiera~
+si muove dolcemente, cullata dal vento e
+identifica questo castello come appartenente al Principato
+~
+E
+stemma~
+e' lo stemma del Principe al quale il Gran Consiglio di Myst
+ha assegnato questo castello.
+~
+S
+#34030
+Il cortile interno~
+Questo e' il cortile interno del castello. A pianta quadrata, e' circondato
+da alte mura di pietra bianca.
+A est vi sono le scuderie, a ovest una porta di metallo ed a nord un
+portone in legno di quercia. Una botola conduce ad un passaggio segreto.
+~
+0 32832 1
+1
+D0
+~
+portone~
+129 0 34033 -1
+D1
+~
+porta~
+1 0 34032 -1
+D2
+di fronte al castello~
+portone~
+673 34023 34029 -1
+D3
+L'armeria~
+porta~
+1 0 34031 -1
+D5
+di fronte al castello~
+botola~
+1 0 34029 373
+S
+#34031
+L'armeria~
+Questa e' l'armeria del Clan.
+Qui il Principe ed i suoi vassalli custodiscono armi
+ed equipaggiamenti militari.
+La stanza e' angusta ed e' illuminata solo dalla luce che filtra
+da una finestrella posta sulla porta metallica dell'ingresso.
+~
+0 32840 0
+1
+D1
+Il cortile interno~
+porta~
+1 0 34030 -1
+S
+#34032
+Le scuderie~
+La stalla non e' molto pulita, ma i cavalli sembrano tenuti bene.
+Il pavimento in terra battuta e' coperto da paglia e stallatico.
+~
+0 32840 0
+1
+D3
+Il cortile interno~
+porta~
+1 0 34030 -1
+S
+#34033
+Il salone~
+Questo e' il salone principale del castello.
+Alle pareti vi sono gli stemmi araldici dei vassalli e trofei di guerra.
+Al centro del salone vi e' una tavola rotonda che ricorda quella di Artu'.
+Una scala a chiocciola porta di sopra.
+~
+0 32840 0
+1
+D0
+La cappella~
+porta~
+1 0 34036 -1
+D1
+~
+~
+0 0 34035 -1
+D2
+Il cortile interno~
+portone~
+129 0 34030 -1
+D3
+~
+~
+0 0 34034 -1
+D4
+La cima della torre~
+~
+0 0 34037 -1
+E
+tavola rotonda~
+e' una tavola rotonda fatta in legno di abete.
+vi sono diverse sedie tutt'attorno, tante quanti i
+vassalli del Principe.
+~
+S
+#34034
+La camera del Principe~
+La stanza e' arredata secondo il gusto personale del Principe.
+Alle pareti vi sono degli arazzi che raffigurano le imprese
+eroiche del Principe e dei suoi vassalli.
+~
+0 32856 0
+1
+D1
+~
+~
+0 0 34033 -1
+S
+#34035
+Gli alloggi dei vassalli~
+Questa stanza assomiglia ad una camerata, vi sono diversi
+letti, armadi e bauli. Alle pareti, sono appesi dei ritratti che
+non sarebbero adatti a dei bambini...
+~
+0 32840 0
+1
+D3
+~
+~
+0 0 34033 -1
+S
+#34036
+La cappella~
+Questa e' la cappella privata del Principe, dedicata agli
+dei buoni che proteggono il Principato di Myst.
+L'arredamento e' essenziale: un altare verso la parete nord
+ed un inginocchiatoio.
+~
+0 32856 0
+1
+D2
+~
+porta~
+1 0 34033 -1
+S
+#34037
+La cima della torre~
+Dalla cima della torre lo sguardo  puo' spaziare per qualche
+chilometro nel paesaggio sottostante.
+Sul pennone svetta la bandiera del Principato.
+~
+0 32832 1
+1
+D5
+~
+~
+0 0 34033 -1
+S
+#34038
+di fronte al castello~
+Di fronte a te si ergono le possenti mura di un castello.
+Sul pennone, in cima ad un torrione, svetta la bandiera del Principato.
+Sopra lo stipite del portone, e' scolpito lo stemma araldico di un Principe.
+~
+0 20 1
+D0
+il cortile interno
+~
+portone~
+673 34024 34039 -1
+D2
+una strada
+~
+~
+0 0 51 -1
+E
+bandiera~
+si muove dolcemente, cullata dal vento e
+identifica questo castello come appartenente al Principato
+~
+E
+stemma~
+e' lo stemma del Principe al quale il Gran Consiglio di Myst
+ha assegnato questo castello.
+~
+S
+#34039
+Il cortile interno~
+Questo e' il cortile interno del castello. A pianta quadrata, e' circondato
+da alte mura di pietra bianca.
+A est vi sono le scuderie, a ovest una porta di metallo ed a nord un
+portone in legno di quercia. Una botola conduce ad un passaggio segreto.
+~
+0 32832 1
+1
+D0
+~
+portone~
+129 0 34042 -1
+D1
+~
+porta~
+1 0 34041 -1
+D2
+~
+portone~
+673 34024 34038 -1
+D3
+L'armeria~
+porta~
+1 0 34031 -1
+D5
+un passaggio segreto
+~
+botola~
+1 0 34038 373
+S
+#34040
+L'armeria~
+Questa e' l'armeria del Clan.
+Qui il Principe ed i suoi vassalli custodiscono armi
+ed equipaggiamenti militari.
+La stanza e' angusta ed e' illuminata solo dalla luce che filtra
+da una finestrella posta sulla porta metallica dell'ingresso.
+~
+0 32840 0
+1
+D1
+Il cortile interno~
+porta~
+1 0 34030 -1
+S
+#34041
+Le scuderie~
+La stalla non e' molto pulita, ma i cavalli sembrano tenuti bene.
+Il pavimento in terra battuta e' coperto da paglia e stallatico.
+~
+0 32840 0
+1
+D3
+Il cortile interno
+~
+porta~
+1 0 34039 -1
+S
+#34042
+Il salone~
+Questo e' il salone principale del castello.
+Alle pareti vi sono gli stemmi araldici dei vassalli e trofei di guerra.
+Al centro del salone vi e' una tavola rotonda che ricorda quella di Artu'.
+Una scala a chiocciola porta di sopra.
+~
+0 32840 0
+1
+D0
+~
+porta~
+1 0 34045 -1
+D1
+~
+~
+0 0 34044 -1
+D2
+Il cortile interno
+~
+portone~
+129 0 34039 -1
+D3
+~
+~
+0 0 34043 -1
+D4
+~
+~
+0 0 34046 -1
+E
+tavola rotonda~
+e' una tavola rotonda fatta in legno di abete.
+vi sono diverse sedie tutt'attorno, tante quanti i
+vassalli del Principe.
+~
+S
+#34043
+La camera del Principe~
+La stanza e' arredata secondo il gusto personale del Principe.
+Alle pareti vi sono degli arazzi che raffigurano le imprese
+eroiche del Principe e dei suoi vassalli.
+~
+0 32856 0
+1
+D1
+Il salone
+~
+~
+0 0 34042 -1
+S
+#34044
+Gli alloggi dei vassalli~
+Questa stanza assomiglia ad una camerata, vi sono diversi
+letti, armadi e bauli. Alle pareti, sono appesi dei ritratti che
+non sarebbero adatti a dei bambini...
+~
+0 32840 0
+1
+D3
+Il salone
+~
+~
+0 0 34042 -1
+S
+#34045
+La cappella~
+Questa e' la cappella privata del Principe, dedicata agli
+dei buoni che proteggono il Principato di Myst.
+L'arredamento e' essenziale: un altare verso la parete nord
+ed un inginocchiatoio.
+~
+0 32856 0
+1
+D2
+Il salone
+~
+porta~
+1 0 34042 -1
+S
+#34046
+La cima della torre~
+Dalla cima della torre lo sguardo  puo' spaziare per qualche
+chilometro nel paesaggio sottostante.
+Sul pennone svetta la bandiera del Principato.
+~
+0 32832 1
+1
+D5
+Il salone
+~
+~
+0 0 34042 -1
+S
+#34047
+di fronte al castello~
+Di fronte a te si ergono le possenti mura di un castello.
+Sul pennone, in cima ad un torrione, svetta la bandiera del Principato.
+Sopra lo stipite del portone, e' scolpito lo stemma araldico di un Principe.
+~
+0 20 1
+D0
+il cortile interno
+~
+portone~
+673 34025 34048 -1
+D2
+una strada
+~
+~
+0 0 82 -1
+E
+bandiera~
+si muove dolcemente, cullata dal vento e
+identifica questo castello come appartenente al Principato
+~
+E
+stemma~
+e' lo stemma del Principe al quale il Gran Consiglio di Myst
+ha assegnato questo castello.
+~
+S
+#34048
+Il cortile interno~
+Questo e' il cortile interno del castello. A pianta quadrata, e' circondato
+da alte mura di pietra bianca.
+A est vi sono le scuderie, a ovest una porta di metallo ed a nord un
+portone in legno di quercia. Una botola conduce ad un passaggio segreto.
+~
+0 32832 1
+1
+D0
+Il salone
+~
+portone~
+129 0 34051 -1
+D1
+~
+porta~
+1 0 34050 -1
+D2
+di fronte al castello~
+portone~
+673 34025 34047 -1
+D3
+~
+porta~
+1 0 34049 -1
+D5
+di fronte al castello~
+botola~
+1 0 34047 373
+S
+#34049
+L'armeria~
+Questa e' l'armeria del Clan.
+Qui il Principe ed i suoi vassalli custodiscono armi
+ed equipaggiamenti militari.
+La stanza e' angusta ed e' illuminata solo dalla luce che filtra
+da una finestrella posta sulla porta metallica dell'ingresso.
+~
+0 32840 0
+1
+D1
+Il cortile interno
+~
+porta~
+1 0 34048 -1
+S
+#34050
+Le scuderie~
+La stalla non e' molto pulita, ma i cavalli sembrano tenuti bene.
+Il pavimento in terra battuta e' coperto da paglia e stallatico.
+~
+0 32840 0
+1
+D3
+~
+porta~
+1 0 34048 -1
+S
+#34051
+Il salone~
+Questo e' il salone principale del castello.
+Alle pareti vi sono gli stemmi araldici dei vassalli e trofei di guerra.
+Al centro del salone vi e' una tavola rotonda che ricorda quella di Artu'.
+Una scala a chiocciola porta di sopra.
+~
+0 32840 0
+1
+D0
+La cappella
+~
+porta~
+1 0 34054 -1
+D1
+~
+~
+0 0 34053 -1
+D2
+~
+portone~
+129 0 34048 -1
+D3
+~
+~
+0 0 34052 -1
+D4
+~
+~
+0 0 34055 -1
+E
+tavola rotonda~
+e' una tavola rotonda fatta in legno di abete.
+vi sono diverse sedie tutt'attorno, tante quanti i
+vassalli del Principe.
+~
+S
+#34052
+La camera del Principe~
+La stanza e' arredata secondo il gusto personale del Principe.
+Alle pareti vi sono degli arazzi che raffigurano le imprese
+eroiche del Principe e dei suoi vassalli.
+~
+0 32856 0
+1
+D1
+Il salone
+~
+~
+0 0 34051 -1
+S
+#34053
+Gli alloggi dei vassalli~
+Questa stanza assomiglia ad una camerata, vi sono diversi
+letti, armadi e bauli. Alle pareti, sono appesi dei ritratti che
+non sarebbero adatti a dei bambini...
+~
+0 32840 0
+1
+D3
+Il salone
+~
+~
+0 0 34051 -1
+S
+#34054
+La cappella~
+Questa e' la cappella privata del Principe, dedicata agli
+dei buoni che proteggono il Principato di Myst.
+L'arredamento e' essenziale: un altare verso la parete nord
+ed un inginocchiatoio.
+~
+0 32856 0
+1
+D2
+~
+porta~
+1 0 34051 -1
+S
+#34055
+La cima della torre~
+Dalla cima della torre lo sguardo  puo' spaziare per qualche
+chilometro nel paesaggio sottostante.
+Sul pennone svetta la bandiera del Principato.
+~
+0 32832 1
+1
+D5
+Il salone
+~
+~
+0 0 34051 -1
+S
+#34056
+di fronte al castello~
+Di fronte a te si ergono le possenti mura di un castello.
+Sul pennone, in cima ad un torrione, svetta la bandiera del Principato.
+Sopra lo stipite del portone, e' scolpito lo stemma araldico di un Principe.
+~
+0 20 1
+D0
+~
+portone~
+673 34026 34057 -1
+D3
+una strada
+~
+~
+0 0 73 -1
+E
+bandiera~
+si muove dolcemente, cullata dal vento e
+identifica questo castello come appartenente al Principato
+~
+E
+stemma~
+e' lo stemma del Principe al quale il Gran Consiglio di Myst
+ha assegnato questo castello.
+~
+S
+#34057
+Il cortile interno~
+Questo e' il cortile interno del castello. A pianta quadrata, e' circondato
+da alte mura di pietra bianca.
+A est vi sono le scuderie, a ovest una porta di metallo ed a nord un
+portone in legno di quercia. Una botola conduce ad un passaggio segreto.
+~
+0 32832 1
+1
+D0
+~
+portone~
+129 0 34060 -1
+D1
+~
+porta~
+1 0 34059 -1
+D2
+~
+portone~
+673 34026 34056 -1
+D3
+~
+porta~
+1 0 34058 -1
+D5
+un passaggio segreto
+~
+botola~
+1 0 34056 373
+S
+#34058
+L'armeria~
+Questa e' l'armeria del Clan.
+Qui il Principe ed i suoi vassalli custodiscono armi
+ed equipaggiamenti militari.
+La stanza e' angusta ed e' illuminata solo dalla luce che filtra
+da una finestrella posta sulla porta metallica dell'ingresso.
+~
+0 32840 0
+1
+D1
+Il cortile interno
+~
+porta~
+1 0 34057 -1
+S
+#34059
+Le scuderie~
+La stalla non e' molto pulita, ma i cavalli sembrano tenuti bene.
+Il pavimento in terra battuta e' coperto da paglia e stallatico.
+~
+0 32840 0
+1
+D3
+Il cortile interno
+~
+porta~
+1 0 34057 -1
+S
+#34060
+Il salone~
+Questo e' il salone principale del castello.
+Alle pareti vi sono gli stemmi araldici dei vassalli e trofei di guerra.
+Al centro del salone vi e' una tavola rotonda che ricorda quella di Artu'.
+Una scala a chiocciola porta di sopra.
+~
+0 32840 0
+1
+D0
+~
+porta~
+1 0 34063 -1
+D1
+~
+~
+0 0 34062 -1
+D2
+Il cortile interno
+~
+portone~
+129 0 34057 -1
+D3
+~
+~
+0 0 34061 -1
+D4
+~
+~
+0 0 34064 -1
+E
+tavola rotonda~
+e' una tavola rotonda fatta in legno di abete.
+vi sono diverse sedie tutt'attorno, tante quanti i
+vassalli del Principe.
+~
+S
+#34061
+La camera del Principe~
+La stanza e' arredata secondo il gusto personale del Principe.
+Alle pareti vi sono degli arazzi che raffigurano le imprese
+eroiche del Principe e dei suoi vassalli.
+~
+0 32856 0
+1
+D1
+Il salone
+~
+~
+0 0 34060 -1
+S
+#34062
+Gli alloggi dei vassalli~
+Questa stanza assomiglia ad una camerata, vi sono diversi
+letti, armadi e bauli. Alle pareti, sono appesi dei ritratti che
+non sarebbero adatti a dei bambini...
+~
+0 32840 0
+1
+D3
+Il salone
+~
+~
+0 0 34060 -1
+S
+#34063
+La cappella~
+Questa e' la cappella privata del Principe, dedicata agli
+dei buoni che proteggono il Principato di Myst.
+L'arredamento e' essenziale: un altare verso la parete nord
+ed un inginocchiatoio.
+~
+0 32856 0
+1
+D2
+Il salone
+~
+porta~
+1 0 34060 -1
+S
+#34064
+La cima della torre~
+Dalla cima della torre lo sguardo  puo' spaziare per qualche
+chilometro nel paesaggio sottostante.
+Sul pennone svetta la bandiera del Principato.
+~
+0 32832 1
+1
+D5
+Il salone
+~
+~
+0 0 34060 -1
+S
+#34065
+Uno spiazzo~
+Sei in uno spiazzo di fronte ad un tozzo maniero costruito
+con blocchi di arenaria grigia.
+Su di un pennone sventola il vessillo del Sultano.
+~
+0 20 2
+D0
+L'atrio
+~
+portone~
+673 34027 34066 -1
+D2
+una strada
+~
+~
+0 0 13616 -1
+S
+#34066
+L'atrio~
+Le strette finestre non riesco ad illuminare bene l'atrio
+e le poche fiaccole creano un'atmosfera sinistra.
+Sul pavimento noti una botola, mentre una scala a
+chiocciola porta al piano superiore. Una porticina
+in ferro, sulla parete ovest, conduce ad un passaggio
+segreto.
+~
+0 32840 0
+1
+D2
+Uno spiazzo
+~
+portone~
+673 34027 34065 -1
+D3
+un passaggio segreto
+~
+porticina porta~
+1 0 34065 -1
+D4
+La sala ricevimenti
+~
+~
+0 0 34068 -1
+D5
+La sala delle torture
+~
+botola~
+1 0 34067 373
+S
+#34067
+La sala delle torture~
+Questa deve essere una sala usata per le torture.
+Vi sono diversi strumenti che farebbero la gioia del
+dr. Scherzo. Il pavimento e' umido e le pareti sono
+ricoperte di muffa.
+~
+0 32841 0
+1
+D4
+L'atrio
+~
+botola~
+1 0 34066 373
+S
+#34068
+La sala ricevimenti~
+Questa deve essere la sala dei ricevimenti.
+Alle pareti vi sono bellissimi tappeti e specchi
+decorati, da alcuni braceri emana un forte profumo
+di incenso. Una scala porta al piano superiore.
+~
+0 32840 0
+1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34069 -1
+D4
+Sala del mappamondo
+~
+~
+0 0 34070 -1
+D5
+L'atrio
+~
+~
+0 0 34066 -1
+S
+#34069
+Gli alloggi dei vassalli~
+Questa ampia camera accoglie i vassalli del Principe.
+Alle pareti vi sono i ritratti del principe in compagnia
+dei suoi fedeli compagni di avventura.
+A est, una porta si apre su un salone.
+~
+0 32840 0
+1
+D1
+La sala ricevimenti
+~
+~
+1 0 34068 -1
+S
+#34070
+Sala del mappamondo~
+Al centro di questa piccola sala vi e' un grande mappamondo.
+Per terra vi sono diversi tappeti dall'inconfondibile odore di
+cammello.
+Su di un tavolino di legno vi sono delle carte geografiche.
+Una scala porta al piano inferiore e superiore.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34072 -1
+D3
+L'harem
+~
+~
+1 0 34071 -1
+D4
+La cima del maniero
+~
+~
+0 0 34073 -1
+D5
+La sala ricevimenti
+~
+~
+0 0 34068 -1
+E
+mappamondo~
+E' una sfera che riproduce le terre conosciute.
+E' sorretto da un piedistallo di legno intarsiato.
+~
+E
+carte geografiche carta~
+Sono delle mappe di alcuni territori appartenenti
+alle tre nazioni.
+~
+S
+#34071
+L'harem~
+Questo e' un vero e proprio harem!
+Cuscini e tappeti sono sparsi per la stanza e
+un intenso profumo di donna aleggia nell'aria.
+~
+0 32840 0
+1
+D1
+Sala del mappamondo
+~
+~
+1 0 34070 -1
+S
+#34072
+La camera del Principe~
+A giudicare dal gigantesco ritratto che campeggia sulla
+parete e dal mobilio sontuoso, questa deve essere la
+camera del Principe. In una parete c'e' uno
+spioncino.
+~
+0 32856 0
+1
+D2
+Sala del mappamondo
+~
+~
+1 0 34070 -1
+E
+ritratto quadro dipinto~
+rappresenta il Principe nell'atto di trafiggere
+un nemico.
+~
+E
+parete spioncino~
+guardando nello spioncino si vede la stanza
+dell'harem
+~
+S
+#34073
+La cima del maniero~
+Questa torretta ha una copertura di legno e degli
+spalti con feritoie.
+Da quassu' lo sguardo puo' spaziare sui dintorni.
+~
+0 32832 0
+1
+D5
+Sala del mappamondo
+~
+~
+0 0 34070 -1
+S
+#34074
+Uno spiazzo~
+Sei in uno spiazzo di fronte ad un tozzo maniero costruito
+con blocchi di arenaria grigia.
+Su di un pennone sventola il vessillo del Sultano.
+~
+0 20 2
+D0
+L'atrio
+~
+portone~
+673 34028 34075 -1
+D2
+una strada
+~
+~
+0 0 13614 -1
+S
+#34075
+L'atrio~
+Le strette finestre non riesco ad illuminare bene l'atrio
+e le poche fiaccole creano un'atmosfera sinistra.
+Sul pavimento noti una botola, mentre una scala a
+chiocciola porta al piano superiore. Una porticina
+in ferro, sulla parete ovest, conduce ad un passaggio
+segreto.
+
+~
+0 32840 0
+1
+D2
+Uno spiazzo
+~
+portone~
+673 34028 34074 -1
+D3
+un passaggio segreto
+~
+porta porticina~
+1 0 34074 -1
+D4
+La sala ricevimenti
+~
+~
+0 0 34077 -1
+D5
+La sala delle torture
+~
+botola~
+1 0 34076 373
+S
+#34076
+La sala delle torture~
+Questa deve essere una sala usata per le torture.
+Vi sono diversi strumenti che farebbero la gioia del
+dr. Scherzo. Il pavimento e' umido e le pareti sono
+ricoperte di muffa.
+~
+0 32841 0
+1
+D4
+L'atrio
+~
+botola~
+1 0 34075 373
+S
+#34077
+La sala ricevimenti~
+Questa deve essere la sala dei ricevimenti.
+Alle pareti vi sono bellissimi tappeti e specchi
+decorati, da alcuni braceri emana un forte profumo
+di incenso. Una scala porta al piano superiore.
+~
+0 32840 0
+1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34078 -1
+D4
+Sala del mappamondo
+~
+~
+0 0 34079 -1
+D5
+L'atrio
+~
+~
+0 0 34075 -1
+S
+#34078
+Gli alloggi dei vassalli~
+Questa ampia camera accoglie i vassalli del Principe.
+Alle pareti vi sono i ritratti del principe in compagnia
+dei suoi fedeli compagni di avventura.
+A est, una porta si apre su un salone.
+~
+0 32840 0
+1
+D1
+La sala ricevimenti
+~
+~
+1 0 34077 -1
+S
+#34079
+Sala del mappamondo~
+Al centro di questa piccola sala vi e' un grande mappamondo.
+Per terra vi sono diversi tappeti dall'inconfondibile odore di
+cammello.
+Su di un tavolino di legno vi sono delle carte geografiche.
+Una scala porta al piano inferiore e superiore.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34081 -1
+D3
+L'harem
+~
+~
+1 0 34080 -1
+D4
+La cima del maniero
+~
+~
+0 0 34082 -1
+D5
+La sala ricevimenti
+~
+~
+0 0 34077 -1
+E
+mappamondo~
+E' una sfera che riproduce le terre conosciute.
+E' sorretto da un piedistallo di legno intarsiato.
+~
+E
+carte geografiche carta~
+Sono delle mappe di alcuni territori appartenenti
+alle tre nazioni.
+~
+S
+#34080
+L'harem~
+Questo e' un vero e proprio harem!
+Cuscini e tappeti sono sparsi per la stanza e
+un intenso profumo di donna aleggia nell'aria.
+~
+0 32840 0
+1
+D1
+Sala del mappamondo
+~
+~
+1 0 34079 -1
+S
+#34081
+La camera del Principe~
+A giudicare dal gigantesco ritratto che campeggia sulla
+parete e dal mobilio sontuoso, questa deve essere la
+camera del Principe. In una parete c'e' uno
+spioncino.
+~
+0 32856 0
+1
+D2
+Sala del mappamondo
+~
+~
+1 0 34079 -1
+E
+ritratto quadro dipinto~
+rappresenta il Principe nell'atto di trafiggere
+un nemico.
+~
+E
+parete spioncino~
+guardando nello spioncino si vede la stanza
+dell'harem
+~
+S
+#34082
+La cima del maniero~
+Questa torretta ha una copertura di legno e degli
+spalti con feritoie.
+Da quassu' lo sguardo puo' spaziare sui dintorni.
+~
+0 32832 0
+1
+D5
+Sala del mappamondo
+~
+~
+0 0 34079 -1
+S
+#34083
+Uno spiazzo~
+Sei in uno spiazzo di fronte ad un tozzo maniero costruito
+con blocchi di arenaria grigia.
+Su di un pennone sventola il vessillo del Sultano.
+~
+0 20 2
+D0
+L'atrio
+~
+portone~
+673 34029 34084 -1
+D3
+una strada
+~
+~
+0 0 13683 -1
+S
+#34084
+L'atrio~
+Le strette finestre non riesco ad illuminare bene l'atrio
+e le poche fiaccole creano un'atmosfera sinistra.
+Sul pavimento noti una botola, mentre una scala a
+chiocciola porta al piano superiore. Una porticina
+in ferro, sulla parete ovest, conduce ad un passaggio
+segreto.
+
+~
+0 32840 0
+1
+D2
+Uno spiazzo
+~
+portone~
+673 34029 34083 -1
+D3
+un passaggio segreto
+~
+porta porticina~
+1 0 34083 -1
+D4
+La sala ricevimenti
+~
+~
+0 0 34086 -1
+D5
+La sala delle torture
+~
+botola~
+1 0 34085 373
+S
+#34085
+La sala delle torture~
+Questa deve essere una sala usata per le torture.
+Vi sono diversi strumenti che farebbero la gioia del
+dr. Scherzo. Il pavimento e' umido e le pareti sono
+ricoperte di muffa.
+~
+0 32841 0
+1
+D4
+L'atrio
+~
+botola~
+1 0 34084 373
+S
+#34086
+La sala ricevimenti~
+Questa deve essere la sala dei ricevimenti.
+Alle pareti vi sono bellissimi tappeti e specchi
+decorati, da alcuni braceri emana un forte profumo
+di incenso. Una scala porta al piano superiore.
+~
+0 32840 0
+1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34087 -1
+D4
+Sala del mappamondo
+~
+~
+0 0 34088 -1
+D5
+L'atrio
+~
+~
+0 0 34084 -1
+S
+#34087
+Gli alloggi dei vassalli~
+Questa ampia camera accoglie i vassalli del Principe.
+Alle pareti vi sono i ritratti del principe in compagnia
+dei suoi fedeli compagni di avventura.
+A est, una porta si apre su un salone.
+~
+0 32840 0
+1
+D1
+La sala ricevimenti
+~
+~
+1 0 34086 -1
+S
+#34088
+Sala del mappamondo~
+Al centro di questa piccola sala vi e' un grande mappamondo.
+Per terra vi sono diversi tappeti dall'inconfondibile odore di
+cammello.
+Su di un tavolino di legno vi sono delle carte geografiche.
+Una scala porta al piano inferiore e superiore.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34090 -1
+D3
+L'harem
+~
+~
+1 0 34089 -1
+D4
+La cima del maniero
+~
+~
+0 0 34091 -1
+D5
+La sala ricevimenti
+~
+~
+0 0 34086 -1
+E
+mappamondo~
+E' una sfera che riproduce le terre conosciute.
+E' sorretto da un piedistallo di legno intarsiato.
+~
+E
+carte geografiche carta~
+Sono delle mappe di alcuni territori appartenenti
+alle tre nazioni.
+~
+S
+#34089
+L'harem~
+Questo e' un vero e proprio harem!
+Cuscini e tappeti sono sparsi per la stanza e
+un intenso profumo di donna aleggia nell'aria.
+~
+0 32840 0
+1
+D1
+Sala del mappamondo
+~
+~
+1 0 34088 -1
+S
+#34090
+La camera del Principe~
+A giudicare dal gigantesco ritratto che campeggia sulla
+parete e dal mobilio sontuoso, questa deve essere la
+camera del Principe. In una parete c'e' uno
+spioncino.
+~
+0 32856 0
+1
+D2
+Sala del mappamondo
+~
+~
+1 0 34088 -1
+E
+ritratto quadro dipinto~
+rappresenta il Principe nell'atto di trafiggere
+un nemico.
+~
+E
+parete spioncino~
+guardando nello spioncino si vede la stanza
+dell'harem
+~
+S
+#34091
+La cima del maniero~
+Questa torretta ha una copertura di legno e degli
+spalti con feritoie.
+Da quassu' lo sguardo puo' spaziare sui dintorni.
+~
+0 32832 0
+1
+D5
+Sala del mappamondo
+~
+~
+0 0 34088 -1
+S
+#34092
+Uno spiazzo~
+Sei in uno spiazzo di fronte ad un tozzo maniero costruito
+con blocchi di arenaria grigia.
+Su di un pennone sventola il vessillo del Sultano.
+~
+0 20 2
+D0
+L'atrio
+~
+portone~
+673 34204 34093 -1
+D2
+una strada
+~
+~
+0 0 13691 -1
+S
+#34093
+L'atrio~
+Le strette finestre non riesco ad illuminare bene l'atrio
+e le poche fiaccole creano un'atmosfera sinistra.
+Sul pavimento noti una botola, mentre una scala a
+chiocciola porta al piano superiore. Una porticina
+in ferro, sulla parete ovest, conduce ad un passaggio
+segreto.
+
+~
+0 32840 0
+1
+D2
+Uno spiazzo
+~
+portone~
+673 34205 34092 -1
+D3
+un passaggio segreto
+~
+porta porticina~
+1 0 34092 -1
+D4
+La sala ricevimenti
+~
+~
+0 0 34095 -1
+D5
+La sala delle torture
+~
+botola~
+1 0 34094 373
+S
+#34094
+La sala delle torture~
+Questa deve essere una sala usata per le torture.
+Vi sono diversi strumenti che farebbero la gioia del
+dr. Scherzo. Il pavimento e' umido e le pareti sono
+ricoperte di muffa.
+~
+0 32841 0
+1
+D4
+L'atrio
+~
+botola~
+1 0 34093 373
+S
+#34095
+La sala ricevimenti~
+Questa deve essere la sala dei ricevimenti.
+Alle pareti vi sono bellissimi tappeti e specchi
+decorati, da alcuni braceri emana un forte profumo
+di incenso. Una scala porta al piano superiore.
+~
+0 32840 0
+1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34096 -1
+D4
+Sala del mappamondo
+~
+~
+0 0 34097 -1
+D5
+L'atrio
+~
+~
+0 0 34093 -1
+S
+#34096
+Gli alloggi dei vassalli~
+Questa ampia camera accoglie i vassalli del Principe.
+Alle pareti vi sono i ritratti del principe in compagnia
+dei suoi fedeli compagni di avventura.
+A est, una porta si apre su un salone.
+~
+0 32840 0
+1
+D1
+La sala ricevimenti
+~
+~
+1 0 34095 -1
+S
+#34097
+Sala del mappamondo~
+Al centro di questa piccola sala vi e' un grande mappamondo.
+Per terra vi sono diversi tappeti dall'inconfondibile odore di
+cammello.
+Su di un tavolino di legno vi sono delle carte geografiche.
+Una scala porta al piano inferiore e superiore.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34099 -1
+D3
+L'harem
+~
+~
+1 0 34098 -1
+D4
+La cima del maniero
+~
+~
+0 0 34100 -1
+D5
+La sala ricevimenti
+~
+~
+0 0 34095 -1
+E
+mappamondo~
+E' una sfera che riproduce le terre conosciute.
+E' sorretto da un piedistallo di legno intarsiato.
+~
+E
+carte geografiche carta~
+Sono delle mappe di alcuni territori appartenenti
+alle tre nazioni.
+~
+S
+#34098
+L'harem~
+Questo e' un vero e proprio harem!
+Cuscini e tappeti sono sparsi per la stanza e
+un intenso profumo di donna aleggia nell'aria.
+~
+0 32840 0
+1
+D1
+Sala del mappamondo
+~
+~
+1 0 34097 -1
+S
+#34099
+La camera del Principe~
+A giudicare dal gigantesco ritratto che campeggia sulla
+parete e dal mobilio sontuoso, questa deve essere la
+camera del Principe. In una parete c'e' uno
+spioncino.
+~
+0 32856 0
+1
+D2
+Sala del mappamondo
+~
+~
+1 0 34097 -1
+E
+ritratto quadro dipinto~
+rappresenta il Principe nell'atto di trafiggere
+un nemico.
+~
+E
+parete spioncino~
+guardando nello spioncino si vede la stanza
+dell'harem
+~
+S
+#34100
+La cima del maniero~
+Questa torretta ha una copertura di legno e degli
+spalti con feritoie.
+Da quassu' lo sguardo puo' spaziare sui dintorni.
+~
+0 32832 0
+1
+D5
+Sala del mappamondo
+~
+~
+0 0 34097 -1
+S
+#34101
+Ingresso alla grotta~
+Ti trovi in uno spiazzo coperto di neve.
+Davanti a te vedi una parete di roccia nera, e l'ingresso di una grotta buia. Tutto intorno a te lo sguardo spazia tra le cime dei monti ricoperti di neve.
+Sporgendoti dal bordo dello spiazzo e guardando verso il basso vedi i sentieri che portano al di la' delle montagne. Il freddo delle nevi eterne riesce a penetrare anche attraverso i tuoi vestiti piu' pesanti fino nelle ossa e ti incolla le labbra, impedendoti di concentrarti anche sul piu' semplice degli incantesimi.
+~
+0 32900 5
+D1
+~
+~
+0 0 34102 -1
+D3
+~
+~
+0 0 4002 0
+S
+#34102
+Discesa nel cuore della montagna.~
+Una debole luce proveniente dall'estremita' ovest del tunnel illumina quanto basta per poter procedere senza inciampare.
+Verso est il tunnel scende nelle profondita' della montagna.
+Dal basso proviene un cupo rullare di tamburi da guerra e un fetore di sangue.
+
+~
+0 72 0
+1
+D1
+~
+~
+0 0 34103 -1
+D3
+~
+~
+0 0 34101 -1
+S
+#34103
+Immensa caverna sotterranea.~
+Ti trovi in una caverna che pare non avere confini.
+Solo quando i tuoi occhi si abituano alla penombra riesci a scorgerne le pareti. A ovest un lungo tunnel inizia la sua salita verso l'uscita all'aperto.
+A nord e a sud della grotta noti due cunicoli che proseguono.
+~
+0 8 0
+D0
+~
+~
+0 0 34104 -1
+D2
+~
+~
+0 0 34105 -1
+D3
+~
+~
+0 0 34102 -1
+S
+#34104
+Altare della guerra~
+In questa stanza l'Ala-Ulan del clan viene a ricevere la sua benedizione prima di partire per una guerra. Un altare d'oro occupa il lato est della grotta, e armi e armature cerimoniali coprono la parete ovest.
+~
+0 8 0
+D2
+~
+~
+0 0 34103 -1
+E
+armi armature~
+Sono tutte armi e armature cerimoniali, di scarso utilizzo in un vero combattimento. Alcune sono incrostate di sangue, altre semi arrugginite. Ma dalle ammaccature che recano, capisci che hanno dovuto comunque proteggere qualcuno... forse erano delle vittime del clan?
+~
+S
+#34105
+Armeria~
+In questa grande caverna, sono sparsi innumerevoli attrezzi da guerra.
+Un odore di sangue ti giunge alle narici, e un brivido ti corre lungo la schiena quando pensi a quante persone sono morte per "contribuire" a questa collezione.
+Valuti che potrebbero vestire un intero esercito se fosse necessario.
+~
+0 8 0
+D0
+~
+~
+0 0 34103 -1
+S
+#34106
+Uno spiazzo~
+Sei in uno spiazzo di fronte ad un tozzo maniero costruito
+con blocchi di arenaria grigia.
+Su di un pennone sventola il vessillo del Sultano.
+~
+0 20 2
+D0
+L'atrio
+~
+portone~
+673 34205 34107 -1
+D3
+un fiume
+~
+~
+0 0 13642 -1
+S
+#34107
+L'atrio~
+Le strette finestre non riesco ad illuminare bene l'atrio
+e le poche fiaccole creano un'atmosfera sinistra.
+Sul pavimento noti una botola, mentre una scala a
+chiocciola porta al piano superiore.  Una porticina
+in ferro, sulla parete ovest, conduce ad un passaggio
+segreto.
+~
+0 32840 0
+1
+D2
+Uno spiazzo
+~
+portone~
+673 34028 34106 -1
+D3
+un passaggio segreto
+~
+porta porticina~
+1 0 34106 -1
+D4
+La sala ricevimenti
+~
+~
+0 0 34109 -1
+D5
+La sala delle torture
+~
+botola~
+1 0 34108 373
+S
+#34108
+La sala delle torture~
+Questa deve essere una sala usata per le torture.
+Vi sono diversi strumenti che farebbero la gioia del
+dr. Scherzo. Il pavimento e' umido e le pareti sono
+ricoperte di muffa.
+~
+0 32841 0
+1
+D4
+L'atrio
+~
+botola~
+1 0 34107 373
+S
+#34109
+La sala ricevimenti~
+Questa deve essere la sala dei ricevimenti.
+Alle pareti vi sono bellissimi tappeti e specchi
+decorati, da alcuni braceri emana un forte profumo
+di incenso. Una scala porta al piano superiore.
+~
+0 32840 0
+1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34110 -1
+D4
+Sala del mappamondo
+~
+~
+0 0 34111 -1
+D5
+L'atrio
+~
+~
+0 0 34107 -1
+S
+#34110
+Gli alloggi dei vassalli~
+Questa ampia camera accoglie i vassalli del Principe.
+Alle pareti vi sono i ritratti del principe in compagnia
+dei suoi fedeli compagni di avventura.
+A est, una porta si apre su un salone.
+~
+0 32840 0
+1
+D1
+La sala ricevimenti
+~
+~
+1 0 34109 -1
+S
+#34111
+Sala del mappamondo~
+Al centro di questa piccola sala vi e' un grande mappamondo.
+Per terra vi sono diversi tappeti dall'inconfondibile odore di
+cammello.
+Su di un tavolino di legno vi sono delle carte geografiche.
+Una scala porta al piano inferiore e superiore.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34113 -1
+D3
+L'harem
+~
+~
+1 0 34112 -1
+D4
+La cima del maniero
+~
+~
+0 0 34114 -1
+D5
+La sala ricevimenti
+~
+~
+0 0 34109 -1
+E
+mappamondo~
+E' una sfera che riproduce le terre conosciute.
+E' sorretto da un piedistallo di legno intarsiato.
+~
+E
+carte geografiche carta~
+Sono delle mappe di alcuni territori appartenenti
+alle tre nazioni.
+~
+S
+#34112
+L'harem~
+Questo e' un vero e proprio harem!
+Cuscini e tappeti sono sparsi per la stanza e
+un intenso profumo di donna aleggia nell'aria.
+~
+0 32840 0
+1
+D1
+Sala del mappamondo
+~
+~
+1 0 34111 -1
+S
+#34113
+La camera del Principe~
+A giudicare dal gigantesco ritratto che campeggia sulla
+parete e dal mobilio sontuoso, questa deve essere la
+camera del Principe. In una parete c'e' uno
+spioncino.
+~
+0 32856 0
+1
+D2
+Sala del mappamondo
+~
+~
+1 0 34111 -1
+E
+ritratto quadro dipinto~
+rappresenta il Principe nell'atto di trafiggere
+un nemico.
+~
+E
+parete spioncino~
+guardando nello spioncino si vede la stanza
+dell'harem
+~
+S
+#34114
+La cima del maniero~
+Questa torretta ha una copertura di legno e degli
+spalti con feritoie.
+Da quassu' lo sguardo puo' spaziare sui dintorni.
+~
+0 32832 0
+1
+D5
+Sala del mappamondo
+~
+~
+0 0 34111 -1
+S
+#34115
+Il ponte levatoio~
+Ti trovi di fronte ad un ponte levatoio che conduce
+ad una torre. La costruzione e' in tipico stile imperiale,
+circondata da un profondo fossato.
+~
+0 20 1
+D0
+Il voltone
+~
+portone~
+673 34207 34116 -1
+D3
+una strada
+~
+~
+0 0 18291 -1
+S
+#34116
+Il voltone~
+Sei al riparo di un voltone, all'interno della torre.
+Un pesante portone in ferro protegge l'ingresso.
+A nord si accede ad un cortile, mentre a ovest c'e'
+una stanza illuminata.
+Una botola conduce ad un passaggio segreto.
+
+~
+0 32840 0
+1
+D0
+Il cortile
+~
+~
+0 0 34118 -1
+D2
+Il ponte levatoio
+~
+portone~
+673 0 34115 -1
+D3
+Il corpo di guardia
+~
+~
+0 0 34117 -1
+D5
+Il ponte levatoio
+~
+botola~
+1 0 34115 373
+S
+#34117
+Il corpo di guardia~
+Questa stanza e' arredata in modo spartano, una branda,
+un piccolo tavolino con uno sgabello ed un armadietto
+sono gli unici mobili che vedi. Alla parete e' fissata una
+rastrelliera.
+~
+0 32832 0
+1
+D1
+Il voltone
+~
+~
+0 0 34116 -1
+E
+rastrelliera~
+al momento non contiene armi
+~
+S
+#34118
+Il cortile~
+Sei in un cortile a pianta quadrata, ogni lato misura
+circa 30 piedi di lunghezza e le pareti sono alte 8
+cubiti. Vi sono solo due uscite, una a nord ed una
+a sud.
+~
+0 32832 2
+1
+D0
+Il Salone di rappresentanza
+~
+~
+1 0 34119 -1
+D2
+Il voltone
+~
+~
+0 0 34116 -1
+S
+#34119
+Il Salone di rappresentanza~
+Questo salone riprende tutti i temi dell'architettura imperiale,
+le pareti sono in marmo multicolore ed i pavimenti in basalto
+dell'isola di Thur. Drappi con lo stemma del principe e
+ritratti dei membri del Clan, ricordano chi siano i padroni qui.
+Una scalinata porta ai piani superiori.
+~
+0 32840 0
+1
+D2
+Il cortile
+~
+~
+1 0 34118 -1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34120 -1
+D4
+La sala del consiglio di guerra
+~
+~
+0 0 34121 -1
+S
+#34120
+Gli alloggi dei vassalli~
+Questi sono gli alloggi dei vassalli del Principe.
+Diversi letti a baldacchino, cassettoni e armadi
+sono disposti qua e la'. Per terra vi sono delle calze
+da donna, chissa' che cosa succede qui nelle lunghe
+ore di attesa tra una battaglia e l'altra...
+~
+0 32840 0
+1
+D1
+~
+~
+1 0 34119 -1
+S
+#34121
+La sala del consiglio di guerra~
+Al centro della camera vi e' un grande tavolo rotondo,
+con decine di mappe sparse qua e la' sul ripiano.
+Alle pareti vi sono numerosi trofei di guerra ed un grande
+stemma della casata del Principe.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34122 -1
+D5
+Il Salone di rappresentanza
+~
+~
+0 0 34119 -1
+S
+#34122
+La camera del Principe~
+Dallo sfarzo delle decorazioni e dalla bellezza del
+mobilio, questa deve essere la stanza del Principe.
+Ad una parete e' fissato un marchingegno che assomiglia
+ad una trappola anti-intrusi.
+~
+0 32856 0
+1
+D2
+La sala del consiglio di guerra
+~
+~
+1 0 34121 -1
+E
+trappola~
+sembrerebbe una trappola attivabile dal movimento;
+le piccole corrosioni della vernice, suggeriscono si tratti
+di una trappola ad acido.
+~
+S
+#34124
+Il ponte levatoio~
+Ti trovi di fronte ad un ponte levatoio che conduce
+ad una torre. La costruzione e' in tipico stile imperiale,
+circondata da un profondo fossato.
+~
+0 20 1
+D0
+Il voltone
+~
+portone~
+673 34208 34125 -1
+D1
+una strada
+~
+~
+0 0 18283 -1
+S
+#34125
+Il voltone~
+Sei al riparo di un voltone, all'interno della torre.
+Un pesante portone in ferro protegge l'ingresso.
+A nord si accede ad un cortile, mentre a ovest c'e'
+una stanza illuminata.
+Una botola conduce ad un passaggio segreto.
+~
+0 32840 0
+1
+D0
+Il cortile
+~
+~
+0 0 34127 -1
+D2
+Il ponte levatoio
+~
+portone~
+673 34208 34124 -1
+D3
+Il corpo di guardia
+~
+~
+0 0 34126 -1
+D5
+Il ponte levatoio
+~
+botola~
+1 0 34124 373
+S
+#34126
+Il corpo di guardia~
+Questa stanza e' arredata in modo spartano, una branda,
+un piccolo tavolino con uno sgabello ed un armadietto
+sono gli unici mobili che vedi. Alla parete e' fissata una
+rastrelliera.
+~
+0 32832 0
+1
+D1
+Il voltone
+~
+~
+0 0 34125 -1
+E
+rastrelliera~
+al momento non contiene armi
+~
+S
+#34127
+Il cortile~
+Sei in un cortile a pianta quadrata, ogni lato misura
+circa 30 piedi di lunghezza e le pareti sono alte 8
+cubiti. Vi sono solo due uscite, una a nord ed una
+a sud.
+~
+0 32832 2
+1
+D0
+Il Salone di rappresentanza
+~
+~
+1 0 34128 -1
+D2
+Il voltone
+~
+~
+0 0 34125 -1
+S
+#34128
+Il Salone di rappresentanza~
+Questo salone riprende tutti i temi dell'architettura imperiale,
+le pareti sono in marmo multicolore ed i pavimenti in basalto
+dell'isola di Thur. Drappi con lo stemma del principe e
+ritratti dei membri del Clan, ricordano chi siano i padroni qui.
+Una scalinata porta ai piani superiori.
+~
+0 32840 0
+1
+D2
+Il cortile
+~
+~
+1 0 34127 -1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34129 -1
+D4
+La sala del consiglio di guerra
+~
+~
+0 0 34130 -1
+S
+#34129
+Gli alloggi dei vassalli~
+Questi sono gli alloggi dei vassalli del Principe.
+Diversi letti a baldacchino, cassettoni e armadi
+sono disposti qua e la'. Per terra vi sono delle calze
+da donna, chissa' che cosa succede qui nelle lunghe
+ore di attesa tra una battaglia e l'altra...
+~
+0 32840 0
+1
+D1
+Il Salone di rappresentanza
+~
+~
+1 0 34128 -1
+S
+#34130
+La sala del consiglio di guerra~
+Al centro della camera vi e' un grande tavolo rotondo,
+con decine di mappe sparse qua e la' sul ripiano.
+Alle pareti vi sono numerosi trofei di guerra ed un grande
+stemma della casata del Principe.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34131 -1
+D5
+Il Salone di rappresentanza
+~
+~
+0 0 34128 -1
+S
+#34131
+La camera del Principe~
+Dallo sfarzo delle decorazioni e dalla bellezza del
+mobilio, questa deve essere la stanza del Principe.
+Ad una parete e' fissato un marchingegno che assomiglia
+ad una trappola anti-intrusi.
+~
+0 32856 0
+1
+D2
+La sala del consiglio di guerra
+~
+~
+1 0 34130 -1
+E
+trappola~
+sembrerebbe una trappola attivabile dal movimento;
+le piccole corrosioni della vernice, suggeriscono si tratti
+di una trappola ad acido.
+~
+S
+#34132
+Il ponte levatoio~
+Ti trovi di fronte ad un ponte levatoio che conduce
+ad una torre. La costruzione e' in tipico stile imperiale,
+circondata da un profondo fossato.
+~
+0 20 1
+D0
+Il voltone
+~
+portone~
+673 34209 34133 -1
+D1
+una strada
+~
+~
+0 0 18003 -1
+S
+#34133
+Il voltone~
+Sei al riparo di un voltone, all'interno della torre.
+Un pesante portone in ferro protegge l'ingresso.
+A nord si accede ad un cortile, mentre a ovest c'e'
+una stanza illuminata.
+Una botola conduce ad un passaggio segreto.
+~
+0 32840 0
+1
+D0
+Il cortile
+~
+~
+0 0 34135 -1
+D2
+Il ponte levatoio
+~
+portone~
+673 34209 34132 -1
+D3
+Il corpo di guardia
+~
+~
+0 0 34134 -1
+D5
+Il ponte levatoio
+~
+botola~
+1 0 34132 373
+S
+#34134
+Il corpo di guardia~
+Questa stanza e' arredata in modo spartano, una branda,
+un piccolo tavolino con uno sgabello ed un armadietto
+sono gli unici mobili che vedi. Alla parete e' fissata una
+rastrelliera.
+~
+0 32832 0
+1
+D1
+Il voltone
+~
+~
+0 0 34133 -1
+E
+rastrelliera~
+al momento non contiene armi
+~
+S
+#34135
+Il cortile~
+Sei in un cortile a pianta quadrata, ogni lato misura
+circa 30 piedi di lunghezza e le pareti sono alte 8
+cubiti. Vi sono solo due uscite, una a nord ed una
+a sud.
+~
+0 32832 2
+1
+D0
+Il Salone di rappresentanza
+~
+~
+1 0 34136 -1
+D2
+Il voltone
+~
+~
+0 0 34133 -1
+S
+#34136
+Il Salone di rappresentanza~
+Questo salone riprende tutti i temi dell'architettura imperiale,
+le pareti sono in marmo multicolore ed i pavimenti in basalto
+dell'isola di Thur. Drappi con lo stemma del principe e
+ritratti dei membri del Clan, ricordano chi siano i padroni qui.
+Una scalinata porta ai piani superiori.
+~
+0 32840 0
+1
+D2
+Il cortile
+~
+~
+1 0 34135 -1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34137 -1
+D4
+La sala del consiglio di guerra
+~
+~
+0 0 34138 -1
+S
+#34137
+Gli alloggi dei vassalli~
+Questi sono gli alloggi dei vassalli del Principe.
+Diversi letti a baldacchino, cassettoni e armadi
+sono disposti qua e la'. Per terra vi sono delle calze
+da donna, chissa' che cosa succede qui nelle lunghe
+ore di attesa tra una battaglia e l'altra...
+~
+0 32840 0
+1
+D1
+Il Salone di rappresentanza
+~
+~
+1 0 34136 -1
+S
+#34138
+La sala del consiglio di guerra~
+Al centro della camera vi e' un grande tavolo rotondo,
+con decine di mappe sparse qua e la' sul ripiano.
+Alle pareti vi sono numerosi trofei di guerra ed un grande
+stemma della casata del Principe.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34139 -1
+D5
+Il Salone di rappresentanza
+~
+~
+0 0 34136 -1
+S
+#34139
+La camera del Principe~
+Dallo sfarzo delle decorazioni e dalla bellezza del
+mobilio, questa deve essere la stanza del Principe.
+Ad una parete e' fissato un marchingegno che assomiglia
+ad una trappola anti-intrusi.
+~
+0 32856 0
+1
+D2
+La sala del consiglio di guerra
+~
+~
+1 0 34138 -1
+E
+trappola~
+sembrerebbe una trappola attivabile dal movimento;
+le piccole corrosioni della vernice, suggeriscono si tratti
+di una trappola ad acido.
+~
+S
+#34140
+Il ponte levatoio~
+Ti trovi di fronte ad un ponte levatoio che conduce
+ad una torre. La costruzione e' in tipico stile imperiale,
+circondata da un profondo fossato.
+~
+0 20 1
+D0
+Il voltone
+~
+portone~
+673 34210 34141 -1
+D2
+una strada nei pressi di Mordilnia
+~
+~
+0 0 18197 -1
+S
+#34141
+Il voltone~
+Sei al riparo di un voltone, all'interno della torre.
+Un pesante portone in ferro protegge l'ingresso.
+A nord si accede ad un cortile, mentre a ovest c'e'
+una stanza illuminata.
+Una botola conduce ad un passaggio segreto.
+~
+0 32840 0
+1
+D0
+Il cortile
+~
+~
+0 0 34143 -1
+D2
+Il ponte levatoio
+~
+portone~
+673 34210 34140 -1
+D3
+Il corpo di guardia
+~
+~
+0 0 34142 -1
+D5
+Il ponte levatoio
+~
+botola~
+1 0 34140 373
+S
+#34142
+Il corpo di guardia~
+Questa stanza e' arredata in modo spartano, una branda,
+un piccolo tavolino con uno sgabello ed un armadietto
+sono gli unici mobili che vedi. Alla parete e' fissata una
+rastrelliera.
+~
+0 32832 0
+1
+D1
+Il voltone
+~
+~
+0 0 34141 -1
+E
+rastrelliera~
+al momento non contiene armi
+~
+S
+#34143
+Il cortile~
+Sei in un cortile a pianta quadrata, ogni lato misura
+circa 30 piedi di lunghezza e le pareti sono alte 8
+cubiti. Vi sono solo due uscite, una a nord ed una
+a sud.
+~
+0 32832 2
+1
+D0
+Il Salone di rappresentanza
+~
+~
+1 0 34144 -1
+D2
+Il voltone
+~
+~
+0 0 34141 -1
+S
+#34144
+Il Salone di rappresentanza~
+Questo salone riprende tutti i temi dell'architettura imperiale,
+le pareti sono in marmo multicolore ed i pavimenti in basalto
+dell'isola di Thur. Drappi con lo stemma del principe e
+ritratti dei membri del Clan, ricordano chi siano i padroni qui.
+Una scalinata porta ai piani superiori.
+~
+0 32840 0
+1
+D2
+Il cortile
+~
+~
+1 0 34143 -1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34145 -1
+D4
+La sala del consiglio di guerra
+~
+~
+0 0 34146 -1
+S
+#34145
+Gli alloggi dei vassalli~
+Questi sono gli alloggi dei vassalli del Principe.
+Diversi letti a baldacchino, cassettoni e armadi
+sono disposti qua e la'. Per terra vi sono delle calze
+da donna, chissa' che cosa succede qui nelle lunghe
+ore di attesa tra una battaglia e l'altra...
+~
+0 32840 0
+1
+D1
+Il Salone di rappresentanza
+~
+~
+1 0 34144 -1
+S
+#34146
+La sala del consiglio di guerra~
+Al centro della camera vi e' un grande tavolo rotondo,
+con decine di mappe sparse qua e la' sul ripiano.
+Alle pareti vi sono numerosi trofei di guerra ed un grande
+stemma della casata del Principe.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34147 -1
+D5
+Il Salone di rappresentanza
+~
+~
+0 0 34144 -1
+S
+#34147
+La camera del Principe~
+Dallo sfarzo delle decorazioni e dalla bellezza del
+mobilio, questa deve essere la stanza del Principe.
+Ad una parete e' fissato un marchingegno che assomiglia
+ad una trappola anti-intrusi.
+~
+0 32856 0
+1
+D2
+La sala del consiglio di guerra
+~
+~
+1 0 34146 -1
+E
+trappola~
+sembrerebbe una trappola attivabile dal movimento;
+le piccole corrosioni della vernice, suggeriscono si tratti
+di una trappola ad acido.
+~
+S
+#34148
+Il ponte levatoio~
+Ti trovi di fronte ad un ponte levatoio che conduce
+ad una torre. La costruzione e' in tipico stile imperiale,
+circondata da un profondo fossato.
+~
+0 20 1
+D0
+Il voltone
+~
+portone~
+673 34211 34149 -1
+D3
+una strada
+~
+~
+0 0 18279 -1
+S
+#34149
+Il voltone~
+Sei al riparo di un voltone, all'interno della torre.
+Un pesante portone in ferro protegge l'ingresso.
+A nord si accede ad un cortile, mentre a ovest c'e'
+una stanza illuminata.
+Una botola conduce ad un passaggio segreto.
+~
+0 32840 0
+1
+D0
+Il cortile
+~
+~
+0 0 34151 -1
+D2
+Il ponte levatoio
+~
+portone~
+673 34211 34148 -1
+D3
+Il corpo di guardia
+~
+~
+0 0 34150 -1
+D5
+Il ponte levatoio
+~
+~
+1 0 34148 373
+S
+#34150
+Il corpo di guardia~
+Questa stanza e' arredata in modo spartano, una branda,
+un piccolo tavolino con uno sgabello ed un armadietto
+sono gli unici mobili che vedi. Alla parete e' fissata una
+rastrelliera.
+~
+0 32832 0
+1
+D1
+Il voltone
+~
+~
+0 0 34149 -1
+E
+rastrelliera~
+al momento non contiene armi
+~
+S
+#34151
+Il cortile~
+Sei in un cortile a pianta quadrata, ogni lato misura
+circa 30 piedi di lunghezza e le pareti sono alte 8
+cubiti. Vi sono solo due uscite, una a nord ed una
+a sud.
+~
+0 32832 2
+1
+D0
+Il Salone di rappresentanza
+~
+~
+1 0 34153 -1
+D2
+Il voltone
+~
+~
+0 0 34149 -1
+S
+#34153
+Il Salone di rappresentanza~
+Questo salone riprende tutti i temi dell'architettura imperiale,
+le pareti sono in marmo multicolore ed i pavimenti in basalto
+dell'isola di Thur. Drappi con lo stemma del principe e
+ritratti dei membri del Clan, ricordano chi siano i padroni qui.
+Una scalinata porta ai piani superiori.
+~
+0 32840 0
+1
+D2
+Il cortile
+~
+~
+1 0 34151 -1
+D3
+Gli alloggi dei vassalli
+~
+~
+1 0 34154 -1
+D4
+La sala del consiglio di guerra
+~
+~
+0 0 34155 -1
+S
+#34154
+Gli alloggi dei vassalli~
+Questi sono gli alloggi dei vassalli del Principe.
+Diversi letti a baldacchino, cassettoni e armadi
+sono disposti qua e la'. Per terra vi sono delle calze
+da donna, chissa' che cosa succede qui nelle lunghe
+ore di attesa tra una battaglia e l'altra...
+~
+0 32840 0
+1
+D1
+Il Salone di rappresentanza
+~
+~
+1 0 34153 -1
+S
+#34155
+La sala del consiglio di guerra~
+Al centro della camera vi e' un grande tavolo rotondo,
+con decine di mappe sparse qua e la' sul ripiano.
+Alle pareti vi sono numerosi trofei di guerra ed un grande
+stemma della casata del Principe.
+~
+0 32840 0
+1
+D0
+La camera del Principe
+~
+~
+1 0 34156 -1
+D5
+Il Salone di rappresentanza
+~
+~
+0 0 34153 -1
+S
+#34156
+La camera del Principe~
+Dallo sfarzo delle decorazioni e dalla bellezza del
+mobilio, questa deve essere la stanza del Principe.
+Ad una parete e' fissato un marchingegno che assomiglia
+ad una trappola anti-intrusi.
+~
+0 32856 0
+1
+D2
+La sala del consiglio di guerra
+~
+~
+1 0 34155 -1
+E
+trappola~
+sembrerebbe una trappola attivabile dal movimento;
+le piccole corrosioni della vernice, suggeriscono si tratti
+di una trappola ad acido.
+~
+S
+#34201
+Viale Alberato~
+Stai percorrendo un lungo viale lastricato con marmo bianco e attorniato da cipressi, attorno a te gli uccelli cinguettano melodiosamente, trasmettendoti serenita' ed allegria.
+~
+0 4 1
+D0
+~
+door~
+1 0 34202 -1
+D2
+~
+~
+0 0 1130 -1
+S
+#34202
+Posto di Guardia~
+Sei all'entrata del fortilizio, sopra il massiccio portale in legno di quercia si trova uno
+scudo su cui campeggia lo stemma di Ogun: un drago dorato in campo nero.
+Una figura dalla mole imponente, un mezzo-gigante, sorveglia questa porta.
+~
+0 8 0
+D0
+~
+~
+0 0 34203 -1
+D2
+~
+door~
+1 0 34201 -1
+S
+#34203
+Salone dei banchetti~
+Entri in un immenso salone in cui risuonano il vociare allegro degli occupanti ed il tintinnio di coppe e posate, in un imponente caminetto arde della legna, diffondendo nella stanza un piacevole tepore.
+Alcuni servi, facendo la spola con le cucine, riforniscono i commensali con abbondanti libagioni.
+~
+0 8 0
+D2
+~
+~
+0 0 34202 -1
+D3
+~
+~
+0 0 34204 -1
+S
+#34204
+Torre ~
+Ti trovi all'interno di un'enorme torre merlata costruita con blocchi di granito, una scala a chiocciola occupa quasi interamente la costruzione.
+~
+0 8 0
+D1
+~
+~
+0 0 34203 -1
+D4
+~
+~
+0 0 34205 -1
+S
+#34205
+Alloggi del Principe~
+Questa e' la stanza da letto di Ogun, signore del castello e Principe guerriero.
+Al centro della stanza si trova un letto enorme, mentre appoggiato alla parete troneggia un armadio affiancato da antichi arazzi raffiguranti epiche battaglie.
+In un angolo, su un piedistallo d'argento, vedi una teca dai bordi dorati foderata in velluto rosso, su cui poggia un grosso martello circondato di luce blu.
+~
+0 32840 0
+1
+D5
+~
+~
+0 0 34204 -1
+S
+#34301
+$c0013Ingresso alla roccaforte del Principe Fouler$c0007~
+Stai passando sotto i bastioni della roccaforte di Fouler, le mura imperiose ti sembrano assai resistenti, questa fortezza e' stata costruita per resistere alle forze del male che devastano il mondo delle Nebbie.
+Su di un lato vedi un' Incisione su una lastra di marmo.
+~
+0 32800 0
+D1
+Vedi un portone d'acciaio cesellato con i simboli runici di Fouler e della divina Darkstar.~
+Portone~
+1 0 34304 -1
+D3
+~
+~
+0 0 3500 0
+E
+2~
+Qui vi sono le regole per entrare a far parte del gruppo di coraggiosi che vogliono difendere gli indifesi e gli innocenti contro le nefandezze degli esseri malvagi.
+Per diventare parte di questo gruppo devi diventare vassallo del Signore di questo castello e le regole per fare questo sono:
+1)Il dovrai conformemente alle tue disponibilita' e alle tue capacita' donare un certo quantitativo di exp per accrescere il potere del Prince e quindi tuo.
+2)Quando il tuo prince invochera' il tuo aiuto (sempre conformemente alle tue possibilita') dovrai accorrere in suo aiuto.
+3)Dovrai fare del tuo meglio con le parole ed i fatti affinche' il bene trionfi.
+In cambio di questo otterrai:
+4)La protezione del tuo Principe che per quanto gli sia possibile cerchera' di aiutarti, in qualsiasi situazione tu ti trovi.
+5)Un oggetto di riconoscimento del tuo clan che ti aiutera' nella tua missione per la difesa del bene.
+6)Un gruppo di persone che ti sara' sempre di aiuto quando tu ne abbia bisogno.
+Ogni membro del clan e' libero di girare il mondo con chi vuole purche' il fine ultimo delle sue avventure sia la giustizia.
+~
+E
+1~
+Il male e' bandito da questo luogo.
+Non e' ammesso l'accesso a chiunque sia malvagio.~
+E
+Incisione~
+Leggi scritto:
+Queste sono le regole della roccaforte e del suo Signore.
+1)Regole all'interno del forte
+2)Regole del Signore del castello
+~
+S
+#34302
+Tempio di Darkstar~
+Sei entrato in un tempio dedicato alla Dea Darkstar, la piu' buona
+delle divinita',ti senti pervadere dalla pace e dalla tranquillita' appena
+entri.In un angolo scorgi una statua della dea e verso est noti un altare
+completamente di marmo.Un raggio di luce entra dal rosone sopra l'altare
+e illumina tutta la stanza.
+~
+0 16826872 0
+1
+D0
+Vedi un portale di legno molto grande
+~
+Portale north nord~
+1 0 34304 -1
+D1
+Vedi un altare
+~
+Altare east est~
+9 0 34303 -1
+E
+Altare~
+Sembra che possa in qualche modo essere mosso
+~
+E
+Statua~
+E' bellissima da toglierti il fiato
+~
+S
+#34303
+$c0013Stanza privata di Fouler$c0007~
+Sei entrato in una camera completamente rifinita in marmo.
+Lungo la parete ad est c'e' un grande letto a baldacchino,con accanto un
+COMODINO,invece sulla parete nord c'e' una MAPPA delle Nebbie.
+Tutta la camera emana  una luce che ti fa' sentire in pace.
+Mentre stai per andartene scorgi una FOTOGRAFIA sul lato sud della stanza.
+
+~
+0 32888 0
+1
+D0
+~
+scappa~
+265 0 34304 -1
+D3
+Un muro
+~
+west ovest~
+1 0 34302 -1
+D5
+Una botola
+~
+botola~
+265 0 34315 -1
+E
+Comodino~
+E' un bel mobiletto e su di esso sono poggiate due fotografie
+una della Dea benevola Darkstar, l'altra di uno dei piu' grandi
+compagni che Fouler abbia mai avuto l'Immortale Aragorn.
+Vedi anche una foto del Bati!con intorno una sciarpa della Fiorentina
+~
+E
+Foto Fotografia~
+Questa e' una fotografia di gruppo di tutti gli avventurieri
+ che hanno calcato le vie di Nebbia con Fouler, fra i piu' vedi:
+una serie di tre liste di nomi che individuano i personaggi sulla foto
+~
+E
+Mappa~
+Non riesci a capirci nulla e sotto c'e' un appunto
+per coloro che provano a leggerla:
+INVECE DI ESPLORARE CASA MIA ESPLORATE IL MONDO!
+~
+E
+lista prima~
+Il primo nome della prima lista e' quello di MONTERO il suo principe e
+poi personaggi in vista come INFERNO, RUNA, CURUMIR, EOWYN,
+ALANISE, SAMANTHA, SASHA, AXEL, TUKULKA, Xenord, Epsonh
+
+~
+E
+seconda~
+la seconda lista comincia con FRATELLO(anche se ora la zona della
+fotografia in cui c'e' il suo volto e' utilizzata come bersaglio per
+le freccette),KLUNK,TRENT,PHANTOM,MANTRA,HITTOOGAMI,
+AULIN,KRANDALL,KHWEENNA,TANGLUNG,GRUNG e ora
+HEARTBREAKER
+~
+E
+terza~
+La terza lista comprende i nuovi avventurieri come Lorelai, Pharn, ISILYA,
+ Psychocandy e alcune righe sono lasciate libere per i nuovi eroi che
+ si aggiungeranno
+~
+S
+#34304
+Cortile interno~
+Appena oltrepassate le mura perimetrali entri in un cortile interno dove piante
+e fiori crescono rigogliosi, vedi due grandi edifici ad est e a sud, dall'edificio
+ ad sud senti irradiarsi un' energia benefica.
+~
+0 32872 3
+1
+D0
+~
+~
+0 0 34306 -1
+D1
+Una grande porta di legno che si apre su una stanza
+illuminata
+~
+Porta ~
+1 0 34305 -1
+D2
+Vedi un portale di legno molto grande
+~
+Portale south sud~
+1 0 34302 -1
+D3
+Vedi un portone d'acciaio cesellato con i simboli
+ runici di Fouler e della divina Darkstar
+~
+Portone~
+1 0 34301 -1
+S
+#34305
+Sala riunioni~
+E' una grande sala con un enorme tavolo di legno massello
+dove i difensori del bene si riuniscono per decidere le strategie
+per preservare Nebbie Arcane dalle forze oscure.
+Su un muro sono appesi tutti i trofei dei malvagi che hanno provato
+a far prevalere il male.
+~
+0 50380804 0
+D3
+Una grande porta di legno che si apre su una stanza
+illuminata
+~
+Porta ~
+1 0 34304 -1
+E
+Trofei~
+Tra gli altri scorgi Kalas la coppia dei Beholder messi accanto
+Il Demi e il Draco, Baal, Il brass dragon, qualche Efreet noti che
+ci sono sul muro delle targhe senza sopra i trofei leggendo
+piu' da vicino vedi su queste i nomi di
+STRAHD INHEP SOTH
+ancora le loro teste devono cadere ma .... cadranno!
+~
+S
+#34306
+Giardino~
+Attraverso un vialetto di siepi sei entrato in uno splendido giardino,
+al centro di questo noti un piccolo laghetto circondato da piante
+di bambu' senti rumori di piccoli animali tutto intorno a te.
+Verso nord scorgi un portale da cui accedere ad una formazione
+rocciosa scavata da qualcuno che deve essere veramente enorme.
+Verso ovest c'e' una piccola porticina.
+C'e' un cartello qui.
+~
+0 49248 2
+1
+D0
+Vedi un enorme portale
+~
+Portale north nord~
+1 0 34307 -1
+D1
+Vedi un lungo Colonnato
+~
+east est~
+0 0 34310 -1
+D2
+~
+~
+0 0 34304 -1
+D3
+Una porta di legno
+~
+porta~
+1 0 34309 -1
+E
+laghetto lago~
+Vedi tanti bei pesciolini che nuotano tranquilli
+~
+E
+cartello~
+Si prega le coppiette che vengono a godere di questo giardino,
+di ripulire quando hanno finito
+~
+S
+#34307
+Il regno di Heartbreaker~
+Sei entrato in un enorme stanza, che data la tua immensita' ti comunica
+una sensazione di smarrimento, ma nonostante tutto ti sembra
+calda e accogliente.
+Sulle pareti di pietra viva scorgi appesi dei bellissimi arazzi
+raffiguranti le imprese del prode guerriero.Tra gli arazzi ti colpisce
+quello a nord sopra una misteriosa porta, mentre verso west scorgi una
+vetrata perfettamente rifinita. Ad east noti il giaciglio del guerriero: un'Amaca.
+~
+0 49272 0
+1
+D2
+Vedi un giardino
+~
+Portale south sud~
+1 0 34306 -1
+E
+nord arazzo~
+Gardando con attenzione l'arazzo leggi:
+"Lasciate ogni speranza o voi che entrate poiche' la retta via
+smarrirete"
+~
+E
+vetrata west~
+Guardando attraverso la vetrata puoi vedere una delle
+piu' belle viste di Shadow Spring, che fa capolino dietro il
+rigoglioso boschetto che circonda l'intero castello.
+~
+E
+amaca east~
+E' un amaca molto grossa ma poco usata poiche'
+il coraggioso Heartbreaker e' sempre a giro per il
+mondo in cerca di nuove e avvincenti avventure.
+~
+S
+#34309
+La stanza di Eowyn~
+Si vede chiaramente che questa e' la camera di una signora!
+Come puoi vedere tutto e' in ordine. Non c'e' neppure uno spillo messo male.
+Sulla parete ovest della stanza c'e' il letto di Eowyn ricoperto da tanti peluches.
+Al centro della stanza c'e' una piccola scrivania ed una sedia.
+Tutte le pareti sono ricoperte di stupendi arazzi raffiguranti battaglie del popolo del
+Mark, sulla parete est oltre alla porta d'ingresso c'e' anche un'enorme finestra che
+da sul giardino e che illumina la stanza.
+~
+0 49256 0
+1
+D1
+~
+porta~
+1 0 34306 -1
+E
+spillo~
+argh uno spillo fuori posto c'e'!
+~
+E
+mark popolo~
+i cavalieri di Rohan
+~
+S
+#34310
+Colonnato~
+Stai camminando tra due file di immense colonne di marmo alcune porte si affacciano
+sui lati, a nord vedi una grande torre mentre a sud c'e' una piccola stanza.
+L'aria passa tra le colonne creando incredibili melodie musicali, chi l'ha costruita era
+un vero genio.Verso ovest scorgi un giardino fiorito con un laghetto, mentre verso east
+il colonnato continua.
+~
+0 16826464 3
+1
+D0
+L'osservatorio di Myst
+~
+north nord~
+1 0 34312 -1
+D1
+Un Colonnato
+~
+east west~
+0 0 34314 -1
+D2
+La stanza di Christian
+~
+south sud~
+1 0 34311 -1
+D3
+Vedi un Giardino
+~
+west ovest~
+0 0 34306 -1
+E
+colonne~
+Sono enormi e di un marmo cosi' bianco che quasi ti abbaglia
+~
+S
+#34311
+La stanza di Heyman~
+Sei arrivato nella dimora del prode Heyman.
+Qui il valoroso combattente si riposa dopo le sue eroiche imprese.
+Ci sono molti animale che il possente guerriero alleva, un grande albero
+prospera nel centro della stanza.
+~
+0 32872 0
+1
+D0
+Un Colonnato
+~
+north nord~
+1 0 34310 -1
+E
+albero~
+Il grande albero ha un fusto robusto e i suoi rami formano il tetto
+della casa.
+~
+S
+#34312
+L'osservatorio di Myst~
+Varcando la soglia, la penombra che faceva capolino, scompare cacciata da
+una forte luce della quale non comprendi la provenienza. Guradandoti
+intorno noti che la stanza e' ben arredata, una scrivania, un letto, un
+tavolino con alcune sedie ed una libreria la riempiono, un piccolo camino
+di fronte a te la rende ancor piu' accogliente. Un leggio al centro della
+camera attira la tua attenzione...un libro aperto vi sta adagiato.
+~
+0 32832 0
+1
+D2
+Un Colonnato
+~
+south sud~
+1 0 34310 -1
+E
+libro~
+Non appena abbassi gli occhi sul libro la forte luce
+di cui non capivi la fonte scompare lasciando il posto ad una luminescenza
+molto piu' tenue ed argentata...alzi la testa e stupito osservi il soffitto
+che.....non C'E' piu'!!! WOW!!! La volta celeste domina ora la stanza e ti
+sembra di essere sospeso nell'immensita', solo il leggio davanti a te sembra
+stagliarsi nel blu dell'universo ed i simboli magici che ricoprono le
+pagine del libro ora risplendono di una tenue luce dorata..... comprendi
+che e' questo il luogo dove Myst medita, studia e prepara i suoi
+incantesimi e le sue imprese.
+~
+S
+#34313
+$c0010Dove sognano le Formiche verdi$c0007~
+Dalle tendine gialle della finestra ad oriente il chiarore della luna
+lascia intravedere materassi e cuscini morbidi come piume e coperte di
+candida lana. "Sappiate che nulla attraversa porte e finestre e nulla
+penetra nel castello del Principe salvo il vento della cima del colle"
+ma nonostante le rassicuranti parole della splendida Lorelai continui a
+sentire nell'oscurita' il rumore che aveva turbato il tuo ingresso
+"tip-tap squink" e che sembrava graffiare il muro di roccia nera, solo
+allora ti accorgi dello scintillare di quella che ritenevi ingenuamente
+una parete di fagiolini rampicanti....sorpresa!!..un mare infinito di
+Formiche
+Verdi!
+~
+0 32864 0
+1
+D2
+Un Colonnato
+~
+south sud~
+1 0 34314 -1
+E
+cuscini~
+Sono veramente morbidi, qui Lorelai la Bella si riposa
+~
+S
+#34314
+Colonnato~
+Stai camminando tra due file di immense colonne di marmo alcune porte si affacciano
+sui lati, a nord vedi una stanzetta da cui provengono alcuni rumori a sud c'e' una
+piccola stanza.
+L'aria passa tra le colonne creando incredibili melodie musicali, chi l'ha costruita era
+un vero genio.Verso ovest il colonnato continua, mentre verso east
+ci sono dei lavori in corso.
+~
+0 16826464 3
+1
+D0
+Una stanza in cui si muove qualcosa di $c0010verde$c0007
+~
+north nord~
+1 0 34313 -1
+D2
+$c0012La stanza di Isilya$c0007
+~
+sud south~
+1 0 34316 -1
+D3
+Un Colonnato
+~
+west ovest~
+0 0 34310 -1
+E
+colonne~
+Sono enormi e di un marmo cosi' bianco che quasi ti abbaglia
+~
+S
+#34315
+$c0013Vasca idromassaggio$c0007~
+Una tenue nebbiolina scaturisce dalla vasca idromassaggio, le acque termali
+ sgorgano da una sorgente nella parete e rendono la temperatura ottimale.
+La vasca fatta di marmo bianco e' sufficientemente grande da accogliere due
+persone, e i bordi sono riccamente decorati.Da alcuni bocchelli viene
+magicamente insufflata aria e le bollicine ti scorrono lungo tutto il corpo.
+Mentre ti rilassi ti accorgi che un tenue profumo si sprigiona dall'acqua,
+ dandoti una sensazione di tranquillita' e pace.
+Lungo il muro sono appoggiati alcuni asciugamani di tessuti pregiati.
+~
+0 33620 0
+1
+D4
+Una botola
+~
+botola up~
+265 0 34303 -1
+E
+vasca~
+Il marmo e' bianchissimo e perfettamente levigato
+~
+S
+#34316
+$c0012La stanza di Isilya$c0007~
+E' una cameretta dalle pareti dipinte di azzurro; come tappeto e'
+stesa una grande pelle di cervo. Un lieve odore d'incenso si spande
+nell'aria.In un angolo noti un ampio letto dall'aria molto soffice, ricoperto
+da calde pellicce.Vedi anche un piccolo altare di pietra con sopra un bacile
+e un incensiere, e due librerie straboccanti di libri e testi di magia di
+cui alcuni con dedica. Per un attimo ti soffermi a guardare il paesaggio dalla
+finestra e ti accorgi che sul davanzale viene coltivata una selezionata scelta
+di piante officinali.
+~
+0 32848 0
+1
+D0
+~
+nord north~
+0 0 34314 -1
+E
+dedica dediche libri~
+Su un libro c'e' scritto:
+Da Ryltar all'elfetta rotolante.
+Su un altro ti sembra di leggere il nome Rafim (?)
+Alcuni libri sembrano presi in prestito dalla biblioteca del principe
+ e mai restituiti, infatti vedi il timbro "Fouler" sulla prima pagina.
+~
+E
+davanzale piante officinali~
+Tra le varie specie di piante riconosci l'achillea, la centella, la cicuta...
+Cio' che ti incuriosisce di piu' e' una strana pianta esotica con le foglie a
+5 punte dal bordo zigrinato, da come viene curata pare che Isilya ci tenga
+molto.
+~
+E
+altare pietra~
+L'altare e' di pietra chiara. L'odore che si spande dall'incensiere inizia a
+ darti alla testa e ti senti euforico.Il bacile e' pieno di acqua piovana, il
+tuo sguardo e la tua mente iniziano a perdersi nei riflessi...
+~
+S
+#0

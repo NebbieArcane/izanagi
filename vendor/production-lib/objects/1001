@@ -1,0 +1,49 @@
+#1001
+altare madreparla~
+L'altare di madreperla~
+Un altare di madreperla avvolto da un drappo etereo emana un'aura di assoluta sacralita'~
+~
+15 262505 0
+8000 1 0 0
+138 0 -1
+E
+avvertenze placca~
+Questo  altare  contiene una  serie  di oggetti  speciali da 
+utilizzare esclusivamente durante le quest. Sono per lo piu'
+oggetti non scrappabili che non si trovano nel MUD e possono
+aiutare a dare  un pizzoco di  atmosfera in piu' alle vostre 
+quest.
+
+$c0009
+Mi raccomanto: 
+- questi  oggetti  non  devono essere  lasciati in  mano  ai 
+mortali  se  non  all'interno dell quest stessa ed alla fine 
+vanno recuperati
+- se li restringate ricordate di  junkarli  alla fine  della
+quest stessa
+- non usateli se non per dare maggiore atmosfera alle vostre
+quest; se ne  abusate puo' darsi qualcuno  che ne ha davvero
+bisogno non li trovi
+- dato che questi  oggetti non appartengono  a nessuna  area 
+del MUD ma sono specifici delle quest non lasciateli in giro
+altrimenti potrebbero generare confusione fra i mortali
+- prendete e leggete la lista all'interno  di questo  altare
+per   farvi   un'idea  di  quello   che  e' stato   messo  a 
+disposizione
+~
+E
+altare~
+Una sacca contenente artefatti magici fluttua qui; appena ti
+avvicini essa urla:
+
+$c0014"IO CUSTODISCO LA CONOSCENZA PER GLI DEI
+GUAI AL MORTALE CHE IMMERITATAMENTE LA ADOPRA"$c0007
+
+Sotto  c'e'  una  piccola  placca   dorata  con  l'incisione
+$c0011"Avvertenze"$c0007; Forse e' il caso di leggerla!
+~
+E
+drappo~
+Pare un drappo di tessuto  giallo, eppure  esaminandolo bene
+non vedi nessuna trama su di esso.
+~
