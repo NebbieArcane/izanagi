@@ -447,6 +447,11 @@ void MainWindow::setupMenus() {
     tools_menu->addSeparator();
     auto* export_overlays_action = tools_menu->addAction("Esporta overlay...");
     connect(export_overlays_action, &QAction::triggered, this, &MainWindow::exportOverlays);
+    auto* export_zone_packs_action = tools_menu->addAction("Dividi per zone...");
+    export_zone_packs_action->setToolTip(
+        "Esporta ogni zona in una sottodirectory con myst.zon/wld/mob/obj filtrati "
+        "e directory overlay rooms/objects/mobiles/zones.");
+    connect(export_zone_packs_action, &QAction::triggered, this, &MainWindow::exportZonePacks);
     auto* align_all_exits_action = tools_menu->addAction("Normalizza description uscite (mondo)...");
     align_all_exits_action->setToolTip(
         "Normalizza description che differiscono dal name di destinazione solo per spazi/newline. "
@@ -1119,6 +1124,46 @@ void MainWindow::loadWorldIndexFromFile() {
     }
 
     setStatus(QString("World index loaded from file: %1 zones.").arg(world_index_->zones.size()));
+}
+
+void MainWindow::exportZonePacks() {
+    if (lib_path_.empty()) {
+        QMessageBox::information(this, "Dividi per zone", "Apri una libreria prima di esportare i pacchetti zona.");
+        return;
+    }
+
+    const QString dir = QFileDialog::getExistingDirectory(
+        this,
+        "Seleziona cartella di output per i pacchetti zona",
+        nebbie::qt::qstring_from_path(lib_path_),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    try {
+        const auto report = nebbie::export_all_zone_packs(world_, nebbie::qt::path_from_qstring(dir));
+        QString message = QString("Pacchetti zona scritti in %1\n\n"
+                                  "Zone: %2\nStanze: %3\nOggetti: %4\nMob: %5\nReset zone: %6")
+                              .arg(dir)
+                              .arg(report.zones_written)
+                              .arg(report.rooms)
+                              .arg(report.objects)
+                              .arg(report.mobiles)
+                              .arg(report.zone_resets);
+        if (!report.warnings.empty()) {
+            message += "\n\nAvvisi:";
+            for (const auto& warning : report.warnings) {
+                message += "\n• " + QString::fromStdString(warning);
+            }
+        }
+        QMessageBox::information(this, "Dividi per zone", message);
+        setStatus(QString("Pacchetti zona esportati: %1 zone in %2.")
+                      .arg(report.zones_written)
+                      .arg(dir));
+    } catch (const std::exception& ex) {
+        QMessageBox::critical(this, "Dividi per zone", QString::fromUtf8(ex.what()));
+    }
 }
 
 void MainWindow::exportOverlays() {
