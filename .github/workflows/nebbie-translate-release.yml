@@ -1,0 +1,163 @@
+name: Nebbie Translate (release packages)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cursor/room-translator-editor-92f1
+
+permissions:
+  contents: write
+
+jobs:
+  linux-deb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch nebbietest data
+        run: ./scripts/fetch-test-data.sh
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Build .deb package
+        run: ./scripts/package-deb-translate.sh
+
+      - name: Verify .deb package
+        run: |
+          dpkg-deb --info dist/nebbie-translate_*.deb
+          dpkg-deb --contents dist/nebbie-translate_*.deb | grep -E 'bin/nebbie-translate|share/nebbie-translate'
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebbie-translate-linux-deb
+          path: dist/nebbie-translate_*.deb
+          if-no-files-found: error
+
+  macos-dmg:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch nebbietest data
+        run: ./scripts/fetch-test-data.sh
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Build macOS icon
+        run: |
+          if [[ -f nebbie-qt/icons/nebbieedit.icns ]]; then
+            echo "Using committed nebbieedit.icns"
+          else
+            pip3 install pillow --break-system-packages
+            python3 scripts/make-macos-icon.py
+          fi
+
+      - name: Build .dmg package
+        run: |
+          export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+          ./scripts/package-dmg-translate.sh
+
+      - name: Verify .dmg contents
+        run: |
+          hdiutil attach dist/nebbie-translate_*_macos.dmg -mountpoint /tmp/nebbie-translate-dmg -nobrowse
+          test -d /tmp/nebbie-translate-dmg/nebbie-translate.app
+          hdiutil detach /tmp/nebbie-translate-dmg
+
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebbie-translate-macos-dmg
+          path: dist/nebbie-translate_*_macos.dmg
+          if-no-files-found: error
+
+  windows-portable:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch nebbietest data
+        shell: pwsh
+        run: ./scripts/fetch-test-data.ps1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.5.3"
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+
+      - name: Build portable zip
+        shell: pwsh
+        run: ./scripts/package-windows-translate.ps1
+
+      - name: Verify zip contents
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem dist/nebbie-translate_*_windows_portable.zip | Select-Object -First 1
+          if (-not $zip) { throw "Zip not found in dist/" }
+          Expand-Archive -Path $zip.FullName -DestinationPath $env:RUNNER_TEMP/nebbie-translate-test -Force
+          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/nebbie-translate-test nebbie-translate.exe))) {
+            throw "nebbie-translate.exe missing in zip"
+          }
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebbie-translate-windows-zip
+          path: dist/nebbie-translate_*_windows_portable.zip
+          if-no-files-found: error
+
+  publish-release:
+    needs: [linux-deb, macos-dmg, windows-portable]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: nebbie-translate-*
+          merge-multiple: true
+
+      - name: List release assets
+        run: find release-assets -type f -print
+
+      - name: Publish GitHub pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nebbie-translate
+          name: Nebbie Translate
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            release-assets/**/*.deb
+            release-assets/**/*.dmg
+            release-assets/**/*.zip
+          body: |
+            ## Nebbie Translate
+
+            Editor leggero per tradurre **nome stanza**, **descrizione**, **descrizioni extra** e **testi look uscite**.
+
+            Scarica il pacchetto per la tua piattaforma (nessuna compilazione).
+
+            | Piattaforma | File |
+            |-------------|------|
+            | **Windows** | `nebbie-translate_*_windows_portable.zip` — estrai e avvia `nebbie-translate.exe` |
+            | **macOS** | `nebbie-translate_*_macos.dmg` — trascina `nebbie-translate.app` in Applicazioni |
+            | **Linux** | `nebbie-translate_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
+
+            ### Primo avvio
+            1. Avvia **Nebbie Translate**
+            2. **File → Apri libreria** → cartella `mudroot` o `mudroot/lib`
+            3. Modifica i testi → **Salva**
+
+            Ogni pacchetto include un mondo di esempio (`sample-mudroot`).
+
+            ### Config
+            - Linux: `~/.config/Nebbie/nebbie-translate.conf`
+            - macOS: `~/Library/Application Support/Nebbie/nebbie-translate.conf`
+            - Windows: `%APPDATA%\Nebbie\nebbie-translate.conf`
