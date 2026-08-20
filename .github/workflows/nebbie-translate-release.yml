@@ -56,7 +56,40 @@ jobs:
             python3 scripts/make-macos-icon.py
           fi
 
+      - name: Require Apple notarization secrets
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        run: |
+          if [[ -z "${APPLE_TEAM_ID}" ]]; then
+            echo "::error::Secret APPLE_TEAM_ID mancante. Vedi docs/MACOS_SIGNING.md"
+            exit 1
+          fi
+          if [[ -z "${APPLE_ID}${APP_STORE_CONNECT_API_KEY_ID}" ]]; then
+            echo "::error::Configura APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD oppure le chiavi App Store Connect API. Vedi docs/MACOS_SIGNING.md"
+            exit 1
+          fi
+          if [[ -z "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" ]]; then
+            echo "::error::Secret APPLE_CERTIFICATE_BASE64 mancante. Vedi docs/MACOS_SIGNING.md"
+            exit 1
+          fi
+
+      - name: Import Apple signing certificate
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: ./scripts/macos-import-signing-cert.sh
+
       - name: Build .dmg package
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
         run: |
           export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
           ./scripts/package-dmg-translate.sh
@@ -67,6 +100,8 @@ jobs:
           test -d /tmp/nebbie-translate-dmg/nebbie-translate.app
           test -d /tmp/nebbie-translate-dmg/nebbie-translate.app/Contents/Frameworks
           test -x /tmp/nebbie-translate-dmg/nebbie-translate.app/Contents/MacOS/nebbie-translate
+          xcrun stapler validate /tmp/nebbie-translate-dmg/nebbie-translate.app
+          spctl -a -vv /tmp/nebbie-translate-dmg/nebbie-translate.app
           hdiutil detach /tmp/nebbie-translate-dmg
 
       - name: Upload .dmg artifact
@@ -152,8 +187,7 @@ jobs:
             | **macOS** | `nebbie-translate_*_macos.dmg` — trascina `nebbie-translate.app` in Applicazioni |
             | **Linux** | `nebbie-translate_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
 
-            **macOS — messaggio «danneggiata»:** tasto destro sull'app → **Apri** (prima volta), oppure
-            `xattr -cr /Applications/nebbie-translate.app` (vedi `LEGGIMI.txt` nel DMG).
+            **macOS:** il DMG contiene un'app firmata con Developer ID e notarizzata da Apple — doppio click, nessun passaggio in Impostazioni → Privacy e sicurezza.
 
             ### Primo avvio
             1. Avvia **Nebbie Translate**

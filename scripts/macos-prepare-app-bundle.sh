@@ -64,8 +64,27 @@ if ! "${MACDEPLOYQT}" "${APP_PATH}"; then
     exit 1
 fi
 
-echo "==> Ad-hoc codesign (bundle + embedded Qt)"
-sign_bundle_adhoc "${APP_PATH}"
+should_notarize_app() {
+    [[ -n "${APPLE_TEAM_ID:-}" ]] || return 1
+    if [[ -n "${APP_STORE_CONNECT_API_KEY_ID:-}" && -n "${APP_STORE_CONNECT_API_ISSUER_ID:-}" ]]; then
+        [[ -n "${APP_STORE_CONNECT_API_KEY_PATH:-}" || -n "${APP_STORE_CONNECT_API_KEY_BASE64:-}" ]]
+        return
+    fi
+    [[ -n "${APPLE_ID:-}" && -n "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]]
+}
+
+if should_notarize_app && security find-identity -v -p codesigning 2>/dev/null | grep -q 'Developer ID Application'; then
+    ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    echo "==> Developer ID sign + notarization"
+    "${ROOT}/scripts/macos-notarize-app.sh" "${APP_PATH}" \
+        "${ROOT}/nebbie-translator/macos/entitlements.plist"
+else
+    echo "==> Ad-hoc codesign (bundle + embedded Qt)"
+    sign_bundle_adhoc "${APP_PATH}"
+    if [[ "$(uname -s)" == "Darwin" ]] && should_notarize_app; then
+        echo "WARNING: notarization skipped — Developer ID certificate not found in keychain." >&2
+    fi
+fi
 
 if [[ ! -d "${APP_PATH}/Contents/Frameworks" ]]; then
     echo "ERROR: macdeployqt did not create Contents/Frameworks" >&2
