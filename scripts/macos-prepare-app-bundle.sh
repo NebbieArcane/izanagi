@@ -36,12 +36,13 @@ if [[ -z "${MACDEPLOYQT}" ]]; then
 fi
 
 echo "==> macdeployqt $(basename "${APP_PATH}")"
-"${MACDEPLOYQT}" "${APP_PATH}" -always-run-macdeployqt -codesign=-
-
-if ! codesign --verify --verbose=2 "${APP_PATH}" 2>/dev/null; then
-    echo "==> Ad-hoc codesign fallback"
+if "${MACDEPLOYQT}" "${APP_PATH}" -codesign=- 2>/dev/null; then
+    :
+elif "${MACDEPLOYQT}" "${APP_PATH}" 2>/dev/null; then
     codesign --force --deep --sign - --timestamp=none "${APP_PATH}"
-    codesign --verify --verbose=2 "${APP_PATH}"
+else
+    echo "ERROR: macdeployqt failed for ${APP_PATH}" >&2
+    exit 1
 fi
 
 echo "==> App bundle ready: ${APP_PATH}"
