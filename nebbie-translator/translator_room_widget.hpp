@@ -30,13 +30,13 @@ private slots:
     void onExitSelected();
     void applyExitDescription();
     void updateLineLengthIndicators();
+    void convertAccentsOnTextTab();
+    void convertAccentsOnExtraTab();
+    void convertAccentsOnExitTab();
 
 private:
     void refreshExtraDescForm();
     void refreshExitForm();
-    void updateSingleLineIndicator(QLineEdit* field, QLabel* label) const;
-    void updateMultilineIndicator(QTextEdit* field, QLabel* label) const;
-    QString formatMultilineStatus(const QString& text, const QTextEdit* field) const;
 
     int max_line_length_ = 0;
     bool loading_ = false;
@@ -44,16 +44,20 @@ private:
 
     QLineEdit* name_ = nullptr;
     QLabel* name_line_info_ = nullptr;
+    QLabel* name_ascii_info_ = nullptr;
     QTextEdit* description_ = nullptr;
     QLabel* description_line_info_ = nullptr;
+    QLabel* description_ascii_info_ = nullptr;
 
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;
     QTextEdit* extra_desc_description_ = nullptr;
     QLabel* extra_desc_line_info_ = nullptr;
+    QLabel* extra_desc_ascii_info_ = nullptr;
 
     QListWidget* exit_list_ = nullptr;
     QLabel* exit_info_ = nullptr;
     QLineEdit* exit_description_ = nullptr;
     QLabel* exit_line_info_ = nullptr;
+    QLabel* exit_ascii_info_ = nullptr;
 };

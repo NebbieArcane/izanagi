@@ -426,8 +426,9 @@ void TranslatorWindow::editLineLengthLimit() {
     const int value = QInputDialog::getInt(
         this,
         "Limite caratteri per riga",
-        "Numero massimo di caratteri per riga nei testi traducibili.\n"
-        "Imposta 0 per disattivare il controllo.",
+        "Numero massimo di caratteri per riga nei testi traducibili (Windows, Linux, macOS).\n"
+        "Imposta 0 per disattivare il controllo.\n\n"
+        "Salvato in:\n" + nebbie::translate::default_config_path(),
         app_config_.max_line_length,
         0,
         512,

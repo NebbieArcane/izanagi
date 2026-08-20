@@ -1,6 +1,7 @@
 #include "nebbie/validate.hpp"
 
 #include "nebbie/edit.hpp"
+#include "nebbie/mud_text.hpp"
 #include "nebbie/text_lines.hpp"
 
 #include <algorithm>
@@ -154,6 +155,31 @@ void validate_rooms(const World& world, ValidationReport& report, const Validati
                               vnum);
                 }
             }
+        }
+
+        auto warn_non_ascii = [&](const std::string& text, const std::string& field_label) {
+            if (is_mud_ascii_text(text)) {
+                return;
+            }
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "room_text",
+                      "room " + std::to_string(vnum) + " " + field_label + " contains "
+                          + std::to_string(count_non_mud_ascii_chars(text))
+                          + " non-ASCII character(s); the game client expects e'/a'/o' style text",
+                      ValidationTarget::room,
+                      vnum);
+        };
+
+        warn_non_ascii(room.name, "name");
+        warn_non_ascii(room.description, "description");
+        for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
+            warn_non_ascii(room.extra_descs[extra_index].description,
+                           "extra desc " + std::to_string(extra_index));
+        }
+        for (std::size_t exit_index = 0; exit_index < room.exits.size(); ++exit_index) {
+            warn_non_ascii(room.exits[exit_index].description,
+                           "exit " + std::to_string(exit_index) + " description");
         }
 
         for (std::size_t i = 0; i < room.exits.size(); ++i) {

@@ -10,6 +10,7 @@ struct AppConfig {
     QString coordinator_url;
     QString coordinator_token;
     QString builder_name;
+    int max_line_length = 0;
 };
 
 QString default_config_path();

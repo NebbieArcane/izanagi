@@ -1,3 +1,5 @@
+#include "nebbie/mud_text.hpp"
+#include "nebbie/mud_text.hpp"
 #include "nebbie/text_lines.hpp"
 
 #include <iostream>
@@ -41,6 +43,11 @@ int main() {
         const nebbie::TextLineLengthReport disabled =
             nebbie::check_text_line_lengths("12345678901", 0);
         expect(disabled.ok(), "disabled limit");
+
+        expect(nebbie::is_mud_ascii_text("c'e' una porta"), "mud ascii apostrophe text");
+        expect(!nebbie::is_mud_ascii_text("c'è una porta"), "utf8 accent is not mud ascii");
+        expect(nebbie::transliterate_italian_accents_to_apostrophe("c'è") == "c'e'",
+               "accent transliteration");
 
         std::cout << "OK\n";
         return 0;
