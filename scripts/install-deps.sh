@@ -56,6 +56,9 @@ Install manually: brew install cmake qt@6
 EOF
         exit 1
     fi
+    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+        export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+    fi
     brew install cmake
     if [[ "$WITH_QT" -eq 1 ]]; then
         brew install qt@6

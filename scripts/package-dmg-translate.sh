@@ -73,6 +73,9 @@ Nebbie Translate (macOS)
 1. Trascina nebbie-translate.app nella cartella Applicazioni
 2. Avvia Nebbie Translate → File → Apri libreria → mudroot o mudroot/lib
 
+Se macOS blocca l'app al primo avvio: tasto destro sull'app → Apri,
+oppure in Terminale: xattr -cr /Applications/nebbie-translate.app
+
 Mondo di prova: sample-mudroot/lib
 EOF
 ln -sf /Applications "${STAGING}/Applications"

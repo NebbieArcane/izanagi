@@ -64,7 +64,7 @@ Con i secret configurati, lo script esegue firma Developer ID + notarizzazione +
 
 Il workflow **Nebbie Translate (release packages)** importa il certificato, firma e notarizza l’app, poi crea il DMG.
 
-Se i secret mancano, il job **macos-dmg** fallisce con un messaggio che rimanda a questo documento.
+Se i secret mancano, il job **macos-dmg** produce un DMG **ad hoc** (il workflow non fallisce).
 
 Dopo aver aggiunto i secret: **Actions → Nebbie Translate (release packages) → Run workflow**.
 
