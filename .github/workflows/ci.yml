@@ -113,7 +113,7 @@ jobs:
             echo "Using committed nebbieedit.ico"
           else
             pip install pillow
-            python scripts/make-windows-icon.py
+            python scripts/generate-nebbie-icons.py nebbieedit
           fi
 
       - name: Configure and build

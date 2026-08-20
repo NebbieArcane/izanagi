@@ -46,7 +46,7 @@ Remove-Item -Recurse -Force $Staging -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Staging | Out-Null
 Copy-Item $Translate (Join-Path $Staging "nebbie-translate.exe")
 
-$Icon = Join-Path $Root "nebbie-qt\icons\nebbieedit.ico"
+$Icon = Join-Path $Root "nebbie-translator\icons\nebbie-translate.ico"
 if (Test-Path $Icon) {
     Copy-Item $Icon (Join-Path $Staging "nebbie-translate.ico")
 }

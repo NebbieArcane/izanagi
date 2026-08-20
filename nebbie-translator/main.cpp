@@ -5,10 +5,12 @@
 
 #include <QApplication>
 #include <QCoreApplication>
+#include <QIcon>
 #include <QTimer>
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/app-icon.png"));
     app.setApplicationName("Nebbie Translate");
     app.setApplicationDisplayName("Nebbie Translate");
     app.setOrganizationName("Nebbie Arcane");

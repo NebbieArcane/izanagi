@@ -2,8 +2,8 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(CMAKE_AUTOMOC ON)
 
-set(NEBBIE_TRANSLATE_ICON_MAC "${CMAKE_SOURCE_DIR}/nebbie-qt/icons/nebbieedit.icns")
-set(NEBBIE_TRANSLATE_ICON_WIN "${CMAKE_SOURCE_DIR}/nebbie-qt/icons/nebbieedit.ico")
+set(NEBBIE_TRANSLATE_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbie-translate.icns")
+set(NEBBIE_TRANSLATE_ICON_WIN "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbie-translate.ico")
 
 add_executable(nebbie-translate
     main.cpp
@@ -13,6 +13,7 @@ add_executable(nebbie-translate
     translator_room_widget.hpp
     translator_window.cpp
     translator_window.hpp
+    nebbie-translate.qrc
 )
 
 if(APPLE AND EXISTS "${NEBBIE_TRANSLATE_ICON_MAC}")
@@ -49,7 +50,7 @@ if(APPLE AND NEBBIE_MACOS_BUNDLE_TRANSLATOR)
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     )
     if(EXISTS "${NEBBIE_TRANSLATE_ICON_MAC}")
-        set_target_properties(nebbie-translate PROPERTIES MACOSX_BUNDLE_ICON_FILE nebbieedit)
+        set_target_properties(nebbie-translate PROPERTIES MACOSX_BUNDLE_ICON_FILE nebbie-translate)
     endif()
 endif()
 
@@ -61,11 +62,10 @@ if(NOT (APPLE AND NEBBIE_MACOS_BUNDLE_TRANSLATOR))
         install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/nebbie-translate.desktop"
                 DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
         foreach(_icon_size 16 22 24 32 48 64 128 256 512 1024)
-            set(_icon_path "${CMAKE_SOURCE_DIR}/nebbie-qt/icons/hicolor/${_icon_size}x${_icon_size}/apps/nebbieedit.png")
+            set(_icon_path "${CMAKE_CURRENT_SOURCE_DIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps/nebbie-translate.png")
             if(EXISTS "${_icon_path}")
                 install(FILES "${_icon_path}"
-                        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps"
-                        RENAME nebbie-translate.png)
+                        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps")
             endif()
         endforeach()
     endif()
