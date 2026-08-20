@@ -99,6 +99,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     network_ = new QNetworkAccessManager(this);
     setupUi();
     setupMenus();
+    room_editor_->setMaxLineLength(app_config_.max_line_length);
     setWindowTitle("Nebbie Editor");
     resize(1100, 720);
     setStatus("Apri una libreria (mudroot/lib) per iniziare.");
@@ -458,6 +459,10 @@ void MainWindow::setupMenus() {
         "Preserva description vuote, formato [vnum (nome)] e testi di look personalizzati.");
     connect(align_all_exits_action, &QAction::triggered, this, &MainWindow::alignAllInboundExitDescriptions);
 
+    auto* prefs_menu = menuBar()->addMenu("&Preferenze");
+    auto* line_limit_action = prefs_menu->addAction("Limite caratteri per riga...");
+    connect(line_limit_action, &QAction::triggered, this, &MainWindow::editLineLengthLimit);
+
     auto* coordinator_menu = menuBar()->addMenu("&Coordinator");
     auto* coordinator_config_action = coordinator_menu->addAction("Configuration...");
     connect(coordinator_config_action, &QAction::triggered, this, &MainWindow::configureCoordinator);
@@ -473,7 +478,41 @@ void MainWindow::setupMenus() {
 }
 
 void MainWindow::rememberLibPath(const std::filesystem::path& path) {
-    nebbie::qt::write_lib_path(nebbie::qt::qstring_from_path(path));
+    app_config_.lib_path = nebbie::qt::qstring_from_path(path);
+    nebbie::qt::write_config(app_config_);
+}
+
+nebbie::ValidationOptions MainWindow::validationOptions() const {
+    nebbie::ValidationOptions options;
+    options.max_line_length = app_config_.max_line_length;
+    return options;
+}
+
+void MainWindow::editLineLengthLimit() {
+    bool ok = false;
+    const int value = QInputDialog::getInt(
+        this,
+        "Limite caratteri per riga",
+        "Numero massimo di caratteri per riga nei testi stanza (Windows, Linux e macOS).\n"
+        "Imposta 0 per disattivare.\n\n"
+        "Salvato in:\n" + nebbie::qt::default_config_path(),
+        app_config_.max_line_length,
+        0,
+        512,
+        1,
+        &ok);
+    if (!ok) {
+        return;
+    }
+
+    app_config_.max_line_length = value;
+    nebbie::qt::write_config(app_config_);
+    room_editor_->setMaxLineLength(app_config_.max_line_length);
+    if (app_config_.max_line_length > 0) {
+        setStatus(QString("Limite righe impostato a %1 caratteri.").arg(app_config_.max_line_length));
+    } else {
+        setStatus("Controllo lunghezza righe disattivato.");
+    }
 }
 
 void MainWindow::openLibPath(const QString& path) {
@@ -1969,10 +2008,14 @@ void MainWindow::validateLib() {
         QMessageBox::information(this, "Valida", "Apri prima una libreria.");
         return;
     }
-    const nebbie::ValidationReport report = nebbie::validate_world(world_);
+    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
     showValidation(report);
     if (report.ok()) {
-        setStatus("Validazione OK.");
+        if (report.warning_count() > 0) {
+            setStatus(QString("Validazione OK con %1 avvisi.").arg(report.warning_count()));
+        } else {
+            setStatus("Validazione OK.");
+        }
     } else {
         setStatus(QString("Validazione: %1 errori.").arg(report.error_count()));
     }
@@ -1984,7 +2027,7 @@ void MainWindow::saveLib() {
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_);
+    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
     if (!report.ok()) {
         showValidation(report);
         const auto answer = QMessageBox::question(

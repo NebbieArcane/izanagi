@@ -86,6 +86,7 @@ private slots:
     void exportOverlays();
     void exportZonePacks();
     void reserveVnums();
+    void editLineLengthLimit();
 
 protected:
     void closeEvent(QCloseEvent* event) override;
@@ -128,6 +129,7 @@ private:
     long suggestObjectVnum() const;
     bool warnIfRemoteVnumConflict(const QString& kind, long vnum) const;
     nebbie::WorldIndex worldIndexForValidation() const;
+    nebbie::ValidationOptions validationOptions() const;
 
     nebbie::World world_;
     nebbie::LibContext context_;

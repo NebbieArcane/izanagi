@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Nebbie Translate
+Comment=Lightweight room description editor for Nebbie Arcane MUD
+Exec=nebbie-translate
+Icon=nebbie-translate
+Categories=Game;Development;
+Terminal=false

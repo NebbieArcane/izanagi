@@ -60,6 +60,12 @@ AppConfig read_config() {
             config.coordinator_token = value_after_equals(line);
         } else if (line.startsWith(QStringLiteral("builder_name="))) {
             config.builder_name = value_after_equals(line);
+        } else if (line.startsWith(QStringLiteral("max_line_length="))) {
+            bool ok = false;
+            const int parsed = value_after_equals(line).toInt(&ok);
+            if (ok && parsed >= 0) {
+                config.max_line_length = parsed > 512 ? 512 : parsed;
+            }
         }
     }
     return config;
@@ -86,6 +92,7 @@ bool write_config(const AppConfig& config) {
     if (!config.builder_name.isEmpty()) {
         out << "builder_name=" << config.builder_name << '\n';
     }
+    out << "max_line_length=" << config.max_line_length << '\n';
     return true;
 }
 

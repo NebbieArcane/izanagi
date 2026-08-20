@@ -3,6 +3,7 @@
 #include "flag_group_widget.hpp"
 #include "nebbie/mob_catalog.hpp"
 #include "nebbie/room_catalog.hpp"
+#include "room_text_monitors.hpp"
 
 #include <QAbstractItemModel>
 #include <QComboBox>
@@ -282,14 +283,26 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* text_tab = new QWidget;
     auto* text_layout = new QVBoxLayout(text_tab);
+    text_layout->addWidget(makeLegend(
+        "Room name and description shown on entry. The game client reads ASCII text only "
+        "(use e', a', o', u' instead of accented letters).",
+        text_tab));
     name_ = new QLineEdit;
     configureLineField(name_);
+    name_line_info_ = nebbie::qt::makeTextMonitorLabel();
+    name_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
     description_ = new QTextEdit;
     configureDescriptionField(description_);
+    description_line_info_ = nebbie::qt::makeTextMonitorLabel();
+    description_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
     text_layout->addWidget(new QLabel("Name:"));
     text_layout->addWidget(name_);
+    text_layout->addWidget(name_line_info_);
+    text_layout->addWidget(name_ascii_info_);
     text_layout->addWidget(new QLabel("Description:"));
     text_layout->addWidget(description_, 1);
+    text_layout->addWidget(description_line_info_);
+    text_layout->addWidget(description_ascii_info_);
     tabs_->addTab(text_tab, "Text");
 
     auto* sector_tab = new QWidget;
@@ -373,9 +386,13 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     configureLineField(extra_desc_keyword_);
     extra_desc_description_ = new QTextEdit;
     configureTextField(extra_desc_description_, 90);
+    extra_desc_line_info_ = nebbie::qt::makeTextMonitorLabel();
+    extra_desc_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
     auto* extra_desc_form = new QFormLayout;
     extra_desc_form->addRow("Keyword:", extra_desc_keyword_);
     extra_desc_form->addRow("Description:", extra_desc_description_);
+    extra_desc_form->addRow("", extra_desc_line_info_);
+    extra_desc_form->addRow("", extra_desc_ascii_info_);
     auto* extra_desc_buttons = new QHBoxLayout;
     auto* extra_desc_add = new QPushButton("Add");
     auto* extra_desc_remove = new QPushButton("Remove");
@@ -409,6 +426,8 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_keyword_ = new QLineEdit;
     configureLineField(exit_description_);
     configureLineField(exit_keyword_);
+    exit_line_info_ = nebbie::qt::makeTextMonitorLabel();
+    exit_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
     exit_flags_ = new FlagGroupWidget(nebbie::exit_flag_defs(), exit_tab);
     exit_key_ = new QSpinBox;
     exit_key_->setRange(-1, 999999);
@@ -422,6 +441,8 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_form->addRow("Direction:", exit_direction_);
     exit_form->addRow("To room #:", exit_to_room_);
     exit_form->addRow("Description (look <dir>):", exit_description_);
+    exit_form->addRow("", exit_line_info_);
+    exit_form->addRow("", exit_ascii_info_);
     exit_form->addRow("Keyword (porta):", exit_keyword_);
     exit_form->addRow("Exit flags (exit_info):", exit_flags_);
     exit_form->addRow("Key vnum (oggetto):", exit_key_);
@@ -474,6 +495,9 @@ void RoomEditorWidget::connectOverviewUpdates() {
 
     connect(name_, &QLineEdit::textChanged, this, refresh);
     connect(description_, &QTextEdit::textChanged, this, refresh);
+    connect(name_, &QLineEdit::textChanged, this, &RoomEditorWidget::updateTextMonitors);
+    connect(description_, &QTextEdit::textChanged, this, &RoomEditorWidget::updateTextMonitors);
+    connect(description_, &QTextEdit::cursorPositionChanged, this, &RoomEditorWidget::updateTextMonitors);
     connect(sector_type_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, refresh);
     connect(room_flags_, &FlagGroupWidget::valueChanged, this, refresh);
     for (QSpinBox* spin :
@@ -485,8 +509,12 @@ void RoomEditorWidget::connectOverviewUpdates() {
     connect(bright_at_day_, &QLineEdit::textChanged, this, refresh);
     connect(extra_desc_keyword_, &QLineEdit::textChanged, this, refresh);
     connect(extra_desc_description_, &QTextEdit::textChanged, this, refresh);
+    connect(extra_desc_keyword_, &QLineEdit::textChanged, this, &RoomEditorWidget::updateTextMonitors);
+    connect(extra_desc_description_, &QTextEdit::textChanged, this, &RoomEditorWidget::updateTextMonitors);
+    connect(extra_desc_description_, &QTextEdit::cursorPositionChanged, this, &RoomEditorWidget::updateTextMonitors);
     connect(exit_direction_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, refresh);
     connect(exit_description_, &QLineEdit::textChanged, this, refresh);
+    connect(exit_description_, &QLineEdit::textChanged, this, &RoomEditorWidget::updateTextMonitors);
     connect(exit_keyword_, &QLineEdit::textChanged, this, refresh);
     connect(exit_flags_, &FlagGroupWidget::valueChanged, this, refresh);
 
@@ -625,6 +653,27 @@ void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
     updateConditionalFields();
     loading_ = false;
     refreshOverview();
+    updateTextMonitors();
+}
+
+void RoomEditorWidget::setMaxLineLength(int max_length) {
+    max_line_length_ = max_length < 0 ? 0 : max_length;
+    updateTextMonitors();
+}
+
+void RoomEditorWidget::updateTextMonitors() {
+    if (loading_) {
+        return;
+    }
+    nebbie::qt::updateLineLengthMonitor(name_line_info_, name_, max_line_length_);
+    nebbie::qt::updateLineLengthMonitor(description_line_info_, description_, max_line_length_);
+    nebbie::qt::updateLineLengthMonitor(extra_desc_line_info_, extra_desc_description_, max_line_length_);
+    nebbie::qt::updateLineLengthMonitor(exit_line_info_, exit_description_, max_line_length_);
+
+    nebbie::qt::updateAsciiMonitor(name_ascii_info_, name_->text().toStdString());
+    nebbie::qt::updateAsciiMonitor(description_ascii_info_, description_->toPlainText().toStdString());
+    nebbie::qt::updateAsciiMonitor(extra_desc_ascii_info_, extra_desc_description_->toPlainText().toStdString());
+    nebbie::qt::updateAsciiMonitor(exit_ascii_info_, exit_description_->text().toStdString());
 }
 
 void RoomEditorWidget::saveToRoom(nebbie::Room& room) const {
@@ -717,6 +766,7 @@ void RoomEditorWidget::refreshExtraDescForm() {
     }
     extra_desc_keyword_->setText(item->data(Qt::UserRole).toString());
     extra_desc_description_->setPlainText(item->data(Qt::UserRole + 1).toString());
+    updateTextMonitors();
 }
 
 void RoomEditorWidget::onExitSelected() {
@@ -777,4 +827,5 @@ void RoomEditorWidget::refreshExitForm() {
     exit_key_->setValue(static_cast<int>(exit.key));
     exit_open_cmd_->setValue(static_cast<int>(exit.open_cmd));
     refreshOverview();
+    updateTextMonitors();
 }

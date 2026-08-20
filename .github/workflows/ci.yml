@@ -43,6 +43,9 @@ jobs:
       - name: Build Qt GUI
         run: test -x build/nebbie-qt/nebbieedit
 
+      - name: Build Nebbie Translate
+        run: test -x build/nebbie-translator/nebbie-translate
+
   build-macos:
     runs-on: macos-latest
     steps:
@@ -83,6 +86,9 @@ jobs:
           test -x build/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit
           test -f build/nebbie-qt/nebbieedit.app/Contents/Resources/nebbieedit.icns
 
+      - name: Build Nebbie Translate
+        run: test -x build/nebbie-translator/nebbie-translate
+
   build-windows:
     runs-on: windows-latest
     steps:
@@ -107,7 +113,7 @@ jobs:
             echo "Using committed nebbieedit.ico"
           else
             pip install pillow
-            python scripts/make-windows-icon.py
+            python scripts/generate-nebbie-icons.py nebbieedit
           fi
 
       - name: Configure and build
@@ -137,3 +143,7 @@ jobs:
       - name: Build Qt GUI
         shell: pwsh
         run: Test-Path ./build/nebbie-qt/Release/nebbieedit.exe
+
+      - name: Build Nebbie Translate
+        shell: pwsh
+        run: Test-Path ./build/nebbie-translator/Release/nebbie-translate.exe

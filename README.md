@@ -49,6 +49,28 @@ Richiede [Inno Setup 6](https://jrsoftware.org/isinfo.php) per l’installer (`w
 
 Config libreria predefinita (GUI): `%APPDATA%\Nebbie\nebbieedit.conf`
 
+### Nebbie Translate (solo traduzione stanze)
+
+**Nessuna compilazione:** scarica il pacchetto per la tua piattaforma dalla release pre-release unificata:
+
+**https://github.com/wizardmorgan/nebbie-editor/releases/tag/nebbie-translate**
+
+| Piattaforma | File | Uso |
+|-------------|------|-----|
+| Windows | `nebbie-translate_*_windows_portable.zip` | Estrai → `nebbie-translate.exe` |
+| macOS | `nebbie-translate_*_macos.dmg` | Apri → trascina `nebbie-translate.app` in Applicazioni |
+| Linux | `nebbie-translate_*_amd64.deb` | `sudo dpkg -i …` → `sudo apt-get install -f` |
+
+**macOS — se dice «danneggiata»:** tasto destro → **Apri** (prima volta), oppure
+`xattr -cr /Applications/nebbie-translate.app` (istruzioni anche in `LEGGIMI.txt` nel DMG).
+
+A ogni push sul branch traduttore la CI ricostruisce **tutti e tre** i pacchetti.
+
+Alternativa: [workflow Nebbie Translate (release packages)](https://github.com/wizardmorgan/nebbie-editor/actions/workflows/nebbie-translate-release.yml) → artifact per piattaforma.
+
+Primo avvio: **File → Apri libreria** → `mudroot` o `mudroot/lib` → modifica → **Salva**.
+
+
 ### Linux (Debian/Ubuntu)
 
 ```bash

@@ -2,6 +2,7 @@
 param(
     [switch]$Debug,
     [switch]$NoQt,
+    [switch]$NoTranslator,
     [switch]$Test,
     [string]$Generator = "",
     [string]$QtPrefix = $env:CMAKE_PREFIX_PATH
@@ -12,10 +13,11 @@ $Root = Split-Path -Parent $PSScriptRoot
 $BuildDir = Join-Path $Root "build"
 $BuildType = if ($Debug) { "Debug" } else { "Release" }
 $WithQt = if ($NoQt) { "OFF" } else { "ON" }
+$WithTranslator = if ($NoTranslator) { "OFF" } else { "ON" }
 
 function Show-Usage {
     @"
-Usage: .\scripts\build.ps1 [-Debug] [-NoQt] [-Test] [-Generator NAME]
+Usage: .\scripts\build.ps1 [-Debug] [-NoQt] [-NoTranslator] [-Test] [-Generator NAME]
 
 Environment:
   CMAKE_PREFIX_PATH   Qt 6 kit root (e.g. C:\Qt\6.5.3\msvc2019_64)
@@ -26,7 +28,8 @@ $CmakeArgs = @(
     "-S", $Root,
     "-B", $BuildDir,
     "-DCMAKE_BUILD_TYPE=$BuildType",
-    "-DNEBBIE_BUILD_QT=$WithQt"
+    "-DNEBBIE_BUILD_QT=$WithQt",
+    "-DNEBBIE_BUILD_TRANSLATOR=$WithTranslator"
 )
 
 if ($Generator) {
@@ -74,3 +77,6 @@ Write-Host "  CLI:  $Cli"
 $Gui = Join-Path $BuildDir "nebbie-qt\nebbieedit.exe"
 if (-not (Test-Path $Gui)) { $Gui = Join-Path $BuildDir "nebbie-qt\Release\nebbieedit.exe" }
 Write-Host "  GUI:  $Gui"
+$Translate = Join-Path $BuildDir "nebbie-translator\nebbie-translate.exe"
+if (-not (Test-Path $Translate)) { $Translate = Join-Path $BuildDir "nebbie-translator\Release\nebbie-translate.exe" }
+Write-Host "  Translate:  $Translate"

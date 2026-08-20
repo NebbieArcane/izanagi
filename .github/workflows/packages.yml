@@ -44,13 +44,13 @@ jobs:
       - name: Install dependencies
         run: ./scripts/install-deps.sh
 
-      - name: Build macOS icon
+      - name: Build app icons
         run: |
           if [[ -f nebbie-qt/icons/nebbieedit.icns ]]; then
             echo "Using committed nebbieedit.icns"
           else
             pip3 install pillow --break-system-packages
-            python3 scripts/make-macos-icon.py
+            python3 scripts/generate-nebbie-icons.py nebbieedit
           fi
 
       - name: Build .dmg package
@@ -89,7 +89,7 @@ jobs:
             echo "Using committed nebbieedit.ico"
           else
             pip install pillow
-            python scripts/make-windows-icon.py
+            python scripts/generate-nebbie-icons.py nebbieedit
           fi
 
       - name: Install Inno Setup
