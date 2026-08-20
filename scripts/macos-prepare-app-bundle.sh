@@ -29,6 +29,29 @@ find_macdeployqt() {
     return 1
 }
 
+sign_bundle_adhoc() {
+    local target="$1"
+    if [[ -d "${target}/Contents/Frameworks" ]]; then
+        find "${target}/Contents/Frameworks" -type f \( -name "*.dylib" -o -name "*.framework" \) -print0 2>/dev/null \
+            | while IFS= read -r -d '' lib; do
+                codesign --force --sign - --timestamp=none "${lib}" 2>/dev/null || true
+            done
+    fi
+    if [[ -d "${target}/Contents/PlugIns" ]]; then
+        find "${target}/Contents/PlugIns" -type f -name "*.dylib" -print0 2>/dev/null \
+            | while IFS= read -r -d '' plugin; do
+                codesign --force --sign - --timestamp=none "${plugin}" 2>/dev/null || true
+            done
+    fi
+    if [[ -f "${target}/Contents/MacOS/"* ]]; then
+        for bin in "${target}/Contents/MacOS/"*; do
+            [[ -f "${bin}" ]] || continue
+            codesign --force --sign - --timestamp=none "${bin}"
+        done
+    fi
+    codesign --force --sign - --timestamp=none "${target}"
+}
+
 MACDEPLOYQT="$(find_macdeployqt || true)"
 if [[ -z "${MACDEPLOYQT}" ]]; then
     echo "ERROR: macdeployqt not found (install Qt 6 or set CMAKE_PREFIX_PATH)" >&2
@@ -36,12 +59,16 @@ if [[ -z "${MACDEPLOYQT}" ]]; then
 fi
 
 echo "==> macdeployqt $(basename "${APP_PATH}")"
-if "${MACDEPLOYQT}" "${APP_PATH}" -codesign=- 2>/dev/null; then
-    :
-elif "${MACDEPLOYQT}" "${APP_PATH}" 2>/dev/null; then
-    codesign --force --deep --sign - --timestamp=none "${APP_PATH}"
-else
+if ! "${MACDEPLOYQT}" "${APP_PATH}"; then
     echo "ERROR: macdeployqt failed for ${APP_PATH}" >&2
+    exit 1
+fi
+
+echo "==> Ad-hoc codesign (bundle + embedded Qt)"
+sign_bundle_adhoc "${APP_PATH}"
+
+if [[ ! -d "${APP_PATH}/Contents/Frameworks" ]]; then
+    echo "ERROR: macdeployqt did not create Contents/Frameworks" >&2
     exit 1
 fi
 
