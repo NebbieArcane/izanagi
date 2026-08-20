@@ -60,10 +60,18 @@ $Readme = @"
 Nebbie Translate (portable)
 ===========================
 
-Run nebbie-translate.exe and open your mudroot/lib folder.
-Sample world: sample-mudroot/lib
+1. Estrai tutto lo zip in una cartella (es. C:\NebbieTranslate)
+2. Avvia nebbie-translate.exe
+3. File -> Apri libreria -> seleziona mudroot o mudroot\lib
 
-Config: %APPDATA%\Nebbie\nebbie-translate.conf
+Puoi anche trascinare la cartella lib sull'eseguibile, oppure:
+  nebbie-translate.exe D:\percorso\mudroot\lib
+
+Mondo di prova incluso: sample-mudroot\lib
+
+Config salvata in: %APPDATA%\Nebbie\nebbie-translate.conf
+
+Requisito: Windows 10/11 64-bit + VC++ Redistributable (di solito gia' installato).
 "@
 Set-Content -Path (Join-Path $Staging "README.txt") -Value $Readme -Encoding UTF8
 

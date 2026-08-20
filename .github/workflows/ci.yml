@@ -137,3 +137,7 @@ jobs:
       - name: Build Qt GUI
         shell: pwsh
         run: Test-Path ./build/nebbie-qt/Release/nebbieedit.exe
+
+      - name: Build Nebbie Translate
+        shell: pwsh
+        run: Test-Path ./build/nebbie-translator/Release/nebbie-translate.exe

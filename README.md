@@ -49,6 +49,17 @@ Richiede [Inno Setup 6](https://jrsoftware.org/isinfo.php) per l’installer (`w
 
 Config libreria predefinita (GUI): `%APPDATA%\Nebbie\nebbieedit.conf`
 
+### Nebbie Translate (solo traduzione stanze, Windows)
+
+**Nessuna compilazione:** scarica lo zip dalla [pagina Releases — tag `nebbie-translate-windows`](https://github.com/wizardmorgan/nebbie-editor/releases/tag/nebbie-translate-windows) (pre-release, aggiornato dalla CI).
+
+1. Scarica `nebbie-translate_*_windows_portable.zip`
+2. Estrai in una cartella
+3. Avvia `nebbie-translate.exe` → **File → Apri libreria** → `mudroot` o `mudroot/lib`
+
+Alternativa: [ultimo artifact CI](https://github.com/wizardmorgan/nebbie-editor/actions/workflows/nebbie-translate-windows.yml) → job *windows-portable* → *nebbie-translate-windows-portable*.
+
+
 ### Linux (Debian/Ubuntu)
 
 ```bash
