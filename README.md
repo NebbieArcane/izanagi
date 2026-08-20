@@ -61,6 +61,9 @@ Config libreria predefinita (GUI): `%APPDATA%\Nebbie\nebbieedit.conf`
 | macOS | `nebbie-translate_*_macos.dmg` | Apri → trascina `nebbie-translate.app` in Applicazioni |
 | Linux | `nebbie-translate_*_amd64.deb` | `sudo dpkg -i …` → `sudo apt-get install -f` |
 
+**macOS — se dice «danneggiata»:** tasto destro → **Apri** (prima volta), oppure
+`xattr -cr /Applications/nebbie-translate.app` (istruzioni anche in `LEGGIMI.txt` nel DMG).
+
 A ogni push sul branch traduttore la CI ricostruisce **tutti e tre** i pacchetti.
 
 Alternativa: [workflow Nebbie Translate (release packages)](https://github.com/wizardmorgan/nebbie-editor/actions/workflows/nebbie-translate-release.yml) → artifact per piattaforma.

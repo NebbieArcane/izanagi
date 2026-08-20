@@ -65,6 +65,8 @@ jobs:
         run: |
           hdiutil attach dist/nebbie-translate_*_macos.dmg -mountpoint /tmp/nebbie-translate-dmg -nobrowse
           test -d /tmp/nebbie-translate-dmg/nebbie-translate.app
+          test -d /tmp/nebbie-translate-dmg/nebbie-translate.app/Contents/Frameworks
+          codesign --verify --verbose=2 /tmp/nebbie-translate-dmg/nebbie-translate.app
           hdiutil detach /tmp/nebbie-translate-dmg
 
       - name: Upload .dmg artifact
@@ -149,6 +151,9 @@ jobs:
             | **Windows** | `nebbie-translate_*_windows_portable.zip` — estrai e avvia `nebbie-translate.exe` |
             | **macOS** | `nebbie-translate_*_macos.dmg` — trascina `nebbie-translate.app` in Applicazioni |
             | **Linux** | `nebbie-translate_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
+
+            **macOS — messaggio «danneggiata»:** tasto destro sull'app → **Apri** (prima volta), oppure
+            `xattr -cr /Applications/nebbie-translate.app` (vedi `LEGGIMI.txt` nel DMG).
 
             ### Primo avvio
             1. Avvia **Nebbie Translate**

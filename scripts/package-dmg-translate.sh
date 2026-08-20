@@ -58,11 +58,28 @@ if [[ ! -d "${APP_SRC}" ]]; then
     exit 1
 fi
 
+echo "==> Bundling Qt and signing app"
+"${ROOT}/scripts/macos-prepare-app-bundle.sh" "${APP_SRC}"
+
 echo "==> Preparing DMG staging"
 rm -rf "${STAGING}"
 mkdir -p "${STAGING}"
 cp -R "${APP_SRC}" "${STAGING}/"
 cp -a "${DIST}/sample-mudroot" "${STAGING}/"
+cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
+Nebbie Translate (macOS)
+======================
+
+1. Trascina nebbie-translate.app nella cartella Applicazioni
+2. Avvia Nebbie Translate → File → Apri libreria → mudroot o mudroot/lib
+
+Se macOS dice che l'app e' "danneggiata" (Gatekeeper su download da Internet):
+  - Tasto destro sull'app → Apri → Apri (solo la prima volta)
+  oppure, nel Terminale:
+  xattr -cr /Applications/nebbie-translate.app
+
+Mondo di prova: sample-mudroot/lib
+EOF
 ln -sf /Applications "${STAGING}/Applications"
 
 DMG_FILE="${DIST}/nebbie-translate_${VERSION}_macos.dmg"
