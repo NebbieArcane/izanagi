@@ -6,13 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(NEBBIE_BUILD_QT "Build Qt GUI (nebbieedit)" ON)
+option(NEBBIE_BUILD_TRANSLATOR "Build lightweight translator GUI (nebbie-translate)" ON)
 option(NEBBIE_MACOS_BUNDLE "Build nebbieedit as a macOS .app bundle" OFF)
+option(NEBBIE_MACOS_BUNDLE_TRANSLATOR "Build nebbie-translate as a macOS .app bundle" OFF)
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum supported macOS version")
 endif()
 
-if(APPLE AND NEBBIE_BUILD_QT)
+if(APPLE AND (NEBBIE_BUILD_QT OR NEBBIE_BUILD_TRANSLATOR))
     find_program(_nebbie_brew brew)
     if(_nebbie_brew)
         execute_process(
@@ -44,6 +46,15 @@ if(NEBBIE_BUILD_QT)
         message(STATUS "  Linux: sudo apt install qt6-base-dev")
         message(STATUS "  macOS: brew install qt@6 && export CMAKE_PREFIX_PATH=\"$(brew --prefix qt@6)\"")
         message(STATUS "  Windows: install Qt 6 (MSVC) and set CMAKE_PREFIX_PATH to the kit root")
+    endif()
+endif()
+
+if(NEBBIE_BUILD_TRANSLATOR)
+    find_package(Qt6 QUIET COMPONENTS Widgets)
+    if(Qt6_FOUND)
+        add_subdirectory(nebbie-translator)
+    else()
+        message(STATUS "Qt6 not found — nebbie-translate will not be built")
     endif()
 endif()
 
