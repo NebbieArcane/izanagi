@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app_config.hpp"
 #include "nebbie/lib_context.hpp"
 #include "nebbie/session.hpp"
 #include "nebbie/validate.hpp"
@@ -40,6 +41,7 @@ private slots:
     void onRoomSelected();
     void applyRoomChanges();
     void onRoomSearchChanged(const QString& text);
+    void editLineLengthLimit();
 
 private:
     void setupUi();
@@ -54,7 +56,9 @@ private:
     bool confirmSaveIfDirty();
     void setStatus(const QString& text);
     void showValidation(const nebbie::ValidationReport& report);
+    nebbie::ValidationOptions validationOptions() const;
 
+    nebbie::translate::AppConfig app_config_;
     nebbie::World world_;
     nebbie::LibContext context_;
     std::filesystem::path lib_path_;

@@ -39,6 +39,10 @@ struct ValidationReport {
     std::size_t warning_count() const;
 };
 
-ValidationReport validate_world(const World& world);
+struct ValidationOptions {
+    int max_line_length = 0;
+};
+
+ValidationReport validate_world(const World& world, const ValidationOptions& options = {});
 
 } // namespace nebbie

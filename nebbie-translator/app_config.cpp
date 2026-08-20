@@ -24,29 +24,48 @@ QString config_directory() {
     return base;
 }
 
+int parse_max_line_length(const QString& value) {
+    bool ok = false;
+    const int parsed = value.trimmed().toInt(&ok);
+    if (!ok) {
+        return 0;
+    }
+    if (parsed < 0) {
+        return 0;
+    }
+    if (parsed > 512) {
+        return 512;
+    }
+    return parsed;
+}
+
 } // namespace
 
 QString default_config_path() {
     return config_directory() + QStringLiteral("/nebbie-translate.conf");
 }
 
-QString read_lib_path() {
+AppConfig read_config() {
+    AppConfig config;
     QFile file(default_config_path());
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return {};
+        return config;
     }
 
     QTextStream in(&file);
     while (!in.atEnd()) {
         const QString line = in.readLine().trimmed();
         if (line.startsWith(QStringLiteral("lib_path="))) {
-            return line.mid(QStringLiteral("lib_path=").size()).trimmed();
+            config.lib_path = line.mid(QStringLiteral("lib_path=").size()).trimmed();
+        } else if (line.startsWith(QStringLiteral("max_line_length="))) {
+            config.max_line_length =
+                parse_max_line_length(line.mid(QStringLiteral("max_line_length=").size()));
         }
     }
-    return {};
+    return config;
 }
 
-bool write_lib_path(const QString& path) {
+bool write_config(const AppConfig& config) {
     QFile file(default_config_path());
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
         return false;
@@ -54,8 +73,19 @@ bool write_lib_path(const QString& path) {
 
     QTextStream out(&file);
     out << "# Nebbie Translate configuration\n";
-    out << "lib_path=" << path << '\n';
+    out << "lib_path=" << config.lib_path << '\n';
+    out << "max_line_length=" << config.max_line_length << '\n';
     return true;
+}
+
+QString read_lib_path() {
+    return read_config().lib_path;
+}
+
+bool write_lib_path(const QString& path) {
+    AppConfig config = read_config();
+    config.lib_path = path;
+    return write_config(config);
 }
 
 bool lib_path_exists(const QString& path) {

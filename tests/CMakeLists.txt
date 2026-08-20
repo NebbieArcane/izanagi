@@ -1,6 +1,10 @@
 add_executable(nebbie-core-tests test_io.cpp)
 target_link_libraries(nebbie-core-tests PRIVATE nebbie-core)
 
+add_executable(nebbie-text-lines-tests test_text_lines.cpp)
+target_link_libraries(nebbie-text-lines-tests PRIVATE nebbie-core)
+add_test(NAME text-lines-tests COMMAND nebbie-text-lines-tests)
+
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
 

@@ -15,6 +15,7 @@ add_library(nebbie-core
     src/lib_io.cpp
     src/lib_context.cpp
     src/validate.cpp
+    src/text_lines.cpp
     src/edit.cpp
     src/session.cpp
     src/zone_graph.cpp

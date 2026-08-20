@@ -1,6 +1,7 @@
 #include "nebbie/validate.hpp"
 
 #include "nebbie/edit.hpp"
+#include "nebbie/text_lines.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -74,7 +75,7 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
     return true;
 }
 
-void validate_rooms(const World& world, ValidationReport& report) {
+void validate_rooms(const World& world, ValidationReport& report, const ValidationOptions& options) {
     for (const auto& [vnum, room] : world.rooms) {
         if (vnum != room.vnum) {
             add_issue(report,
@@ -100,6 +101,59 @@ void validate_rooms(const World& world, ValidationReport& report) {
                       "room " + std::to_string(vnum) + " is outside all zone ranges",
                       ValidationTarget::room,
                       vnum);
+        }
+
+        if (options.max_line_length > 0) {
+            auto check_field = [&](const std::string& text, const std::string& field_label) {
+                const TextLineLengthReport line_report =
+                    check_text_line_lengths(text, options.max_line_length);
+                for (const auto& issue : line_report.overlong) {
+                    add_issue(report,
+                              ValidationSeverity::warning,
+                              "room_text",
+                              "room " + std::to_string(vnum) + " " + field_label + " line "
+                                  + std::to_string(issue.line_number) + " has "
+                                  + std::to_string(issue.length) + " characters (max "
+                                  + std::to_string(options.max_line_length) + ")",
+                              ValidationTarget::room,
+                              vnum);
+                }
+            };
+
+            check_field(room.name, "name");
+            check_field(room.description, "description");
+            for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
+                const auto& extra = room.extra_descs[extra_index];
+                const TextLineLengthReport line_report =
+                    check_text_line_lengths(extra.description, options.max_line_length);
+                for (const auto& issue : line_report.overlong) {
+                    add_issue(report,
+                              ValidationSeverity::warning,
+                              "room_text",
+                              "room " + std::to_string(vnum) + " extra desc " + std::to_string(extra_index)
+                                  + " line " + std::to_string(issue.line_number) + " has "
+                                  + std::to_string(issue.length) + " characters (max "
+                                  + std::to_string(options.max_line_length) + ")",
+                              ValidationTarget::room,
+                              vnum);
+                }
+            }
+
+            for (std::size_t exit_index = 0; exit_index < room.exits.size(); ++exit_index) {
+                const TextLineLengthReport line_report =
+                    check_text_line_lengths(room.exits[exit_index].description, options.max_line_length);
+                for (const auto& issue : line_report.overlong) {
+                    add_issue(report,
+                              ValidationSeverity::warning,
+                              "room_text",
+                              "room " + std::to_string(vnum) + " exit " + std::to_string(exit_index)
+                                  + " description line " + std::to_string(issue.line_number) + " has "
+                                  + std::to_string(issue.length) + " characters (max "
+                                  + std::to_string(options.max_line_length) + ")",
+                              ValidationTarget::room,
+                              vnum);
+                }
+            }
         }
 
         for (std::size_t i = 0; i < room.exits.size(); ++i) {
@@ -389,9 +443,9 @@ std::size_t ValidationReport::warning_count() const {
     return count;
 }
 
-ValidationReport validate_world(const World& world) {
+ValidationReport validate_world(const World& world, const ValidationOptions& options) {
     ValidationReport report;
-    validate_rooms(world, report);
+    validate_rooms(world, report, options);
     validate_resets(world, report);
     validate_shops(world, report);
     validate_guilds(world, report);

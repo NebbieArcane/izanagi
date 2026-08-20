@@ -19,6 +19,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QInputDialog>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPushButton>
@@ -37,8 +38,10 @@ void addListItem(QListWidget* list, long vnum, const QString& label) {
 } // namespace
 
 TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
+    app_config_ = nebbie::translate::read_config();
     setupUi();
     setupMenus();
+    room_editor_->setMaxLineLength(app_config_.max_line_length);
     setWindowTitle("Nebbie Translate");
     resize(960, 680);
     setStatus("Apri una libreria (mudroot/lib) per tradurre le descrizioni delle stanze.");
@@ -115,6 +118,10 @@ void TranslatorWindow::setupMenus() {
     auto* validate_action = tools_menu->addAction("&Valida");
     validate_action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
     connect(validate_action, &QAction::triggered, this, &TranslatorWindow::validateLib);
+
+    auto* prefs_menu = menuBar()->addMenu("&Preferenze");
+    auto* line_limit_action = prefs_menu->addAction("Limite caratteri per riga...");
+    connect(line_limit_action, &QAction::triggered, this, &TranslatorWindow::editLineLengthLimit);
 }
 
 void TranslatorWindow::openLibPath(const QString& path) {
@@ -305,10 +312,14 @@ void TranslatorWindow::validateLib() {
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_);
+    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
     showValidation(report);
     if (report.ok()) {
-        setStatus("Validazione OK.");
+        if (report.warning_count() > 0) {
+            setStatus(QString("Validazione OK con %1 avvisi.").arg(report.warning_count()));
+        } else {
+            setStatus("Validazione OK.");
+        }
     } else {
         setStatus(QString("Validazione: %1 errori.").arg(report.error_count()));
     }
@@ -316,16 +327,14 @@ void TranslatorWindow::validateLib() {
 
 void TranslatorWindow::showValidation(const nebbie::ValidationReport& report) {
     QString message;
-    if (report.ok()) {
+    if (report.ok() && report.warning_count() == 0) {
         message = "Nessun errore di validazione.";
     } else {
         message = QString("Errori: %1\nAvvisi: %2\n\n").arg(report.error_count()).arg(report.warning_count());
         for (const auto& issue : report.issues) {
-            if (issue.severity != nebbie::ValidationSeverity::error) {
-                continue;
-            }
-            message += "• " + QString::fromStdString(issue.message) + '\n';
-            if (message.size() > 8000) {
+            const char* level = issue.severity == nebbie::ValidationSeverity::error ? "ERR" : "WARN";
+            message += QString("[%1] %2\n").arg(level).arg(QString::fromStdString(issue.message));
+            if (message.size() > 12000) {
                 message += "…\n";
                 break;
             }
@@ -340,7 +349,7 @@ void TranslatorWindow::saveLib() {
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_);
+    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
     if (!report.ok()) {
         showValidation(report);
         const auto answer = QMessageBox::question(
@@ -402,7 +411,40 @@ void TranslatorWindow::onAutosaveTick() {
 }
 
 void TranslatorWindow::rememberLibPath(const std::filesystem::path& path) {
-    nebbie::translate::write_lib_path(nebbie::qt::qstring_from_path(path));
+    app_config_.lib_path = nebbie::qt::qstring_from_path(path);
+    nebbie::translate::write_config(app_config_);
+}
+
+nebbie::ValidationOptions TranslatorWindow::validationOptions() const {
+    nebbie::ValidationOptions options;
+    options.max_line_length = app_config_.max_line_length;
+    return options;
+}
+
+void TranslatorWindow::editLineLengthLimit() {
+    bool ok = false;
+    const int value = QInputDialog::getInt(
+        this,
+        "Limite caratteri per riga",
+        "Numero massimo di caratteri per riga nei testi traducibili.\n"
+        "Imposta 0 per disattivare il controllo.",
+        app_config_.max_line_length,
+        0,
+        512,
+        1,
+        &ok);
+    if (!ok) {
+        return;
+    }
+
+    app_config_.max_line_length = value;
+    nebbie::translate::write_config(app_config_);
+    room_editor_->setMaxLineLength(app_config_.max_line_length);
+    if (app_config_.max_line_length > 0) {
+        setStatus(QString("Limite righe impostato a %1 caratteri.").arg(app_config_.max_line_length));
+    } else {
+        setStatus("Controllo lunghezza righe disattivato.");
+    }
 }
 
 void TranslatorWindow::markDirty() {
