@@ -13,6 +13,7 @@
 #include "world_zone_map_widget.hpp"
 #include "zone_map_widget.hpp"
 #include "path_util.hpp"
+#include "validation_report_ui.hpp"
 #include "nebbie/edit.hpp"
 #include "nebbie/overlay_io.hpp"
 #include "nebbie/io.hpp"
@@ -2070,14 +2071,27 @@ void MainWindow::saveLib() {
     }
 
     const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
-    if (!report.ok()) {
+    if (!report.ok() || report.warning_count() > 0) {
         showValidation(report);
-        const auto answer = QMessageBox::question(
-            this, "Errori di validazione",
-            QString("Ci sono %1 errori. Salvare comunque?").arg(report.error_count()),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        if (answer != QMessageBox::Yes) {
-            return;
+        const QString library = nebbie::qt::qstring_from_path(lib_path_);
+        nebbie::qt::show_validation_report_dialog(
+            this,
+            report,
+            QStringLiteral("Validazione prima del salvataggio"),
+            QStringLiteral("Report validazione Nebbie Editor (salvataggio)"),
+            library,
+            nebbie::qt::editor_validation_log_path());
+        if (!report.ok()) {
+            const auto answer = QMessageBox::question(
+                this, "Errori di validazione",
+                QString("Ci sono %1 errori. Salvare comunque?\n\n"
+                        "Dettaglio completo nel dialogo precedente e in:\n%2")
+                    .arg(report.error_count())
+                    .arg(nebbie::qt::editor_validation_log_path()),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (answer != QMessageBox::Yes) {
+                return;
+            }
         }
     }
 

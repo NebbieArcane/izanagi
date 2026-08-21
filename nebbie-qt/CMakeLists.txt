@@ -35,6 +35,8 @@ add_executable(nebbieedit
     mud_color_widgets.hpp
     mud_color_dialogs.cpp
     mud_color_dialogs.hpp
+    validation_report_ui.cpp
+    validation_report_ui.hpp
     nebbieedit.qrc
 )
 
