@@ -42,6 +42,9 @@ private slots:
     void applyRoomChanges();
     void onRoomSearchChanged(const QString& text);
     void editLineLengthLimit();
+    void toggleExtendedColorView(bool enabled);
+    void showColorLegend();
+    void insertColorCode();
 
 private:
     void setupUi();

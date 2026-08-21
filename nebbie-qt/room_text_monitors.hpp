@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mud_color_widgets.hpp"
 #include "nebbie/mud_text.hpp"
 #include "nebbie/text_lines.hpp"
 
@@ -40,62 +41,70 @@ inline void updateAsciiMonitor(QLabel* label, const std::string& text) {
     label->setStyleSheet(QStringLiteral("color: #b03000; font-weight: bold;"));
 }
 
-inline void updateLineLengthMonitor(QLabel* label, const QLineEdit* field, int max_length) {
-    if (!label || !field) {
+inline QString formatLongestLineStatus(const std::string& text, int max_length) {
+    const nebbie::LongestVisibleLine longest = nebbie::find_longest_visible_line(text);
+    if (longest.line_number <= 0) {
+        return QStringLiteral("Riga più lunga: 0 caratteri");
+    }
+
+    QString status = QStringLiteral("Riga più lunga: %1 caratteri (riga %2)")
+                         .arg(static_cast<qlonglong>(longest.visible_length))
+                         .arg(longest.line_number);
+  if (max_length > 0) {
+        status += QStringLiteral(" — limite %1").arg(max_length);
+    }
+    return status;
+}
+
+inline void updateLineLengthMonitor(QLabel* label, const std::string& text, int max_length) {
+    if (!label) {
         return;
     }
     if (max_length <= 0) {
-        clearTextMonitor(label);
+        label->setText(formatLongestLineStatus(text, max_length));
+        label->setStyleSheet(QStringLiteral("color: #606060;"));
         return;
     }
 
-    const int length = field->text().length();
-    label->setText(QStringLiteral("%1/%2 caratteri").arg(length).arg(max_length));
-    if (length > max_length) {
+    QString status = formatLongestLineStatus(text, max_length);
+    const nebbie::TextLineLengthReport report = nebbie::check_visible_text_line_lengths(text, max_length);
+    if (!report.overlong.empty()) {
+        QStringList details;
+        for (const auto& issue : report.overlong) {
+            details << QStringLiteral("riga %1 (%2)")
+                           .arg(issue.line_number)
+                           .arg(static_cast<qlonglong>(issue.length));
+        }
+        status += QStringLiteral(" — oltre limite: ") + details.join(QStringLiteral(", "));
+    }
+    label->setText(status);
+
+    if (!report.ok()) {
         label->setStyleSheet(QStringLiteral("color: #b03000; font-weight: bold;"));
     } else {
         label->setStyleSheet(QStringLiteral("color: #406040;"));
     }
 }
 
+inline void updateLineLengthMonitor(QLabel* label, const QLineEdit* field, int max_length) {
+    if (!field) {
+        return;
+    }
+    updateLineLengthMonitor(label, field->text().toStdString(), max_length);
+}
+
 inline void updateLineLengthMonitor(QLabel* label, const QTextEdit* field, int max_length) {
-    if (!label || !field) {
+    if (!field) {
         return;
     }
-    if (max_length <= 0) {
-        clearTextMonitor(label);
+    updateLineLengthMonitor(label, field->toPlainText().toStdString(), max_length);
+}
+
+inline void updateLineLengthMonitor(QLabel* label, const MudColorTextEdit* field, int max_length) {
+    if (!field) {
         return;
     }
-
-    const QString text = field->toPlainText();
-    const QStringList lines = text.split('\n');
-    const int current_line = field->textCursor().blockNumber() + 1;
-    const int current_length =
-        (current_line >= 1 && current_line <= lines.size()) ? lines[current_line - 1].length() : 0;
-
-    QString status = QStringLiteral("Riga %1: %2/%3 caratteri")
-                         .arg(current_line)
-                         .arg(current_length)
-                         .arg(max_length);
-
-    QStringList overlong;
-    for (int i = 0; i < lines.size(); ++i) {
-        if (lines[i].length() > max_length) {
-            overlong << QStringLiteral("riga %1 (%2)").arg(i + 1).arg(lines[i].length());
-        }
-    }
-    if (!overlong.isEmpty()) {
-        status += QStringLiteral(" — oltre limite: ") + overlong.join(", ");
-    }
-    label->setText(status);
-
-    const nebbie::TextLineLengthReport report =
-        nebbie::check_text_line_lengths(text.toStdString(), max_length);
-    if (!report.ok()) {
-        label->setStyleSheet(QStringLiteral("color: #b03000; font-weight: bold;"));
-    } else {
-        label->setStyleSheet(QStringLiteral("color: #406040;"));
-    }
+    updateLineLengthMonitor(label, field->storageText().toStdString(), max_length);
 }
 
 } // namespace nebbie::qt

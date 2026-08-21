@@ -39,6 +39,12 @@ int parse_max_line_length(const QString& value) {
     return parsed;
 }
 
+bool parse_bool(const QString& value) {
+    const QString normalized = value.trimmed().toLower();
+    return normalized == QStringLiteral("1") || normalized == QStringLiteral("true")
+           || normalized == QStringLiteral("yes") || normalized == QStringLiteral("on");
+}
+
 } // namespace
 
 QString default_config_path() {
@@ -60,6 +66,9 @@ AppConfig read_config() {
         } else if (line.startsWith(QStringLiteral("max_line_length="))) {
             config.max_line_length =
                 parse_max_line_length(line.mid(QStringLiteral("max_line_length=").size()));
+        } else if (line.startsWith(QStringLiteral("show_color_codes="))) {
+            config.show_color_codes =
+                parse_bool(line.mid(QStringLiteral("show_color_codes=").size()));
         }
     }
     return config;
@@ -75,6 +84,7 @@ bool write_config(const AppConfig& config) {
     out << "# Nebbie Translate configuration\n";
     out << "lib_path=" << config.lib_path << '\n';
     out << "max_line_length=" << config.max_line_length << '\n';
+    out << "show_color_codes=" << (config.show_color_codes ? 1 : 0) << '\n';
     return true;
 }
 

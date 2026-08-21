@@ -1,34 +1,22 @@
 #include "translator_room_widget.hpp"
 
+#include "mud_color_widgets.hpp"
 #include "nebbie/mud_text.hpp"
 #include "nebbie/room_catalog.hpp"
 #include "nebbie/text_lines.hpp"
 #include "room_text_monitors.hpp"
 
 #include <QFormLayout>
+#include <QFrame>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
-#include <QTabWidget>
-#include <QFont>
-#include <QTextEdit>
 #include <QVBoxLayout>
 
 namespace {
-
-void configureDescriptionField(QTextEdit* field) {
-    field->setMinimumWidth(560);
-    field->setMinimumHeight(320);
-    field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    field->setLineWrapMode(QTextEdit::NoWrap);
-    field->setAcceptRichText(false);
-    QFont font = field->font();
-    font.setFamily(QStringLiteral("Monospace"));
-    font.setStyleHint(QFont::Monospace);
-    field->setFont(font);
-}
 
 QLabel* makeLineInfoLabel() {
     return nebbie::qt::makeTextMonitorLabel();
@@ -64,7 +52,14 @@ bool textHasLineLengthIssues(const std::string& text, int max_length) {
     if (max_length <= 0) {
         return false;
     }
-    return !nebbie::check_text_line_lengths(text, max_length).ok();
+    return !nebbie::check_visible_text_line_lengths(text, max_length).ok();
+}
+
+QFrame* makeSectionSeparator() {
+    auto* line = new QFrame;
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    return line;
 }
 
 } // namespace
@@ -72,21 +67,19 @@ bool textHasLineLengthIssues(const std::string& text, int max_length) {
 TranslatorRoomWidget::TranslatorRoomWidget(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
 
-    tabs_ = new QTabWidget;
-
-    auto* text_tab = new QWidget;
-    auto* text_layout = new QVBoxLayout(text_tab);
-    text_layout->addWidget(new QLabel(
+    root->addWidget(new QLabel(
         "Nome e descrizione principale della stanza (testo mostrato all'ingresso).\n"
         "Il client di gioco legge solo testo ASCII: usa e', a', o', u' al posto delle lettere accentate."));
-    name_ = new QLineEdit;
-    name_->setMinimumWidth(420);
+
+    name_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(name_);
     name_line_info_ = makeLineInfoLabel();
     name_ascii_info_ = makeLineInfoLabel();
-    description_ = new QTextEdit;
-    configureDescriptionField(description_);
+    description_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudDescriptionField(description_);
     description_line_info_ = makeLineInfoLabel();
     description_ascii_info_ = makeLineInfoLabel();
+
     auto* text_form = new QFormLayout;
     text_form->addRow("Nome:", name_);
     text_form->addRow("", name_line_info_);
@@ -94,26 +87,26 @@ TranslatorRoomWidget::TranslatorRoomWidget(QWidget* parent) : QWidget(parent) {
     text_form->addRow("Descrizione:", description_);
     text_form->addRow("", description_line_info_);
     text_form->addRow("", description_ascii_info_);
+    root->addLayout(text_form);
+
     auto* text_buttons = new QHBoxLayout;
-    auto* text_accents = new QPushButton("Sostituisci accenti nel tab");
+    auto* text_accents = new QPushButton("Sostituisci accenti (nome e descrizione)");
     text_buttons->addWidget(text_accents);
     text_buttons->addStretch();
-    text_layout->addLayout(text_form);
-    text_layout->addLayout(text_buttons);
-    tabs_->addTab(text_tab, "Testo");
+    root->addLayout(text_buttons);
 
-    auto* extra_tab = new QWidget;
-    auto* extra_layout = new QVBoxLayout(extra_tab);
-    extra_layout->addWidget(new QLabel(
-        "Descrizioni extra attivate da keyword (sezione E in myst.wld)."));
+    root->addWidget(makeSectionSeparator());
+    root->addWidget(new QLabel("Descrizioni extra attivate da keyword (sezione E in myst.wld)."));
+
     extra_desc_list_ = new QListWidget;
     extra_desc_list_->setMaximumHeight(140);
     extra_desc_keyword_ = new QLineEdit;
-    extra_desc_description_ = new QTextEdit;
-    configureDescriptionField(extra_desc_description_);
+    extra_desc_description_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudDescriptionField(extra_desc_description_);
     extra_desc_description_->setMinimumHeight(160);
     extra_desc_line_info_ = makeLineInfoLabel();
     extra_desc_ascii_info_ = makeLineInfoLabel();
+
     auto* extra_form = new QFormLayout;
     extra_form->addRow("Keyword:", extra_desc_keyword_);
     extra_form->addRow("Descrizione:", extra_desc_description_);
@@ -122,28 +115,28 @@ TranslatorRoomWidget::TranslatorRoomWidget(QWidget* parent) : QWidget(parent) {
     auto* extra_buttons = new QHBoxLayout;
     auto* extra_add = new QPushButton("Aggiungi / aggiorna");
     auto* extra_remove = new QPushButton("Rimuovi");
-    auto* extra_accents = new QPushButton("Sostituisci accenti nel tab");
+    auto* extra_accents = new QPushButton("Sostituisci accenti (extra)");
     extra_buttons->addWidget(extra_add);
     extra_buttons->addWidget(extra_remove);
     extra_buttons->addWidget(extra_accents);
     extra_buttons->addStretch();
-    extra_layout->addWidget(extra_desc_list_);
-    extra_layout->addLayout(extra_form);
-    extra_layout->addLayout(extra_buttons);
-    tabs_->addTab(extra_tab, "Descrizioni extra");
+    root->addWidget(extra_desc_list_);
+    root->addLayout(extra_form);
+    root->addLayout(extra_buttons);
 
-    auto* exit_tab = new QWidget;
-    auto* exit_layout = new QVBoxLayout(exit_tab);
-    exit_layout->addWidget(new QLabel(
+    root->addWidget(makeSectionSeparator());
+    root->addWidget(new QLabel(
         "Testo di look delle uscite (Description in myst.wld). Direzione e destinazione sono in sola lettura."));
+
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(160);
     exit_info_ = new QLabel("(nessuna uscita selezionata)");
     exit_info_->setWordWrap(true);
-    exit_description_ = new QLineEdit;
-    exit_description_->setMinimumWidth(420);
+    exit_description_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(exit_description_);
     exit_line_info_ = makeLineInfoLabel();
     exit_ascii_info_ = makeLineInfoLabel();
+
     auto* exit_form = new QFormLayout;
     exit_form->addRow("Uscita:", exit_info_);
     exit_form->addRow("Description (look):", exit_description_);
@@ -151,39 +144,66 @@ TranslatorRoomWidget::TranslatorRoomWidget(QWidget* parent) : QWidget(parent) {
     exit_form->addRow("", exit_ascii_info_);
     auto* exit_buttons = new QHBoxLayout;
     auto* exit_apply = new QPushButton("Applica description uscita");
-    auto* exit_accents = new QPushButton("Sostituisci accenti nel tab");
+    auto* exit_accents = new QPushButton("Sostituisci accenti (uscite)");
     exit_buttons->addWidget(exit_apply);
     exit_buttons->addWidget(exit_accents);
     exit_buttons->addStretch();
-    exit_layout->addWidget(exit_list_);
-    exit_layout->addLayout(exit_form);
-    exit_layout->addLayout(exit_buttons);
-    tabs_->addTab(exit_tab, "Uscite");
-
-    root->addWidget(tabs_);
+    root->addWidget(exit_list_);
+    root->addLayout(exit_form);
+    root->addLayout(exit_buttons);
+    root->addStretch();
 
     connect(extra_desc_list_, &QListWidget::currentRowChanged, this, [this](int) { onExtraDescSelected(); });
     connect(extra_add, &QPushButton::clicked, this, &TranslatorRoomWidget::addExtraDesc);
     connect(extra_remove, &QPushButton::clicked, this, &TranslatorRoomWidget::removeExtraDesc);
     connect(exit_list_, &QListWidget::currentRowChanged, this, [this](int) { onExitSelected(); });
     connect(exit_apply, &QPushButton::clicked, this, &TranslatorRoomWidget::applyExitDescription);
-    connect(text_accents, &QPushButton::clicked, this, &TranslatorRoomWidget::convertAccentsOnTextTab);
-    connect(extra_accents, &QPushButton::clicked, this, &TranslatorRoomWidget::convertAccentsOnExtraTab);
-    connect(exit_accents, &QPushButton::clicked, this, &TranslatorRoomWidget::convertAccentsOnExitTab);
+    connect(text_accents, &QPushButton::clicked, this, &TranslatorRoomWidget::convertAccentsOnTextSection);
+    connect(extra_accents, &QPushButton::clicked, this, &TranslatorRoomWidget::convertAccentsOnExtraSection);
+    connect(exit_accents, &QPushButton::clicked, this, &TranslatorRoomWidget::convertAccentsOnExitSection);
 
-    const auto hook_text_field = [this](QTextEdit* field) {
-        connect(field, &QTextEdit::textChanged, this, &TranslatorRoomWidget::updateLineLengthIndicators);
-        connect(field, &QTextEdit::cursorPositionChanged, this, &TranslatorRoomWidget::updateLineLengthIndicators);
-    };
-    hook_text_field(description_);
-    hook_text_field(extra_desc_description_);
-    connect(name_, &QLineEdit::textChanged, this, &TranslatorRoomWidget::updateLineLengthIndicators);
-    connect(exit_description_, &QLineEdit::textChanged, this, &TranslatorRoomWidget::updateLineLengthIndicators);
+    hookMudField(name_);
+    hookMudField(description_);
+    hookMudField(extra_desc_description_);
+    hookMudField(exit_description_);
+}
+
+void TranslatorRoomWidget::hookMudField(nebbie::qt::MudColorTextEdit* field) {
+    connect(field, &nebbie::qt::MudColorTextEdit::storageTextChanged, this,
+            &TranslatorRoomWidget::updateLineLengthIndicators);
 }
 
 void TranslatorRoomWidget::setMaxLineLength(int max_length) {
     max_line_length_ = max_length < 0 ? 0 : max_length;
+    applyColorSettingsToFields();
     updateLineLengthIndicators();
+}
+
+void TranslatorRoomWidget::setShowColorCodes(bool show) {
+    show_color_codes_ = show;
+    applyColorSettingsToFields();
+}
+
+void TranslatorRoomWidget::applyColorSettingsToFields() {
+    const auto apply = [this](nebbie::qt::MudColorTextEdit* field) {
+        field->setShowColorCodes(show_color_codes_);
+        field->setMaxLineLength(max_line_length_);
+    };
+    apply(name_);
+    apply(description_);
+    apply(extra_desc_description_);
+    apply(exit_description_);
+}
+
+nebbie::qt::MudColorTextEdit* TranslatorRoomWidget::focusedMudField() const {
+    const auto widgets = std::initializer_list<nebbie::qt::MudColorTextEdit*>{
+        name_, description_, extra_desc_description_, exit_description_};
+    for (auto* field : widgets) {
+        if (field && field->hasFocus()) {
+            return field;
+        }
+    }
+    return description_;
 }
 
 void TranslatorRoomWidget::updateLineLengthIndicators() {
@@ -195,10 +215,10 @@ void TranslatorRoomWidget::updateLineLengthIndicators() {
     nebbie::qt::updateLineLengthMonitor(extra_desc_line_info_, extra_desc_description_, max_line_length_);
     nebbie::qt::updateLineLengthMonitor(exit_line_info_, exit_description_, max_line_length_);
 
-    nebbie::qt::updateAsciiMonitor(name_ascii_info_, name_->text().toStdString());
-    nebbie::qt::updateAsciiMonitor(description_ascii_info_, description_->toPlainText().toStdString());
-    nebbie::qt::updateAsciiMonitor(extra_desc_ascii_info_, extra_desc_description_->toPlainText().toStdString());
-    nebbie::qt::updateAsciiMonitor(exit_ascii_info_, exit_description_->text().toStdString());
+    nebbie::qt::updateAsciiMonitor(name_ascii_info_, name_->storageText().toStdString());
+    nebbie::qt::updateAsciiMonitor(description_ascii_info_, description_->storageText().toStdString());
+    nebbie::qt::updateAsciiMonitor(extra_desc_ascii_info_, extra_desc_description_->storageText().toStdString());
+    nebbie::qt::updateAsciiMonitor(exit_ascii_info_, exit_description_->storageText().toStdString());
 }
 
 namespace {
@@ -209,20 +229,20 @@ QString convertAccents(const QString& text) {
 
 } // namespace
 
-void TranslatorRoomWidget::convertAccentsOnTextTab() {
-    name_->setText(convertAccents(name_->text()));
-    description_->setPlainText(convertAccents(description_->toPlainText()));
+void TranslatorRoomWidget::convertAccentsOnTextSection() {
+    name_->setStorageText(convertAccents(name_->storageText()));
+    description_->setStorageText(convertAccents(description_->storageText()));
     updateLineLengthIndicators();
 }
 
-void TranslatorRoomWidget::convertAccentsOnExtraTab() {
+void TranslatorRoomWidget::convertAccentsOnExtraSection() {
     extra_desc_keyword_->setText(convertAccents(extra_desc_keyword_->text()));
-    extra_desc_description_->setPlainText(convertAccents(extra_desc_description_->toPlainText()));
+    extra_desc_description_->setStorageText(convertAccents(extra_desc_description_->storageText()));
     updateLineLengthIndicators();
 }
 
-void TranslatorRoomWidget::convertAccentsOnExitTab() {
-    exit_description_->setText(convertAccents(exit_description_->text()));
+void TranslatorRoomWidget::convertAccentsOnExitSection() {
+    exit_description_->setStorageText(convertAccents(exit_description_->storageText()));
     updateLineLengthIndicators();
 }
 
@@ -231,16 +251,16 @@ bool TranslatorRoomWidget::currentFieldsHaveLineLengthIssues() const {
         return false;
     }
 
-    if (textHasLineLengthIssues(name_->text().toStdString(), max_line_length_)) {
+    if (textHasLineLengthIssues(name_->storageText().toStdString(), max_line_length_)) {
         return true;
     }
-    if (textHasLineLengthIssues(description_->toPlainText().toStdString(), max_line_length_)) {
+    if (textHasLineLengthIssues(description_->storageText().toStdString(), max_line_length_)) {
         return true;
     }
-    if (textHasLineLengthIssues(extra_desc_description_->toPlainText().toStdString(), max_line_length_)) {
+    if (textHasLineLengthIssues(extra_desc_description_->storageText().toStdString(), max_line_length_)) {
         return true;
     }
-    if (textHasLineLengthIssues(exit_description_->text().toStdString(), max_line_length_)) {
+    if (textHasLineLengthIssues(exit_description_->storageText().toStdString(), max_line_length_)) {
         return true;
     }
 
@@ -263,8 +283,8 @@ bool TranslatorRoomWidget::currentFieldsHaveLineLengthIssues() const {
 
 void TranslatorRoomWidget::loadFromRoom(const nebbie::Room& room) {
     loading_ = true;
-    name_->setText(QString::fromStdString(room.name));
-    description_->setPlainText(QString::fromStdString(room.description));
+    name_->setStorageText(QString::fromStdString(room.name));
+    description_->setStorageText(QString::fromStdString(room.description));
 
     extra_desc_list_->clear();
     for (const auto& extra : room.extra_descs) {
@@ -289,8 +309,8 @@ void TranslatorRoomWidget::loadFromRoom(const nebbie::Room& room) {
 }
 
 void TranslatorRoomWidget::saveTranslatableFields(const nebbie::Room& original, nebbie::Room& room) const {
-    room.name = name_->text().toStdString();
-    room.description = description_->toPlainText().toStdString();
+    room.name = name_->storageText().toStdString();
+    room.description = description_->storageText().toStdString();
 
     room.extra_descs.clear();
     for (int i = 0; i < extra_desc_list_->count(); ++i) {
@@ -319,7 +339,7 @@ void TranslatorRoomWidget::onExtraDescSelected() {
 
 void TranslatorRoomWidget::addExtraDesc() {
     const QString keyword = extra_desc_keyword_->text();
-    const QString description = extra_desc_description_->toPlainText();
+    const QString description = extra_desc_description_->storageText();
     if (keyword.trimmed().isEmpty() && description.trimmed().isEmpty()) {
         return;
     }
@@ -355,12 +375,12 @@ void TranslatorRoomWidget::refreshExtraDescForm() {
     const auto* item = extra_desc_list_->currentItem();
     if (!item) {
         extra_desc_keyword_->clear();
-        extra_desc_description_->clear();
+        extra_desc_description_->setStorageText({});
         updateLineLengthIndicators();
         return;
     }
     extra_desc_keyword_->setText(item->data(Qt::UserRole).toString());
-    extra_desc_description_->setPlainText(item->data(Qt::UserRole + 1).toString());
+    extra_desc_description_->setStorageText(item->data(Qt::UserRole + 1).toString());
     updateLineLengthIndicators();
 }
 
@@ -374,7 +394,7 @@ void TranslatorRoomWidget::applyExitDescription() {
         return;
     }
     nebbie::Exit exit = readExitItem(item);
-    exit.description = exit_description_->text().toStdString();
+    exit.description = exit_description_->storageText().toStdString();
     writeExitItem(item, exit);
     updateLineLengthIndicators();
 }
@@ -386,7 +406,7 @@ void TranslatorRoomWidget::refreshExitForm() {
     const auto* item = exit_list_->currentItem();
     if (!item) {
         exit_info_->setText("(nessuna uscita selezionata)");
-        exit_description_->clear();
+        exit_description_->setStorageText({});
         updateLineLengthIndicators();
         return;
     }
@@ -394,6 +414,6 @@ void TranslatorRoomWidget::refreshExitForm() {
     exit_info_->setText(QString("%1 -> stanza #%2")
                             .arg(QString::fromStdString(nebbie::exit_direction_label(exit.direction)))
                             .arg(exit.to_room));
-    exit_description_->setText(QString::fromStdString(exit.description));
+    exit_description_->setStorageText(QString::fromStdString(exit.description));
     updateLineLengthIndicators();
 }

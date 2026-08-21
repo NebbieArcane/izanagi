@@ -14,6 +14,10 @@ add_executable(nebbie-translate
     translator_window.cpp
     translator_window.hpp
     nebbie-translate.qrc
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_widgets.hpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_dialogs.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_dialogs.hpp
 )
 
 if(APPLE AND EXISTS "${NEBBIE_TRANSLATE_ICON_MAC}")

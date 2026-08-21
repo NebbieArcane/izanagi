@@ -1,5 +1,7 @@
 #include "nebbie/text_lines.hpp"
 
+#include "nebbie/mud_colors.hpp"
+
 namespace nebbie {
 
 std::size_t utf8_char_count(const std::string& text) {
@@ -43,7 +45,28 @@ std::vector<std::string> split_text_lines(const std::string& text) {
     return lines;
 }
 
+std::size_t visible_utf8_char_count(const std::string& text) {
+    return utf8_char_count(strip_mud_color_codes(text));
+}
+
+LongestVisibleLine find_longest_visible_line(const std::string& text) {
+    LongestVisibleLine longest;
+    const std::vector<std::string> lines = split_text_lines(text);
+    for (std::size_t i = 0; i < lines.size(); ++i) {
+        const std::size_t length = visible_utf8_char_count(lines[i]);
+        if (length >= longest.visible_length) {
+            longest.line_number = static_cast<int>(i + 1);
+            longest.visible_length = length;
+        }
+    }
+    return longest;
+}
+
 TextLineLengthReport check_text_line_lengths(const std::string& text, int max_length) {
+    return check_visible_text_line_lengths(text, max_length);
+}
+
+TextLineLengthReport check_visible_text_line_lengths(const std::string& text, int max_length) {
     TextLineLengthReport report;
     report.max_length = max_length;
     if (max_length <= 0) {
@@ -52,7 +75,7 @@ TextLineLengthReport check_text_line_lengths(const std::string& text, int max_le
 
     const std::vector<std::string> lines = split_text_lines(text);
     for (std::size_t i = 0; i < lines.size(); ++i) {
-        const std::size_t length = utf8_char_count(lines[i]);
+        const std::size_t length = visible_utf8_char_count(lines[i]);
         if (length > static_cast<std::size_t>(max_length)) {
             report.overlong.push_back({static_cast<int>(i + 1), length});
         }

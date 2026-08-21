@@ -1,6 +1,8 @@
 #include "translator_window.hpp"
 
 #include "app_config.hpp"
+#include "mud_color_dialogs.hpp"
+#include "mud_color_widgets.hpp"
 #include "translator_room_widget.hpp"
 
 #include "path_util.hpp"
@@ -13,6 +15,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDateTime>
+#include <QDialog>
 #include <QDir>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -42,6 +45,7 @@ TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
     setupUi();
     setupMenus();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
+    room_editor_->setShowColorCodes(app_config_.show_color_codes);
     setWindowTitle("Nebbie Translate");
     resize(960, 680);
     setStatus("Apri una libreria (mudroot/lib) per tradurre le descrizioni delle stanze.");
@@ -122,6 +126,17 @@ void TranslatorWindow::setupMenus() {
     auto* prefs_menu = menuBar()->addMenu("&Preferenze");
     auto* line_limit_action = prefs_menu->addAction("Limite caratteri per riga...");
     connect(line_limit_action, &QAction::triggered, this, &TranslatorWindow::editLineLengthLimit);
+
+    auto* extended_color_action = prefs_menu->addAction("Visualizzazione estesa codici colore");
+    extended_color_action->setCheckable(true);
+    extended_color_action->setChecked(app_config_.show_color_codes);
+    connect(extended_color_action, &QAction::toggled, this, &TranslatorWindow::toggleExtendedColorView);
+
+    auto* colors_menu = menuBar()->addMenu("&Colori");
+    auto* legend_action = colors_menu->addAction("Legenda colori MUD");
+    connect(legend_action, &QAction::triggered, this, &TranslatorWindow::showColorLegend);
+    auto* insert_color_action = colors_menu->addAction("Inserisci codice...");
+    connect(insert_color_action, &QAction::triggered, this, &TranslatorWindow::insertColorCode);
 }
 
 void TranslatorWindow::openLibPath(const QString& path) {
@@ -419,6 +434,33 @@ nebbie::ValidationOptions TranslatorWindow::validationOptions() const {
     nebbie::ValidationOptions options;
     options.max_line_length = app_config_.max_line_length;
     return options;
+}
+
+void TranslatorWindow::toggleExtendedColorView(bool enabled) {
+    app_config_.show_color_codes = enabled;
+    nebbie::translate::write_config(app_config_);
+    room_editor_->setShowColorCodes(enabled);
+    if (enabled) {
+        setStatus("Visualizzazione estesa attiva: i codici $cXXXX sono visibili.");
+    } else {
+        setStatus("Codici colore nascosti: anteprima colorata attiva.");
+    }
+}
+
+void TranslatorWindow::showColorLegend() {
+    nebbie::qt::MudColorLegendDialog dialog(this);
+    dialog.exec();
+}
+
+void TranslatorWindow::insertColorCode() {
+    nebbie::qt::MudColorInsertDialog dialog(this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    if (auto* field = room_editor_->focusedMudField()) {
+        field->insertColorCode(dialog.selectedCode());
+        setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+    }
 }
 
 void TranslatorWindow::editLineLengthLimit() {

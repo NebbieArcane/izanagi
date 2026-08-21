@@ -7,6 +7,7 @@ namespace nebbie::translate {
 struct AppConfig {
     QString lib_path;
     int max_line_length = 0;
+    bool show_color_codes = false;
 };
 
 QString default_config_path();
