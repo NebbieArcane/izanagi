@@ -7,7 +7,9 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+ENTITLEMENTS="${2:-${ROOT}/nebbie-translator/macos/entitlements.plist}"
 if [[ ! -d "${APP_PATH}" ]]; then
     echo "ERROR: not an app bundle: ${APP_PATH}" >&2
     exit 1
@@ -74,10 +76,8 @@ should_notarize_app() {
 }
 
 if should_notarize_app && security find-identity -v -p codesigning 2>/dev/null | grep -q 'Developer ID Application'; then
-    ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     echo "==> Developer ID sign + notarization"
-    "${ROOT}/scripts/macos-notarize-app.sh" "${APP_PATH}" \
-        "${ROOT}/nebbie-translator/macos/entitlements.plist"
+    "${ROOT}/scripts/macos-notarize-app.sh" "${APP_PATH}" "${ENTITLEMENTS}"
 else
     echo "==> Ad-hoc codesign (bundle + embedded Qt)"
     sign_bundle_adhoc "${APP_PATH}"

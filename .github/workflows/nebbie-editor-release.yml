@@ -96,17 +96,19 @@ jobs:
 
       - name: Verify .dmg contents
         run: |
+          set -euo pipefail
           hdiutil attach dist/nebbie-editor_*_macos.dmg -mountpoint /tmp/nebbie-editor-dmg -nobrowse
+          trap 'hdiutil detach /tmp/nebbie-editor-dmg 2>/dev/null || true' EXIT
           test -d /tmp/nebbie-editor-dmg/nebbieedit.app
           test -d /tmp/nebbie-editor-dmg/nebbieedit.app/Contents/Frameworks
           test -x /tmp/nebbie-editor-dmg/nebbieedit.app/Contents/MacOS/nebbieedit
+          test -f /tmp/nebbie-editor-dmg/LEGGIMI.txt
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
             xcrun stapler validate /tmp/nebbie-editor-dmg/nebbieedit.app
             spctl -a -vv /tmp/nebbie-editor-dmg/nebbieedit.app
           else
             echo "Ad-hoc signed build — skipping stapler/spctl (first launch: tasto destro → Apri)."
           fi
-          hdiutil detach /tmp/nebbie-editor-dmg
 
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4

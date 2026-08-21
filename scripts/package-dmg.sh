@@ -74,12 +74,32 @@ if [[ ! -x "${CLI_SRC}" ]]; then
     exit 1
 fi
 
+echo "==> Bundling Qt and signing app"
+ENTITLEMENTS="${ROOT}/nebbie-qt/macos/entitlements.plist"
+if [[ ! -f "${ENTITLEMENTS}" ]]; then
+    ENTITLEMENTS="${ROOT}/nebbie-translator/macos/entitlements.plist"
+fi
+"${ROOT}/scripts/macos-prepare-app-bundle.sh" "${APP_SRC}" "${ENTITLEMENTS}"
+
 echo "==> Preparing DMG staging"
 rm -rf "${STAGING}"
 mkdir -p "${STAGING}/bin"
 cp -R "${APP_SRC}" "${STAGING}/"
 cp "${CLI_SRC}" "${STAGING}/bin/"
 cp -a "${DIST}/sample-mudroot" "${STAGING}/"
+cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
+Nebbie Editor (macOS)
+=====================
+
+1. Trascina nebbieedit.app nella cartella Applicazioni
+2. Avvia Nebbie Editor → File → Apri libreria → mudroot o mudroot/lib
+
+Se macOS blocca l'app al primo avvio: tasto destro sull'app → Apri,
+oppure in Terminale: xattr -cr /Applications/nebbieedit.app
+
+CLI incluso: bin/nebbiedit
+Mondo di prova: sample-mudroot/lib
+EOF
 ln -sf /Applications "${STAGING}/Applications"
 
 DMG_FILE="${DIST}/nebbie-editor_${VERSION}_macos.dmg"
