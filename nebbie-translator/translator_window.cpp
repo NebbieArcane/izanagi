@@ -4,6 +4,7 @@
 #include "mud_color_dialogs.hpp"
 #include "mud_color_widgets.hpp"
 #include "translator_room_widget.hpp"
+#include "validation_report_ui.hpp"
 
 #include "path_util.hpp"
 
@@ -342,21 +343,14 @@ void TranslatorWindow::validateLib() {
 }
 
 void TranslatorWindow::showValidation(const nebbie::ValidationReport& report) {
-    QString message;
-    if (report.ok() && report.warning_count() == 0) {
-        message = "Nessun errore di validazione.";
-    } else {
-        message = QString("Errori: %1\nAvvisi: %2\n\n").arg(report.error_count()).arg(report.warning_count());
-        for (const auto& issue : report.issues) {
-            const char* level = issue.severity == nebbie::ValidationSeverity::error ? "ERR" : "WARN";
-            message += QString("[%1] %2\n").arg(level).arg(QString::fromStdString(issue.message));
-            if (message.size() > 12000) {
-                message += "…\n";
-                break;
-            }
-        }
-    }
-    QMessageBox::information(this, "Validazione", message);
+    const QString library = lib_path_.empty() ? QString() : nebbie::qt::qstring_from_path(lib_path_);
+    nebbie::qt::show_validation_report_dialog(
+        this,
+        report,
+        QStringLiteral("Validazione"),
+        QStringLiteral("Report validazione Nebbie Translate"),
+        library,
+        nebbie::qt::translate_validation_log_path());
 }
 
 nebbie::ValidationOptions TranslatorWindow::validationOptions() const {
@@ -387,6 +381,7 @@ void TranslatorWindow::saveLib() {
         nebbie::validate_translatable_rooms(world_, validationOptions(), &rooms_to_check);
     if (report.warning_count() > 0) {
         showValidation(report);
+        setStatus(QString("Avvisi salvati in %1").arg(nebbie::qt::translate_validation_log_path()));
         const auto answer = QMessageBox::question(
             this, "Avvisi sui testi modificati",
             QString("Ci sono %1 avvisi sui testi delle stanze modificate in questa sessione. "
