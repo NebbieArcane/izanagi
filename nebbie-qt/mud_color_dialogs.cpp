@@ -63,9 +63,6 @@ MudColorInsertDialog::MudColorInsertDialog(QWidget* parent) : QDialog(parent) {
 
     auto* list = new QListWidget;
     for (int color = 1; color <= 15; ++color) {
-        if (color == 5) {
-            continue;
-        }
         const QString code = formatStandardCode(color);
         auto* item = new QListWidgetItem(
             QStringLiteral("%1 — %2").arg(code).arg(QString::fromStdString(nebbie::mud_color_code_name(color))));
