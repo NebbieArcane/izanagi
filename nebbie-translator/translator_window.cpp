@@ -312,6 +312,7 @@ void TranslatorWindow::applyRoomChanges() {
     }
 
     markDirty();
+    dirty_room_vnums_.insert(vnum);
     if (aligned > 0) {
         setStatus(QString("Stanza %1 aggiornata; %2 description collegate sincronizzate.")
                       .arg(vnum)
@@ -358,18 +359,41 @@ void TranslatorWindow::showValidation(const nebbie::ValidationReport& report) {
     QMessageBox::information(this, "Validazione", message);
 }
 
+nebbie::ValidationOptions TranslatorWindow::validationOptions() const {
+    nebbie::ValidationOptions options;
+    options.max_line_length = app_config_.max_line_length;
+    return options;
+}
+
+std::vector<long> TranslatorWindow::roomsPendingSaveValidation() const {
+    if (!dirty_room_vnums_.empty()) {
+        return {dirty_room_vnums_.begin(), dirty_room_vnums_.end()};
+    }
+    const long current = currentRoomVnum();
+    if (current > 0) {
+        return {current};
+    }
+    return {};
+}
+
 void TranslatorWindow::saveLib() {
     if (lib_path_.empty()) {
         QMessageBox::information(this, "Salva", "Apri prima una libreria.");
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
-    if (!report.ok()) {
+    const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
+    const nebbie::ValidationReport report =
+        nebbie::validate_translatable_rooms(world_, validationOptions(), &rooms_to_check);
+    if (report.warning_count() > 0) {
         showValidation(report);
         const auto answer = QMessageBox::question(
-            this, "Errori di validazione",
-            QString("Ci sono %1 errori. Salvare comunque?").arg(report.error_count()),
+            this, "Avvisi sui testi modificati",
+            QString("Ci sono %1 avvisi sui testi delle stanze modificate in questa sessione. "
+                    "Salvare comunque?\n\n"
+                    "(Gli errori strutturali del mondo — uscite mancanti, reset, ecc. — "
+                    "non bloccano il salvataggio da Translate.)")
+                .arg(report.warning_count()),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer != QMessageBox::Yes) {
             return;
@@ -428,12 +452,6 @@ void TranslatorWindow::onAutosaveTick() {
 void TranslatorWindow::rememberLibPath(const std::filesystem::path& path) {
     app_config_.lib_path = nebbie::qt::qstring_from_path(path);
     nebbie::translate::write_config(app_config_);
-}
-
-nebbie::ValidationOptions TranslatorWindow::validationOptions() const {
-    nebbie::ValidationOptions options;
-    options.max_line_length = app_config_.max_line_length;
-    return options;
 }
 
 void TranslatorWindow::toggleExtendedColorView(bool enabled) {
@@ -500,6 +518,7 @@ void TranslatorWindow::markDirty() {
 
 void TranslatorWindow::markClean() {
     dirty_ = false;
+    dirty_room_vnums_.clear();
     QString title = windowTitle();
     while (title.startsWith("* ")) {
         title.remove(0, 2);

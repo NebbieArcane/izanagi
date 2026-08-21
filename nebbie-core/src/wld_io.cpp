@@ -63,7 +63,7 @@ void read_room_zone_line(FILE* fp, Room& room) {
         throw ParseError("Room " + std::to_string(room.vnum) + ": expected zone, flags, and sector");
     }
 
-  (void)nums[0];
+    (void)nums[0];
     room.room_flags = nums[1];
     const long sector_field = nums[2];
 
@@ -93,6 +93,22 @@ void read_room_zone_line(FILE* fp, Room& room) {
         room.tele_time = nums[3];
         room.sector_type = 0;
         return;
+    }
+
+    if (nums.size() == 3) {
+        const auto tele = parse_numbers(read_data_line(fp));
+        if (tele.size() >= 4) {
+            room.tele_time = tele[0];
+            room.tele_targ = tele[1];
+            room.tele_mask = tele[2];
+            if (tele.size() >= 5) {
+                room.tele_cnt = tele[3];
+                room.sector_type = static_cast<int>(tele[4]);
+            } else {
+                room.sector_type = static_cast<int>(tele[3]);
+            }
+            return;
+        }
     }
 
     throw ParseError("Room " + std::to_string(room.vnum) + ": invalid teleport zone line");
@@ -167,8 +183,8 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
         : 0;
 
     if (room.tele_time || room.tele_targ || room.tele_mask) {
-        std::fprintf(fp, "%d %ld -1\n", zone_num, room.room_flags);
-        std::fprintf(fp, "%ld %ld %ld", room.tele_time, room.tele_targ, room.tele_mask);
+        std::fprintf(fp, "%d %ld -1 %ld %ld %ld", zone_num, room.room_flags, room.tele_time, room.tele_targ,
+                     room.tele_mask);
         if (room.tele_mask & TELE_COUNT) {
             std::fprintf(fp, " %ld", room.tele_cnt);
         }

@@ -480,4 +480,82 @@ ValidationReport validate_world(const World& world, const ValidationOptions& opt
     return report;
 }
 
+ValidationReport validate_translatable_rooms(const World& world,
+                                             const ValidationOptions& options,
+                                             const std::vector<long>* room_vnums) {
+    ValidationReport report;
+
+    const auto validate_room = [&](long vnum, const Room& room) {
+        if (options.max_line_length > 0) {
+            auto check_field = [&](const std::string& text, const std::string& field_label) {
+                const TextLineLengthReport line_report =
+                    check_text_line_lengths(text, options.max_line_length);
+                for (const auto& issue : line_report.overlong) {
+                    add_issue(report,
+                              ValidationSeverity::warning,
+                              "room_text",
+                              "room " + std::to_string(vnum) + " " + field_label + " line "
+                                  + std::to_string(issue.line_number) + " has "
+                                  + std::to_string(issue.length) + " characters (max "
+                                  + std::to_string(options.max_line_length) + ")",
+                              ValidationTarget::room,
+                              vnum);
+                }
+            };
+
+            check_field(room.name, "name");
+            check_field(room.description, "description");
+            for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
+                check_field(room.extra_descs[extra_index].description,
+                            "extra desc " + std::to_string(extra_index));
+            }
+            for (std::size_t exit_index = 0; exit_index < room.exits.size(); ++exit_index) {
+                check_field(room.exits[exit_index].description,
+                            "exit " + std::to_string(exit_index) + " description");
+            }
+        }
+
+        auto warn_non_ascii = [&](const std::string& text, const std::string& field_label) {
+            if (is_mud_ascii_text(text)) {
+                return;
+            }
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "room_text",
+                      "room " + std::to_string(vnum) + " " + field_label + " contains "
+                          + std::to_string(count_non_mud_ascii_chars(text))
+                          + " non-ASCII characters",
+                      ValidationTarget::room,
+                      vnum);
+        };
+
+        warn_non_ascii(room.name, "name");
+        warn_non_ascii(room.description, "description");
+        for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
+            warn_non_ascii(room.extra_descs[extra_index].description,
+                           "extra desc " + std::to_string(extra_index));
+        }
+        for (std::size_t exit_index = 0; exit_index < room.exits.size(); ++exit_index) {
+            warn_non_ascii(room.exits[exit_index].description,
+                           "exit " + std::to_string(exit_index) + " description");
+        }
+    };
+
+    if (room_vnums == nullptr || room_vnums->empty()) {
+        for (const auto& [vnum, room] : world.rooms) {
+            validate_room(vnum, room);
+        }
+        return report;
+    }
+
+    for (long vnum : *room_vnums) {
+        const Room* room = world.find_room(vnum);
+        if (room == nullptr) {
+            continue;
+        }
+        validate_room(vnum, *room);
+    }
+    return report;
+}
+
 } // namespace nebbie

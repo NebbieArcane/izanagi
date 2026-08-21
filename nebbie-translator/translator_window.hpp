@@ -11,6 +11,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <set>
 
 class QCloseEvent;
 class QLabel;
@@ -60,6 +61,7 @@ private:
     void setStatus(const QString& text);
     void showValidation(const nebbie::ValidationReport& report);
     nebbie::ValidationOptions validationOptions() const;
+    std::vector<long> roomsPendingSaveValidation() const;
 
     nebbie::translate::AppConfig app_config_;
     nebbie::World world_;
@@ -68,6 +70,7 @@ private:
     nebbie::SessionConfig session_config_;
     std::chrono::system_clock::time_point last_version_time_;
     bool dirty_ = false;
+    std::set<long> dirty_room_vnums_;
 
     QLabel* lib_label_ = nullptr;
     QLineEdit* room_search_ = nullptr;

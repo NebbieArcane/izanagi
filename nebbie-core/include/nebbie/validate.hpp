@@ -44,5 +44,8 @@ struct ValidationOptions {
 };
 
 ValidationReport validate_world(const World& world, const ValidationOptions& options = {});
+ValidationReport validate_translatable_rooms(const World& world,
+                                             const ValidationOptions& options = {},
+                                             const std::vector<long>* room_vnums = nullptr);
 
 } // namespace nebbie
