@@ -12,8 +12,11 @@ class QListWidget;
 class QListWidgetItem;
 class QSpinBox;
 class QTabWidget;
-class QTextEdit;
 class FlagGroupWidget;
+
+namespace nebbie::qt {
+class MudColorTextEdit;
+}
 
 class RoomEditorWidget : public QWidget {
     Q_OBJECT
@@ -25,6 +28,10 @@ public:
     void loadFromRoom(const nebbie::Room& room);
     void saveToRoom(nebbie::Room& room) const;
     void setMaxLineLength(int max_length);
+    void setShowColorCodes(bool show);
+    bool showColorCodes() const { return show_color_codes_; }
+
+    nebbie::qt::MudColorTextEdit* focusedMudField() const;
 
     long selectedExitToRoom() const;
     int selectedExitDirection() const;
@@ -50,17 +57,20 @@ private:
     void connectOverviewUpdates();
     void setComboIntValue(QComboBox* combo, int value) const;
     void navigateOverviewItem(const QListWidgetItem* item);
+    void applyColorSettingsToFields();
+    void hookMudField(nebbie::qt::MudColorTextEdit* field);
 
     int max_line_length_ = 0;
+    bool show_color_codes_ = false;
     bool loading_ = false;
     bool overview_updates_enabled_ = true;
     QTabWidget* tabs_ = nullptr;
     QListWidget* overview_list_ = nullptr;
 
-    QLineEdit* name_ = nullptr;
+    nebbie::qt::MudColorTextEdit* name_ = nullptr;
     QLabel* name_line_info_ = nullptr;
     QLabel* name_ascii_info_ = nullptr;
-    QTextEdit* description_ = nullptr;
+    nebbie::qt::MudColorTextEdit* description_ = nullptr;
     QLabel* description_line_info_ = nullptr;
     QLabel* description_ascii_info_ = nullptr;
 
@@ -83,14 +93,14 @@ private:
 
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;
-    QTextEdit* extra_desc_description_ = nullptr;
+    nebbie::qt::MudColorTextEdit* extra_desc_description_ = nullptr;
     QLabel* extra_desc_line_info_ = nullptr;
     QLabel* extra_desc_ascii_info_ = nullptr;
 
     QListWidget* exit_list_ = nullptr;
     QComboBox* exit_direction_ = nullptr;
     QSpinBox* exit_to_room_ = nullptr;
-    QLineEdit* exit_description_ = nullptr;
+    nebbie::qt::MudColorTextEdit* exit_description_ = nullptr;
     QLabel* exit_line_info_ = nullptr;
     QLabel* exit_ascii_info_ = nullptr;
     QLineEdit* exit_keyword_ = nullptr;

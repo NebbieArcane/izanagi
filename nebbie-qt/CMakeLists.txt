@@ -31,6 +31,10 @@ add_executable(nebbieedit
     world_data_editor_widget.hpp
     zone_map_widget.cpp
     zone_map_widget.hpp
+    mud_color_widgets.cpp
+    mud_color_widgets.hpp
+    mud_color_dialogs.cpp
+    mud_color_dialogs.hpp
     nebbieedit.qrc
 )
 

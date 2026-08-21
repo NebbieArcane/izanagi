@@ -11,6 +11,7 @@ struct AppConfig {
     QString coordinator_token;
     QString builder_name;
     int max_line_length = 0;
+    bool show_color_codes = false;
 };
 
 QString default_config_path();

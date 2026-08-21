@@ -87,6 +87,9 @@ private slots:
     void exportZonePacks();
     void reserveVnums();
     void editLineLengthLimit();
+    void toggleExtendedColorView(bool enabled);
+    void showColorLegend();
+    void insertColorCode();
 
 protected:
     void closeEvent(QCloseEvent* event) override;

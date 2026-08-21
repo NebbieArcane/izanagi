@@ -31,6 +31,12 @@ QString value_after_equals(const QString& line) {
     return line.mid(eq + 1).trimmed();
 }
 
+bool parse_bool(const QString& value) {
+    const QString normalized = value.trimmed().toLower();
+    return normalized == QStringLiteral("1") || normalized == QStringLiteral("true")
+           || normalized == QStringLiteral("yes") || normalized == QStringLiteral("on");
+}
+
 } // namespace
 
 QString default_config_path() {
@@ -66,6 +72,8 @@ AppConfig read_config() {
             if (ok && parsed >= 0) {
                 config.max_line_length = parsed > 512 ? 512 : parsed;
             }
+        } else if (line.startsWith(QStringLiteral("show_color_codes="))) {
+            config.show_color_codes = parse_bool(value_after_equals(line));
         }
     }
     return config;
@@ -93,6 +101,7 @@ bool write_config(const AppConfig& config) {
         out << "builder_name=" << config.builder_name << '\n';
     }
     out << "max_line_length=" << config.max_line_length << '\n';
+    out << "show_color_codes=" << (config.show_color_codes ? 1 : 0) << '\n';
     return true;
 }
 

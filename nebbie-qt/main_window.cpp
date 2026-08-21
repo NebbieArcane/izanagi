@@ -4,6 +4,8 @@
 #include "application_log.hpp"
 #include "coordinator_client.hpp"
 #include "mob_editor_widget.hpp"
+#include "mud_color_dialogs.hpp"
+#include "mud_color_widgets.hpp"
 #include "obj_editor_widget.hpp"
 #include "room_editor_widget.hpp"
 #include "zone_editor_widget.hpp"
@@ -100,6 +102,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupUi();
     setupMenus();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
+    room_editor_->setShowColorCodes(app_config_.show_color_codes);
     setWindowTitle("Nebbie Editor");
     resize(1100, 720);
     setStatus("Apri una libreria (mudroot/lib) per iniziare.");
@@ -463,6 +466,17 @@ void MainWindow::setupMenus() {
     auto* line_limit_action = prefs_menu->addAction("Limite caratteri per riga...");
     connect(line_limit_action, &QAction::triggered, this, &MainWindow::editLineLengthLimit);
 
+    auto* extended_color_action = prefs_menu->addAction("Visualizzazione estesa codici colore");
+    extended_color_action->setCheckable(true);
+    extended_color_action->setChecked(app_config_.show_color_codes);
+    connect(extended_color_action, &QAction::toggled, this, &MainWindow::toggleExtendedColorView);
+
+    auto* colors_menu = menuBar()->addMenu("&Colori");
+    auto* legend_action = colors_menu->addAction("Legenda colori MUD");
+    connect(legend_action, &QAction::triggered, this, &MainWindow::showColorLegend);
+    auto* insert_color_action = colors_menu->addAction("Inserisci codice...");
+    connect(insert_color_action, &QAction::triggered, this, &MainWindow::insertColorCode);
+
     auto* coordinator_menu = menuBar()->addMenu("&Coordinator");
     auto* coordinator_config_action = coordinator_menu->addAction("Configuration...");
     connect(coordinator_config_action, &QAction::triggered, this, &MainWindow::configureCoordinator);
@@ -488,6 +502,33 @@ nebbie::ValidationOptions MainWindow::validationOptions() const {
     return options;
 }
 
+void MainWindow::toggleExtendedColorView(bool enabled) {
+    app_config_.show_color_codes = enabled;
+    nebbie::qt::write_config(app_config_);
+    room_editor_->setShowColorCodes(enabled);
+    if (enabled) {
+        setStatus("Visualizzazione estesa attiva: i codici $cXXXX sono visibili.");
+    } else {
+        setStatus("Codici colore nascosti: anteprima colorata attiva.");
+    }
+}
+
+void MainWindow::showColorLegend() {
+    nebbie::qt::MudColorLegendDialog dialog(this);
+    dialog.exec();
+}
+
+void MainWindow::insertColorCode() {
+    nebbie::qt::MudColorInsertDialog dialog(this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    if (auto* field = room_editor_->focusedMudField()) {
+        field->insertColorCode(dialog.selectedCode());
+        setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+    }
+}
+
 void MainWindow::editLineLengthLimit() {
     bool ok = false;
     const int value = QInputDialog::getInt(
@@ -508,6 +549,7 @@ void MainWindow::editLineLengthLimit() {
     app_config_.max_line_length = value;
     nebbie::qt::write_config(app_config_);
     room_editor_->setMaxLineLength(app_config_.max_line_length);
+    room_editor_->setShowColorCodes(app_config_.show_color_codes);
     if (app_config_.max_line_length > 0) {
         setStatus(QString("Limite righe impostato a %1 caratteri.").arg(app_config_.max_line_length));
     } else {
