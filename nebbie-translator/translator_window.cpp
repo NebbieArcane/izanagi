@@ -4,6 +4,7 @@
 #include "mud_color_dialogs.hpp"
 #include "mud_color_widgets.hpp"
 #include "translator_room_widget.hpp"
+#include "validation_report_ui.hpp"
 
 #include "path_util.hpp"
 
@@ -312,6 +313,7 @@ void TranslatorWindow::applyRoomChanges() {
     }
 
     markDirty();
+    dirty_room_vnums_.insert(vnum);
     if (aligned > 0) {
         setStatus(QString("Stanza %1 aggiornata; %2 description collegate sincronizzate.")
                       .arg(vnum)
@@ -341,21 +343,31 @@ void TranslatorWindow::validateLib() {
 }
 
 void TranslatorWindow::showValidation(const nebbie::ValidationReport& report) {
-    QString message;
-    if (report.ok() && report.warning_count() == 0) {
-        message = "Nessun errore di validazione.";
-    } else {
-        message = QString("Errori: %1\nAvvisi: %2\n\n").arg(report.error_count()).arg(report.warning_count());
-        for (const auto& issue : report.issues) {
-            const char* level = issue.severity == nebbie::ValidationSeverity::error ? "ERR" : "WARN";
-            message += QString("[%1] %2\n").arg(level).arg(QString::fromStdString(issue.message));
-            if (message.size() > 12000) {
-                message += "…\n";
-                break;
-            }
-        }
+    const QString library = lib_path_.empty() ? QString() : nebbie::qt::qstring_from_path(lib_path_);
+    nebbie::qt::show_validation_report_dialog(
+        this,
+        report,
+        QStringLiteral("Validazione"),
+        QStringLiteral("Report validazione Nebbie Translate"),
+        library,
+        nebbie::qt::translate_validation_log_path());
+}
+
+nebbie::ValidationOptions TranslatorWindow::validationOptions() const {
+    nebbie::ValidationOptions options;
+    options.max_line_length = app_config_.max_line_length;
+    return options;
+}
+
+std::vector<long> TranslatorWindow::roomsPendingSaveValidation() const {
+    if (!dirty_room_vnums_.empty()) {
+        return {dirty_room_vnums_.begin(), dirty_room_vnums_.end()};
     }
-    QMessageBox::information(this, "Validazione", message);
+    const long current = currentRoomVnum();
+    if (current > 0) {
+        return {current};
+    }
+    return {};
 }
 
 void TranslatorWindow::saveLib() {
@@ -364,12 +376,19 @@ void TranslatorWindow::saveLib() {
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
-    if (!report.ok()) {
+    const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
+    const nebbie::ValidationReport report =
+        nebbie::validate_translatable_rooms(world_, validationOptions(), &rooms_to_check);
+    if (report.warning_count() > 0) {
         showValidation(report);
+        setStatus(QString("Avvisi salvati in %1").arg(nebbie::qt::translate_validation_log_path()));
         const auto answer = QMessageBox::question(
-            this, "Errori di validazione",
-            QString("Ci sono %1 errori. Salvare comunque?").arg(report.error_count()),
+            this, "Avvisi sui testi modificati",
+            QString("Ci sono %1 avvisi sui testi delle stanze modificate in questa sessione. "
+                    "Salvare comunque?\n\n"
+                    "(Gli errori strutturali del mondo — uscite mancanti, reset, ecc. — "
+                    "non bloccano il salvataggio da Translate.)")
+                .arg(report.warning_count()),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer != QMessageBox::Yes) {
             return;
@@ -428,12 +447,6 @@ void TranslatorWindow::onAutosaveTick() {
 void TranslatorWindow::rememberLibPath(const std::filesystem::path& path) {
     app_config_.lib_path = nebbie::qt::qstring_from_path(path);
     nebbie::translate::write_config(app_config_);
-}
-
-nebbie::ValidationOptions TranslatorWindow::validationOptions() const {
-    nebbie::ValidationOptions options;
-    options.max_line_length = app_config_.max_line_length;
-    return options;
 }
 
 void TranslatorWindow::toggleExtendedColorView(bool enabled) {
@@ -500,6 +513,7 @@ void TranslatorWindow::markDirty() {
 
 void TranslatorWindow::markClean() {
     dirty_ = false;
+    dirty_room_vnums_.clear();
     QString title = windowTitle();
     while (title.startsWith("* ")) {
         title.remove(0, 2);

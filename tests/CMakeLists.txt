@@ -5,6 +5,10 @@ add_executable(nebbie-text-lines-tests test_text_lines.cpp)
 target_link_libraries(nebbie-text-lines-tests PRIVATE nebbie-core)
 add_test(NAME text-lines-tests COMMAND nebbie-text-lines-tests)
 
+add_executable(nebbie-wld-teleport-tests test_wld_teleport.cpp)
+target_link_libraries(nebbie-wld-teleport-tests PRIVATE nebbie-core)
+add_test(NAME wld-teleport-roundtrip COMMAND nebbie-wld-teleport-tests)
+
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
 

@@ -18,6 +18,8 @@ add_executable(nebbie-translate
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_widgets.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_dialogs.cpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_dialogs.hpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/validation_report_ui.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/validation_report_ui.hpp
 )
 
 if(APPLE AND EXISTS "${NEBBIE_TRANSLATE_ICON_MAC}")
