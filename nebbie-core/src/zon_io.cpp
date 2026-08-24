@@ -99,8 +99,11 @@ void write_zone_reset_commands(FILE* fp, const Zone& zone) {
 
 } // namespace
 
-void load_myst_zon(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.zones.clear();
+void load_myst_zon(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.zones.clear();
+    }
 
     FILE* fp = open_file_read(path, "zone file");
     if (progress) {

@@ -70,8 +70,11 @@ void write_social_message(FILE* fp, const SocialMessage& msg) {
 
 } // namespace
 
-void load_myst_act(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.social_messages.clear();
+void load_myst_act(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.social_messages.clear();
+    }
 
     FILE* fp = open_file_read(path, "social file");
     if (progress) {

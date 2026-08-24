@@ -11,20 +11,48 @@ namespace nebbie {
 
 using ProgressCallback = std::function<void(const std::string&)>;
 
-void load_myst_zon(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
+void load_myst_zon(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
 void load_myst_wld(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_obj(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_shp(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_spe(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_dam(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_act(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_pos(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void load_myst_gui(World& world, const std::filesystem::path& path, ProgressCallback progress = {});
+void load_myst_mob(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
+void load_myst_obj(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
+void load_myst_shp(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
+void load_myst_spe(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
+void load_myst_dam(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
+void load_myst_act(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
+void load_myst_pos(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
+void load_myst_gui(World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   bool clear_existing = true);
 void load_lib(World& world, const std::filesystem::path& lib_root, ProgressCallback progress = {});
 void load_lib(World& world, const std::filesystem::path& lib_root, LibContext& context,
               ProgressCallback progress = {});
 std::filesystem::path resolve_lib_directory(const std::filesystem::path& path);
+bool directory_has_lib_files(const std::filesystem::path& dir);
 void save_lib(const World& world, const LibContext& context, ProgressCallback progress = {});
 
 void save_myst_zon(const World& world, const std::filesystem::path& path, ProgressCallback progress = {});

@@ -47,8 +47,11 @@ void write_combat_message(FILE* fp, const CombatMessage& msg) {
 
 } // namespace
 
-void load_myst_dam(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.damage_messages.clear();
+void load_myst_dam(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.damage_messages.clear();
+    }
 
     FILE* fp = open_file_read(path, "damage message file");
     if (progress) {

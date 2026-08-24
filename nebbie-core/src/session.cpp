@@ -67,31 +67,57 @@ void copy_overlay_directories(const std::filesystem::path& from_root,
 void copy_lib_files(const LibContext& context,
                     const std::filesystem::path& from_root,
                     const std::filesystem::path& to_root) {
-    struct FileFlag {
-        const char* name;
-        bool enabled;
-    };
-    const FileFlag files[] = {
-        {ZONE_FILE, context.has_zon},
-        {WORLD_FILE, context.has_wld},
-        {MOB_FILE, context.has_mob},
-        {OBJ_FILE, context.has_obj},
-        {SHOP_FILE, context.has_shp},
-        {SPECIAL_FILE, context.has_spe},
-        {DAMAGE_FILE, context.has_dam},
-        {SOCIAL_FILE, context.has_act},
-        {POSE_FILE, context.has_pos},
-        {GUILD_FILE, context.has_gui},
-    };
-
     std::error_code ec;
     std::filesystem::create_directories(to_root, ec);
-    for (const auto& file : files) {
-        if (!file.enabled) {
-            continue;
+
+    const auto copy_path = [&](const std::filesystem::path& filename) {
+        if (filename.empty()) {
+            return;
         }
-        copy_if_exists(from_root / file.name, to_root / file.name);
+        copy_if_exists(from_root / filename, to_root / filename);
+    };
+
+    const auto copy_tracked = [&](const auto& sources, const std::filesystem::path& fallback) {
+        if (sources.empty()) {
+            copy_path(fallback);
+            return;
+        }
+        for (const auto& [_, source_path] : sources) {
+            copy_path(source_path);
+        }
+    };
+
+    if (context.has_zon) {
+        copy_tracked(context.zone_sources, context.zon_path);
     }
+    if (context.has_wld) {
+        copy_tracked(context.room_sources, context.wld_path);
+    }
+    if (context.has_mob) {
+        copy_tracked(context.mobile_sources, context.mob_path);
+    }
+    if (context.has_obj) {
+        copy_tracked(context.object_sources, context.obj_path);
+    }
+    if (context.has_shp) {
+        copy_path(context.shp_path);
+    }
+    if (context.has_spe) {
+        copy_path(context.spe_path);
+    }
+    if (context.has_dam) {
+        copy_path(context.dam_path);
+    }
+    if (context.has_act) {
+        copy_path(context.act_path);
+    }
+    if (context.has_pos) {
+        copy_path(context.pos_path);
+    }
+    if (context.has_gui) {
+        copy_path(context.gui_path);
+    }
+
     copy_overlay_directories(from_root, to_root);
 }
 

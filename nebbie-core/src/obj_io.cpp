@@ -267,8 +267,11 @@ void write_object_entry(FILE* fp, const GameObject& obj) {
 
 } // namespace
 
-void load_myst_obj(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.objects.clear();
+void load_myst_obj(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.objects.clear();
+    }
 
     FILE* fp = open_file_read(path, "object file");
     if (progress) {
