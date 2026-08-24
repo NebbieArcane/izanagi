@@ -3,6 +3,7 @@
 #include "app_config.hpp"
 #include "mud_color_common.hpp"
 #include "mud_color_dialogs.hpp"
+#include "mud_color_list_delegate.hpp"
 #include "mud_color_widgets.hpp"
 #include "translator_room_widget.hpp"
 #include "validation_report_ui.hpp"
@@ -41,6 +42,16 @@ void addListItem(QListWidget* list, long vnum, const QString& label) {
     list->item(list->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(vnum));
 }
 
+void addRoomListItem(QListWidget* list, long vnum, const std::string& storage_name) {
+    auto* item = new QListWidgetItem;
+    nebbie::qt::setRoomListItemData(item, vnum, storage_name);
+    list->addItem(item);
+}
+
+nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
+    return qobject_cast<nebbie::qt::MudColorListDelegate*>(list->itemDelegate());
+}
+
 } // namespace
 
 TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
@@ -49,6 +60,9 @@ TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
     setupMenus();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
     room_editor_->setShowColorCodes(app_config_.show_color_codes);
+    if (auto* delegate = roomListDelegate(room_list_)) {
+        delegate->setShowColorCodes(app_config_.show_color_codes);
+    }
     setWindowIcon(QIcon(QStringLiteral(":/app-icon.png")));
     setWindowTitle("Cypher");
     resize(960, 680);
@@ -72,6 +86,7 @@ void TranslatorWindow::setupUi() {
     auto* splitter = new QSplitter;
     room_list_ = new QListWidget;
     room_list_->setMinimumWidth(200);
+    room_list_->setItemDelegate(new nebbie::qt::MudColorListDelegate(room_list_));
     splitter->addWidget(room_list_);
 
     auto* editor_panel = new QWidget;
@@ -243,7 +258,7 @@ void TranslatorWindow::refreshRoomList() {
         if (!nebbie::entity_matches(vnum, room.name, query)) {
             continue;
         }
-        addListItem(room_list_, vnum, nebbie::qt::mud_entity_list_label(vnum, room.name));
+        addRoomListItem(room_list_, vnum, room.name);
     }
     if (selected > 0) {
         selectRoomByVnum(selected);
@@ -311,7 +326,7 @@ void TranslatorWindow::applyRoomChanges() {
     }
 
     if (auto* item = room_list_->currentItem()) {
-        item->setText(nebbie::qt::mud_entity_list_label(vnum, room->name));
+        nebbie::qt::refreshRoomListItemData(item, vnum, room->name);
     }
 
     markDirty();
@@ -455,6 +470,10 @@ void TranslatorWindow::toggleExtendedColorView(bool enabled) {
     app_config_.show_color_codes = enabled;
     nebbie::translate::write_config(app_config_);
     room_editor_->setShowColorCodes(enabled);
+    if (auto* delegate = roomListDelegate(room_list_)) {
+        delegate->setShowColorCodes(enabled);
+        room_list_->viewport()->update();
+    }
     if (enabled) {
         setStatus("Visualizzazione estesa attiva: i codici $cXXXX sono visibili.");
     } else {
