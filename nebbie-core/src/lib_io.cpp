@@ -159,7 +159,15 @@ void load_discovered_files(World& world,
     has_flag = true;
     primary_path = paths.front().filename();
     for (std::size_t i = 0; i < paths.size(); ++i) {
-        loader(paths[i], i == 0);
+        std::error_code size_ec;
+        if (std::filesystem::file_size(paths[i], size_ec) == 0) {
+            continue;
+        }
+        try {
+            loader(paths[i], i == 0);
+        } catch (const std::exception& ex) {
+            throw std::runtime_error(std::string(ex.what()) + " in " + paths[i].filename().string());
+        }
     }
 }
 

@@ -64,12 +64,18 @@ char consume_section(FILE* fp) {
 
 char read_obj_marker(FILE* fp) {
     while (true) {
-        const char marker = fread_letter(fp);
-        if (marker == '*') {
+        int c = std::fgetc(fp);
+        if (c == EOF) {
+            return '\0';
+        }
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+            continue;
+        }
+        if (c == '*') {
             fread_to_eol(fp);
             continue;
         }
-        return marker;
+        return static_cast<char>(c);
     }
 }
 
@@ -283,11 +289,16 @@ void load_myst_obj(World& world, const std::filesystem::path& path, ProgressCall
 
     while (true) {
         const char marker = read_obj_marker(fp);
-        if (marker == '%') {
-            if (fread_letter(fp) != '%') {
-                throw ParseError("Malformed object file terminator");
-            }
+        if (marker == '\0') {
             break;
+        }
+        if (marker == '%') {
+            const int next = std::fgetc(fp);
+            if (next == EOF || next == '%') {
+                break;
+            }
+            std::ungetc(next, fp);
+            throw ParseError("Malformed object file terminator");
         }
         if (marker != '#') {
             const std::string context = peek_file_line(fp);

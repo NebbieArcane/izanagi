@@ -111,6 +111,12 @@ void load_myst_zon(World& world, const std::filesystem::path& path, ProgressCall
     }
 
     while (true) {
+        const int next = std::fgetc(fp);
+        if (next == EOF) {
+            break;
+        }
+        std::ungetc(next, fp);
+
         if (fread_letter(fp) != '#') {
             throw ParseError("Expected # in myst.zon");
         }
