@@ -597,9 +597,8 @@ void MainWindow::openLibPath(const QString& path) {
         const std::filesystem::path resolved = nebbie::resolve_lib_directory(nebbie::qt::path_from_qstring(path));
         const QString detail = QString::fromUtf8(ex.what())
                                + QString("\n\nPercorso richiesto: %1").arg(path)
-                               + QString("\nPercorso risolto: %1").arg(nebbie::qt::qstring_from_path(resolved))
-                               + "\n\nSeleziona la cartella mudroot/lib e ricompila la GUI:\n"
-                                 "  ./scripts/build.sh";
+                               + QString("\nPercorso risolto: %1")
+                                     .arg(nebbie::qt::qstring_from_path(resolved));
         QMessageBox::critical(this, "Errore caricamento libreria", detail);
     }
 }
