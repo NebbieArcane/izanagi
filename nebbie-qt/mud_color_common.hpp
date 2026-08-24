@@ -15,27 +15,27 @@ struct MudDisplayColorState {
 
 inline QColor mud_foreground_color(int color, bool bold) {
     static const QColor palette[] = {
-        QColor(),
-        QColor(170, 0, 0),
-        QColor(0, 140, 0),
-        QColor(160, 90, 0),
-        QColor(0, 0, 170),
-        QColor(170, 0, 170),
-        QColor(0, 140, 140),
-        QColor(60, 60, 60),
-        QColor(110, 110, 110),
+        QColor(235, 235, 235),
         QColor(210, 40, 40),
         QColor(40, 170, 40),
         QColor(200, 160, 0),
         QColor(70, 70, 220),
         QColor(180, 70, 180),
         QColor(60, 170, 200),
-        QColor(20, 20, 20),
+        QColor(235, 235, 235),
+        QColor(160, 160, 160),
+        QColor(255, 80, 80),
+        QColor(80, 220, 80),
+        QColor(255, 220, 80),
+        QColor(120, 160, 255),
+        QColor(220, 120, 220),
+        QColor(120, 220, 255),
+        QColor(255, 255, 255),
     };
-    const int index = (color >= 1 && color <= 15) ? color : 7;
+    const int index = (color >= 0 && color <= 15) ? color : 7;
     QColor result = palette[index];
     if (bold) {
-        result = result.darker(80);
+        result = result.lighter(115);
     }
     return result;
 }

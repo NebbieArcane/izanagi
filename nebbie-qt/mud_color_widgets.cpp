@@ -68,6 +68,7 @@ MudColorTextEdit::MudColorTextEdit(QWidget* parent) : QTextEdit(parent) {
     font.setFamily(QStringLiteral("Monospace"));
     font.setStyleHint(QFont::Monospace);
     setFont(font);
+    setTextColor(mud_foreground_color(7, false));
     connect(document(), &QTextDocument::contentsChange, this, &MudColorTextEdit::onContentsChanged);
 }
 
