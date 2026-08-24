@@ -34,6 +34,8 @@ add_executable(nebbieedit
     zone_map_widget.hpp
     mud_color_widgets.cpp
     mud_color_widgets.hpp
+    mud_color_list_delegate.cpp
+    mud_color_list_delegate.hpp
     mud_color_dialogs.cpp
     mud_color_dialogs.hpp
     validation_report_ui.cpp
