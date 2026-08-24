@@ -5,6 +5,7 @@
 #include "coordinator_client.hpp"
 #include "mob_editor_widget.hpp"
 #include "mud_color_dialogs.hpp"
+#include "mud_color_common.hpp"
 #include "mud_color_widgets.hpp"
 #include "obj_editor_widget.hpp"
 #include "room_editor_widget.hpp"
@@ -37,6 +38,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QDateTime>
+#include <QIcon>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -104,7 +106,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupMenus();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
     room_editor_->setShowColorCodes(app_config_.show_color_codes);
-    setWindowTitle("Nebbie Editor");
+    setWindowIcon(QIcon(QStringLiteral(":/app-icon.png")));
+    setWindowTitle("Izanagi");
     resize(1100, 720);
     setStatus("Apri una libreria (mudroot/lib) per iniziare.");
 }
@@ -676,8 +679,7 @@ void MainWindow::refreshRoomList() {
         if (!nebbie::entity_matches(vnum, room.name, query)) {
             continue;
         }
-        addListItem(room_list_, vnum,
-                    QString("#%1 %2").arg(vnum).arg(QString::fromStdString(room.name)));
+        addListItem(room_list_, vnum, nebbie::qt::mud_entity_list_label(vnum, room.name));
     }
     if (selected > 0) {
         selectRoomByVnum(selected);
@@ -1620,7 +1622,7 @@ void MainWindow::applyRoomChanges() {
         }
     }
 
-    item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(room->name)));
+    item->setText(nebbie::qt::mud_entity_list_label(vnum, room->name));
     markDirty();
     dirty_room_vnums_.insert(vnum);
     if (aligned > 0) {
@@ -2288,13 +2290,13 @@ void MainWindow::setStatus(const QString& message) {
 
 void MainWindow::markDirty() {
     dirty_ = true;
-    setWindowTitle("Nebbie Editor *");
+    setWindowTitle("Izanagi *");
 }
 
 void MainWindow::markClean() {
     dirty_ = false;
     dirty_room_vnums_.clear();
-    setWindowTitle("Nebbie Editor");
+    setWindowTitle("Izanagi");
 }
 
 bool MainWindow::confirmSaveIfDirty() {

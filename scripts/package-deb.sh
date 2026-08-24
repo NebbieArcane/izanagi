@@ -15,7 +15,7 @@ usage() {
     cat <<'EOF'
 Usage: ./scripts/package-deb.sh [options]
 
-Builds dist/nebbie-editor_<version>_<arch>.deb
+Builds dist/izanagi_<version>_<arch>.deb
 
 Options:
   --no-build       Skip ./scripts/build.sh (use existing build/)
@@ -90,6 +90,18 @@ mkdir -p "${STAGING}/DEBIAN"
 
 INSTALLED_SIZE="$(du -sk "${STAGING}" | awk '{print $1}')"
 
+cat > "${STAGING}/DEBIAN/postinst" <<'EOF'
+#!/bin/sh
+set -e
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f -t /usr/share/icons/hicolor >/dev/null 2>&1 || true
+fi
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
+fi
+EOF
+chmod 755 "${STAGING}/DEBIAN/postinst"
+
 cat > "${STAGING}/DEBIAN/control" <<EOF
 Package: nebbie-editor
 Version: ${VERSION}
@@ -105,7 +117,7 @@ Description: World editor for Nebbie Arcane MUD
  Includes a sample mudroot/lib under /usr/share/nebbie-editor/sample-mudroot.
 EOF
 
-DEB_FILE="${DIST}/nebbie-editor_${VERSION}_${ARCH}.deb"
+DEB_FILE="${DIST}/izanagi_${VERSION}_${ARCH}.deb"
 echo "==> Building ${DEB_FILE}"
 dpkg-deb --root-owner-group --build "${STAGING}" "${DEB_FILE}"
 

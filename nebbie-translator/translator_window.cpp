@@ -1,6 +1,7 @@
 #include "translator_window.hpp"
 
 #include "app_config.hpp"
+#include "mud_color_common.hpp"
 #include "mud_color_dialogs.hpp"
 #include "mud_color_widgets.hpp"
 #include "translator_room_widget.hpp"
@@ -23,6 +24,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QIcon>
 #include <QInputDialog>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -47,7 +49,8 @@ TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
     setupMenus();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
     room_editor_->setShowColorCodes(app_config_.show_color_codes);
-    setWindowTitle("Nebbie Translate");
+    setWindowIcon(QIcon(QStringLiteral(":/app-icon.png")));
+    setWindowTitle("Cypher");
     resize(960, 680);
     setStatus("Apri una libreria (mudroot/lib) per tradurre le descrizioni delle stanze.");
 }
@@ -240,8 +243,7 @@ void TranslatorWindow::refreshRoomList() {
         if (!nebbie::entity_matches(vnum, room.name, query)) {
             continue;
         }
-        addListItem(room_list_, vnum,
-                    QString("#%1 %2").arg(vnum).arg(QString::fromStdString(room.name)));
+        addListItem(room_list_, vnum, nebbie::qt::mud_entity_list_label(vnum, room.name));
     }
     if (selected > 0) {
         selectRoomByVnum(selected);
@@ -309,7 +311,7 @@ void TranslatorWindow::applyRoomChanges() {
     }
 
     if (auto* item = room_list_->currentItem()) {
-        item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(room->name)));
+        item->setText(nebbie::qt::mud_entity_list_label(vnum, room->name));
     }
 
     markDirty();
@@ -518,7 +520,7 @@ void TranslatorWindow::markClean() {
     while (title.startsWith("* ")) {
         title.remove(0, 2);
     }
-    setWindowTitle(title.isEmpty() ? QStringLiteral("Nebbie Translate") : title);
+    setWindowTitle(title.isEmpty() ? QStringLiteral("Cypher") : title);
 }
 
 bool TranslatorWindow::confirmSaveIfDirty() {

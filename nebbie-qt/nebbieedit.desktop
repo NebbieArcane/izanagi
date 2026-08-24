@@ -1,11 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Nebbie Editor
+Name=Izanagi
+GenericName=Nebbie world editor
 Comment=Editor di mondo per Nebbie Arcane
 Exec=nebbieedit
-Icon=nebbieedit
-Type=Application
+Icon=izanagi
 Categories=Development;Game;
-Keywords=mud;nebbie;arcane;world;editor;
+Keywords=mud;nebbie;arcane;world;editor;izanagi;
 Terminal=false
-Categories=Development;Game;

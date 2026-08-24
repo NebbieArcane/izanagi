@@ -1,6 +1,7 @@
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 set(NEBBIE_APP_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbieedit.icns")
 set(NEBBIE_APP_ICON_WIN "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbieedit.ico")
@@ -46,7 +47,7 @@ if(APPLE AND EXISTS "${NEBBIE_APP_ICON_MAC}")
 endif()
 
 if(WIN32 AND EXISTS "${NEBBIE_APP_ICON_WIN}")
-    target_sources(nebbieedit PRIVATE "${NEBBIE_APP_ICON_WIN}")
+    target_sources(nebbieedit PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/nebbieedit.rc")
 endif()
 
 target_link_libraries(nebbieedit PRIVATE Qt6::Widgets Qt6::Network nebbie-core)
@@ -64,7 +65,7 @@ if(APPLE AND NEBBIE_MACOS_BUNDLE)
     set_target_properties(nebbieedit PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.editor"
-        MACOSX_BUNDLE_BUNDLE_NAME "Nebbie Editor"
+        MACOSX_BUNDLE_BUNDLE_NAME "Izanagi"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     )
@@ -85,6 +86,9 @@ if(NOT (APPLE AND NEBBIE_MACOS_BUNDLE))
             if(EXISTS "${_icon_path}")
                 install(FILES "${_icon_path}"
                         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps")
+                install(FILES "${_icon_path}"
+                        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps"
+                        RENAME izanagi.png)
             endif()
         endforeach()
     endif()

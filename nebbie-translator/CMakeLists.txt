@@ -1,6 +1,7 @@
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 set(NEBBIE_TRANSLATE_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbie-translate.icns")
 set(NEBBIE_TRANSLATE_ICON_WIN "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbie-translate.ico")
@@ -28,7 +29,7 @@ if(APPLE AND EXISTS "${NEBBIE_TRANSLATE_ICON_MAC}")
 endif()
 
 if(WIN32 AND EXISTS "${NEBBIE_TRANSLATE_ICON_WIN}")
-    target_sources(nebbie-translate PRIVATE "${NEBBIE_TRANSLATE_ICON_WIN}")
+    target_sources(nebbie-translate PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/nebbie-translate.rc")
 endif()
 
 target_include_directories(nebbie-translate PRIVATE
@@ -51,7 +52,7 @@ if(APPLE AND NEBBIE_MACOS_BUNDLE_TRANSLATOR)
     set_target_properties(nebbie-translate PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.translate"
-        MACOSX_BUNDLE_BUNDLE_NAME "Nebbie Translate"
+        MACOSX_BUNDLE_BUNDLE_NAME "Cypher"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     )
@@ -72,6 +73,9 @@ if(NOT (APPLE AND NEBBIE_MACOS_BUNDLE_TRANSLATOR))
             if(EXISTS "${_icon_path}")
                 install(FILES "${_icon_path}"
                         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps")
+                install(FILES "${_icon_path}"
+                        DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${_icon_size}x${_icon_size}/apps"
+                        RENAME cypher.png)
             endif()
         endforeach()
     endif()

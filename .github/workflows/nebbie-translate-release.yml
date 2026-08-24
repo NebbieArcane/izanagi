@@ -26,14 +26,14 @@ jobs:
 
       - name: Verify .deb package
         run: |
-          dpkg-deb --info dist/nebbie-translate_*.deb
-          dpkg-deb --contents dist/nebbie-translate_*.deb | grep -E 'bin/nebbie-translate|share/nebbie-translate'
+          dpkg-deb --info dist/cypher_*.deb
+          dpkg-deb --contents dist/cypher_*.deb | grep -E 'bin/nebbie-translate|share/nebbie-translate|icons/hicolor.*cypher'
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: nebbie-translate-linux-deb
-          path: dist/nebbie-translate_*.deb
+          path: dist/cypher_*.deb
           if-no-files-found: error
 
   macos-dmg:
@@ -96,23 +96,23 @@ jobs:
 
       - name: Verify .dmg contents
         run: |
-          hdiutil attach dist/nebbie-translate_*_macos.dmg -mountpoint /tmp/nebbie-translate-dmg -nobrowse
-          test -d /tmp/nebbie-translate-dmg/nebbie-translate.app
-          test -d /tmp/nebbie-translate-dmg/nebbie-translate.app/Contents/Frameworks
-          test -x /tmp/nebbie-translate-dmg/nebbie-translate.app/Contents/MacOS/nebbie-translate
+          hdiutil attach dist/cypher_*_macos.dmg -mountpoint /tmp/cypher-dmg -nobrowse
+          test -d /tmp/cypher-dmg/nebbie-translate.app
+          test -d /tmp/cypher-dmg/nebbie-translate.app/Contents/Frameworks
+          test -x /tmp/cypher-dmg/nebbie-translate.app/Contents/MacOS/nebbie-translate
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
-            xcrun stapler validate /tmp/nebbie-translate-dmg/nebbie-translate.app
-            spctl -a -vv /tmp/nebbie-translate-dmg/nebbie-translate.app
+            xcrun stapler validate /tmp/cypher-dmg/nebbie-translate.app
+            spctl -a -vv /tmp/cypher-dmg/nebbie-translate.app
           else
             echo "Ad-hoc signed build — skipping stapler/spctl (first launch: tasto destro → Apri)."
           fi
-          hdiutil detach /tmp/nebbie-translate-dmg
+          hdiutil detach /tmp/cypher-dmg
 
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4
         with:
           name: nebbie-translate-macos-dmg
-          path: dist/nebbie-translate_*_macos.dmg
+          path: dist/cypher_*_macos.dmg
           if-no-files-found: error
 
   windows-portable:
@@ -139,10 +139,10 @@ jobs:
       - name: Verify zip contents
         shell: pwsh
         run: |
-          $zip = Get-ChildItem dist/nebbie-translate_*_windows_portable.zip | Select-Object -First 1
+          $zip = Get-ChildItem dist/cypher_*_windows_portable.zip | Select-Object -First 1
           if (-not $zip) { throw "Zip not found in dist/" }
-          Expand-Archive -Path $zip.FullName -DestinationPath $env:RUNNER_TEMP/nebbie-translate-test -Force
-          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/nebbie-translate-test nebbie-translate.exe))) {
+          Expand-Archive -Path $zip.FullName -DestinationPath $env:RUNNER_TEMP/cypher-test -Force
+          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/cypher-test nebbie-translate.exe))) {
             throw "nebbie-translate.exe missing in zip"
           }
 
@@ -150,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nebbie-translate-windows-zip
-          path: dist/nebbie-translate_*_windows_portable.zip
+          path: dist/cypher_*_windows_portable.zip
           if-no-files-found: error
 
   publish-release:
@@ -170,8 +170,8 @@ jobs:
       - name: Publish GitHub pre-release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: nebbie-translate
-          name: Nebbie Translate
+          tag_name: cypher
+          name: Cypher
           prerelease: true
           generate_release_notes: true
           files: |
@@ -179,24 +179,24 @@ jobs:
             release-assets/**/*.dmg
             release-assets/**/*.zip
           body: |
-            ## Nebbie Translate
+            ## Cypher
 
-            Editor leggero per tradurre **nome stanza**, **descrizione**, **descrizioni extra** e **testi look uscite**.
+            Editor leggero per tradurre **nome stanza**, **descrizione**, **descrizioni extra** e **testi look uscite** (cypher / nebbie-translate).
 
             Scarica il pacchetto per la tua piattaforma (nessuna compilazione).
 
             | Piattaforma | File |
             |-------------|------|
-            | **Windows** | `nebbie-translate_*_windows_portable.zip` — estrai e avvia `nebbie-translate.exe` |
-            | **macOS** | `nebbie-translate_*_macos.dmg` — trascina `nebbie-translate.app` in Applicazioni |
-            | **Linux** | `nebbie-translate_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
+            | **Windows** | `cypher_*_windows_portable.zip` — estrai e avvia `nebbie-translate.exe` |
+            | **macOS** | `cypher_*_macos.dmg` — trascina `nebbie-translate.app` in Applicazioni |
+            | **Linux** | `cypher_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
 
             **macOS — primo avvio:** se macOS blocca l'app, tasto destro → **Apri** (prima volta),
             oppure `xattr -cr /Applications/nebbie-translate.app` (vedi `LEGGIMI.txt` nel DMG).
             Per aprirla senza questo passaggio serve la notarizzazione Apple (`docs/MACOS_SIGNING.md`).
 
             ### Primo avvio
-            1. Avvia **Nebbie Translate**
+            1. Avvia **Cypher** (nebbie-translate)
             2. **File → Apri libreria** → cartella `mudroot` o `mudroot/lib`
             3. Modifica i testi → **Salva**
 

@@ -1,8 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Nebbie Translate
-Comment=Lightweight room description editor for Nebbie Arcane MUD
+Name=Cypher
+GenericName=Nebbie room translator
+Comment=Editor leggero per traduzione stanze Nebbie Arcane
 Exec=nebbie-translate
-Icon=nebbie-translate
+Icon=cypher
 Categories=Game;Development;
+Keywords=mud;nebbie;arcane;translate;cypher;
 Terminal=false

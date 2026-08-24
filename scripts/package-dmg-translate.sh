@@ -13,7 +13,7 @@ usage() {
     cat <<'EOF'
 Usage: ./scripts/package-dmg-translate.sh [options]
 
-Builds dist/nebbie-translate_<version>_macos.dmg containing nebbie-translate.app
+Builds dist/cypher_<version>_macos.dmg containing nebbie-translate.app
 
 Options:
   --no-build       Skip ./scripts/build.sh --no-qt --macos-bundle-translator
@@ -80,7 +80,7 @@ Mondo di prova: sample-mudroot/lib
 EOF
 ln -sf /Applications "${STAGING}/Applications"
 
-DMG_FILE="${DIST}/nebbie-translate_${VERSION}_macos.dmg"
+DMG_FILE="${DIST}/cypher_${VERSION}_macos.dmg"
 rm -f "${DMG_FILE}"
 
 echo "==> Creating ${DMG_FILE}"

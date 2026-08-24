@@ -85,4 +85,10 @@ inline QString build_display_text(const QString& storage_text, bool show_codes) 
     return QString::fromStdString(nebbie::strip_mud_color_codes(storage_text.toStdString()));
 }
 
+inline QString mud_entity_list_label(long vnum, const std::string& storage_text) {
+    return QString("#%1 %2")
+        .arg(vnum)
+        .arg(QString::fromStdString(nebbie::strip_mud_color_codes(storage_text)));
+}
+
 } // namespace nebbie::qt

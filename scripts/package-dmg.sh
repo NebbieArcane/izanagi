@@ -13,7 +13,7 @@ usage() {
     cat <<'EOF'
 Usage: ./scripts/package-dmg.sh [options]
 
-Builds dist/nebbie-editor_<version>_macos.dmg containing:
+Builds dist/izanagi_<version>_macos.dmg containing:
   - nebbieedit.app
   - bin/nebbiedit (CLI)
   - Applications symlink (drag-and-drop install)
@@ -88,7 +88,7 @@ cp -R "${APP_SRC}" "${STAGING}/"
 cp "${CLI_SRC}" "${STAGING}/bin/"
 cp -a "${DIST}/sample-mudroot" "${STAGING}/"
 cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
-Nebbie Editor (macOS)
+Nebbie Editor (Izanagi)
 =====================
 
 1. Trascina nebbieedit.app nella cartella Applicazioni
@@ -102,7 +102,7 @@ Mondo di prova: sample-mudroot/lib
 EOF
 ln -sf /Applications "${STAGING}/Applications"
 
-DMG_FILE="${DIST}/nebbie-editor_${VERSION}_macos.dmg"
+DMG_FILE="${DIST}/izanagi_${VERSION}_macos.dmg"
 rm -f "${DMG_FILE}"
 
 echo "==> Creating ${DMG_FILE}"

@@ -24,7 +24,7 @@ if ($NoBuild) { $prepareArgs += "-NoBuild" }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $Version = Get-ProjectVersion
-$Zip = Join-Path $Dist "nebbie-editor_${Version}_windows_portable.zip"
+$Zip = Join-Path $Dist "izanagi_${Version}_windows_portable.zip"
 Remove-Item $Zip -ErrorAction SilentlyContinue
 Compress-Archive -Path (Join-Path $Staging "*") -DestinationPath $Zip
 Write-Host "Portable zip created: $Zip"

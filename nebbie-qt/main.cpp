@@ -9,10 +9,11 @@
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
-    app.setApplicationName("Nebbie Editor");
-    app.setApplicationDisplayName("Nebbie Editor");
+    app.setApplicationName("Izanagi");
+    app.setApplicationDisplayName("Izanagi");
     app.setOrganizationName("Nebbie Arcane");
-    app.setWindowIcon(QIcon(":/app-icon.png"));
+    const QIcon app_icon(QStringLiteral(":/app-icon.png"));
+    app.setWindowIcon(app_icon);
 
     MainWindow window;
     window.show();
