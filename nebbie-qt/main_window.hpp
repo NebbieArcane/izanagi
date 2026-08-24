@@ -2,6 +2,7 @@
 
 #include "app_config.hpp"
 #include "application_log.hpp"
+#include "release_update_checker.hpp"
 #include "nebbie/edit.hpp"
 #include "nebbie/lib_context.hpp"
 #include "nebbie/session.hpp"
@@ -92,6 +93,9 @@ private slots:
     void toggleExtendedColorView(bool enabled);
     void showColorLegend();
     void insertColorCode();
+    void checkForUpdates();
+    void onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info);
+    void toggleCheckUpdatesOnStartup(bool enabled);
 
 protected:
     void closeEvent(QCloseEvent* event) override;
@@ -99,6 +103,7 @@ protected:
 private:
     void setupUi();
     void setupMenus();
+    void scheduleStartupUpdateCheck();
     void loadLib(const std::filesystem::path& path);
     void rememberLibPath(const std::filesystem::path& path);
     void refreshRoomList();
@@ -145,6 +150,7 @@ private:
     nebbie::qt::AppConfig app_config_;
     std::optional<nebbie::WorldIndex> world_index_;
     QNetworkAccessManager* network_ = nullptr;
+    nebbie::qt::ReleaseUpdateChecker* update_checker_ = nullptr;
 
     QString room_filter_;
     QString mob_filter_;

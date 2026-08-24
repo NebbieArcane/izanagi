@@ -18,6 +18,10 @@ add_executable(nebbieedit
     application_log.hpp
     coordinator_client.cpp
     coordinator_client.hpp
+    release_update_checker.cpp
+    release_update_checker.hpp
+    release_update_util.cpp
+    release_update_util.hpp
     flag_group_widget.cpp
     flag_group_widget.hpp
     mob_editor_widget.cpp
@@ -56,6 +60,7 @@ endif()
 
 target_link_libraries(nebbieedit PRIVATE Qt6::Widgets Qt6::Network nebbie-core)
 target_compile_features(nebbieedit PRIVATE cxx_std_17)
+target_include_directories(nebbieedit PRIVATE "${CMAKE_BINARY_DIR}/generated")
 
 if(MSVC)
     target_compile_options(nebbieedit PRIVATE "/FI${CMAKE_CURRENT_SOURCE_DIR}/msvc_qt_compat.hpp")

@@ -29,6 +29,7 @@
 #include <QInputDialog>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QNetworkAccessManager>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSplitter>
@@ -56,6 +57,10 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
 
 TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
     app_config_ = nebbie::translate::read_config();
+    network_ = new QNetworkAccessManager(this);
+    update_checker_ = new nebbie::qt::ReleaseUpdateChecker(nebbie::qt::ReleaseProduct::Cypher, this);
+    connect(update_checker_, &nebbie::qt::ReleaseUpdateChecker::checkFinished, this,
+            &TranslatorWindow::onUpdateCheckFinished);
     setupUi();
     setupMenus();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
@@ -67,6 +72,7 @@ TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("Cypher");
     resize(960, 680);
     setStatus("Apri una libreria (mudroot/lib) per tradurre le descrizioni delle stanze.");
+    scheduleStartupUpdateCheck();
 }
 
 void TranslatorWindow::setupUi() {
@@ -161,6 +167,21 @@ void TranslatorWindow::setupMenus() {
     connect(legend_action, &QAction::triggered, this, &TranslatorWindow::showColorLegend);
     auto* insert_color_action = colors_menu->addAction("Inserisci codice...");
     connect(insert_color_action, &QAction::triggered, this, &TranslatorWindow::insertColorCode);
+
+    auto* help_menu = menuBar()->addMenu("&Aiuto");
+    auto* check_updates_action = help_menu->addAction("Controlla aggiornamenti...");
+    connect(check_updates_action, &QAction::triggered, this, &TranslatorWindow::checkForUpdates);
+    auto* auto_updates_action = help_menu->addAction("Controlla aggiornamenti all'avvio");
+    auto_updates_action->setCheckable(true);
+    auto_updates_action->setChecked(app_config_.check_updates);
+    connect(auto_updates_action, &QAction::toggled, this, &TranslatorWindow::toggleCheckUpdatesOnStartup);
+    help_menu->addSeparator();
+    help_menu->addAction("Informazioni su Cypher...", this, [this]() {
+        QMessageBox::about(this,
+                           QStringLiteral("Cypher"),
+                           QStringLiteral("Cypher %1\nEditor leggero per tradurre le descrizioni delle stanze.")
+                               .arg(QApplication::applicationVersion()));
+    });
 }
 
 void TranslatorWindow::openLibPath(const QString& path) {
@@ -517,6 +538,48 @@ void TranslatorWindow::insertColorCode() {
     if (auto* field = room_editor_->focusedMudField()) {
         field->insertColorCode(dialog.selectedCode());
         setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+    }
+}
+
+void TranslatorWindow::scheduleStartupUpdateCheck() {
+    if (!nebbie::qt::shouldCheckForUpdates(app_config_.check_updates,
+                                           false,
+                                           app_config_.last_update_check)) {
+        return;
+    }
+    QTimer::singleShot(3000, this, [this]() {
+        update_checker_->checkForUpdates(*network_,
+                                         false,
+                                         this,
+                                         app_config_.dismissed_update_version);
+    });
+}
+
+void TranslatorWindow::checkForUpdates() {
+    update_checker_->checkForUpdates(*network_,
+                                     true,
+                                     this,
+                                     app_config_.dismissed_update_version);
+}
+
+void TranslatorWindow::onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info) {
+    if (!info.ok) {
+        return;
+    }
+    app_config_.last_update_check = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+    if (!info.user_dismissed_version.isEmpty()) {
+        app_config_.dismissed_update_version = info.user_dismissed_version;
+    }
+    nebbie::translate::write_config(app_config_);
+}
+
+void TranslatorWindow::toggleCheckUpdatesOnStartup(const bool enabled) {
+    app_config_.check_updates = enabled;
+    nebbie::translate::write_config(app_config_);
+    if (enabled) {
+        setStatus("Controllo aggiornamenti all'avvio attivo.");
+    } else {
+        setStatus("Controllo aggiornamenti all'avvio disattivato.");
     }
 }
 

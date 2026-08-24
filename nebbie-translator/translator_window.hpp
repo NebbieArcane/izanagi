@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_config.hpp"
+#include "release_update_checker.hpp"
 #include "nebbie/lib_context.hpp"
 #include "nebbie/session.hpp"
 #include "nebbie/validate.hpp"
@@ -8,6 +9,8 @@
 
 #include <QMainWindow>
 #include <QTimer>
+
+class QNetworkAccessManager;
 
 #include <chrono>
 #include <filesystem>
@@ -47,10 +50,14 @@ private slots:
     void toggleExtendedColorView(bool enabled);
     void showColorLegend();
     void insertColorCode();
+    void checkForUpdates();
+    void onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info);
+    void toggleCheckUpdatesOnStartup(bool enabled);
 
 private:
     void setupUi();
     void setupMenus();
+    void scheduleStartupUpdateCheck();
     void loadLib(const std::filesystem::path& path);
     void rememberLibPath(const std::filesystem::path& path);
     void refreshRoomList();
@@ -72,6 +79,8 @@ private:
     std::chrono::system_clock::time_point last_version_time_;
     bool dirty_ = false;
     std::set<long> dirty_room_vnums_;
+    QNetworkAccessManager* network_ = nullptr;
+    nebbie::qt::ReleaseUpdateChecker* update_checker_ = nullptr;
 
     QLabel* lib_label_ = nullptr;
     QLineEdit* room_search_ = nullptr;
