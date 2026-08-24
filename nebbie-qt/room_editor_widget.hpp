@@ -9,7 +9,6 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
-class QListWidgetItem;
 class QSpinBox;
 class QFrame;
 class FlagGroupWidget;
@@ -53,10 +52,7 @@ private:
     void updateConditionalFields();
     void refreshExtraDescForm();
     void refreshExitForm();
-    void refreshOverview();
-    void connectOverviewUpdates();
     void setComboIntValue(QComboBox* combo, int value) const;
-    void navigateOverviewItem(const QListWidgetItem* item);
     void applyColorSettingsToFields();
     void hookMudField(nebbie::qt::MudColorTextEdit* field);
     void scrollToSection(QWidget* section);
@@ -64,8 +60,6 @@ private:
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
     bool loading_ = false;
-    bool overview_updates_enabled_ = true;
-    QListWidget* overview_list_ = nullptr;
     QWidget* text_section_ = nullptr;
     QWidget* sector_section_ = nullptr;
     QWidget* teleport_section_ = nullptr;
