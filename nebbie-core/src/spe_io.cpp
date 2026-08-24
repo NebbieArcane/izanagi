@@ -65,8 +65,11 @@ SpecialProc parse_special_line(const std::string& line) {
 
 } // namespace
 
-void load_myst_spe(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.special_procs.clear();
+void load_myst_spe(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.special_procs.clear();
+    }
 
     FILE* fp = open_file_read(path, "special proc file");
     if (progress) {

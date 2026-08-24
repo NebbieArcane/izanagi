@@ -376,8 +376,11 @@ std::string peek_file_line(FILE* fp) {
 
 } // namespace
 
-void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.mobiles.clear();
+void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.mobiles.clear();
+    }
 
     FILE* fp = open_file_read(path, "mob file");
     if (progress) {

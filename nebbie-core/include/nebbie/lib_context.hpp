@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <unordered_map>
 
 namespace nebbie {
 
@@ -16,6 +17,22 @@ struct LibContext {
     bool has_act = false;
     bool has_pos = false;
     bool has_gui = false;
+
+    std::filesystem::path zon_path;
+    std::filesystem::path wld_path;
+    std::filesystem::path mob_path;
+    std::filesystem::path obj_path;
+    std::filesystem::path shp_path;
+    std::filesystem::path spe_path;
+    std::filesystem::path dam_path;
+    std::filesystem::path act_path;
+    std::filesystem::path pos_path;
+    std::filesystem::path gui_path;
+
+    std::unordered_map<int, std::filesystem::path> zone_sources;
+    std::unordered_map<long, std::filesystem::path> room_sources;
+    std::unordered_map<long, std::filesystem::path> mobile_sources;
+    std::unordered_map<long, std::filesystem::path> object_sources;
 
     bool has_any() const;
 };

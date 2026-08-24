@@ -1,3 +1,8 @@
+add_executable(nebbie-lib-extensions-tests test_lib_extensions.cpp)
+target_link_libraries(nebbie-lib-extensions-tests PRIVATE nebbie-core)
+add_test(NAME lib-extensions-fixtures
+         COMMAND nebbie-lib-extensions-tests ${CMAKE_SOURCE_DIR}/tests/fixtures)
+
 add_executable(nebbie-core-tests test_io.cpp)
 target_link_libraries(nebbie-core-tests PRIVATE nebbie-core)
 

@@ -110,8 +110,7 @@ bool lib_path_exists(const QString& path) {
     }
 
     const std::filesystem::path resolved = nebbie::resolve_lib_directory(candidate);
-    return std::filesystem::exists(resolved / "myst.wld", ec)
-           || std::filesystem::exists(resolved / "myst.zon", ec);
+    return nebbie::directory_has_lib_files(resolved);
 }
 
 } // namespace nebbie::translate

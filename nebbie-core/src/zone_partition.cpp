@@ -2,6 +2,7 @@
 
 #include "nebbie/constants.hpp"
 #include "nebbie/edit.hpp"
+#include "nebbie/io.hpp"
 #include "nebbie/overlay_io.hpp"
 
 #include <cctype>
@@ -151,9 +152,7 @@ void write_zone_manifest(const std::filesystem::path& zone_dir, const ZoneEntity
 
 bool looks_like_zone_pack(const std::filesystem::path& path) {
     std::error_code ec;
-    return std::filesystem::is_directory(path, ec)
-           && (std::filesystem::exists(path / WORLD_FILE, ec)
-               || std::filesystem::exists(path / ZONE_FILE, ec));
+    return std::filesystem::is_directory(path, ec) && directory_has_lib_files(path);
 }
 
 } // namespace

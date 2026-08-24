@@ -54,8 +54,11 @@ bool parse_guild_line(const std::string& line, GuildEntry& entry) {
 
 } // namespace
 
-void load_myst_gui(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.guilds.clear();
+void load_myst_gui(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.guilds.clear();
+    }
 
     FILE* fp = open_file_read(path, "guild file");
     if (progress) {

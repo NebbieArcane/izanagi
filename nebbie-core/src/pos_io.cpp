@@ -21,8 +21,11 @@ void fwrite_action(FILE* fp, const std::string& value) {
 
 } // namespace
 
-void load_myst_pos(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.pose_entries.clear();
+void load_myst_pos(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.pose_entries.clear();
+    }
 
     FILE* fp = open_file_read(path, "pose file");
     if (progress) {

@@ -103,8 +103,11 @@ void write_shop_entry(FILE* fp, const Shop& shop) {
 
 } // namespace
 
-void load_myst_shp(World& world, const std::filesystem::path& path, ProgressCallback progress) {
-    world.shops.clear();
+void load_myst_shp(World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   bool clear_existing) {
+    if (clear_existing) {
+        world.shops.clear();
+    }
 
     FILE* fp = open_file_read(path, "shop file");
     if (progress) {
