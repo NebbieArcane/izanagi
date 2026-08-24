@@ -76,8 +76,21 @@ bool strings_equal_ci(const std::string& left, const std::string& right) {
     return true;
 }
 
-void validate_rooms(const World& world, ValidationReport& report, const ValidationOptions& options) {
+bool should_validate_room(long vnum, const std::vector<long>* room_vnums) {
+    if (room_vnums == nullptr || room_vnums->empty()) {
+        return true;
+    }
+    return std::find(room_vnums->begin(), room_vnums->end(), vnum) != room_vnums->end();
+}
+
+void append_room_validation(const World& world,
+                            ValidationReport& report,
+                            const ValidationOptions& options,
+                            const std::vector<long>* room_vnums) {
     for (const auto& [vnum, room] : world.rooms) {
+        if (!should_validate_room(vnum, room_vnums)) {
+            continue;
+        }
         if (vnum != room.vnum) {
             add_issue(report,
                       ValidationSeverity::error,
@@ -469,9 +482,17 @@ std::size_t ValidationReport::warning_count() const {
     return count;
 }
 
+ValidationReport validate_rooms(const World& world,
+                                const ValidationOptions& options,
+                                const std::vector<long>* room_vnums) {
+    ValidationReport report;
+    append_room_validation(world, report, options, room_vnums);
+    return report;
+}
+
 ValidationReport validate_world(const World& world, const ValidationOptions& options) {
     ValidationReport report;
-    validate_rooms(world, report, options);
+    append_room_validation(world, report, options, nullptr);
     validate_resets(world, report);
     validate_shops(world, report);
     validate_guilds(world, report);

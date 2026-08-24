@@ -446,7 +446,8 @@ void MainWindow::setupMenus() {
     file_menu->addAction("E&sci", this, &QWidget::close);
 
     auto* tools_menu = menuBar()->addMenu("&Strumenti");
-    auto* validate_action = tools_menu->addAction("&Valida");
+    auto* validate_action = tools_menu->addAction("Valida &mondo intero...");
+    validate_action->setToolTip("Validazione completa: stanze, reset, shop, guild, special, social.");
     validate_action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
     connect(validate_action, &QAction::triggered, this, &MainWindow::validateLib);
     tools_menu->addSeparator();
@@ -1621,6 +1622,7 @@ void MainWindow::applyRoomChanges() {
 
     item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(room->name)));
     markDirty();
+    dirty_room_vnums_.insert(vnum);
     if (aligned > 0) {
         setStatus(QString("Stanza %1 aggiornata: %2 nome/i destinazione aggiornato/i nelle stanze collegate.")
                       .arg(vnum)
@@ -1910,6 +1912,7 @@ void MainWindow::createRoom() {
     refreshRoomList();
     selectRoomByVnum(vnum);
     markDirty();
+    dirty_room_vnums_.insert(vnum);
     setStatus(QString("Creata stanza #%1.").arg(vnum));
 }
 
@@ -1967,7 +1970,7 @@ void MainWindow::createObject() {
     setStatus(QString("Creato oggetto #%1.").arg(vnum));
 }
 
-void MainWindow::showValidation(const nebbie::ValidationReport& report) {
+void MainWindow::showValidation(const nebbie::ValidationReport& report, const QString& context) {
     validation_issues_ = report.issues;
     validation_list_->clear();
 
@@ -1997,6 +2000,22 @@ void MainWindow::showValidation(const nebbie::ValidationReport& report) {
     }
 
     tabs_->setCurrentWidget(validation_tab_);
+
+    if (report.issues.empty() && context.isEmpty()) {
+        return;
+    }
+
+    const QString library = lib_path_.empty() ? QString() : nebbie::qt::qstring_from_path(lib_path_);
+    const QString dialog_context = context.isEmpty()
+                                       ? QStringLiteral("Report validazione Nebbie Editor")
+                                       : context;
+    nebbie::qt::show_validation_report_dialog(
+        this,
+        report,
+        QStringLiteral("Validazione"),
+        dialog_context,
+        library,
+        nebbie::qt::editor_validation_log_path());
 }
 
 void MainWindow::navigateToIssue(const nebbie::ValidationIssue& issue) {
@@ -2052,16 +2071,23 @@ void MainWindow::validateLib() {
         return;
     }
     const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
-    showValidation(report);
+    showValidation(report, QStringLiteral("Report validazione mondo intero (Nebbie Editor)"));
     if (report.ok()) {
         if (report.warning_count() > 0) {
-            setStatus(QString("Validazione OK con %1 avvisi.").arg(report.warning_count()));
+            setStatus(QString("Validazione mondo OK con %1 avvisi.").arg(report.warning_count()));
         } else {
-            setStatus("Validazione OK.");
+            setStatus("Validazione mondo OK.");
         }
     } else {
-        setStatus(QString("Validazione: %1 errori.").arg(report.error_count()));
+        setStatus(QString("Validazione mondo: %1 errori.").arg(report.error_count()));
     }
+}
+
+std::vector<long> MainWindow::roomsPendingSaveValidation() const {
+    if (!dirty_room_vnums_.empty()) {
+        return {dirty_room_vnums_.begin(), dirty_room_vnums_.end()};
+    }
+    return {};
 }
 
 void MainWindow::saveLib() {
@@ -2070,23 +2096,48 @@ void MainWindow::saveLib() {
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
+    if (rooms_to_check.empty()) {
+        try {
+            nebbie::save_lib_with_backup(world_, context_, lib_path_);
+            markClean();
+            last_version_time_ = std::chrono::system_clock::now();
+            setStatus("Libreria salvata (backup creato in .nebbie/versions).");
+            QMessageBox::information(this, "Salva", "Salvataggio completato. Backup pre-salvataggio creato.");
+        } catch (const std::exception& ex) {
+            QMessageBox::critical(this, "Errore", QString::fromUtf8(ex.what()));
+        }
+        return;
+    }
+
+    const nebbie::ValidationReport report =
+        nebbie::validate_rooms(world_, validationOptions(), &rooms_to_check);
     if (!report.ok() || report.warning_count() > 0) {
-        showValidation(report);
-        const QString library = nebbie::qt::qstring_from_path(lib_path_);
-        nebbie::qt::show_validation_report_dialog(
-            this,
-            report,
-            QStringLiteral("Validazione prima del salvataggio"),
-            QStringLiteral("Report validazione Nebbie Editor (salvataggio)"),
-            library,
-            nebbie::qt::editor_validation_log_path());
+        showValidation(report, QStringLiteral("Report validazione stanze modificate (salvataggio)"));
+        setStatus(QString("Avvisi salvati in %1").arg(nebbie::qt::editor_validation_log_path()));
+        const QString scope = rooms_to_check.size() == 1
+                                  ? QString("stanza #%1").arg(rooms_to_check.front())
+                                  : QString("%1 stanze modificate").arg(rooms_to_check.size());
         if (!report.ok()) {
             const auto answer = QMessageBox::question(
                 this, "Errori di validazione",
-                QString("Ci sono %1 errori. Salvare comunque?\n\n"
-                        "Dettaglio completo nel dialogo precedente e in:\n%2")
+                QString("Ci sono %1 errori sulle %2. Salvare comunque?\n\n"
+                        "Dettaglio nel dialogo precedente e in:\n%3\n\n"
+                        "Per validare tutto il mondo usa Strumenti → Valida mondo intero...")
                     .arg(report.error_count())
+                    .arg(scope)
+                    .arg(nebbie::qt::editor_validation_log_path()),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (answer != QMessageBox::Yes) {
+                return;
+            }
+        } else {
+            const auto answer = QMessageBox::question(
+                this, "Avvisi sulle stanze modificate",
+                QString("Ci sono %1 avvisi sulle %2. Salvare comunque?\n\n"
+                        "Dettaglio nel dialogo precedente e in:\n%3")
+                    .arg(report.warning_count())
+                    .arg(scope)
                     .arg(nebbie::qt::editor_validation_log_path()),
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
             if (answer != QMessageBox::Yes) {
@@ -2242,6 +2293,7 @@ void MainWindow::markDirty() {
 
 void MainWindow::markClean() {
     dirty_ = false;
+    dirty_room_vnums_.clear();
     setWindowTitle("Nebbie Editor");
 }
 

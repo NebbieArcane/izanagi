@@ -11,7 +11,7 @@ class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 class QSpinBox;
-class QTabWidget;
+class QFrame;
 class FlagGroupWidget;
 
 namespace nebbie::qt {
@@ -59,13 +59,19 @@ private:
     void navigateOverviewItem(const QListWidgetItem* item);
     void applyColorSettingsToFields();
     void hookMudField(nebbie::qt::MudColorTextEdit* field);
+    void scrollToSection(QWidget* section);
 
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
     bool loading_ = false;
     bool overview_updates_enabled_ = true;
-    QTabWidget* tabs_ = nullptr;
     QListWidget* overview_list_ = nullptr;
+    QWidget* text_section_ = nullptr;
+    QWidget* sector_section_ = nullptr;
+    QWidget* teleport_section_ = nullptr;
+    QWidget* environment_section_ = nullptr;
+    QWidget* extra_section_ = nullptr;
+    QWidget* exits_section_ = nullptr;
 
     nebbie::qt::MudColorTextEdit* name_ = nullptr;
     QLabel* name_line_info_ = nullptr;

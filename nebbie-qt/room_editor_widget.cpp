@@ -9,6 +9,7 @@
 #include <QAbstractItemModel>
 #include <QComboBox>
 #include <QFormLayout>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -17,19 +18,19 @@
 #include <QScrollArea>
 #include <QSizePolicy>
 #include <QSpinBox>
-#include <QTabWidget>
 #include <QFont>
+#include <QScrollArea>
 #include <QTextEdit>
 #include <QVBoxLayout>
 
 namespace {
 
-constexpr int kOverviewTabText = 1;
-constexpr int kOverviewTabSector = 2;
-constexpr int kOverviewTabTeleport = 3;
-constexpr int kOverviewTabEnvironment = 4;
-constexpr int kOverviewTabExtra = 5;
-constexpr int kOverviewTabExits = 6;
+constexpr int kSectionText = 1;
+constexpr int kSectionSector = 2;
+constexpr int kSectionTeleport = 3;
+constexpr int kSectionEnvironment = 4;
+constexpr int kSectionExtra = 5;
+constexpr int kSectionExits = 6;
 
 void addOverviewItem(QListWidget* list, const QString& text, const int tab, const int extra = -1) {
     auto* item = new QListWidgetItem(text);
@@ -134,7 +135,7 @@ void populateOverviewList(QListWidget* list, const nebbie::Room& room) {
 
     const QString name = QString::fromStdString(room.name).trimmed();
     if (!name.isEmpty()) {
-        addOverviewItem(list, QString("Nome: %1").arg(name), kOverviewTabText);
+        addOverviewItem(list, QString("Nome: %1").arg(name), kSectionText);
     }
 
     const QString description = QString::fromStdString(room.description).trimmed();
@@ -144,31 +145,31 @@ void populateOverviewList(QListWidget* list, const nebbie::Room& room) {
         if (description.count('\n') > 0 || description.size() > 160) {
             line += QString(" (%1 caratteri totali)").arg(description.size());
         }
-        addOverviewItem(list, line, kOverviewTabText);
+        addOverviewItem(list, line, kSectionText);
     }
 
     addOverviewItem(list,
                     QString("Settore: %1").arg(QString::fromStdString(nebbie::room_sector_name(room.sector_type))),
-                    kOverviewTabSector);
+                    kSectionSector);
 
     const QString room_flags = formatActiveFlags(room.room_flags, nebbie::room_flag_defs());
     if (!room_flags.isEmpty()) {
-        addOverviewItem(list, QString("Flag stanza: %1").arg(room_flags), kOverviewTabSector);
+        addOverviewItem(list, QString("Flag stanza: %1").arg(room_flags), kSectionSector);
     }
 
     if (room.tele_time != 0 || room.tele_targ != 0 || room.tele_mask != 0 || room.tele_cnt != 0) {
         addOverviewHeader(list, "Teletrasporto");
         if (room.tele_time != 0) {
-            addOverviewItem(list, QString("  tele_time: %1").arg(room.tele_time), kOverviewTabTeleport);
+            addOverviewItem(list, QString("  tele_time: %1").arg(room.tele_time), kSectionTeleport);
         }
         if (room.tele_targ != 0) {
-            addOverviewItem(list, QString("  tele_targ: %1").arg(room.tele_targ), kOverviewTabTeleport);
+            addOverviewItem(list, QString("  tele_targ: %1").arg(room.tele_targ), kSectionTeleport);
         }
         if (room.tele_mask != 0) {
-            addOverviewItem(list, QString("  tele_mask: %1").arg(room.tele_mask), kOverviewTabTeleport);
+            addOverviewItem(list, QString("  tele_mask: %1").arg(room.tele_mask), kSectionTeleport);
         }
         if (room.tele_cnt != 0) {
-            addOverviewItem(list, QString("  tele_cnt: %1").arg(room.tele_cnt), kOverviewTabTeleport);
+            addOverviewItem(list, QString("  tele_cnt: %1").arg(room.tele_cnt), kSectionTeleport);
         }
     }
 
@@ -176,26 +177,26 @@ void populateOverviewList(QListWidget* list, const nebbie::Room& room) {
         && (room.river_speed != 0 || room.river_dir != 0)) {
         addOverviewHeader(list, "Fiume");
         if (room.river_speed != 0) {
-            addOverviewItem(list, QString("  river_speed: %1").arg(room.river_speed), kOverviewTabEnvironment);
+            addOverviewItem(list, QString("  river_speed: %1").arg(room.river_speed), kSectionEnvironment);
         }
         if (room.river_dir != 0) {
-            addOverviewItem(list, QString("  river_dir: %1").arg(room.river_dir), kOverviewTabEnvironment);
+            addOverviewItem(list, QString("  river_dir: %1").arg(room.river_dir), kSectionEnvironment);
         }
     }
 
     if (nebbie::room_flags_use_moblim(room.room_flags) && room.moblim > 0) {
-        addOverviewItem(list, QString("moblim (TUNNEL): %1").arg(room.moblim), kOverviewTabEnvironment);
+        addOverviewItem(list, QString("moblim (TUNNEL): %1").arg(room.moblim), kSectionEnvironment);
     }
 
     if (!room.bright_at_night.empty()) {
         addOverviewItem(list,
                         QString("Bright at night: %1").arg(QString::fromStdString(room.bright_at_night)),
-                        kOverviewTabEnvironment);
+                        kSectionEnvironment);
     }
     if (!room.bright_at_day.empty()) {
         addOverviewItem(list,
                         QString("Bright at day: %1").arg(QString::fromStdString(room.bright_at_day)),
-                        kOverviewTabEnvironment);
+                        kSectionEnvironment);
     }
 
     if (!room.extra_descs.empty()) {
@@ -205,7 +206,7 @@ void populateOverviewList(QListWidget* list, const nebbie::Room& room) {
             const QString keyword = QString::fromStdString(extra.keyword).trimmed();
             addOverviewItem(list,
                             QString("  - %1").arg(keyword.isEmpty() ? "(senza keyword)" : keyword),
-                            kOverviewTabExtra,
+                            kSectionExtra,
                             i);
         }
     }
@@ -235,7 +236,7 @@ void populateOverviewList(QListWidget* list, const nebbie::Room& room) {
             }
             addOverviewItem(list,
                             QString("  - %1").arg(parts.join(" | ")),
-                            kOverviewTabExits,
+                            kSectionExits,
                             exit.direction);
         }
     }
@@ -247,6 +248,13 @@ void populateOverviewList(QListWidget* list, const nebbie::Room& room) {
     }
 }
 
+QFrame* makeSectionSeparator() {
+    auto* line = new QFrame;
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    return line;
+}
+
 } // namespace
 
 void RoomEditorWidget::setComboIntValue(QComboBox* combo, const int value) const {
@@ -256,26 +264,21 @@ void RoomEditorWidget::setComboIntValue(QComboBox* combo, const int value) const
 
 RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
-    tabs_ = new QTabWidget;
 
-    auto* overview_tab = new QWidget;
-    auto* overview_layout = new QVBoxLayout(overview_tab);
-    overview_layout->addWidget(makeLegend(
-        "Riepilogo in tempo reale della stanza: mostra solo settori, flag, uscite e altri "
-        "campi attivi o valorizzati. Doppio clic su una riga apre la scheda corrispondente. "
-        "La chiave di una porta si configura nel tab Exits (campo Key vnum).",
-        overview_tab));
+    root->addWidget(makeLegend(
+        "Riepilogo in tempo reale: doppio clic su una riga scorre alla sezione corrispondente.",
+        this));
     overview_list_ = new QListWidget;
-    overview_list_->setMinimumHeight(420);
-    overview_layout->addWidget(overview_list_, 1);
-    tabs_->addTab(overview_tab, "Riepilogo");
+    overview_list_->setMaximumHeight(180);
+    root->addWidget(overview_list_);
+    root->addWidget(makeSectionSeparator());
 
-    auto* text_tab = new QWidget;
-    auto* text_layout = new QVBoxLayout(text_tab);
+    text_section_ = new QWidget;
+    auto* text_layout = new QVBoxLayout(text_section_);
     text_layout->addWidget(makeLegend(
-        "Room name and description shown on entry. The game client reads ASCII text only "
-        "(use e', a', o', u' instead of accented letters).",
-        text_tab));
+        "Nome e descrizione mostrati all'ingresso. Il client legge solo testo ASCII "
+        "(usa e', a', o', u' al posto delle lettere accentate).",
+        text_section_));
     name_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(name_);
     name_line_info_ = nebbie::qt::makeTextMonitorLabel();
@@ -284,43 +287,40 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     nebbie::qt::configureMudDescriptionField(description_);
     description_line_info_ = nebbie::qt::makeTextMonitorLabel();
     description_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
-    text_layout->addWidget(new QLabel("Name:"));
-    text_layout->addWidget(name_);
-    text_layout->addWidget(name_line_info_);
-    text_layout->addWidget(name_ascii_info_);
-    text_layout->addWidget(new QLabel("Description:"));
-    text_layout->addWidget(description_, 1);
-    text_layout->addWidget(description_line_info_);
-    text_layout->addWidget(description_ascii_info_);
-    tabs_->addTab(text_tab, "Text");
+    auto* text_form = new QFormLayout;
+    text_form->addRow("Nome:", name_);
+    text_form->addRow("", name_line_info_);
+    text_form->addRow("", name_ascii_info_);
+    text_form->addRow("Descrizione:", description_);
+    text_form->addRow("", description_line_info_);
+    text_form->addRow("", description_ascii_info_);
+    text_layout->addLayout(text_form);
+    root->addWidget(text_section_);
+    root->addWidget(makeSectionSeparator());
 
-    auto* sector_tab = new QWidget;
-    auto* sector_layout = new QVBoxLayout(sector_tab);
+    sector_section_ = new QWidget;
+    auto* sector_layout = new QVBoxLayout(sector_section_);
     sector_layout->addWidget(makeLegend(
-        "Sector type sets terrain and weather behavior. River fields apply to Water NoSwim (7) and "
-        "Underwater (8) in this file format. TUNNEL flag enables moblim (max mobiles in room).",
-        sector_tab));
+        "Settore e flag stanza. TUNNEL abilita moblim; i settori acqua usano i campi fiume "
+        "nella sezione Ambiente.",
+        sector_section_));
     auto* sector_form = new QFormLayout;
     sector_type_ = new QComboBox;
     fillCombo(sector_type_, nebbie::room_sector_choices());
-    room_flags_ = new FlagGroupWidget(nebbie::room_flag_defs(), sector_tab);
+    room_flags_ = new FlagGroupWidget(nebbie::room_flag_defs(), sector_section_);
     sector_form->addRow("Sector type:", sector_type_);
     sector_layout->addLayout(sector_form);
     sector_layout->addWidget(new QLabel("Room flags"));
     sector_layout->addWidget(room_flags_);
-    tabs_->addTab(new QScrollArea, "Sector / Flags");
-    {
-        auto* scroll = qobject_cast<QScrollArea*>(tabs_->widget(2));
-        scroll->setWidgetResizable(true);
-        scroll->setWidget(sector_tab);
-    }
+    root->addWidget(sector_section_);
+    root->addWidget(makeSectionSeparator());
 
-    auto* tele_tab = new QWidget;
-    auto* tele_layout = new QVBoxLayout(tele_tab);
+    teleport_section_ = new QWidget;
+    auto* tele_layout = new QVBoxLayout(teleport_section_);
     tele_layout->addWidget(makeLegend(
-        "Teleport rooms write sector -1 in myst.wld. tele_time / tele_targ / tele_mask control the "
-        "teleport. If tele_mask bit 0 (TELE_COUNT) is set, tele_cnt is written as an extra field.",
-        tele_tab));
+        "Stanze teleport: sector -1 in myst.wld. tele_time / tele_targ / tele_mask controllano "
+        "il teletrasporto; con bit 0 (TELE_COUNT) attivo, tele_cnt viene scritto.",
+        teleport_section_));
     auto* tele_form = new QFormLayout;
     tele_time_ = new QSpinBox;
     tele_targ_ = new QSpinBox;
@@ -334,11 +334,12 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     tele_form->addRow("tele_mask:", tele_mask_);
     tele_form->addRow("tele_cnt:", tele_cnt_);
     tele_layout->addLayout(tele_form);
-    tabs_->addTab(tele_tab, "Teleport");
+    root->addWidget(teleport_section_);
+    root->addWidget(makeSectionSeparator());
 
-    auto* env_tab = new QWidget;
-    auto* env_layout = new QVBoxLayout(env_tab);
-    river_panel_ = new QWidget(env_tab);
+    environment_section_ = new QWidget;
+    auto* env_layout = new QVBoxLayout(environment_section_);
+    river_panel_ = new QWidget(environment_section_);
     auto* river_form = new QFormLayout(river_panel_);
     river_speed_ = new QSpinBox;
     river_dir_ = new QSpinBox;
@@ -347,7 +348,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     river_dir_->setToolTip("River direction 0=north .. 5=down (Arcane redit).");
     river_form->addRow("River speed:", river_speed_);
     river_form->addRow("River direction (0-5):", river_dir_);
-    moblim_panel_ = new QWidget(env_tab);
+    moblim_panel_ = new QWidget(environment_section_);
     auto* moblim_form = new QFormLayout(moblim_panel_);
     moblim_ = new QSpinBox;
     moblim_->setRange(1, 2000000000);
@@ -360,17 +361,18 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     bright_form->addRow("Bright at night (L):", bright_at_night_);
     bright_form->addRow("Bright at day (L):", bright_at_day_);
     env_layout->addWidget(makeLegend(
-        "River lines are saved for water sectors. moblim is saved when TUNNEL room flag is set. "
-        "L section stores optional brightness strings.",
-        env_tab));
+        "Fiume per settori acqua. moblim con flag TUNNEL. L = stringhe luminosità opzionali.",
+        environment_section_));
     env_layout->addWidget(river_panel_);
     env_layout->addWidget(moblim_panel_);
     env_layout->addLayout(bright_form);
-    tabs_->addTab(env_tab, "Environment");
+    root->addWidget(environment_section_);
+    root->addWidget(makeSectionSeparator());
 
-    auto* extra_tab = new QWidget;
-    auto* extra_layout = new QVBoxLayout(extra_tab);
+    extra_section_ = new QWidget;
+    auto* extra_layout = new QVBoxLayout(extra_section_);
     extra_desc_list_ = new QListWidget;
+    extra_desc_list_->setMaximumHeight(140);
     extra_desc_keyword_ = new QLineEdit;
     configureLineField(extra_desc_keyword_);
     extra_desc_description_ = new nebbie::qt::MudColorTextEdit;
@@ -389,22 +391,18 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_desc_buttons->addWidget(extra_desc_remove);
     extra_desc_buttons->addStretch();
     extra_layout->addWidget(new QLabel("Extra descriptions (section E)"));
-    extra_layout->addWidget(extra_desc_list_, 1);
+    extra_layout->addWidget(extra_desc_list_);
     extra_layout->addLayout(extra_desc_form);
     extra_layout->addLayout(extra_desc_buttons);
-    tabs_->addTab(extra_tab, "Extra descriptions");
+    root->addWidget(extra_section_);
+    root->addWidget(makeSectionSeparator());
 
-    auto* exit_tab = new QWidget;
-    auto* exit_layout = new QVBoxLayout(exit_tab);
+    exits_section_ = new QWidget;
+    auto* exit_layout = new QVBoxLayout(exits_section_);
     exit_layout->addWidget(makeLegend(
-        "Direzioni: 0=nord, 1=est, 2=sud, 3=ovest, 4=su, 5=giù. "
-        "Description è la prima stringa del blocco D# in myst.wld: testo mostrato con look <dir> "
-        "se non vuota; se vuota il server mostra il name della stanza di destinazione. "
-        "Keyword è il nome della porta per open/close/unlock; i passaggi segreti usano keyword "
-        "e flag EX_SECRET. Le descrizioni esaminabili in stanza sono nella sezione E (tab Extra "
-        "descriptions). Key vnum è l'oggetto che sblocca una porta (-1 = nessuna chiave). "
-        "«Nome = destinazione» forza il name della stanza di destinazione nel campo Description.",
-        exit_tab));
+        "Direzioni: 0=nord, 1=est, 2=sud, 3=ovest, 4=su, 5=giù. Description = testo look <dir>; "
+        "se vuota il server usa il name della destinazione. Key vnum = oggetto chiave (-1 = nessuna).",
+        exits_section_));
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(140);
     exit_direction_ = new QComboBox;
@@ -417,7 +415,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     configureLineField(exit_keyword_);
     exit_line_info_ = nebbie::qt::makeTextMonitorLabel();
     exit_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
-    exit_flags_ = new FlagGroupWidget(nebbie::exit_flag_defs(), exit_tab);
+    exit_flags_ = new FlagGroupWidget(nebbie::exit_flag_defs(), exits_section_);
     exit_key_ = new QSpinBox;
     exit_key_->setRange(-1, 999999);
     exit_key_->setValue(-1);
@@ -450,9 +448,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_layout->addWidget(exit_list_);
     exit_layout->addLayout(exit_form);
     exit_layout->addLayout(exit_buttons);
-    tabs_->addTab(exit_tab, "Exits");
-
-    root->addWidget(tabs_);
+    root->addWidget(exits_section_, 1);
 
     connect(overview_list_, &QListWidget::itemDoubleClicked, this,
             [this](QListWidgetItem* item) { navigateOverviewItem(item); });
@@ -550,19 +546,58 @@ void RoomEditorWidget::refreshOverview() {
     populateOverviewList(overview_list_, snapshot);
 }
 
+void RoomEditorWidget::scrollToSection(QWidget* section) {
+    if (!section) {
+        return;
+    }
+    QWidget* parent = section->parentWidget();
+    while (parent) {
+        if (auto* scroll = qobject_cast<QScrollArea*>(parent)) {
+            scroll->ensureWidgetVisible(section);
+            return;
+        }
+        parent = parent->parentWidget();
+    }
+}
+
 void RoomEditorWidget::navigateOverviewItem(const QListWidgetItem* item) {
-    if (!item || tabs_ == nullptr) {
+    if (!item) {
         return;
     }
-    const int tab = item->data(Qt::UserRole).toInt();
-    if (tab < 0) {
+    const int section_id = item->data(Qt::UserRole).toInt();
+    if (section_id < 0) {
         return;
     }
-    tabs_->setCurrentIndex(tab);
+
+    QWidget* section = nullptr;
+    switch (section_id) {
+    case kSectionText:
+        section = text_section_;
+        break;
+    case kSectionSector:
+        section = sector_section_;
+        break;
+    case kSectionTeleport:
+        section = teleport_section_;
+        break;
+    case kSectionEnvironment:
+        section = environment_section_;
+        break;
+    case kSectionExtra:
+        section = extra_section_;
+        break;
+    case kSectionExits:
+        section = exits_section_;
+        break;
+    default:
+        break;
+    }
+    scrollToSection(section);
+
     const int extra = item->data(Qt::UserRole + 1).toInt();
-    if (tab == kOverviewTabExtra && extra >= 0 && extra < extra_desc_list_->count()) {
+    if (section_id == kSectionExtra && extra >= 0 && extra < extra_desc_list_->count()) {
         extra_desc_list_->setCurrentRow(extra);
-    } else if (tab == kOverviewTabExits && extra >= 0) {
+    } else if (section_id == kSectionExits && extra >= 0) {
         focusExitTab(extra);
     }
 }
@@ -579,9 +614,7 @@ int RoomEditorWidget::selectedExitDirection() const {
 }
 
 void RoomEditorWidget::focusExitTab(const int direction) {
-    if (tabs_ != nullptr) {
-        tabs_->setCurrentIndex(kOverviewTabExits);
-    }
+    scrollToSection(exits_section_);
     for (int i = 0; i < exit_list_->count(); ++i) {
         auto* item = exit_list_->item(i);
         if (item->data(Qt::UserRole).toInt() == direction) {

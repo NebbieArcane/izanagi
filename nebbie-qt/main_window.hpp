@@ -16,6 +16,7 @@
 #include <chrono>
 #include <filesystem>
 #include <optional>
+#include <set>
 #include <vector>
 
 class QNetworkAccessManager;
@@ -120,12 +121,13 @@ private:
     long currentRoomVnum() const;
     void setStatus(const QString& message);
     void showExitAlignmentReport(const QString& text, const nebbie::ExitAlignmentReport& report);
-    void showValidation(const nebbie::ValidationReport& report);
+    void showValidation(const nebbie::ValidationReport& report, const QString& context = {});
     void navigateToIssue(const nebbie::ValidationIssue& issue);
     void navigateToRoomExit(long vnum, int direction);
     bool confirmSaveIfDirty();
     void markDirty();
     void markClean();
+    std::vector<long> roomsPendingSaveValidation() const;
     int preferredZoneNumForNewRoom() const;
     long suggestRoomVnum() const;
     long suggestMobVnum() const;
@@ -138,6 +140,7 @@ private:
     nebbie::LibContext context_;
     std::filesystem::path lib_path_;
     bool dirty_ = false;
+    std::set<long> dirty_room_vnums_;
     nebbie::qt::AppConfig app_config_;
     std::optional<nebbie::WorldIndex> world_index_;
     QNetworkAccessManager* network_ = nullptr;
