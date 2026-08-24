@@ -40,7 +40,7 @@ void paint_mud_text(QPainter* painter,
     };
 
     const QColor default_color =
-        selected ? palette.color(QPalette::HighlightedText) : palette.color(QPalette::Text);
+        selected ? palette.color(QPalette::HighlightedText) : mud_foreground_color(7, false);
     draw_segment(prefix, default_color);
 
     MudDisplayColorState state;
