@@ -16,6 +16,10 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/nebbie-qt"
         "${CMAKE_BINARY_DIR}/generated")
     target_link_libraries(nebbie-release-update-tests PRIVATE Qt6::Core)
+    if(MSVC)
+        target_compile_options(nebbie-release-update-tests PRIVATE
+            "/FI${CMAKE_SOURCE_DIR}/nebbie-qt/msvc_qt_compat.hpp")
+    endif()
     add_test(NAME release-update-tests COMMAND nebbie-release-update-tests)
 endif()
 
