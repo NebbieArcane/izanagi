@@ -9,10 +9,10 @@
   #define StagingDir "..\..\dist\windows-staging"
 #endif
 
-#define AppName "Nebbie Editor"
-#define AppPublisher "Nebbie Editor"
+#define AppName "Izanagi"
+#define AppPublisher "Nebbie Arcane"
 #define AppURL "https://github.com/wizardmorgan/nebbie-editor"
-#define AppExeName "nebbieedit.exe"
+#define AppExeName "izanagi.exe"
 #define CliExeName "nebbiedit.exe"
 
 [Setup]
@@ -30,7 +30,7 @@ AllowNoIcons=yes
 LicenseFile=
 OutputDir=..\..\dist
 OutputBaseFilename=nebbie-editor_{#AppVersion}_windows_setup
-SetupIconFile={#StagingDir}\nebbieedit.ico
+SetupIconFile={#StagingDir}\izanagi.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -51,9 +51,9 @@ Name: "addpath"; Description: "Add install folder to PATH (for nebbiedit CLI)"; 
 Source: "{#StagingDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\nebbieedit.ico"
-Name: "{group}\Nebbie CLI (nebbiedit)"; Filename: "{app}\{#CliExeName}"; IconFilename: "{app}\nebbieedit.ico"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\nebbieedit.ico"; Tasks: desktopicon
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\izanagi.ico"
+Name: "{group}\Nebbie CLI (nebbiedit)"; Filename: "{app}\{#CliExeName}"; IconFilename: "{app}\izanagi.ico"
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\izanagi.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

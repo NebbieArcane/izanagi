@@ -154,8 +154,15 @@ jobs:
           $zip = Get-ChildItem dist/izanagi_*_windows_portable.zip | Select-Object -First 1
           if (-not $zip) { throw "Zip not found in dist/" }
           Expand-Archive -Path $zip.FullName -DestinationPath $env:RUNNER_TEMP/izanagi-test -Force
-          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/izanagi-test nebbieedit.exe))) {
-            throw "nebbieedit.exe missing in zip"
+          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/izanagi-test izanagi.exe))) {
+            throw "izanagi.exe missing in zip"
+          }
+          $nebbieditCount = @(Get-ChildItem -Path $env:RUNNER_TEMP/izanagi-test -Filter nebbiedit.exe -Recurse).Count
+          if ($nebbieditCount -ne 1) {
+            throw "Expected exactly one nebbiedit.exe (CLI) in zip, found $nebbieditCount"
+          }
+          if (Test-Path (Join-Path $env:RUNNER_TEMP/izanagi-test nebbieedit.exe)) {
+            throw "Legacy nebbieedit.exe should not be shipped in the Windows zip"
           }
 
       - name: Upload zip artifact
@@ -199,7 +206,7 @@ jobs:
 
             | Piattaforma | File |
             |-------------|------|
-            | **Windows** | `izanagi_*_windows_portable.zip` — estrai e avvia `nebbieedit.exe` |
+            | **Windows** | `izanagi_*_windows_portable.zip` — estrai e avvia `izanagi.exe` |
             | **macOS** | `izanagi_*_macos.dmg` — trascina `nebbieedit.app` in Applicazioni |
             | **Linux** | `izanagi_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
 
@@ -208,7 +215,7 @@ jobs:
             Per aprirla senza questo passaggio serve la notarizzazione Apple (`docs/MACOS_SIGNING.md`).
 
             ### Primo avvio
-            1. Avvia **Izanagi** (nebbieedit)
+            1. Avvia **Izanagi** (`izanagi.exe`)
             2. **File → Apri libreria** → cartella `mudroot` o `mudroot/lib`
             3. Modifica e **Salva**
 

@@ -47,7 +47,7 @@ if(MSVC)
 endif()
 
 if(WIN32)
-    set_target_properties(nebbie-translate PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(nebbie-translate PROPERTIES WIN32_EXECUTABLE TRUE OUTPUT_NAME cypher)
 endif()
 
 if(APPLE AND NEBBIE_MACOS_BUNDLE_TRANSLATOR)

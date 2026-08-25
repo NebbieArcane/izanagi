@@ -142,8 +142,11 @@ jobs:
           $zip = Get-ChildItem dist/cypher_*_windows_portable.zip | Select-Object -First 1
           if (-not $zip) { throw "Zip not found in dist/" }
           Expand-Archive -Path $zip.FullName -DestinationPath $env:RUNNER_TEMP/cypher-test -Force
-          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/cypher-test nebbie-translate.exe))) {
-            throw "nebbie-translate.exe missing in zip"
+          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/cypher-test cypher.exe))) {
+            throw "cypher.exe missing in zip"
+          }
+          if (Test-Path (Join-Path $env:RUNNER_TEMP/cypher-test nebbie-translate.exe)) {
+            throw "Legacy nebbie-translate.exe should not be shipped in the Windows zip"
           }
 
       - name: Upload zip artifact
@@ -187,7 +190,7 @@ jobs:
 
             | Piattaforma | File |
             |-------------|------|
-            | **Windows** | `cypher_*_windows_portable.zip` — estrai e avvia `nebbie-translate.exe` |
+            | **Windows** | `cypher_*_windows_portable.zip` — estrai e avvia `cypher.exe` |
             | **macOS** | `cypher_*_macos.dmg` — trascina `nebbie-translate.app` in Applicazioni |
             | **Linux** | `cypher_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
 
@@ -196,7 +199,7 @@ jobs:
             Per aprirla senza questo passaggio serve la notarizzazione Apple (`docs/MACOS_SIGNING.md`).
 
             ### Primo avvio
-            1. Avvia **Cypher** (nebbie-translate)
+            1. Avvia **Cypher** (`cypher.exe`)
             2. **File → Apri libreria** → cartella `mudroot` o `mudroot/lib`
             3. Modifica i testi → **Salva**
 

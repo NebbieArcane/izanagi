@@ -74,9 +74,13 @@ Write-Host "Binaries:"
 $Cli = Join-Path $BuildDir "nebbiedit\nebbiedit.exe"
 if (-not (Test-Path $Cli)) { $Cli = Join-Path $BuildDir "nebbiedit\Release\nebbiedit.exe" }
 Write-Host "  CLI:  $Cli"
-$Gui = Join-Path $BuildDir "nebbie-qt\nebbieedit.exe"
+$Gui = Join-Path $BuildDir "nebbie-qt\izanagi.exe"
+if (-not (Test-Path $Gui)) { $Gui = Join-Path $BuildDir "nebbie-qt\Release\izanagi.exe" }
+if (-not (Test-Path $Gui)) { $Gui = Join-Path $BuildDir "nebbie-qt\nebbieedit.exe" }
 if (-not (Test-Path $Gui)) { $Gui = Join-Path $BuildDir "nebbie-qt\Release\nebbieedit.exe" }
 Write-Host "  GUI:  $Gui"
-$Translate = Join-Path $BuildDir "nebbie-translator\nebbie-translate.exe"
+$Translate = Join-Path $BuildDir "nebbie-translator\cypher.exe"
+if (-not (Test-Path $Translate)) { $Translate = Join-Path $BuildDir "nebbie-translator\Release\cypher.exe" }
+if (-not (Test-Path $Translate)) { $Translate = Join-Path $BuildDir "nebbie-translator\nebbie-translate.exe" }
 if (-not (Test-Path $Translate)) { $Translate = Join-Path $BuildDir "nebbie-translator\Release\nebbie-translate.exe" }
 Write-Host "  Translate:  $Translate"
