@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -17,6 +17,10 @@ add_executable(nebbie-translate
     nebbie-translate.qrc
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.cpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.hpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_checker.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_checker.hpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_util.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_util.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_widgets.cpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_widgets.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_list_delegate.cpp
@@ -39,9 +43,10 @@ endif()
 target_include_directories(nebbie-translate PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_SOURCE_DIR}/nebbie-qt"
+    "${CMAKE_BINARY_DIR}/generated"
 )
 
-target_link_libraries(nebbie-translate PRIVATE Qt6::Widgets nebbie-core)
+target_link_libraries(nebbie-translate PRIVATE Qt6::Widgets Qt6::Network nebbie-core)
 target_compile_features(nebbie-translate PRIVATE cxx_std_17)
 
 if(MSVC)

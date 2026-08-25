@@ -74,6 +74,12 @@ AppConfig read_config() {
             }
         } else if (line.startsWith(QStringLiteral("show_color_codes="))) {
             config.show_color_codes = parse_bool(value_after_equals(line));
+        } else if (line.startsWith(QStringLiteral("check_updates="))) {
+            config.check_updates = parse_bool(value_after_equals(line));
+        } else if (line.startsWith(QStringLiteral("last_update_check="))) {
+            config.last_update_check = value_after_equals(line);
+        } else if (line.startsWith(QStringLiteral("dismissed_update_version="))) {
+            config.dismissed_update_version = value_after_equals(line);
         }
     }
     return config;
@@ -102,6 +108,13 @@ bool write_config(const AppConfig& config) {
     }
     out << "max_line_length=" << config.max_line_length << '\n';
     out << "show_color_codes=" << (config.show_color_codes ? 1 : 0) << '\n';
+    out << "check_updates=" << (config.check_updates ? 1 : 0) << '\n';
+    if (!config.last_update_check.isEmpty()) {
+        out << "last_update_check=" << config.last_update_check << '\n';
+    }
+    if (!config.dismissed_update_version.isEmpty()) {
+        out << "dismissed_update_version=" << config.dismissed_update_version << '\n';
+    }
     return true;
 }
 

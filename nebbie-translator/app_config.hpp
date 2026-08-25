@@ -8,6 +8,9 @@ struct AppConfig {
     QString lib_path;
     int max_line_length = 0;
     bool show_color_codes = false;
+    bool check_updates = true;
+    QString last_update_check;
+    QString dismissed_update_version;
 };
 
 QString default_config_path();

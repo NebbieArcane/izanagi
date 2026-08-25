@@ -113,6 +113,9 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     app_config_ = nebbie::qt::read_config();
     network_ = new QNetworkAccessManager(this);
+    update_checker_ = new nebbie::qt::ReleaseUpdateChecker(nebbie::qt::ReleaseProduct::Izanagi, this);
+    connect(update_checker_, &nebbie::qt::ReleaseUpdateChecker::checkFinished, this,
+            &MainWindow::onUpdateCheckFinished);
     setupUi();
     setupMenus();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
@@ -124,6 +127,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("Izanagi");
     resize(1100, 720);
     setStatus("Apri una libreria (mudroot/lib) per iniziare.");
+    scheduleStartupUpdateCheck();
 }
 
 void MainWindow::setupUi() {
@@ -514,6 +518,21 @@ void MainWindow::setupMenus() {
     coordinator_menu->addSeparator();
     auto* reserve_action = coordinator_menu->addAction("Reserve vnums...");
     connect(reserve_action, &QAction::triggered, this, &MainWindow::reserveVnums);
+
+    auto* help_menu = menuBar()->addMenu("&Aiuto");
+    auto* check_updates_action = help_menu->addAction("Controlla aggiornamenti...");
+    connect(check_updates_action, &QAction::triggered, this, &MainWindow::checkForUpdates);
+    auto* auto_updates_action = help_menu->addAction("Controlla aggiornamenti all'avvio");
+    auto_updates_action->setCheckable(true);
+    auto_updates_action->setChecked(app_config_.check_updates);
+    connect(auto_updates_action, &QAction::toggled, this, &MainWindow::toggleCheckUpdatesOnStartup);
+    help_menu->addSeparator();
+    help_menu->addAction("Informazioni su Izanagi...", this, [this]() {
+        QMessageBox::about(this,
+                           QStringLiteral("Izanagi"),
+                           QStringLiteral("Izanagi %1\nEditor completo del mondo Nebbie.")
+                               .arg(QApplication::applicationVersion()));
+    });
 }
 
 void MainWindow::rememberLibPath(const std::filesystem::path& path) {
@@ -555,6 +574,48 @@ void MainWindow::insertColorCode() {
     if (auto* field = room_editor_->focusedMudField()) {
         field->insertColorCode(dialog.selectedCode());
         setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+    }
+}
+
+void MainWindow::scheduleStartupUpdateCheck() {
+    if (!nebbie::qt::shouldCheckForUpdates(app_config_.check_updates,
+                                           false,
+                                           app_config_.last_update_check)) {
+        return;
+    }
+    QTimer::singleShot(3000, this, [this]() {
+        update_checker_->checkForUpdates(*network_,
+                                         false,
+                                         this,
+                                         app_config_.dismissed_update_version);
+    });
+}
+
+void MainWindow::checkForUpdates() {
+    update_checker_->checkForUpdates(*network_,
+                                     true,
+                                     this,
+                                     app_config_.dismissed_update_version);
+}
+
+void MainWindow::onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info) {
+    if (!info.ok) {
+        return;
+    }
+    app_config_.last_update_check = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+    if (!info.user_dismissed_version.isEmpty()) {
+        app_config_.dismissed_update_version = info.user_dismissed_version;
+    }
+    nebbie::qt::write_config(app_config_);
+}
+
+void MainWindow::toggleCheckUpdatesOnStartup(const bool enabled) {
+    app_config_.check_updates = enabled;
+    nebbie::qt::write_config(app_config_);
+    if (enabled) {
+        setStatus("Controllo aggiornamenti all'avvio attivo.");
+    } else {
+        setStatus("Controllo aggiornamenti all'avvio disattivato.");
     }
 }
 
