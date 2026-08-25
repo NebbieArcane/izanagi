@@ -595,7 +595,11 @@ void MainWindow::retranslateUi() {
 }
 
 void MainWindow::updateBranding() {
-    setWindowTitle(nebbie::qt::izanagiWindowTitle());
+    QString title = nebbie::qt::izanagiWindowTitle();
+    if (dirty_) {
+        title += QStringLiteral(" *");
+    }
+    setWindowTitle(title);
     QApplication::setApplicationDisplayName(nebbie::qt::izanagiWindowTitle());
 }
 
@@ -2475,13 +2479,13 @@ void MainWindow::setStatus(const QString& message) {
 
 void MainWindow::markDirty() {
     dirty_ = true;
-    setWindowTitle("Izanagi *");
+    updateBranding();
 }
 
 void MainWindow::markClean() {
     dirty_ = false;
     dirty_room_vnums_.clear();
-    setWindowTitle("Izanagi");
+    updateBranding();
 }
 
 bool MainWindow::confirmSaveIfDirty() {

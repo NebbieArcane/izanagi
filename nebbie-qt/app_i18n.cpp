@@ -141,11 +141,11 @@ constexpr TranslationEntry kTranslations[] = {
      "Cypher — editor leggero solo stanze per Nebbie Arcane",
      "Cypher — a lightweight room-only MUD editor for Nebbie Arcane"},
     {"branding.izanagi_about",
-     "Izanagi %1\n\n%2",
-     "Izanagi %1\n\n%2"},
+     "Versione %1\n\n%2",
+     "Version %1\n\n%2"},
     {"branding.cypher_about",
-     "Cypher %1\n\n%2",
-     "Cypher %1\n\n%2"},
+     "Versione %1\n\n%2",
+     "Version %1\n\n%2"},
 };
 
 const TranslationEntry* findEntry(const char* key) {

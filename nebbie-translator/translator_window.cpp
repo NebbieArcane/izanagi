@@ -220,7 +220,11 @@ void TranslatorWindow::retranslateUi() {
 }
 
 void TranslatorWindow::updateBranding() {
-    setWindowTitle(nebbie::qt::cypherWindowTitle());
+    QString title = nebbie::qt::cypherWindowTitle();
+    if (dirty_) {
+        title = QStringLiteral("* ") + title;
+    }
+    setWindowTitle(title);
     QApplication::setApplicationDisplayName(nebbie::qt::cypherWindowTitle());
 }
 
@@ -671,20 +675,13 @@ void TranslatorWindow::editLineLengthLimit() {
 
 void TranslatorWindow::markDirty() {
     dirty_ = true;
-    const QString title = windowTitle();
-    if (!title.startsWith('*')) {
-        setWindowTitle("* " + title);
-    }
+    updateBranding();
 }
 
 void TranslatorWindow::markClean() {
     dirty_ = false;
     dirty_room_vnums_.clear();
-    QString title = windowTitle();
-    while (title.startsWith("* ")) {
-        title.remove(0, 2);
-    }
-    setWindowTitle(title.isEmpty() ? QStringLiteral("Cypher") : title);
+    updateBranding();
 }
 
 bool TranslatorWindow::confirmSaveIfDirty() {
