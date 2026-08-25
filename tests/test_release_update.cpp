@@ -17,7 +17,7 @@ void expect(bool condition, const char* message) {
 QByteArray sampleReleaseJson(const QString& prefix, const QStringList& asset_names) {
     QJsonObject root;
     root.insert(QStringLiteral("html_url"),
-                QStringLiteral("https://github.com/wizardmorgan/nebbie-editor/releases/tag/%1").arg(prefix));
+                QStringLiteral("https://github.com/wizardmorgan/nebbie-arcane-editing-tools/releases/tag/%1").arg(prefix));
     QJsonArray assets;
     for (const QString& name : asset_names) {
         QJsonObject asset;
@@ -38,6 +38,7 @@ int main() {
         using nebbie::qt::compareVersions;
         using nebbie::qt::parseReleaseResponse;
         using nebbie::qt::parseVersionFromAssetName;
+        using nebbie::qt::platformAssetSuffix;
         using nebbie::qt::shouldCheckForUpdates;
 
         expect(compareVersions(QStringLiteral("0.1.0"), QStringLiteral("0.1.1")) < 0, "0.1.0 < 0.1.1");
@@ -57,9 +58,11 @@ int main() {
                "parse cypher dmg");
         expect(parsed == QStringLiteral("1.2.3"), "parsed version 1.2.3");
 
+        const QString platform_suffix = platformAssetSuffix();
         const QByteArray release_body = sampleReleaseJson(
             QStringLiteral("izanagi"),
-            {QStringLiteral("izanagi_0.1.0_amd64.deb"), QStringLiteral("izanagi_0.2.0_amd64.deb")});
+            {QStringLiteral("izanagi_0.1.0%1").arg(platform_suffix),
+             QStringLiteral("izanagi_0.2.0%1").arg(platform_suffix)});
         const auto info =
             parseReleaseResponse(release_body, ReleaseProduct::Izanagi, QStringLiteral("0.1.0"));
         expect(info.ok, "release parse ok");
