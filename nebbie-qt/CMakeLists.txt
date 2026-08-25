@@ -12,6 +12,8 @@ add_executable(nebbieedit
     main_window.hpp
     app_config.cpp
     app_config.hpp
+    app_theme.cpp
+    app_theme.hpp
     application_log.cpp
     application_log.hpp
     coordinator_client.cpp
@@ -60,7 +62,7 @@ if(MSVC)
 endif()
 
 if(WIN32)
-    set_target_properties(nebbieedit PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(nebbieedit PROPERTIES WIN32_EXECUTABLE TRUE OUTPUT_NAME izanagi)
 endif()
 
 if(APPLE AND NEBBIE_MACOS_BUNDLE)

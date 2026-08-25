@@ -53,6 +53,7 @@ public:
 
 public slots:
     void openLib();
+    void reloadLib();
     void saveLib();
     void saveLibForce();
     void validateLib();

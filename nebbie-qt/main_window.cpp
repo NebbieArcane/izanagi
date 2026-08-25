@@ -447,6 +447,11 @@ void MainWindow::setupMenus() {
     open_action->setShortcut(QKeySequence::Open);
     connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
 
+    auto* reload_action = file_menu->addAction("A&ggiorna libreria");
+    reload_action->setShortcut(QKeySequence::Refresh);
+    reload_action->setToolTip("Ricarica dal disco la cartella libreria attualmente aperta.");
+    connect(reload_action, &QAction::triggered, this, &MainWindow::reloadLib);
+
     auto* save_action = file_menu->addAction("&Salva");
     save_action->setShortcut(QKeySequence::Save);
     connect(save_action, &QAction::triggered, this, &MainWindow::saveLib);
@@ -615,6 +620,24 @@ void MainWindow::openLib() {
         return;
     }
     openLibPath(dir);
+}
+
+void MainWindow::reloadLib() {
+    if (lib_path_.empty()) {
+        QMessageBox::information(this, "Aggiorna libreria", "Apri prima una libreria.");
+        return;
+    }
+    if (!confirmSaveIfDirty()) {
+        return;
+    }
+
+    try {
+        loadLib(lib_path_);
+        setStatus(QString("Libreria ricaricata da %1.")
+                      .arg(nebbie::qt::qstring_from_path(lib_path_)));
+    } catch (const std::exception& ex) {
+        QMessageBox::critical(this, "Aggiorna libreria", QString::fromUtf8(ex.what()));
+    }
 }
 
 void MainWindow::openStartupLib() {

@@ -1,4 +1,4 @@
-# Prepare dist/windows-translate-staging with portable nebbie-translate and Qt runtime DLLs.
+# Prepare dist/windows-translate-staging with portable cypher and Qt runtime DLLs.
 param(
     [switch]$NoBuild
 )
@@ -13,6 +13,13 @@ function Get-ProjectVersion {
     $line = Select-String -Path (Join-Path $Root "CMakeLists.txt") -Pattern 'project\(nebbie-editor VERSION ' | Select-Object -First 1
     if ($line -match 'VERSION ([0-9.]+)') { return $Matches[1] }
     return "0.0.0"
+}
+
+function Find-BuiltExe {
+    param(
+        [string[]]$Candidates
+    )
+    return $Candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 }
 
 if ($PSVersionTable.PSEdition -ne "Desktop" -and $IsWindows -ne $true -and $env:OS -notlike "*Windows*") {
@@ -33,22 +40,24 @@ if ($bash) {
     Write-Warning "bash not found; package will not include sample-mudroot"
 }
 
-$Translate = @(
+$Translate = Find-BuiltExe @(
+    (Join-Path $Build "nebbie-translator\Release\cypher.exe"),
+    (Join-Path $Build "nebbie-translator\cypher.exe"),
     (Join-Path $Build "nebbie-translator\Release\nebbie-translate.exe"),
     (Join-Path $Build "nebbie-translator\nebbie-translate.exe")
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
+)
 
 if (-not $Translate) {
-    Write-Error "nebbie-translate.exe not found. Run .\scripts\build.ps1 -NoQt first."
+    Write-Error "cypher.exe not found. Run .\scripts\build.ps1 first."
 }
 
 Remove-Item -Recurse -Force $Staging -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Staging | Out-Null
-Copy-Item $Translate (Join-Path $Staging "nebbie-translate.exe")
+Copy-Item $Translate (Join-Path $Staging "cypher.exe")
 
 $Icon = Join-Path $Root "nebbie-translator\icons\nebbie-translate.ico"
 if (Test-Path $Icon) {
-    Copy-Item $Icon (Join-Path $Staging "nebbie-translate.ico")
+    Copy-Item $Icon (Join-Path $Staging "cypher.ico")
 }
 
 $Sample = Join-Path $Dist "sample-mudroot"
@@ -57,15 +66,15 @@ if (Test-Path $Sample) {
 }
 
 $Readme = @"
-Nebbie Translate (portable)
-===========================
+Cypher (portable)
+=================
 
-1. Estrai tutto lo zip in una cartella (es. C:\NebbieTranslate)
-2. Avvia nebbie-translate.exe
+1. Estrai tutto lo zip in una cartella (es. C:\Cypher)
+2. Avvia cypher.exe
 3. File -> Apri libreria -> seleziona mudroot o mudroot\lib
 
-Puoi anche trascinare la cartella lib sull'eseguibile, oppure:
-  nebbie-translate.exe D:\percorso\mudroot\lib
+Puoi trascinare la cartella lib sull'eseguibile, oppure:
+  cypher.exe D:\percorso\mudroot\lib
 
 Mondo di prova incluso: sample-mudroot\lib
 
@@ -77,7 +86,7 @@ Set-Content -Path (Join-Path $Staging "README.txt") -Value $Readme -Encoding UTF
 
 $Windeploy = Get-Command windeployqt -ErrorAction SilentlyContinue
 if ($Windeploy) {
-    & windeployqt (Join-Path $Staging "nebbie-translate.exe")
+    & windeployqt (Join-Path $Staging "cypher.exe")
 } else {
     Write-Warning "windeployqt not in PATH; package may miss Qt DLLs."
 }

@@ -1,5 +1,6 @@
 #include "translator_window.hpp"
 #include "app_config.hpp"
+#include "app_theme.hpp"
 
 #include "path_util.hpp"
 
@@ -13,6 +14,7 @@ int main(int argc, char** argv) {
     app.setApplicationName("Cypher");
     app.setApplicationDisplayName("Cypher");
     app.setOrganizationName("Nebbie Arcane");
+    nebbie::qt::applyDefaultAppTheme(app);
     const QIcon app_icon(QStringLiteral(":/app-icon.png"));
     app.setWindowIcon(app_icon);
 
