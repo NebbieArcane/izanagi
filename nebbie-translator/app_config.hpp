@@ -11,6 +11,7 @@ struct AppConfig {
     bool check_updates = true;
     QString last_update_check;
     QString dismissed_update_version;
+    QString ui_language = QStringLiteral("it");
 };
 
 QString default_config_path();

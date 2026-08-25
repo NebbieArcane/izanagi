@@ -1,6 +1,7 @@
 #include "main_window.hpp"
 
 #include "app_config.hpp"
+#include "app_i18n.hpp"
 #include "application_log.hpp"
 #include "coordinator_client.hpp"
 #include "mob_editor_widget.hpp"
@@ -24,6 +25,7 @@
 #include "nebbie/zone_graph.hpp"
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QClipboard>
 #include <QCloseEvent>
@@ -59,6 +61,8 @@
 
 #include <stdexcept>
 
+using nebbie::qt::appTr;
+
 namespace {
 
 struct EntityPageWidgets {
@@ -75,7 +79,7 @@ EntityPageWidgets makeEntityPage(QWidget* editor, const QString& create_label) {
 
     auto* top = new QHBoxLayout;
     widgets.search = new QLineEdit;
-    widgets.search->setPlaceholderText("Cerca vnum o nome...");
+    widgets.search->setPlaceholderText(nebbie::qt::appTr("ui.search_vnum"));
     widgets.create_button = new QPushButton(create_label);
     top->addWidget(widgets.search, 1);
     top->addWidget(widgets.create_button);
@@ -112,21 +116,21 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     app_config_ = nebbie::qt::read_config();
+    nebbie::qt::setAppLanguage(nebbie::qt::parseLanguageCode(app_config_.ui_language));
     network_ = new QNetworkAccessManager(this);
     update_checker_ = new nebbie::qt::ReleaseUpdateChecker(nebbie::qt::ReleaseProduct::Izanagi, this);
     connect(update_checker_, &nebbie::qt::ReleaseUpdateChecker::checkFinished, this,
             &MainWindow::onUpdateCheckFinished);
     setupUi();
     setupMenus();
+    retranslateUi();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
     room_editor_->setShowColorCodes(app_config_.show_color_codes);
     if (auto* delegate = roomListDelegate(room_list_)) {
         delegate->setShowColorCodes(app_config_.show_color_codes);
     }
     setWindowIcon(QIcon(QStringLiteral(":/app-icon.png")));
-    setWindowTitle("Izanagi");
     resize(1100, 720);
-    setStatus("Apri una libreria (mudroot/lib) per iniziare.");
     scheduleStartupUpdateCheck();
 }
 
@@ -134,7 +138,7 @@ void MainWindow::setupUi() {
     auto* central = new QWidget;
     auto* root_layout = new QVBoxLayout(central);
 
-    lib_label_ = new QLabel("Nessuna libreria aperta");
+    lib_label_ = new QLabel;
     lib_label_->setWordWrap(true);
     root_layout->addWidget(lib_label_);
 
@@ -149,29 +153,28 @@ void MainWindow::setupUi() {
     room_panel_layout->setContentsMargins(0, 0, 0, 0);
     room_panel_layout->addWidget(room_scroll, 1);
     auto* room_buttons = new QHBoxLayout;
-    auto* room_apply = new QPushButton("Apply changes");
-    auto* room_sync_exits = new QPushButton("Sincronizza description verso questa stanza");
-    room_sync_exits->setToolTip(
-        "Per le uscite verso la stanza selezionata: aggiorna solo le description che "
-        "corrispondevano al vecchio name (rinomina) o che differiscono solo per spazi/newline. "
-        "Le description vuote, legacy [vnum (nome)] e i testi di look personalizzati restano invariati.");
-    auto* room_align_all_exits = new QPushButton("Normalizza description uscite (mondo)");
-    room_align_all_exits->setToolTip(
-        "Normalizza nel mondo le description che differiscono dal name di destinazione solo "
-        "per spazi o newline finali. Non modifica description vuote, formato [vnum (nome)] "
-        "né testi di look personalizzati (Vedi..., descrizioni lunghe, ecc.).");
-    auto* room_goto_exit = new QPushButton("Go to exit target");
+    auto* room_apply = new QPushButton;
+    auto* room_sync_exits = new QPushButton;
+    room_sync_exits->setToolTip(QString());
+    auto* room_align_all_exits = new QPushButton;
+    room_align_all_exits->setToolTip(QString());
+    auto* room_goto_exit = new QPushButton;
+    room_apply_button_ = room_apply;
+    room_sync_exits_button_ = room_sync_exits;
+    room_align_all_exits_button_ = room_align_all_exits;
+    room_goto_exit_button_ = room_goto_exit;
     room_buttons->addWidget(room_apply);
     room_buttons->addWidget(room_sync_exits);
     room_buttons->addWidget(room_align_all_exits);
     room_buttons->addWidget(room_goto_exit);
     room_buttons->addStretch();
     room_panel_layout->addLayout(room_buttons);
-    const EntityPageWidgets room_page = makeEntityPage(room_panel, "New room");
+    const EntityPageWidgets room_page = makeEntityPage(room_panel, QString());
     room_search_ = room_page.search;
     room_list_ = room_page.list;
+    room_create_button_ = room_page.create_button;
     room_list_->setItemDelegate(new nebbie::qt::MudColorListDelegate(room_list_));
-    tabs_->addTab(room_page.page, "Rooms");
+    tabs_->addTab(room_page.page, QString());
 
     auto* mob_scroll = new QScrollArea;
     mob_scroll->setWidgetResizable(true);
@@ -181,12 +184,14 @@ void MainWindow::setupUi() {
     auto* mob_panel_layout = new QVBoxLayout(mob_panel);
     mob_panel_layout->setContentsMargins(0, 0, 0, 0);
     mob_panel_layout->addWidget(mob_scroll, 1);
-    auto* mob_apply = new QPushButton("Applica modifiche");
+    auto* mob_apply = new QPushButton;
+    mob_apply_button_ = mob_apply;
     mob_panel_layout->addWidget(mob_apply);
-    const EntityPageWidgets mob_page = makeEntityPage(mob_panel, "Nuovo mob");
+    const EntityPageWidgets mob_page = makeEntityPage(mob_panel, QString());
     mob_search_ = mob_page.search;
     mob_list_ = mob_page.list;
-    tabs_->addTab(mob_page.page, "Mob");
+    mob_create_button_ = mob_page.create_button;
+    tabs_->addTab(mob_page.page, QString());
 
     auto* obj_scroll = new QScrollArea;
     obj_scroll->setWidgetResizable(true);
@@ -196,12 +201,14 @@ void MainWindow::setupUi() {
     auto* obj_panel_layout = new QVBoxLayout(obj_panel);
     obj_panel_layout->setContentsMargins(0, 0, 0, 0);
     obj_panel_layout->addWidget(obj_scroll, 1);
-    auto* obj_apply = new QPushButton("Applica modifiche");
+    auto* obj_apply = new QPushButton;
+    obj_apply_button_ = obj_apply;
     obj_panel_layout->addWidget(obj_apply);
-    const EntityPageWidgets obj_page = makeEntityPage(obj_panel, "Nuovo oggetto");
+    const EntityPageWidgets obj_page = makeEntityPage(obj_panel, QString());
     obj_search_ = obj_page.search;
     obj_list_ = obj_page.list;
-    tabs_->addTab(obj_page.page, "Oggetti");
+    obj_create_button_ = obj_page.create_button;
+    tabs_->addTab(obj_page.page, QString());
 
     auto* zone_scroll = new QScrollArea;
     zone_scroll->setWidgetResizable(true);
@@ -212,7 +219,8 @@ void MainWindow::setupUi() {
     zone_panel_layout->setContentsMargins(0, 0, 0, 0);
     zone_panel_layout->addWidget(zone_scroll, 1);
     auto* zone_buttons = new QHBoxLayout;
-    auto* zone_apply = new QPushButton("Apply changes");
+    auto* zone_apply = new QPushButton;
+    zone_apply_button_ = zone_apply;
     zone_buttons->addWidget(zone_apply);
     zone_buttons->addStretch();
     zone_panel_layout->addLayout(zone_buttons);
@@ -233,11 +241,11 @@ void MainWindow::setupUi() {
     zone_splitter->setStretchFactor(1, 3);
     zone_layout->addWidget(zone_splitter);
     zone_tab_ = zone_page;
-    tabs_->addTab(zone_page, "Zone");
+    tabs_->addTab(zone_page, QString());
 
     world_data_editor_ = new WorldDataEditorWidget;
     world_data_tab_ = world_data_editor_;
-    tabs_->addTab(world_data_tab_, "Dati mondo");
+    tabs_->addTab(world_data_tab_, QString());
     connect(world_data_editor_, &WorldDataEditorWidget::modified, this, &MainWindow::markDirty);
 
     map_tab_ = new QWidget;
@@ -273,7 +281,7 @@ void MainWindow::setupUi() {
     map_stats_ = new QLabel;
     map_stats_->setWordWrap(true);
     map_zone_layout->addWidget(map_stats_);
-    map_tabs->addTab(map_zone_page, "Zona");
+    map_tabs->addTab(map_zone_page, QString());
 
     auto* map_world_page = new QWidget;
     auto* map_world_layout = new QVBoxLayout(map_world_page);
@@ -306,10 +314,10 @@ void MainWindow::setupUi() {
     world_map_stats_ = new QLabel;
     world_map_stats_->setWordWrap(true);
     map_world_layout->addWidget(world_map_stats_);
-    map_tabs->addTab(map_world_page, "Mondo (zone)");
+    map_tabs->addTab(map_world_page, QString());
 
     map_layout->addWidget(map_tabs, 1);
-    tabs_->addTab(map_tab_, "Mappa");
+    tabs_->addTab(map_tab_, QString());
 
     validation_tab_ = new QWidget;
     auto* validation_layout = new QVBoxLayout(validation_tab_);
@@ -324,11 +332,10 @@ void MainWindow::setupUi() {
 
     validation_list_ = new QListWidget;
     validation_layout->addWidget(validation_list_, 1);
-    tabs_->addTab(validation_tab_, "Validazione");
+    tabs_->addTab(validation_tab_, QString());
 
     root_layout->addWidget(tabs_);
     setCentralWidget(central);
-    statusBar()->showMessage("Pronto");
 
     connect(room_list_, &QListWidget::currentRowChanged, this, [this](int) { onRoomSelected(); });
     connect(mob_list_, &QListWidget::currentRowChanged, this, [this](int) { onMobSelected(); });
@@ -445,94 +452,174 @@ void MainWindow::setupUi() {
 }
 
 void MainWindow::setupMenus() {
-    auto* file_menu = menuBar()->addMenu("&File");
+    auto* file_menu = menuBar()->addMenu(appTr("menu.file"));
 
-    auto* open_action = file_menu->addAction("&Apri libreria...");
+    auto* open_action = file_menu->addAction(appTr("menu.open_lib"));
     open_action->setShortcut(QKeySequence::Open);
     connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
 
-    auto* reload_action = file_menu->addAction("A&ggiorna libreria");
+    auto* reload_action = file_menu->addAction(appTr("menu.reload_lib"));
     reload_action->setShortcut(QKeySequence::Refresh);
-    reload_action->setToolTip("Ricarica dal disco la cartella libreria attualmente aperta.");
+    reload_action->setToolTip(appTr("menu.reload_lib_tip"));
     connect(reload_action, &QAction::triggered, this, &MainWindow::reloadLib);
 
-    auto* save_action = file_menu->addAction("&Salva");
+    auto* save_action = file_menu->addAction(appTr("menu.save"));
     save_action->setShortcut(QKeySequence::Save);
     connect(save_action, &QAction::triggered, this, &MainWindow::saveLib);
 
-    auto* save_force_action = file_menu->addAction("Salva (forza)");
+    auto* save_force_action = file_menu->addAction(appTr("menu.save_force"));
     connect(save_force_action, &QAction::triggered, this, &MainWindow::saveLibForce);
 
-    auto* history_menu = file_menu->addMenu("Cronologia");
-    auto* restore_workspace_action = history_menu->addAction("Ripristina ultimo autosalvataggio");
+    auto* history_menu = file_menu->addMenu(appTr("menu.history"));
+    auto* restore_workspace_action = history_menu->addAction(appTr("menu.restore_autosave"));
     connect(restore_workspace_action, &QAction::triggered, this, &MainWindow::restoreFromWorkspace);
-    auto* restore_version_action = history_menu->addAction("Ripristina versione...");
+    auto* restore_version_action = history_menu->addAction(appTr("menu.restore_version"));
     connect(restore_version_action, &QAction::triggered, this, &MainWindow::restoreVersion);
 
     file_menu->addSeparator();
-    file_menu->addAction("E&sci", this, &QWidget::close);
+    file_menu->addAction(appTr("menu.exit"), this, &QWidget::close);
 
-    auto* tools_menu = menuBar()->addMenu("&Strumenti");
-    auto* validate_action = tools_menu->addAction("Valida &mondo intero...");
-    validate_action->setToolTip("Validazione completa: stanze, reset, shop, guild, special, social.");
+    auto* tools_menu = menuBar()->addMenu(appTr("menu.tools"));
+    auto* validate_action = tools_menu->addAction(appTr("menu.validate_world"));
+    validate_action->setToolTip(appTr("menu.validate_world_tip"));
     validate_action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
     connect(validate_action, &QAction::triggered, this, &MainWindow::validateLib);
     tools_menu->addSeparator();
-    auto* export_overlays_action = tools_menu->addAction("Esporta overlay...");
+    auto* export_overlays_action = tools_menu->addAction(appTr("menu.export_overlays"));
     connect(export_overlays_action, &QAction::triggered, this, &MainWindow::exportOverlays);
-    auto* export_zone_packs_action = tools_menu->addAction("Dividi per zone...");
-    export_zone_packs_action->setToolTip(
-        "Esporta ogni zona in una sottodirectory con myst.zon/wld/mob/obj filtrati "
-        "e directory overlay rooms/objects/mobiles/zones.");
+    auto* export_zone_packs_action = tools_menu->addAction(appTr("menu.split_zones"));
+    export_zone_packs_action->setToolTip(appTr("menu.split_zones_tip"));
     connect(export_zone_packs_action, &QAction::triggered, this, &MainWindow::exportZonePacks);
-    auto* align_all_exits_action = tools_menu->addAction("Normalizza description uscite (mondo)...");
-    align_all_exits_action->setToolTip(
-        "Normalizza description che differiscono dal name di destinazione solo per spazi/newline. "
-        "Preserva description vuote, formato [vnum (nome)] e testi di look personalizzati.");
+    auto* align_all_exits_action = tools_menu->addAction(appTr("menu.align_exits"));
+    align_all_exits_action->setToolTip(appTr("menu.align_exits_tip"));
     connect(align_all_exits_action, &QAction::triggered, this, &MainWindow::alignAllInboundExitDescriptions);
 
-    auto* prefs_menu = menuBar()->addMenu("&Preferenze");
-    auto* line_limit_action = prefs_menu->addAction("Limite caratteri per riga...");
+    auto* prefs_menu = menuBar()->addMenu(appTr("menu.prefs"));
+    auto* line_limit_action = prefs_menu->addAction(appTr("menu.line_limit"));
     connect(line_limit_action, &QAction::triggered, this, &MainWindow::editLineLengthLimit);
 
-    auto* extended_color_action = prefs_menu->addAction("Visualizzazione estesa codici colore");
+    auto* extended_color_action = prefs_menu->addAction(appTr("menu.extended_colors"));
     extended_color_action->setCheckable(true);
     extended_color_action->setChecked(app_config_.show_color_codes);
     connect(extended_color_action, &QAction::toggled, this, &MainWindow::toggleExtendedColorView);
 
-    auto* colors_menu = menuBar()->addMenu("&Colori");
-    auto* legend_action = colors_menu->addAction("Legenda colori MUD");
+    auto* language_menu = prefs_menu->addMenu(appTr("menu.language"));
+    auto* language_group = new QActionGroup(this);
+    language_group->setExclusive(true);
+    auto* italian_action = language_menu->addAction(appTr("menu.language_it"));
+    italian_action->setCheckable(true);
+    italian_action->setData(static_cast<int>(nebbie::qt::AppLanguage::Italian));
+    language_group->addAction(italian_action);
+    auto* english_action = language_menu->addAction(appTr("menu.language_en"));
+    english_action->setCheckable(true);
+    english_action->setData(static_cast<int>(nebbie::qt::AppLanguage::English));
+    language_group->addAction(english_action);
+    if (nebbie::qt::currentAppLanguage() == nebbie::qt::AppLanguage::English) {
+        english_action->setChecked(true);
+    } else {
+        italian_action->setChecked(true);
+    }
+    connect(language_group, &QActionGroup::triggered, this, [this](QAction* action) {
+        setUiLanguage(static_cast<nebbie::qt::AppLanguage>(action->data().toInt()));
+    });
+
+    auto* colors_menu = menuBar()->addMenu(appTr("menu.colors"));
+    auto* legend_action = colors_menu->addAction(appTr("menu.color_legend"));
     connect(legend_action, &QAction::triggered, this, &MainWindow::showColorLegend);
-    auto* insert_color_action = colors_menu->addAction("Inserisci codice...");
+    auto* insert_color_action = colors_menu->addAction(appTr("menu.insert_color"));
     connect(insert_color_action, &QAction::triggered, this, &MainWindow::insertColorCode);
 
-    auto* coordinator_menu = menuBar()->addMenu("&Coordinator");
-    auto* coordinator_config_action = coordinator_menu->addAction("Configuration...");
+    auto* coordinator_menu = menuBar()->addMenu(appTr("menu.coordinator"));
+    auto* coordinator_config_action = coordinator_menu->addAction(appTr("menu.coordinator_config"));
     connect(coordinator_config_action, &QAction::triggered, this, &MainWindow::configureCoordinator);
-    auto* refresh_index_action = coordinator_menu->addAction("Refresh world index");
+    auto* refresh_index_action = coordinator_menu->addAction(appTr("menu.refresh_index"));
     connect(refresh_index_action, &QAction::triggered, this, &MainWindow::refreshWorldIndex);
-    auto* load_index_action = coordinator_menu->addAction("Load world index from file...");
+    auto* load_index_action = coordinator_menu->addAction(appTr("menu.load_index"));
     connect(load_index_action, &QAction::triggered, this, &MainWindow::loadWorldIndexFromFile);
-    auto* export_index_action = coordinator_menu->addAction("Export local world index");
+    auto* export_index_action = coordinator_menu->addAction(appTr("menu.export_index"));
     connect(export_index_action, &QAction::triggered, this, &MainWindow::exportLocalWorldIndex);
     coordinator_menu->addSeparator();
-    auto* reserve_action = coordinator_menu->addAction("Reserve vnums...");
+    auto* reserve_action = coordinator_menu->addAction(appTr("menu.reserve_vnums"));
     connect(reserve_action, &QAction::triggered, this, &MainWindow::reserveVnums);
 
-    auto* help_menu = menuBar()->addMenu("&Aiuto");
-    auto* check_updates_action = help_menu->addAction("Controlla aggiornamenti...");
+    auto* help_menu = menuBar()->addMenu(appTr("menu.help"));
+    auto* check_updates_action = help_menu->addAction(appTr("menu.check_updates"));
     connect(check_updates_action, &QAction::triggered, this, &MainWindow::checkForUpdates);
-    auto* auto_updates_action = help_menu->addAction("Controlla aggiornamenti all'avvio");
+    auto* auto_updates_action = help_menu->addAction(appTr("menu.check_updates_startup"));
     auto_updates_action->setCheckable(true);
     auto_updates_action->setChecked(app_config_.check_updates);
     connect(auto_updates_action, &QAction::toggled, this, &MainWindow::toggleCheckUpdatesOnStartup);
     help_menu->addSeparator();
-    help_menu->addAction("Informazioni su Izanagi...", this, [this]() {
+    help_menu->addAction(appTr("menu.about_izanagi"), this, [this]() {
         QMessageBox::about(this,
-                           QStringLiteral("Izanagi"),
-                           QStringLiteral("Izanagi %1\nEditor completo del mondo Nebbie.")
-                               .arg(QApplication::applicationVersion()));
+                           nebbie::qt::izanagiDisplayName(),
+                           nebbie::qt::izanagiAboutText(QApplication::applicationVersion()));
     });
+}
+
+void MainWindow::retranslateUi() {
+    updateBranding();
+    if (lib_path_.empty()) {
+        lib_label_->setText(appTr("status.no_lib"));
+        setStatus(appTr("status.open_lib_to_start"));
+    }
+    room_search_->setPlaceholderText(appTr("ui.search_vnum"));
+    mob_search_->setPlaceholderText(appTr("ui.search_vnum"));
+    obj_search_->setPlaceholderText(appTr("ui.search_vnum"));
+    room_create_button_->setText(appTr("ui.new_room"));
+    mob_create_button_->setText(appTr("ui.new_mob"));
+    obj_create_button_->setText(appTr("ui.new_object"));
+    room_apply_button_->setText(appTr("ui.apply_changes_en"));
+    room_sync_exits_button_->setText(appTr("ui.sync_exit_desc"));
+    room_sync_exits_button_->setToolTip(appTr("ui.sync_exit_desc_tip"));
+    room_align_all_exits_button_->setText(appTr("ui.align_exits_world"));
+    room_align_all_exits_button_->setToolTip(appTr("ui.align_exits_world_tip"));
+    room_goto_exit_button_->setText(appTr("ui.goto_exit"));
+    mob_apply_button_->setText(appTr("ui.apply_changes"));
+    obj_apply_button_->setText(appTr("ui.apply_changes"));
+    zone_apply_button_->setText(appTr("ui.apply_changes_en"));
+    tabs_->setTabText(0, appTr("tab.rooms"));
+    tabs_->setTabText(1, appTr("tab.mob"));
+    tabs_->setTabText(2, appTr("tab.objects"));
+    tabs_->setTabText(3, appTr("tab.zone"));
+    tabs_->setTabText(4, appTr("tab.world_data"));
+    tabs_->setTabText(5, appTr("tab.map"));
+    tabs_->setTabText(6, appTr("tab.validation"));
+    if (map_tabs_) {
+        map_tabs_->setTabText(0, appTr("tab.map_zone"));
+        map_tabs_->setTabText(1, appTr("tab.map_world"));
+    }
+    if (lib_path_.empty() && statusBar()->currentMessage().isEmpty()) {
+        statusBar()->showMessage(appTr("status.ready"));
+    }
+}
+
+void MainWindow::updateBranding() {
+    QString title = nebbie::qt::izanagiWindowTitle();
+    if (dirty_) {
+        title += QStringLiteral(" *");
+    }
+    setWindowTitle(title);
+    QApplication::setApplicationDisplayName(nebbie::qt::izanagiWindowTitle());
+}
+
+void MainWindow::setUiLanguage(const nebbie::qt::AppLanguage language) {
+    if (nebbie::qt::currentAppLanguage() == language) {
+        return;
+    }
+    nebbie::qt::setAppLanguage(language);
+    app_config_.ui_language = nebbie::qt::languageCode(language);
+    nebbie::qt::write_config(app_config_);
+    menuBar()->clear();
+    setupMenus();
+    retranslateUi();
+}
+
+void MainWindow::changeEvent(QEvent* event) {
+    QMainWindow::changeEvent(event);
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
 }
 
 void MainWindow::rememberLibPath(const std::filesystem::path& path) {
@@ -555,9 +642,9 @@ void MainWindow::toggleExtendedColorView(bool enabled) {
         room_list_->viewport()->update();
     }
     if (enabled) {
-        setStatus("Visualizzazione estesa attiva: i codici $cXXXX sono visibili.");
+        setStatus(appTr("status.extended_on"));
     } else {
-        setStatus("Codici colore nascosti: anteprima colorata attiva.");
+        setStatus(appTr("status.extended_off"));
     }
 }
 
@@ -2392,13 +2479,13 @@ void MainWindow::setStatus(const QString& message) {
 
 void MainWindow::markDirty() {
     dirty_ = true;
-    setWindowTitle("Izanagi *");
+    updateBranding();
 }
 
 void MainWindow::markClean() {
     dirty_ = false;
     dirty_room_vnums_.clear();
-    setWindowTitle("Izanagi");
+    updateBranding();
 }
 
 bool MainWindow::confirmSaveIfDirty() {

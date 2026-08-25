@@ -12,6 +12,8 @@ add_executable(nebbieedit
     main_window.hpp
     app_config.cpp
     app_config.hpp
+    app_i18n.cpp
+    app_i18n.hpp
     app_theme.cpp
     app_theme.hpp
     application_log.cpp
@@ -74,7 +76,7 @@ if(APPLE AND NEBBIE_MACOS_BUNDLE)
     set_target_properties(nebbieedit PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.editor"
-        MACOSX_BUNDLE_BUNDLE_NAME "Izanagi"
+        MACOSX_BUNDLE_BUNDLE_NAME "Izanagi — Nebbie Arcane MUD world editor"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     )

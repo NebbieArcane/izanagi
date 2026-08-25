@@ -15,6 +15,8 @@ add_executable(nebbie-translate
     translator_window.cpp
     translator_window.hpp
     nebbie-translate.qrc
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/app_i18n.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/app_i18n.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.cpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_checker.cpp
@@ -61,7 +63,7 @@ if(APPLE AND NEBBIE_MACOS_BUNDLE_TRANSLATOR)
     set_target_properties(nebbie-translate PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.translate"
-        MACOSX_BUNDLE_BUNDLE_NAME "Cypher"
+        MACOSX_BUNDLE_BUNDLE_NAME "Cypher — Nebbie Arcane room editor"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     )

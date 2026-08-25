@@ -1,5 +1,6 @@
 #include "main_window.hpp"
 #include "app_config.hpp"
+#include "app_i18n.hpp"
 #include "app_theme.hpp"
 #include "path_util.hpp"
 #include "version.hpp"
@@ -11,8 +12,10 @@
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
-    app.setApplicationName("Izanagi");
-    app.setApplicationDisplayName("Izanagi");
+    const nebbie::qt::AppConfig startup_config = nebbie::qt::read_config();
+    nebbie::qt::setAppLanguage(nebbie::qt::parseLanguageCode(startup_config.ui_language));
+    app.setApplicationName(nebbie::qt::izanagiDisplayName());
+    app.setApplicationDisplayName(nebbie::qt::izanagiWindowTitle());
     app.setOrganizationName("Nebbie Arcane");
     app.setApplicationVersion(QStringLiteral(NEBBIE_VERSION));
     nebbie::qt::applyDefaultAppTheme(app);

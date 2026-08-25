@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=Izanagi
-GenericName=Nebbie world editor
-Comment=Editor di mondo per Nebbie Arcane
+GenericName=Nebbie Arcane MUD world editor
+Comment=Izanagi — a totally new Nebbie Arcane MUD world editor
 Exec=nebbieedit
 Icon=izanagi
 Categories=Development;Game;

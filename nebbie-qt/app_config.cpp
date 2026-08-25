@@ -80,6 +80,8 @@ AppConfig read_config() {
             config.last_update_check = value_after_equals(line);
         } else if (line.startsWith(QStringLiteral("dismissed_update_version="))) {
             config.dismissed_update_version = value_after_equals(line);
+        } else if (line.startsWith(QStringLiteral("ui_language="))) {
+            config.ui_language = value_after_equals(line);
         }
     }
     return config;
@@ -114,6 +116,9 @@ bool write_config(const AppConfig& config) {
     }
     if (!config.dismissed_update_version.isEmpty()) {
         out << "dismissed_update_version=" << config.dismissed_update_version << '\n';
+    }
+    if (!config.ui_language.isEmpty()) {
+        out << "ui_language=" << config.ui_language << '\n';
     }
     return true;
 }

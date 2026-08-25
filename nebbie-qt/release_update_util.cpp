@@ -1,5 +1,7 @@
 #include "release_update_util.hpp"
 
+#include "app_i18n.hpp"
+
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -93,7 +95,7 @@ ReleaseUpdateInfo parseReleaseResponse(const QByteArray& body,
     QJsonParseError parse_error;
     const QJsonDocument document = QJsonDocument::fromJson(body, &parse_error);
     if (parse_error.error != QJsonParseError::NoError || !document.isObject()) {
-        info.error = QStringLiteral("Risposta release GitHub non valida");
+        info.error = appTr("update.invalid_response");
         return info;
     }
 
@@ -125,7 +127,7 @@ ReleaseUpdateInfo parseReleaseResponse(const QByteArray& body,
     }
 
     if (best_version.isEmpty() || best_url.isEmpty()) {
-        info.error = QStringLiteral("Nessun pacchetto %1 trovato per questa piattaforma").arg(prefix);
+        info.error = appTr("update.no_package", prefix);
         return info;
     }
 

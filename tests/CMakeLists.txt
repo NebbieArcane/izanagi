@@ -11,7 +11,8 @@ add_test(NAME zone-file-eof
 find_package(Qt6 QUIET COMPONENTS Core)
 if(Qt6_FOUND)
     add_executable(nebbie-release-update-tests test_release_update.cpp
-                   ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_util.cpp)
+                   ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_util.cpp
+                   ${CMAKE_SOURCE_DIR}/nebbie-qt/app_i18n.cpp)
     target_include_directories(nebbie-release-update-tests PRIVATE
         "${CMAKE_SOURCE_DIR}/nebbie-qt"
         "${CMAKE_BINARY_DIR}/generated")

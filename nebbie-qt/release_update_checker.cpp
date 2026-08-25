@@ -1,5 +1,6 @@
 #include "release_update_checker.hpp"
 
+#include "app_i18n.hpp"
 #include "version.hpp"
 
 #include <QDesktopServices>
@@ -40,8 +41,8 @@ void ReleaseUpdateChecker::checkForUpdates(QNetworkAccessManager& network,
     dialog_parent_ = dialog_parent;
     dismissed_version_ = dismissed_version;
 
-    const QUrl url(QStringLiteral("https://api.github.com/repos/wizardmorgan/nebbie-editor/releases/tags/%1")
-                       .arg(releaseTag(product_)));
+    const QUrl url(QStringLiteral("https://api.github.com/repos/%1/releases/tags/%2")
+                       .arg(githubReleaseRepo(), releaseTag(product_)));
     active_reply_ = network.get(makeReleaseRequest(url));
     connect(active_reply_, &QNetworkReply::finished, this, &ReleaseUpdateChecker::onReplyFinished);
 }
@@ -102,24 +103,21 @@ ReleaseUpdateInfo ReleaseUpdateChecker::showResultDialog(const ReleaseUpdateInfo
             return result;
         }
         QMessageBox::warning(parent,
-                             QStringLiteral("Aggiornamenti %1").arg(app_name),
-                             QStringLiteral("Impossibile verificare gli aggiornamenti:\n%1").arg(info.error));
+                             appTr("update.title_error", app_name),
+                             appTr("update.check_failed", info.error));
         return result;
     }
 
     if (info.update_available) {
         QMessageBox dialog(QMessageBox::Information,
-                           QStringLiteral("Aggiornamento disponibile"),
-                           QStringLiteral("%1 %2 è disponibile (versione attuale: %3).\n\n"
-                                            "Scarica il pacchetto e installalo per restare aggiornato.")
-                               .arg(app_name, info.latest_version, info.current_version),
+                           appTr("update.available_title"),
+                           appTr("update.available_body", app_name, info.latest_version,
+                                 info.current_version),
                            QMessageBox::NoButton,
                            parent);
-        auto* download_button =
-            dialog.addButton(QStringLiteral("Scarica aggiornamento"), QMessageBox::AcceptRole);
-        dialog.addButton(QStringLiteral("Più tardi"), QMessageBox::RejectRole);
-        auto* ignore_button =
-            dialog.addButton(QStringLiteral("Ignora questa versione"), QMessageBox::DestructiveRole);
+        auto* download_button = dialog.addButton(appTr("update.download"), QMessageBox::AcceptRole);
+        dialog.addButton(appTr("update.later"), QMessageBox::RejectRole);
+        auto* ignore_button = dialog.addButton(appTr("update.ignore"), QMessageBox::DestructiveRole);
         dialog.setDefaultButton(download_button);
         dialog.exec();
 
@@ -141,8 +139,8 @@ ReleaseUpdateInfo ReleaseUpdateChecker::showResultDialog(const ReleaseUpdateInfo
 
     if (interactive_) {
         QMessageBox::information(parent,
-                                 QStringLiteral("Aggiornamenti %1").arg(app_name),
-                                 QStringLiteral("Stai usando l'ultima versione (%1).").arg(info.current_version));
+                                 appTr("update.title_error", app_name),
+                                 appTr("update.up_to_date", info.current_version));
     }
     return result;
 }

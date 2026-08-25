@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_config.hpp"
+#include "app_i18n.hpp"
 #include "release_update_checker.hpp"
 #include "nebbie/lib_context.hpp"
 #include "nebbie/session.hpp"
@@ -12,6 +13,8 @@
 
 class QNetworkAccessManager;
 
+#include <QEvent>
+
 #include <chrono>
 #include <filesystem>
 #include <set>
@@ -20,6 +23,7 @@ class QCloseEvent;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QPushButton;
 class TranslatorRoomWidget;
 
 class TranslatorWindow : public QMainWindow {
@@ -39,9 +43,6 @@ public slots:
     void validateLib();
     void onAutosaveTick();
 
-protected:
-    void closeEvent(QCloseEvent* event) override;
-
 private slots:
     void onRoomSelected();
     void applyRoomChanges();
@@ -53,10 +54,17 @@ private slots:
     void checkForUpdates();
     void onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info);
     void toggleCheckUpdatesOnStartup(bool enabled);
+    void setUiLanguage(nebbie::qt::AppLanguage language);
+
+protected:
+    void changeEvent(QEvent* event) override;
+    void closeEvent(QCloseEvent* event) override;
 
 private:
     void setupUi();
     void setupMenus();
+    void retranslateUi();
+    void updateBranding();
     void scheduleStartupUpdateCheck();
     void loadLib(const std::filesystem::path& path);
     void rememberLibPath(const std::filesystem::path& path);
@@ -86,6 +94,7 @@ private:
     QLineEdit* room_search_ = nullptr;
     QListWidget* room_list_ = nullptr;
     TranslatorRoomWidget* room_editor_ = nullptr;
+    QPushButton* apply_button_ = nullptr;
     QTimer* autosave_timer_ = nullptr;
     QString room_filter_;
 };

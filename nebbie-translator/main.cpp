@@ -1,5 +1,6 @@
 #include "translator_window.hpp"
 #include "app_config.hpp"
+#include "app_i18n.hpp"
 #include "app_theme.hpp"
 
 #include "path_util.hpp"
@@ -12,8 +13,10 @@
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
-    app.setApplicationName("Cypher");
-    app.setApplicationDisplayName("Cypher");
+    const nebbie::translate::AppConfig startup_config = nebbie::translate::read_config();
+    nebbie::qt::setAppLanguage(nebbie::qt::parseLanguageCode(startup_config.ui_language));
+    app.setApplicationName(nebbie::qt::cypherDisplayName());
+    app.setApplicationDisplayName(nebbie::qt::cypherWindowTitle());
     app.setOrganizationName("Nebbie Arcane");
     app.setApplicationVersion(QStringLiteral(NEBBIE_VERSION));
     nebbie::qt::applyDefaultAppTheme(app);
