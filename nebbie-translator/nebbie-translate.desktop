@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=Cypher
-GenericName=Nebbie room translator
-Comment=Editor leggero per traduzione stanze Nebbie Arcane
+GenericName=Nebbie Arcane room translator
+Comment=Cypher — a lightweight room-only MUD editor for Nebbie Arcane
 Exec=nebbie-translate
 Icon=cypher
 Categories=Game;Development;

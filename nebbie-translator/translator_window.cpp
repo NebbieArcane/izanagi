@@ -1,6 +1,7 @@
 #include "translator_window.hpp"
 
 #include "app_config.hpp"
+#include "app_i18n.hpp"
 #include "mud_color_common.hpp"
 #include "mud_color_dialogs.hpp"
 #include "mud_color_list_delegate.hpp"
@@ -15,6 +16,7 @@
 #include "nebbie/validate.hpp"
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDateTime>
@@ -35,6 +37,8 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QVBoxLayout>
+
+using nebbie::qt::appTr;
 
 namespace {
 
@@ -57,21 +61,21 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
 
 TranslatorWindow::TranslatorWindow(QWidget* parent) : QMainWindow(parent) {
     app_config_ = nebbie::translate::read_config();
+    nebbie::qt::setAppLanguage(nebbie::qt::parseLanguageCode(app_config_.ui_language));
     network_ = new QNetworkAccessManager(this);
     update_checker_ = new nebbie::qt::ReleaseUpdateChecker(nebbie::qt::ReleaseProduct::Cypher, this);
     connect(update_checker_, &nebbie::qt::ReleaseUpdateChecker::checkFinished, this,
             &TranslatorWindow::onUpdateCheckFinished);
     setupUi();
     setupMenus();
+    retranslateUi();
     room_editor_->setMaxLineLength(app_config_.max_line_length);
     room_editor_->setShowColorCodes(app_config_.show_color_codes);
     if (auto* delegate = roomListDelegate(room_list_)) {
         delegate->setShowColorCodes(app_config_.show_color_codes);
     }
     setWindowIcon(QIcon(QStringLiteral(":/app-icon.png")));
-    setWindowTitle("Cypher");
     resize(960, 680);
-    setStatus("Apri una libreria (mudroot/lib) per tradurre le descrizioni delle stanze.");
     scheduleStartupUpdateCheck();
 }
 
@@ -79,13 +83,12 @@ void TranslatorWindow::setupUi() {
     auto* central = new QWidget;
     auto* root_layout = new QVBoxLayout(central);
 
-    lib_label_ = new QLabel("Nessuna libreria aperta");
+    lib_label_ = new QLabel;
     lib_label_->setWordWrap(true);
     root_layout->addWidget(lib_label_);
 
     auto* top = new QHBoxLayout;
     room_search_ = new QLineEdit;
-    room_search_->setPlaceholderText("Cerca vnum o nome stanza...");
     top->addWidget(room_search_, 1);
     root_layout->addLayout(top);
 
@@ -105,7 +108,8 @@ void TranslatorWindow::setupUi() {
     editor_layout->addWidget(room_scroll, 1);
 
     auto* buttons = new QHBoxLayout;
-    auto* apply_button = new QPushButton("Applica modifiche");
+    auto* apply_button = new QPushButton;
+    apply_button_ = apply_button;
     buttons->addWidget(apply_button);
     buttons->addStretch();
     editor_layout->addLayout(buttons);
@@ -116,7 +120,6 @@ void TranslatorWindow::setupUi() {
     root_layout->addWidget(splitter, 1);
 
     setCentralWidget(central);
-    statusBar()->showMessage("Pronto.");
 
     autosave_timer_ = new QTimer(this);
     autosave_timer_->setInterval(session_config_.autosave_interval_sec * 1000);
@@ -127,61 +130,117 @@ void TranslatorWindow::setupUi() {
 }
 
 void TranslatorWindow::setupMenus() {
-    auto* file_menu = menuBar()->addMenu("&File");
+    auto* file_menu = menuBar()->addMenu(appTr("menu.file"));
 
-    auto* open_action = file_menu->addAction("Apri libreria...");
+    auto* open_action = file_menu->addAction(appTr("menu.open_lib"));
     open_action->setShortcut(QKeySequence::Open);
     connect(open_action, &QAction::triggered, this, &TranslatorWindow::openLib);
 
-    auto* reload_action = file_menu->addAction("Aggiorna libreria");
+    auto* reload_action = file_menu->addAction(appTr("menu.reload_lib"));
     reload_action->setShortcut(QKeySequence::Refresh);
-    reload_action->setToolTip("Ricarica dal disco la cartella libreria attualmente aperta.");
+    reload_action->setToolTip(appTr("menu.reload_lib_tip"));
     connect(reload_action, &QAction::triggered, this, &TranslatorWindow::reloadLib);
 
-    auto* save_action = file_menu->addAction("Salva");
+    auto* save_action = file_menu->addAction(appTr("menu.save"));
     save_action->setShortcut(QKeySequence::Save);
     connect(save_action, &QAction::triggered, this, &TranslatorWindow::saveLib);
 
-    auto* save_force_action = file_menu->addAction("Salva (forza)");
+    auto* save_force_action = file_menu->addAction(appTr("menu.save_force"));
     connect(save_force_action, &QAction::triggered, this, &TranslatorWindow::saveLibForce);
 
     file_menu->addSeparator();
-    file_menu->addAction("E&sci", this, &QWidget::close);
+    file_menu->addAction(appTr("menu.exit"), this, &QWidget::close);
 
-    auto* tools_menu = menuBar()->addMenu("&Strumenti");
-    auto* validate_action = tools_menu->addAction("&Valida");
+    auto* tools_menu = menuBar()->addMenu(appTr("menu.tools"));
+    auto* validate_action = tools_menu->addAction(appTr("menu.validate"));
     validate_action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
     connect(validate_action, &QAction::triggered, this, &TranslatorWindow::validateLib);
 
-    auto* prefs_menu = menuBar()->addMenu("&Preferenze");
-    auto* line_limit_action = prefs_menu->addAction("Limite caratteri per riga...");
+    auto* prefs_menu = menuBar()->addMenu(appTr("menu.prefs"));
+    auto* line_limit_action = prefs_menu->addAction(appTr("menu.line_limit"));
     connect(line_limit_action, &QAction::triggered, this, &TranslatorWindow::editLineLengthLimit);
 
-    auto* extended_color_action = prefs_menu->addAction("Visualizzazione estesa codici colore");
+    auto* extended_color_action = prefs_menu->addAction(appTr("menu.extended_colors"));
     extended_color_action->setCheckable(true);
     extended_color_action->setChecked(app_config_.show_color_codes);
     connect(extended_color_action, &QAction::toggled, this, &TranslatorWindow::toggleExtendedColorView);
 
-    auto* colors_menu = menuBar()->addMenu("&Colori");
-    auto* legend_action = colors_menu->addAction("Legenda colori MUD");
+    auto* language_menu = prefs_menu->addMenu(appTr("menu.language"));
+    auto* language_group = new QActionGroup(this);
+    language_group->setExclusive(true);
+    auto* italian_action = language_menu->addAction(appTr("menu.language_it"));
+    italian_action->setCheckable(true);
+    italian_action->setData(static_cast<int>(nebbie::qt::AppLanguage::Italian));
+    language_group->addAction(italian_action);
+    auto* english_action = language_menu->addAction(appTr("menu.language_en"));
+    english_action->setCheckable(true);
+    english_action->setData(static_cast<int>(nebbie::qt::AppLanguage::English));
+    language_group->addAction(english_action);
+    if (nebbie::qt::currentAppLanguage() == nebbie::qt::AppLanguage::English) {
+        english_action->setChecked(true);
+    } else {
+        italian_action->setChecked(true);
+    }
+    connect(language_group, &QActionGroup::triggered, this, [this](QAction* action) {
+        setUiLanguage(static_cast<nebbie::qt::AppLanguage>(action->data().toInt()));
+    });
+
+    auto* colors_menu = menuBar()->addMenu(appTr("menu.colors"));
+    auto* legend_action = colors_menu->addAction(appTr("menu.color_legend"));
     connect(legend_action, &QAction::triggered, this, &TranslatorWindow::showColorLegend);
-    auto* insert_color_action = colors_menu->addAction("Inserisci codice...");
+    auto* insert_color_action = colors_menu->addAction(appTr("menu.insert_color"));
     connect(insert_color_action, &QAction::triggered, this, &TranslatorWindow::insertColorCode);
 
-    auto* help_menu = menuBar()->addMenu("&Aiuto");
-    auto* check_updates_action = help_menu->addAction("Controlla aggiornamenti...");
+    auto* help_menu = menuBar()->addMenu(appTr("menu.help"));
+    auto* check_updates_action = help_menu->addAction(appTr("menu.check_updates"));
     connect(check_updates_action, &QAction::triggered, this, &TranslatorWindow::checkForUpdates);
-    auto* auto_updates_action = help_menu->addAction("Controlla aggiornamenti all'avvio");
+    auto* auto_updates_action = help_menu->addAction(appTr("menu.check_updates_startup"));
     auto_updates_action->setCheckable(true);
     auto_updates_action->setChecked(app_config_.check_updates);
     connect(auto_updates_action, &QAction::toggled, this, &TranslatorWindow::toggleCheckUpdatesOnStartup);
     help_menu->addSeparator();
-    help_menu->addAction("Informazioni su Cypher...", this, [this]() {
+    help_menu->addAction(appTr("menu.about_cypher"), this, [this]() {
         QMessageBox::about(this,
-                           QStringLiteral("Cypher"),
-                           QStringLiteral("Cypher %1\nEditor leggero per tradurre le descrizioni delle stanze.")
-                               .arg(QApplication::applicationVersion()));
+                           nebbie::qt::cypherDisplayName(),
+                           nebbie::qt::cypherAboutText(QApplication::applicationVersion()));
     });
+}
+
+void TranslatorWindow::retranslateUi() {
+    updateBranding();
+    if (lib_path_.empty()) {
+        lib_label_->setText(appTr("status.no_lib"));
+        setStatus(appTr("status.open_lib_translate"));
+    }
+    room_search_->setPlaceholderText(appTr("ui.search_room"));
+    apply_button_->setText(appTr("ui.apply_changes"));
+    if (lib_path_.empty() && statusBar()->currentMessage().isEmpty()) {
+        statusBar()->showMessage(appTr("status.ready"));
+    }
+}
+
+void TranslatorWindow::updateBranding() {
+    setWindowTitle(nebbie::qt::cypherWindowTitle());
+    QApplication::setApplicationDisplayName(nebbie::qt::cypherWindowTitle());
+}
+
+void TranslatorWindow::setUiLanguage(const nebbie::qt::AppLanguage language) {
+    if (nebbie::qt::currentAppLanguage() == language) {
+        return;
+    }
+    nebbie::qt::setAppLanguage(language);
+    app_config_.ui_language = nebbie::qt::languageCode(language);
+    nebbie::translate::write_config(app_config_);
+    menuBar()->clear();
+    setupMenus();
+    retranslateUi();
+}
+
+void TranslatorWindow::changeEvent(QEvent* event) {
+    QMainWindow::changeEvent(event);
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
 }
 
 void TranslatorWindow::openLibPath(const QString& path) {
@@ -519,9 +578,9 @@ void TranslatorWindow::toggleExtendedColorView(bool enabled) {
         room_list_->viewport()->update();
     }
     if (enabled) {
-        setStatus("Visualizzazione estesa attiva: i codici $cXXXX sono visibili.");
+        setStatus(appTr("status.extended_on"));
     } else {
-        setStatus("Codici colore nascosti: anteprima colorata attiva.");
+        setStatus(appTr("status.extended_off"));
     }
 }
 

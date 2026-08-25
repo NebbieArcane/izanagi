@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_config.hpp"
+#include "app_i18n.hpp"
 #include "application_log.hpp"
 #include "release_update_checker.hpp"
 #include "nebbie/edit.hpp"
@@ -13,6 +14,8 @@
 
 #include <QMainWindow>
 #include <QTimer>
+
+#include <QEvent>
 
 #include <chrono>
 #include <filesystem>
@@ -96,13 +99,17 @@ private slots:
     void checkForUpdates();
     void onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info);
     void toggleCheckUpdatesOnStartup(bool enabled);
+    void setUiLanguage(nebbie::qt::AppLanguage language);
 
 protected:
+    void changeEvent(QEvent* event) override;
     void closeEvent(QCloseEvent* event) override;
 
 private:
     void setupUi();
     void setupMenus();
+    void retranslateUi();
+    void updateBranding();
     void scheduleStartupUpdateCheck();
     void loadLib(const std::filesystem::path& path);
     void rememberLibPath(const std::filesystem::path& path);
@@ -158,6 +165,16 @@ private:
 
     QLabel* lib_label_ = nullptr;
     QTabWidget* tabs_ = nullptr;
+    QPushButton* room_create_button_ = nullptr;
+    QPushButton* mob_create_button_ = nullptr;
+    QPushButton* obj_create_button_ = nullptr;
+    QPushButton* room_apply_button_ = nullptr;
+    QPushButton* room_sync_exits_button_ = nullptr;
+    QPushButton* room_align_all_exits_button_ = nullptr;
+    QPushButton* room_goto_exit_button_ = nullptr;
+    QPushButton* mob_apply_button_ = nullptr;
+    QPushButton* obj_apply_button_ = nullptr;
+    QPushButton* zone_apply_button_ = nullptr;
 
     QListWidget* room_list_ = nullptr;
     QLineEdit* room_search_ = nullptr;
