@@ -12,6 +12,8 @@ add_executable(nebbieedit
     main_window.hpp
     app_config.cpp
     app_config.hpp
+    app_theme.cpp
+    app_theme.hpp
     application_log.cpp
     application_log.hpp
     coordinator_client.cpp

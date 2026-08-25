@@ -15,6 +15,8 @@ add_executable(nebbie-translate
     translator_window.cpp
     translator_window.hpp
     nebbie-translate.qrc
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_widgets.cpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_widgets.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/mud_color_list_delegate.cpp
