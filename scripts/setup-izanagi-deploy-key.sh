@@ -14,9 +14,9 @@ trap cleanup EXIT
 umask 077
 printf '%s\n' "$IZANAGI_DEPLOY_KEY" > "$keyfile"
 
-if [[ -z "${SSH_AUTH_SOCK:-}" || ! -S "${SSH_AUTH_SOCK}" ]]; then
-  eval "$(ssh-agent -s)" >/dev/null
-fi
+eval "$(ssh-agent -s)" >/dev/null
+export SSH_AUTH_SOCK
+export SSH_AGENT_PID
 
 ssh-add "$keyfile" >/dev/null
 echo "Deploy key izanagi caricata in ssh-agent."
