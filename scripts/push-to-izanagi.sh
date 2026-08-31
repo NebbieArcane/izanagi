@@ -23,7 +23,7 @@ fi
 
 git_ssh() {
   GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null \
-    GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes' \
+    GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=accept-new' \
     git "$@"
 }
 
@@ -32,18 +32,28 @@ ssh_ready() {
 }
 
 github_ssh_ok() {
-  ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes \
-    -T git@github.com 2>&1 | grep -qi 'successfully authenticated'
+  local output
+  output="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
+    -T git@github.com 2>&1 || true)"
+  grep -qi 'successfully authenticated' <<<"$output"
 }
 
 push_all() {
   local target="$1"
-  shift
+  local mode="${2:-https}"
   echo "Pushing branches to $target ..."
-  git "$@" push "$target" --all
-  if git tag -l | grep -q .; then
-    echo "Pushing tags ..."
-    git "$@" push "$target" --tags
+  if [[ "$mode" == ssh ]]; then
+    git_ssh push "$target" --all
+    if git tag -l | grep -q .; then
+      echo "Pushing tags ..."
+      git_ssh push "$target" --tags
+    fi
+  else
+    git push "$target" --all
+    if git tag -l | grep -q .; then
+      echo "Pushing tags ..."
+      git push "$target" --tags
+    fi
   fi
 }
 
@@ -51,7 +61,7 @@ if [[ "$USE_SSH" == "1" || ( "$USE_SSH" == "auto" && "$(ssh_ready && echo yes ||
   echo "Using SSH agent at ${SSH_AUTH_SOCK:-<unset>}"
   ssh-add -l || true
   if github_ssh_ok; then
-    push_all "$REPO_SSH" git_ssh
+    push_all "$REPO_SSH" ssh
     echo "OK: https://github.com/NebbieArcane/izanagi"
     exit 0
   fi
@@ -71,5 +81,5 @@ if ! git remote get-url "$REMOTE_NAME" >/dev/null 2>&1; then
 else
   git remote set-url "$REMOTE_NAME" "$REPO_HTTPS"
 fi
-push_all "$REMOTE_NAME" git
+push_all "$REMOTE_NAME" https
 echo "OK: https://github.com/NebbieArcane/izanagi"
