@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Push the full repository to NebbieArcane/izanagi.
-# Prefers SSH via the host SSH agent when available (Cloud Agent: SSH_AUTH_SOCK).
+# Auth order: IZANAGI_DEPLOY_KEY secret, then host SSH agent, then HTTPS.
 set -euo pipefail
 
 REPO_SSH="${IZANAGI_REPO_SSH:-git@github.com:NebbieArcane/izanagi.git}"
@@ -16,14 +16,24 @@ elif [[ -n "${SSH_AUTH_SOCK:-}" && ! -S "$SSH_AUTH_SOCK" && -S /run/host-service
   export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
 fi
 
+if [[ -n "${IZANAGI_DEPLOY_KEY:-}" ]]; then
+  # shellcheck source=/dev/null
+  source "$(dirname "$0")/setup-izanagi-deploy-key.sh"
+fi
+
 git_ssh() {
   GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null \
-    GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=accept-new' \
+    GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes' \
     git "$@"
 }
 
 ssh_ready() {
   [[ -n "${SSH_AUTH_SOCK:-}" && -S "$SSH_AUTH_SOCK" ]] && ssh-add -l >/dev/null 2>&1
+}
+
+github_ssh_ok() {
+  ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes \
+    -T git@github.com 2>&1 | grep -qi 'successfully authenticated'
 }
 
 push_all() {
@@ -40,20 +50,26 @@ push_all() {
 if [[ "$USE_SSH" == "1" || ( "$USE_SSH" == "auto" && "$(ssh_ready && echo yes || echo no)" == "yes" ) ]]; then
   echo "Using SSH agent at ${SSH_AUTH_SOCK:-<unset>}"
   ssh-add -l || true
-  if ! ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 | grep -qi 'successfully authenticated'; then
-    echo "GitHub non accetta la chiave SSH caricata." >&2
-    echo "Aggiungi questa chiave pubblica su https://github.com/settings/keys :" >&2
-    ssh-add -L >&2 || true
+  if github_ssh_ok; then
+    push_all "$REPO_SSH" git_ssh
+    echo "OK: https://github.com/NebbieArcane/izanagi"
+    exit 0
+  fi
+  if [[ -n "${IZANAGI_DEPLOY_KEY:-}" ]]; then
+    echo "Deploy key presente ma GitHub non autentica." >&2
     exit 1
   fi
-  push_all "$REPO_SSH" git_ssh
-else
-  if ! git remote get-url "$REMOTE_NAME" >/dev/null 2>&1; then
-    git remote add "$REMOTE_NAME" "$REPO_HTTPS"
-  else
-    git remote set-url "$REMOTE_NAME" "$REPO_HTTPS"
-  fi
-  push_all "$REMOTE_NAME" git
+  echo "La chiave nell'agente SSH non è la tua: è la chiave interna di Cursor," >&2
+  echo "già registrata su GitHub e non autorizzata su NebbieArcane/izanagi." >&2
+  echo "Usa una deploy key dedicata (vedi README / messaggio agent)." >&2
+  ssh-add -L >&2 || true
+  exit 1
 fi
 
+if ! git remote get-url "$REMOTE_NAME" >/dev/null 2>&1; then
+  git remote add "$REMOTE_NAME" "$REPO_HTTPS"
+else
+  git remote set-url "$REMOTE_NAME" "$REPO_HTTPS"
+fi
+push_all "$REMOTE_NAME" git
 echo "OK: https://github.com/NebbieArcane/izanagi"
