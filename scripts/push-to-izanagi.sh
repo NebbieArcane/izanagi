@@ -12,6 +12,8 @@ cd "$(git rev-parse --show-toplevel)"
 
 if [[ -z "${SSH_AUTH_SOCK:-}" && -S /run/host-services/ssh-auth.sock ]]; then
   export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
+elif [[ -n "${SSH_AUTH_SOCK:-}" && ! -S "$SSH_AUTH_SOCK" && -S /run/host-services/ssh-auth.sock ]]; then
+  export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
 fi
 
 git_ssh() {
