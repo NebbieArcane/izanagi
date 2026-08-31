@@ -2,7 +2,7 @@
 
 Strumenti desktop per modificare le librerie di mondo di [Nebbie Arcane](https://github.com/NebbieArcane/Server).
 
-Repository: **https://github.com/wizardmorgan/nebbie-arcane-editing-tools**
+Repository: **https://github.com/NebbieArcane/izanagi**
 
 Il progetto è indipendente dal codice del server: non servono permessi sull'organizzazione `NebbieArcane`. Il riferimento di formato resta il codice in `NebbieArcane/Server` (`src/db.cpp`, `src/db.hpp`).
 
@@ -14,7 +14,7 @@ Il progetto è indipendente dal codice del server: non servono permessi sull'org
 |---|-------------|------------|
 | **Ruolo** | Editor completo del mondo | Editor leggero per tradurre i testi |
 | **Eseguibile** | `nebbieedit` (Linux/macOS) · `izanagi.exe` (Windows) | `nebbie-translate` (Linux/macOS) · `cypher.exe` (Windows) |
-| **Release GitHub** | tag [`izanagi`](https://github.com/wizardmorgan/nebbie-arcane-editing-tools/releases/tag/izanagi) | tag [`cypher`](https://github.com/wizardmorgan/nebbie-arcane-editing-tools/releases/tag/cypher) |
+| **Release GitHub** | tag [`izanagi`](https://github.com/NebbieArcane/izanagi/releases/tag/izanagi) | tag [`cypher`](https://github.com/NebbieArcane/izanagi/releases/tag/cypher) |
 | **Config** | `nebbieedit.conf` | `nebbie-translate.conf` |
 
 ### Izanagi — editor completo
@@ -56,7 +56,7 @@ A ogni push su `master`, la CI pubblica pacchetti precompilati per **Windows**, 
 
 ### Izanagi
 
-**Release:** https://github.com/wizardmorgan/nebbie-arcane-editing-tools/releases/tag/izanagi
+**Release:** https://github.com/NebbieArcane/izanagi/releases/tag/izanagi
 
 | Piattaforma | File | Installazione |
 |-------------|------|----------------|
@@ -70,7 +70,7 @@ Ogni pacchetto include un mondo di esempio (`sample-mudroot`).
 
 ### Cypher
 
-**Release:** https://github.com/wizardmorgan/nebbie-arcane-editing-tools/releases/tag/cypher
+**Release:** https://github.com/NebbieArcane/izanagi/releases/tag/cypher
 
 | Piattaforma | File | Installazione |
 |-------------|------|----------------|

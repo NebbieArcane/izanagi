@@ -11,7 +11,7 @@
 
 #define AppName "Izanagi"
 #define AppPublisher "Nebbie Arcane"
-#define AppURL "https://github.com/wizardmorgan/nebbie-editor"
+#define AppURL "https://github.com/NebbieArcane/izanagi"
 #define AppExeName "izanagi.exe"
 #define CliExeName "nebbiedit.exe"
 

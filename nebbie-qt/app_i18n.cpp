@@ -238,7 +238,7 @@ QString cypherAboutText(const QString& version) {
 }
 
 QString githubReleaseRepo() {
-    return QStringLiteral("wizardmorgan/nebbie-arcane-editing-tools");
+    return QStringLiteral("NebbieArcane/izanagi");
 }
 
 } // namespace nebbie::qt

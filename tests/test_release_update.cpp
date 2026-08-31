@@ -17,7 +17,7 @@ void expect(bool condition, const char* message) {
 QByteArray sampleReleaseJson(const QString& prefix, const QStringList& asset_names) {
     QJsonObject root;
     root.insert(QStringLiteral("html_url"),
-                QStringLiteral("https://github.com/wizardmorgan/nebbie-arcane-editing-tools/releases/tag/%1").arg(prefix));
+                QStringLiteral("https://github.com/NebbieArcane/izanagi/releases/tag/%1").arg(prefix));
     QJsonArray assets;
     for (const QString& name : asset_names) {
         QJsonObject asset;
