@@ -200,6 +200,27 @@ docs/               Documentazione tecnica
 
 ---
 
+## CI e release (maintainer)
+
+I pacchetti scaricabili sono pubblicati **solo** da `NebbieArcane/izanagi` (tag `izanagi` e `cypher`). Il fork `wizardmorgan/nebbie-arcane-editing-tools` non pubblica più release.
+
+**Setup una tantum** sul repo org (se le release non compaiono ancora):
+
+1. `NebbieArcane/izanagi` → **Settings → Actions → General** → abilita Actions
+2. **Settings → Secrets and variables → Actions** → copia i secret dal fork (se usi firma/notarizzazione macOS):
+   `APPLE_TEAM_ID`, `APPLE_CERTIFICATE_BASE64`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_BASE64`
+3. **Actions** → *Nebbie Editor (release packages)* e *Nebbie Translate (release packages)* → **Run workflow** su `master`
+
+Per copiare subito gli asset già buildati dal fork:
+
+```bash
+./scripts/mirror-releases-to-izanagi.sh
+```
+
+(richiede `gh auth login` con accesso in scrittura a `NebbieArcane/izanagi`)
+
+---
+
 ## Documentazione aggiuntiva
 
 - [docs/PLATFORM.md](docs/PLATFORM.md) — piattaforme e packaging
