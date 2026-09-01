@@ -1,23 +1,32 @@
 # AGENTS.md
 
+## Repository
+
+- **Ufficiale (pubblico):** https://github.com/NebbieArcane/izanagi
+- **Branch di lavoro:** `main`
+- **Remote:** `origin` → `NebbieArcane/izanagi` (niente doppio push su fork)
+
 ## Release workflow
 
-After implementing a fix on `main`, always:
+Dopo ogni fix su `main`:
 
-1. Push to `NebbieArcane/izanagi` with `./scripts/push-to-izanagi.sh` (triggers Izanagi + Cypher release workflows on push to `main`).
-2. Wait for GitHub Actions on `NebbieArcane/izanagi` (`Izanagi (release packages)` and `Cypher (release packages)`) to finish; if `publish-release` fails, check logs and fix `scripts/publish-github-release.sh` or the workflow.
-3. Confirm packages are updated on https://github.com/NebbieArcane/izanagi/releases (tags `izanagi` and `cypher`).
+1. `git push origin main` (oppure `./scripts/push-to-izanagi.sh` se serve la deploy key SSH in Cloud Agent)
+2. Attendi CI su `NebbieArcane/izanagi`:
+   ```bash
+   gh run list --repo NebbieArcane/izanagi --limit 5
+   gh run view --repo NebbieArcane/izanagi --log-failed   # se qualcosa fallisce
+   ```
+3. Verifica pacchetti su https://github.com/NebbieArcane/izanagi/releases (tag `izanagi` e `cypher`)
 
-Do **not** open feature branches or publish releases unless the user explicitly asks otherwise.
+Workflow rilevanti: `Izanagi (release packages)`, `Cypher (release packages)`, `Izanagi & Cypher (CI)`.
 
-## Git
+Se `publish-release` fallisce, controlla `scripts/publish-github-release.sh` e i log del job.
 
-- Work on `main` by default.
-- Use `./scripts/push-to-izanagi.sh` for the org repo (deploy key `IZANAGI_DEPLOY_KEY`).
+Non aprire branch feature né release manuali salvo richiesta esplicita dell'utente.
 
-## Build (local smoke test)
+## Build (smoke test locale)
 
 ```bash
-./scripts/package-deb.sh          # Izanagi .deb
+./scripts/package-deb.sh            # Izanagi .deb
 ./scripts/package-deb-translate.sh  # Cypher .deb
 ```

@@ -10,7 +10,7 @@ Documento di sintesi ad alto livello: obiettivi, architettura, funzionalità, de
 
 **Principio guida:** il parser del server (`src/db.cpp`) è la specifica. L’editor non inventa formati alternativi.
 
-**Repository indipendente** dal codice del server: sviluppo, test e distribuzione senza permessi sull’organizzazione NebbieArcane. Per i test si usa il fork [nebbietest](https://github.com/wizardmorgan/nebbietest).
+**Repository ufficiale:** https://github.com/NebbieArcane/izanagi (pubblico). Per i test si usa il fork [nebbietest](https://github.com/wizardmorgan/nebbietest).
 
 ---
 

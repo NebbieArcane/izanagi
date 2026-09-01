@@ -736,7 +736,7 @@ Se i pacchetti precompilati non sono adatti alla tua piattaforma, compila dal re
 ### Linux / macOS
 
 ```bash
-git clone https://github.com/wizardmorgan/nebbie-editor.git
+git clone https://github.com/NebbieArcane/izanagi.git
 cd nebbie-editor
 ./scripts/install-deps.sh
 ./scripts/build.sh --test
@@ -748,7 +748,7 @@ sudo ./scripts/install-linux.sh /usr/local    # Linux
 ### Windows
 
 ```powershell
-git clone https://github.com/wizardmorgan/nebbie-editor.git
+git clone https://github.com/NebbieArcane/izanagi.git
 cd nebbie-editor
 .\scripts\install-deps.ps1
 $env:CMAKE_PREFIX_PATH = "C:\Qt\6.5.3\msvc2019_64"
@@ -801,7 +801,7 @@ L'editor supporta autosalvataggio e cronologia versioni nella cartella `.nebbie/
 
 ## Riferimenti
 
-- Repository: https://github.com/wizardmorgan/nebbie-editor
+- Repository: https://github.com/NebbieArcane/izanagi
 - Piattaforme e build: [PLATFORM.md](PLATFORM.md)
 - **Installazione (IT):** [MANUALE_INSTALLAZIONE.md](MANUALE_INSTALLAZIONE.md) · [PDF](MANUALE_INSTALLAZIONE.pdf)
 - Architettura: [ARCHITECTURE.md](ARCHITECTURE.md)
