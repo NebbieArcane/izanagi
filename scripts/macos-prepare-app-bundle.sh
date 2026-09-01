@@ -91,4 +91,52 @@ if [[ ! -d "${APP_PATH}/Contents/Frameworks" ]]; then
     exit 1
 fi
 
+restore_bundle_icon() {
+    local app_path="$1"
+    local plist="${app_path}/Contents/Info.plist"
+    local resources="${app_path}/Contents/Resources"
+    [[ -f "${plist}" ]] || return 0
+
+    local app_name
+    app_name="$(basename "${app_path}" .app)"
+    local icns_src=""
+    local icns_name=""
+
+    case "${app_name}" in
+        Izanagi)
+            icns_name="izanagi"
+            if [[ -f "${ROOT}/nebbie-qt/icons/izanagi.icns" ]]; then
+                icns_src="${ROOT}/nebbie-qt/icons/izanagi.icns"
+            elif [[ -f "${ROOT}/nebbie-qt/icons/nebbieedit.icns" ]]; then
+                icns_src="${ROOT}/nebbie-qt/icons/nebbieedit.icns"
+                icns_name="nebbieedit"
+            fi
+            ;;
+        nebbieedit)
+            icns_name="izanagi"
+            if [[ -f "${ROOT}/nebbie-qt/icons/izanagi.icns" ]]; then
+                icns_src="${ROOT}/nebbie-qt/icons/izanagi.icns"
+            elif [[ -f "${ROOT}/nebbie-qt/icons/nebbieedit.icns" ]]; then
+                icns_src="${ROOT}/nebbie-qt/icons/nebbieedit.icns"
+                icns_name="nebbieedit"
+            fi
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    if [[ -z "${icns_src}" ]]; then
+        echo "WARNING: no .icns found for ${app_name}" >&2
+        return 0
+    fi
+
+    cp "${icns_src}" "${resources}/${icns_name}.icns"
+    /usr/libexec/PlistBuddy -c "Delete :CFBundleIconFile" "${plist}" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string ${icns_name}" "${plist}"
+    echo "==> Bundle icon set to ${icns_name}.icns"
+}
+
+restore_bundle_icon "${APP_PATH}"
+
 echo "==> App bundle ready: ${APP_PATH}"

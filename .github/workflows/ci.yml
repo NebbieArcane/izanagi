@@ -83,8 +83,8 @@ jobs:
 
       - name: Build Qt GUI bundle with icon
         run: |
-          test -x build/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit
-          test -f build/nebbie-qt/nebbieedit.app/Contents/Resources/nebbieedit.icns
+          test -x build/nebbie-qt/Izanagi.app/Contents/MacOS/Izanagi
+          test -f build/nebbie-qt/Izanagi.app/Contents/Resources/izanagi.icns
 
       - name: Build Nebbie Translate
         run: test -x build/nebbie-translator/nebbie-translate

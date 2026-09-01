@@ -3,7 +3,10 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(NEBBIE_APP_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbieedit.icns")
+set(NEBBIE_APP_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/izanagi.icns")
+if(NOT EXISTS "${NEBBIE_APP_ICON_MAC}")
+    set(NEBBIE_APP_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbieedit.icns")
+endif()
 set(NEBBIE_APP_ICON_WIN "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbieedit.ico")
 
 add_executable(nebbieedit
@@ -75,13 +78,16 @@ endif()
 if(APPLE AND NEBBIE_MACOS_BUNDLE)
     set_target_properties(nebbieedit PROPERTIES
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.editor"
-        MACOSX_BUNDLE_BUNDLE_NAME "Izanagi — Nebbie Arcane MUD world editor"
+        OUTPUT_NAME Izanagi
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.izanagi"
+        MACOSX_BUNDLE_BUNDLE_NAME "Izanagi"
+        MACOSX_BUNDLE_DISPLAY_NAME "Izanagi"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     )
     if(EXISTS "${NEBBIE_APP_ICON_MAC}")
-        set_target_properties(nebbieedit PROPERTIES MACOSX_BUNDLE_ICON_FILE nebbieedit)
+        get_filename_component(_mac_icon_name "${NEBBIE_APP_ICON_MAC}" NAME_WE)
+        set_target_properties(nebbieedit PROPERTIES MACOSX_BUNDLE_ICON_FILE "${_mac_icon_name}")
     endif()
 endif()
 

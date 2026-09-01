@@ -59,6 +59,12 @@ CMAKE_ARGS=(
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     "${ROOT}/scripts/check-macos-toolchain.sh"
+    if [[ "$MACOS_BUNDLE" -eq 1 || "$MACOS_BUNDLE_TRANSLATOR" -eq 1 ]]; then
+        if [[ ! -f "${ROOT}/nebbie-qt/icons/izanagi.icns" && ! -f "${ROOT}/nebbie-qt/icons/nebbieedit.icns" ]]; then
+            echo "==> Generating macOS app icons"
+            python3 "${ROOT}/scripts/generate-nebbie-icons.py" nebbieedit
+        fi
+    fi
     CMAKE_ARGS+=(-DNEBBIE_MACOS_BUNDLE="$MACOS_BUNDLE")
     CMAKE_ARGS+=(-DNEBBIE_MACOS_BUNDLE_TRANSLATOR="$MACOS_BUNDLE_TRANSLATOR")
     if [[ -z "${CMAKE_PREFIX_PATH:-}" ]] && command -v brew >/dev/null 2>&1; then
@@ -91,7 +97,9 @@ echo
 echo "Binaries:"
 echo "  CLI:  $BUILD_DIR/nebbiedit/nebbiedit"
 if [[ "$WITH_QT" -eq 1 ]]; then
-    if [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit" ]]; then
+    if [[ -x "$BUILD_DIR/nebbie-qt/Izanagi.app/Contents/MacOS/Izanagi" ]]; then
+        echo "  GUI:  $BUILD_DIR/nebbie-qt/Izanagi.app"
+    elif [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit" ]]; then
         echo "  GUI:  $BUILD_DIR/nebbie-qt/nebbieedit.app"
     elif [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit" ]]; then
         echo "  GUI:  $BUILD_DIR/nebbie-qt/nebbieedit"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a macOS disk image (.dmg) with nebbieedit.app and nebbiedit CLI.
+# Build a macOS disk image (.dmg) with Izanagi.app and nebbiedit CLI.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,7 +14,7 @@ usage() {
 Usage: ./scripts/package-dmg.sh [options]
 
 Builds dist/izanagi_<version>_macos.dmg containing:
-  - nebbieedit.app
+  - Izanagi.app
   - bin/nebbiedit (CLI)
   - Applications symlink (drag-and-drop install)
 
@@ -54,6 +54,11 @@ fi
 read_version
 mkdir -p "${DIST}"
 
+if [[ ! -f "${ROOT}/nebbie-qt/icons/izanagi.icns" && ! -f "${ROOT}/nebbie-qt/icons/nebbieedit.icns" ]]; then
+    echo "==> Generating app icons"
+    python3 "${ROOT}/scripts/generate-nebbie-icons.py" nebbieedit
+fi
+
 if [[ "${RUN_BUILD}" -eq 1 ]]; then
     export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-$(brew --prefix qt@6 2>/dev/null || true)}"
     "${ROOT}/scripts/build.sh" --macos-bundle
@@ -62,11 +67,14 @@ fi
 echo "==> Preparing bundled sample lib (getworldlocal)"
 "${ROOT}/scripts/prepare-sample-lib.sh"
 
-APP_SRC="${BUILD}/nebbie-qt/nebbieedit.app"
+APP_SRC="${BUILD}/nebbie-qt/Izanagi.app"
+if [[ ! -d "${APP_SRC}" ]]; then
+    APP_SRC="${BUILD}/nebbie-qt/nebbieedit.app"
+fi
 CLI_SRC="${BUILD}/nebbiedit/nebbiedit"
 
 if [[ ! -d "${APP_SRC}" ]]; then
-    echo "ERROR: ${APP_SRC} not found. Run: ./scripts/build.sh --macos-bundle" >&2
+    echo "ERROR: Izanagi.app not found under ${BUILD}/nebbie-qt/. Run: ./scripts/build.sh --macos-bundle" >&2
     exit 1
 fi
 if [[ ! -x "${CLI_SRC}" ]]; then
@@ -88,14 +96,14 @@ cp -R "${APP_SRC}" "${STAGING}/"
 cp "${CLI_SRC}" "${STAGING}/bin/"
 cp -a "${DIST}/sample-mudroot" "${STAGING}/"
 cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
-Nebbie Editor (Izanagi)
-=====================
+Izanagi
+=======
 
-1. Trascina nebbieedit.app nella cartella Applicazioni
-2. Avvia Nebbie Editor → File → Apri libreria → mudroot o mudroot/lib
+1. Trascina Izanagi.app nella cartella Applicazioni
+2. Avvia Izanagi → File → Apri libreria → mudroot o mudroot/lib
 
 Se macOS blocca l'app al primo avvio: tasto destro sull'app → Apri,
-oppure in Terminale: xattr -cr /Applications/nebbieedit.app
+oppure in Terminale: xattr -cr /Applications/Izanagi.app
 
 CLI incluso: bin/nebbiedit
 Mondo di prova: sample-mudroot/lib
@@ -107,7 +115,7 @@ rm -f "${DMG_FILE}"
 
 echo "==> Creating ${DMG_FILE}"
 hdiutil create \
-    -volname "Nebbie Editor" \
+    -volname "Izanagi" \
     -srcfolder "${STAGING}" \
     -ov \
     -format UDZO \
@@ -120,4 +128,4 @@ echo "Disk image created:"
 echo "  ${DMG_FILE}"
 ls -lh "${DMG_FILE}"
 echo ""
-echo "Users can drag nebbieedit.app to Applications."
+echo "Users can drag Izanagi.app to Applications."

@@ -61,7 +61,7 @@ A ogni push su `main`, la CI pubblica pacchetti precompilati per **Windows**, **
 | Piattaforma | File | Installazione |
 |-------------|------|----------------|
 | **Windows** | `izanagi_*_windows_portable.zip` | Estrai → avvia **`izanagi.exe`** (incluso `nebbiedit.exe` CLI opzionale) |
-| **macOS** | `izanagi_*_macos.dmg` | Trascina **`nebbieedit.app`** in Applicazioni |
+| **macOS** | `izanagi_*_macos.dmg` | Trascina **`Izanagi.app`** in Applicazioni |
 | **Linux** | `izanagi_*_amd64.deb` | `sudo dpkg -i izanagi_*.deb` → `sudo apt-get install -f` |
 
 **Primo avvio Izanagi:** File → Apri libreria → cartella `mudroot` o `mudroot/lib` → modifica → Salva.
@@ -85,7 +85,7 @@ Ogni pacchetto include un mondo di esempio (`sample-mudroot`).
 Se macOS blocca l'applicazione: tasto destro → **Apri** (solo la prima volta), oppure:
 
 ```bash
-xattr -cr /Applications/nebbieedit.app
+xattr -cr /Applications/Izanagi.app
 # oppure
 xattr -cr /Applications/nebbie-translate.app
 ```

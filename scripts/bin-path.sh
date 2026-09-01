@@ -7,7 +7,9 @@ BUILD_DIR="${1:-$ROOT/build}"
 
 nebbiedit_cli="$BUILD_DIR/nebbiedit/nebbiedit"
 nebbieedit_gui="$BUILD_DIR/nebbie-qt/nebbieedit"
-if [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit" ]]; then
+if [[ -x "$BUILD_DIR/nebbie-qt/Izanagi.app/Contents/MacOS/Izanagi" ]]; then
+    nebbieedit_gui="$BUILD_DIR/nebbie-qt/Izanagi.app/Contents/MacOS/Izanagi"
+elif [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit" ]]; then
     nebbieedit_gui="$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit"
 fi
 

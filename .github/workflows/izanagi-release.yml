@@ -51,12 +51,7 @@ jobs:
 
       - name: Build app icons
         run: |
-          if [[ -f nebbie-qt/icons/nebbieedit.icns ]]; then
-            echo "Using committed nebbieedit.icns"
-          else
-            pip3 install pillow --break-system-packages
-            python3 scripts/generate-nebbie-icons.py nebbieedit
-          fi
+          python3 scripts/generate-nebbie-icons.py nebbieedit
 
       - name: Detect Apple signing configuration
         id: apple_signing
@@ -101,13 +96,14 @@ jobs:
           set -euo pipefail
           hdiutil attach dist/izanagi_*_macos.dmg -mountpoint /tmp/izanagi-dmg -nobrowse
           trap 'hdiutil detach /tmp/izanagi-dmg 2>/dev/null || true' EXIT
-          test -d /tmp/izanagi-dmg/nebbieedit.app
-          test -d /tmp/izanagi-dmg/nebbieedit.app/Contents/Frameworks
-          test -x /tmp/izanagi-dmg/nebbieedit.app/Contents/MacOS/nebbieedit
+          test -d /tmp/izanagi-dmg/Izanagi.app
+          test -d /tmp/izanagi-dmg/Izanagi.app/Contents/Frameworks
+          test -x /tmp/izanagi-dmg/Izanagi.app/Contents/MacOS/Izanagi
+          test -f /tmp/izanagi-dmg/Izanagi.app/Contents/Resources/izanagi.icns
           test -f /tmp/izanagi-dmg/LEGGIMI.txt
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
-            xcrun stapler validate /tmp/izanagi-dmg/nebbieedit.app
-            spctl -a -vv /tmp/izanagi-dmg/nebbieedit.app
+            xcrun stapler validate /tmp/izanagi-dmg/Izanagi.app
+            spctl -a -vv /tmp/izanagi-dmg/Izanagi.app
           else
             echo "Ad-hoc signed build — skipping stapler/spctl (first launch: tasto destro → Apri)."
           fi
