@@ -104,6 +104,7 @@ jobs:
           test -x /tmp/cypher-dmg/Cypher.app/Contents/MacOS/Cypher
           test -f /tmp/cypher-dmg/Cypher.app/Contents/Resources/cypher.icns
           test -f /tmp/cypher-dmg/LEGGIMI.txt
+          codesign --verify --deep --strict /tmp/cypher-dmg/Cypher.app
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
             xcrun stapler validate /tmp/cypher-dmg/Cypher.app
             spctl -a -vv /tmp/cypher-dmg/Cypher.app

@@ -109,6 +109,7 @@ jobs:
           test -x /tmp/izanagi-dmg/Izanagi.app/Contents/MacOS/Izanagi
           test -f /tmp/izanagi-dmg/Izanagi.app/Contents/Resources/izanagi.icns
           test -f /tmp/izanagi-dmg/LEGGIMI.txt
+          codesign --verify --deep --strict /tmp/izanagi-dmg/Izanagi.app
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
             xcrun stapler validate /tmp/izanagi-dmg/Izanagi.app
             spctl -a -vv /tmp/izanagi-dmg/Izanagi.app

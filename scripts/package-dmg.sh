@@ -101,11 +101,15 @@ cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
 Izanagi
 =======
 
-1. Trascina Izanagi.app nella cartella Applicazioni
-2. Avvia Izanagi → File → Apri libreria → mudroot o mudroot/lib
+1. Apri il file .dmg (doppio clic)
+2. Trascina Izanagi.app nella cartella Applicazioni
+3. Avvia Izanagi → File → Apri libreria → mudroot o mudroot/lib
 
-Se macOS blocca l'app al primo avvio: tasto destro sull'app → Apri,
-oppure in Terminale: xattr -cr /Applications/Izanagi.app
+Se macOS dice che l'app è "danneggiata" o non si apre:
+  - NON è il download corrotto: è la protezione Gatekeeper su app non notarizzate.
+  - Tasto destro su Izanagi.app → Apri (solo la prima volta)
+  - oppure in Terminale:
+      xattr -cr /Applications/Izanagi.app
 
 CLI incluso: bin/nebbiedit
 Mondo di prova: sample-mudroot/lib
@@ -122,6 +126,12 @@ hdiutil create \
     -ov \
     -format UDZO \
     "${DMG_FILE}"
+
+if ! hdiutil verify "${DMG_FILE}" >/dev/null; then
+    echo "ERROR: DMG verification failed for ${DMG_FILE}" >&2
+    exit 1
+fi
+echo "==> DMG verification passed"
 
 rm -rf "${STAGING}"
 

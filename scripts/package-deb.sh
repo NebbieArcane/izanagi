@@ -64,7 +64,7 @@ trap cleanup EXIT
 read_version
 
 if [[ "${RUN_BUILD}" -eq 1 ]]; then
-    "${ROOT}/scripts/build.sh"
+    "${ROOT}/scripts/build.sh" --no-translator
 fi
 
 echo "==> Preparing bundled sample lib (getworldlocal)"
