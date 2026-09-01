@@ -65,8 +65,10 @@ void ReleaseUpdateChecker::onReplyFinished() {
     const QByteArray body = reply->readAll();
     reply->deleteLater();
 
-    const ReleaseUpdateInfo info =
-        parseReleaseResponse(body, product_, QStringLiteral(NEBBIE_VERSION));
+    const ReleaseUpdateInfo info = parseReleaseResponse(body,
+                                                      product_,
+                                                      QStringLiteral(NEBBIE_VERSION),
+                                                      QStringLiteral(NEBBIE_BUILD_TIMESTAMP));
     if (!info.ok) {
         finishWithError(info.error);
         return;

@@ -1,4 +1,5 @@
 #include "app_i18n.hpp"
+#include "version.hpp"
 
 #include <QHash>
 #include <QStringList>
@@ -28,6 +29,13 @@ constexpr TranslationEntry kTranslations[] = {
     {"menu.restore_autosave", "Ripristina ultimo autosalvataggio", "Restore last autosave"},
     {"menu.restore_version", "Ripristina versione...", "Restore version..."},
     {"menu.exit", "E&sci", "E&xit"},
+    {"menu.edit", "&Modifica", "&Edit"},
+    {"menu.undo", "&Annulla", "&Undo"},
+    {"menu.redo", "&Ripeti", "&Redo"},
+    {"menu.cut", "&Taglia", "Cu&t"},
+    {"menu.copy", "&Copia", "&Copy"},
+    {"menu.paste", "I&ncolla", "&Paste"},
+    {"menu.select_all", "Seleziona &tutto", "Select &all"},
     {"menu.tools", "&Strumenti", "&Tools"},
     {"menu.validate_world", "Valida &mondo intero...", "Validate &entire world..."},
     {"menu.validate_world_tip",
@@ -239,6 +247,14 @@ QString cypherAboutText(const QString& version) {
 
 QString githubReleaseRepo() {
     return QStringLiteral("NebbieArcane/izanagi");
+}
+
+QString applicationVersionLabel() {
+    QString version = QStringLiteral(NEBBIE_VERSION);
+    if (QStringLiteral(NEBBIE_GIT_SHA) != QStringLiteral("dev")) {
+        version += QStringLiteral(" (") + QStringLiteral(NEBBIE_GIT_SHA) + QLatin1Char(')');
+    }
+    return version;
 }
 
 } // namespace nebbie::qt

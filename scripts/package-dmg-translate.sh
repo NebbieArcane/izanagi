@@ -22,7 +22,9 @@ EOF
 }
 
 read_version() {
-    VERSION="$(sed -n 's/^project(nebbie-editor VERSION \([^ )]*\).*/\1/p' "${ROOT}/CMakeLists.txt")"
+    # shellcheck disable=SC1091
+    source "${ROOT}/scripts/nebbie-version.sh"
+    VERSION="$(nebbie_resolve_version "${BUILD}" "${ROOT}")"
     if [[ -z "${VERSION}" ]]; then
         VERSION="0.0.0"
     fi

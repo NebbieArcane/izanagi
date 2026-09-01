@@ -20,6 +20,8 @@ add_executable(nebbie-translate
     nebbie-translate.qrc
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_i18n.cpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_i18n.hpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/edit_menu.cpp
+    ${CMAKE_SOURCE_DIR}/nebbie-qt/edit_menu.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.cpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/app_theme.hpp
     ${CMAKE_SOURCE_DIR}/nebbie-qt/release_update_checker.cpp

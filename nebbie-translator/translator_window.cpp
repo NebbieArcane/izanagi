@@ -2,6 +2,7 @@
 
 #include "app_config.hpp"
 #include "app_i18n.hpp"
+#include "edit_menu.hpp"
 #include "mud_color_common.hpp"
 #include "mud_color_dialogs.hpp"
 #include "mud_color_list_delegate.hpp"
@@ -150,6 +151,8 @@ void TranslatorWindow::setupMenus() {
 
     file_menu->addSeparator();
     file_menu->addAction(appTr("menu.exit"), this, &QWidget::close);
+
+    nebbie::qt::addStandardEditMenu(menuBar());
 
     auto* tools_menu = menuBar()->addMenu(appTr("menu.tools"));
     auto* validate_action = tools_menu->addAction(appTr("menu.validate"));

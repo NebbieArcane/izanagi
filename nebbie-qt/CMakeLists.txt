@@ -17,6 +17,8 @@ add_executable(nebbieedit
     app_config.hpp
     app_i18n.cpp
     app_i18n.hpp
+    edit_menu.cpp
+    edit_menu.hpp
     app_theme.cpp
     app_theme.hpp
     application_log.cpp

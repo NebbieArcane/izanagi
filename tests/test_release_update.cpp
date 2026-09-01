@@ -74,6 +74,23 @@ int main() {
         expect(up_to_date.ok, "up to date parse ok");
         expect(!up_to_date.update_available, "no update when current");
 
+        const QByteArray same_version_body = sampleReleaseJson(
+            QStringLiteral("izanagi"),
+            {QStringLiteral("izanagi_0.1.0%1").arg(platform_suffix)});
+        QJsonDocument same_doc = QJsonDocument::fromJson(same_version_body);
+        QJsonObject same_root = same_doc.object();
+        same_root.insert(QStringLiteral("published_at"), QStringLiteral("2026-09-02T12:00:00Z"));
+        const auto newer_build = parseReleaseResponse(QJsonDocument(same_root).toJson(),
+                                                      ReleaseProduct::Izanagi,
+                                                      QStringLiteral("0.1.0"),
+                                                      QStringLiteral("2026-09-01T00:00:00Z"));
+        expect(newer_build.ok, "same version newer build parse ok");
+        expect(newer_build.update_available, "newer published build detected");
+
+        const auto run_number_update = parseReleaseResponse(
+            release_body, ReleaseProduct::Izanagi, QStringLiteral("0.1.100"));
+        expect(run_number_update.update_available, "higher patch detects update");
+
         expect(shouldCheckForUpdates(true, true, QStringLiteral("2026-08-24T00:00:00Z")), "interactive always checks");
         expect(!shouldCheckForUpdates(false, false, {}), "disabled startup check");
         expect(shouldCheckForUpdates(true, false, {}), "first startup check");

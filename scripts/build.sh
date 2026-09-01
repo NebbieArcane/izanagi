@@ -88,6 +88,10 @@ if [[ ${#EXTRA_CMAKE_ARGS[@]} -gt 0 ]]; then
     CMAKE_ARGS+=("${EXTRA_CMAKE_ARGS[@]}")
 fi
 
+if [[ -n "${NEBBIE_VERSION:-}" ]]; then
+    CMAKE_ARGS+=(-DNEBBIE_VERSION="${NEBBIE_VERSION}")
+fi
+
 echo "==> cmake ${CMAKE_ARGS[*]}"
 cmake "${CMAKE_ARGS[@]}"
 

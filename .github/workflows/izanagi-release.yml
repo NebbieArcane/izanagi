@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
 
+env:
+  NEBBIE_VERSION: 0.1.${{ github.run_number }}
+
 jobs:
   linux-deb:
     if: github.repository == 'NebbieArcane/izanagi'

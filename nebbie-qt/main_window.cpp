@@ -4,6 +4,7 @@
 #include "app_i18n.hpp"
 #include "application_log.hpp"
 #include "coordinator_client.hpp"
+#include "edit_menu.hpp"
 #include "mob_editor_widget.hpp"
 #include "mud_color_dialogs.hpp"
 #include "mud_color_common.hpp"
@@ -516,6 +517,8 @@ void MainWindow::setupMenus() {
 
     file_menu->addSeparator();
     file_menu->addAction(appTr("menu.exit"), this, &QWidget::close);
+
+    nebbie::qt::addStandardEditMenu(menuBar());
 
     auto* tools_menu = menuBar()->addMenu(appTr("menu.tools"));
     auto* validate_action = tools_menu->addAction(appTr("menu.validate_world"));
