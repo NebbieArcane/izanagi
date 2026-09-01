@@ -51,7 +51,7 @@ private slots:
 private:
     void updateConditionalFields();
     void refreshExtraDescForm();
-    void refreshExitForm();
+    void refreshExitForm(int row = -1);
     void setComboIntValue(QComboBox* combo, int value) const;
     void applyColorSettingsToFields();
     void hookMudField(nebbie::qt::MudColorTextEdit* field);

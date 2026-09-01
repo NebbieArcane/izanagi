@@ -15,6 +15,7 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QSizePolicy>
 #include <QSpinBox>
 #include <QVBoxLayout>
@@ -365,6 +366,16 @@ void RoomEditorWidget::updateConditionalFields() {
 
 void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
     loading_ = true;
+
+    int preferred_exit_direction = -1;
+    if (const auto* current_exit = exit_list_->currentItem()) {
+        preferred_exit_direction = readExitItem(current_exit).direction;
+    }
+    QString preferred_extra_keyword;
+    if (const auto* current_extra = extra_desc_list_->currentItem()) {
+        preferred_extra_keyword = current_extra->data(Qt::UserRole).toString();
+    }
+
     name_->setStorageText(QString::fromStdString(room.name));
     description_->setStorageText(QString::fromStdString(room.description));
     setComboIntValue(sector_type_, static_cast<int>(room.sector_type));
@@ -382,6 +393,7 @@ void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
     bright_at_night_->setText(QString::fromStdString(room.bright_at_night));
     bright_at_day_->setText(QString::fromStdString(room.bright_at_day));
 
+    extra_desc_list_->blockSignals(true);
     extra_desc_list_->clear();
     for (const auto& extra : room.extra_descs) {
         const QString label = QString::fromStdString(extra.keyword);
@@ -390,18 +402,47 @@ void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
         item->setData(Qt::UserRole + 1, QString::fromStdString(extra.description));
         extra_desc_list_->addItem(item);
     }
+    int selected_extra_row = -1;
+    if (!preferred_extra_keyword.isEmpty()) {
+        for (int i = 0; i < extra_desc_list_->count(); ++i) {
+            if (extra_desc_list_->item(i)->data(Qt::UserRole).toString() == preferred_extra_keyword) {
+                selected_extra_row = i;
+                break;
+            }
+        }
+    }
+    if (selected_extra_row < 0 && extra_desc_list_->count() > 0) {
+        selected_extra_row = 0;
+    }
+    extra_desc_list_->setCurrentRow(selected_extra_row);
+    extra_desc_list_->blockSignals(false);
 
+    exit_list_->blockSignals(true);
     exit_list_->clear();
     for (const auto& exit : room.exits) {
         auto* item = new QListWidgetItem;
         writeExitItem(item, exit);
         exit_list_->addItem(item);
     }
+    int selected_exit_row = -1;
+    if (preferred_exit_direction >= 0) {
+        for (int i = 0; i < exit_list_->count(); ++i) {
+            if (readExitItem(exit_list_->item(i)).direction == preferred_exit_direction) {
+                selected_exit_row = i;
+                break;
+            }
+        }
+    }
+    if (selected_exit_row < 0 && exit_list_->count() > 0) {
+        selected_exit_row = 0;
+    }
+    exit_list_->setCurrentRow(selected_exit_row);
+    exit_list_->blockSignals(false);
 
     updateConditionalFields();
     loading_ = false;
     refreshExtraDescForm();
-    refreshExitForm();
+    refreshExitForm(selected_exit_row);
     updateTextMonitors();
 }
 
@@ -588,8 +629,19 @@ void RoomEditorWidget::removeExit() {
     refreshExitForm();
 }
 
-void RoomEditorWidget::refreshExitForm() {
-    const auto* item = exit_list_->currentItem();
+void RoomEditorWidget::refreshExitForm(const int row) {
+    const int selected_row = row >= 0 ? row : exit_list_->currentRow();
+    const QListWidgetItem* item =
+        selected_row >= 0 && selected_row < exit_list_->count() ? exit_list_->item(selected_row) : nullptr;
+
+    const QSignalBlocker block_direction(exit_direction_);
+    const QSignalBlocker block_to_room(exit_to_room_);
+    const QSignalBlocker block_description(exit_description_);
+    const QSignalBlocker block_keyword(exit_keyword_);
+    const QSignalBlocker block_flags(exit_flags_);
+    const QSignalBlocker block_key(exit_key_);
+    const QSignalBlocker block_open_cmd(exit_open_cmd_);
+
     if (!item) {
         setComboIntValue(exit_direction_, 0);
         exit_to_room_->setValue(0);
