@@ -25,7 +25,7 @@ mirror_tag() {
   else
     echo "==> Crea release $tag su $DST_REPO"
     gh release create "$tag" --repo "$DST_REPO" --title "$title" --prerelease \
-      --target master --notes "Release $title migrata su $DST_REPO" "$dir"/*
+      --target main --notes "Release $title migrata su $DST_REPO" "$dir"/*
   fi
 }
 

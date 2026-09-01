@@ -1,10 +1,10 @@
-name: Nebbie Translate (release packages)
+name: Izanagi (release packages)
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - main
 
 permissions:
   contents: write
@@ -23,18 +23,18 @@ jobs:
         run: ./scripts/install-deps.sh
 
       - name: Build .deb package
-        run: ./scripts/package-deb-translate.sh
+        run: ./scripts/package-deb.sh
 
       - name: Verify .deb package
         run: |
-          dpkg-deb --info dist/cypher_*.deb
-          dpkg-deb --contents dist/cypher_*.deb | grep -E 'bin/nebbie-translate|share/nebbie-translate|icons/hicolor.*cypher'
+          dpkg-deb --info dist/izanagi_*.deb
+          dpkg-deb --contents dist/izanagi_*.deb | grep -E 'bin/nebbieedit|share/nebbie-editor|icons/hicolor.*izanagi'
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nebbie-translate-linux-deb
-          path: dist/cypher_*.deb
+          name: nebbie-editor-linux-deb
+          path: dist/izanagi_*.deb
           if-no-files-found: error
 
   macos-dmg:
@@ -51,11 +51,11 @@ jobs:
 
       - name: Build app icons
         run: |
-          if [[ -f nebbie-translator/icons/nebbie-translate.icns ]]; then
-            echo "Using committed nebbie-translate.icns"
+          if [[ -f nebbie-qt/icons/nebbieedit.icns ]]; then
+            echo "Using committed nebbieedit.icns"
           else
             pip3 install pillow --break-system-packages
-            python3 scripts/generate-nebbie-icons.py nebbie-translate
+            python3 scripts/generate-nebbie-icons.py nebbieedit
           fi
 
       - name: Detect Apple signing configuration
@@ -94,27 +94,29 @@ jobs:
           APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
         run: |
           export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
-          ./scripts/package-dmg-translate.sh
+          ./scripts/package-dmg.sh
 
       - name: Verify .dmg contents
         run: |
-          hdiutil attach dist/cypher_*_macos.dmg -mountpoint /tmp/cypher-dmg -nobrowse
-          test -d /tmp/cypher-dmg/nebbie-translate.app
-          test -d /tmp/cypher-dmg/nebbie-translate.app/Contents/Frameworks
-          test -x /tmp/cypher-dmg/nebbie-translate.app/Contents/MacOS/nebbie-translate
+          set -euo pipefail
+          hdiutil attach dist/izanagi_*_macos.dmg -mountpoint /tmp/izanagi-dmg -nobrowse
+          trap 'hdiutil detach /tmp/izanagi-dmg 2>/dev/null || true' EXIT
+          test -d /tmp/izanagi-dmg/nebbieedit.app
+          test -d /tmp/izanagi-dmg/nebbieedit.app/Contents/Frameworks
+          test -x /tmp/izanagi-dmg/nebbieedit.app/Contents/MacOS/nebbieedit
+          test -f /tmp/izanagi-dmg/LEGGIMI.txt
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
-            xcrun stapler validate /tmp/cypher-dmg/nebbie-translate.app
-            spctl -a -vv /tmp/cypher-dmg/nebbie-translate.app
+            xcrun stapler validate /tmp/izanagi-dmg/nebbieedit.app
+            spctl -a -vv /tmp/izanagi-dmg/nebbieedit.app
           else
             echo "Ad-hoc signed build — skipping stapler/spctl (first launch: tasto destro → Apri)."
           fi
-          hdiutil detach /tmp/cypher-dmg
 
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nebbie-translate-macos-dmg
-          path: dist/cypher_*_macos.dmg
+          name: nebbie-editor-macos-dmg
+          path: dist/izanagi_*_macos.dmg
           if-no-files-found: error
 
   windows-portable:
@@ -135,28 +137,42 @@ jobs:
           target: desktop
           arch: win64_msvc2019_64
 
+      - name: Build Windows icon
+        shell: bash
+        run: |
+          if [ -f nebbie-qt/icons/nebbieedit.ico ]; then
+            echo "Using committed nebbieedit.ico"
+          else
+            pip install pillow
+            python scripts/generate-nebbie-icons.py nebbieedit
+          fi
+
       - name: Build portable zip
         shell: pwsh
-        run: ./scripts/package-windows-translate.ps1
+        run: ./scripts/package-windows-portable.ps1
 
       - name: Verify zip contents
         shell: pwsh
         run: |
-          $zip = Get-ChildItem dist/cypher_*_windows_portable.zip | Select-Object -First 1
+          $zip = Get-ChildItem dist/izanagi_*_windows_portable.zip | Select-Object -First 1
           if (-not $zip) { throw "Zip not found in dist/" }
-          Expand-Archive -Path $zip.FullName -DestinationPath $env:RUNNER_TEMP/cypher-test -Force
-          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/cypher-test cypher.exe))) {
-            throw "cypher.exe missing in zip"
+          Expand-Archive -Path $zip.FullName -DestinationPath $env:RUNNER_TEMP/izanagi-test -Force
+          if (-not (Test-Path (Join-Path $env:RUNNER_TEMP/izanagi-test izanagi.exe))) {
+            throw "izanagi.exe missing in zip"
           }
-          if (Test-Path (Join-Path $env:RUNNER_TEMP/cypher-test nebbie-translate.exe)) {
-            throw "Legacy nebbie-translate.exe should not be shipped in the Windows zip"
+          $nebbieditCount = @(Get-ChildItem -Path $env:RUNNER_TEMP/izanagi-test -Filter nebbiedit.exe -Recurse).Count
+          if ($nebbieditCount -ne 1) {
+            throw "Expected exactly one nebbiedit.exe (CLI) in zip, found $nebbieditCount"
+          }
+          if (Test-Path (Join-Path $env:RUNNER_TEMP/izanagi-test nebbieedit.exe)) {
+            throw "Legacy nebbieedit.exe should not be shipped in the Windows zip"
           }
 
       - name: Upload zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nebbie-translate-windows-zip
-          path: dist/cypher_*_windows_portable.zip
+          name: nebbie-editor-windows-zip
+          path: dist/izanagi_*_windows_portable.zip
           if-no-files-found: error
 
   publish-release:
@@ -168,7 +184,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release-assets
-          pattern: nebbie-translate-*
+          pattern: nebbie-editor-*
           merge-multiple: true
 
       - name: List release assets
@@ -177,8 +193,8 @@ jobs:
       - name: Publish GitHub pre-release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cypher
-          name: Cypher
+          tag_name: izanagi
+          name: Izanagi
           prerelease: true
           generate_release_notes: true
           files: |
@@ -186,30 +202,30 @@ jobs:
             release-assets/**/*.dmg
             release-assets/**/*.zip
           body: |
-            ## Cypher
+            ## Izanagi
 
-            Editor leggero per tradurre **nome stanza**, **descrizione**, **descrizioni extra** e **testi look uscite** (cypher / nebbie-translate).
+            Editor completo del mondo Nebbie (izanagi / nebbieedit): stanze, mob, oggetti, zone, mappe, dati mondo e validazione.
 
             Scarica il pacchetto per la tua piattaforma (nessuna compilazione).
 
             | Piattaforma | File |
             |-------------|------|
-            | **Windows** | `cypher_*_windows_portable.zip` — estrai e avvia `cypher.exe` |
-            | **macOS** | `cypher_*_macos.dmg` — trascina `nebbie-translate.app` in Applicazioni |
-            | **Linux** | `cypher_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
+            | **Windows** | `izanagi_*_windows_portable.zip` — estrai e avvia `izanagi.exe` |
+            | **macOS** | `izanagi_*_macos.dmg` — trascina `nebbieedit.app` in Applicazioni |
+            | **Linux** | `izanagi_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
 
             **macOS — primo avvio:** se macOS blocca l'app, tasto destro → **Apri** (prima volta),
-            oppure `xattr -cr /Applications/nebbie-translate.app` (vedi `LEGGIMI.txt` nel DMG).
+            oppure `xattr -cr /Applications/nebbieedit.app` (vedi `LEGGIMI.txt` nel DMG se presente).
             Per aprirla senza questo passaggio serve la notarizzazione Apple (`docs/MACOS_SIGNING.md`).
 
             ### Primo avvio
-            1. Avvia **Cypher** (`cypher.exe`)
+            1. Avvia **Izanagi** (`izanagi.exe`)
             2. **File → Apri libreria** → cartella `mudroot` o `mudroot/lib`
-            3. Modifica i testi → **Salva**
+            3. Modifica e **Salva**
 
             Ogni pacchetto include un mondo di esempio (`sample-mudroot`).
 
             ### Config
-            - Linux: `~/.config/Nebbie/nebbie-translate.conf`
-            - macOS: `~/Library/Application Support/Nebbie/nebbie-translate.conf`
-            - Windows: `%APPDATA%\Nebbie\nebbie-translate.conf`
+            - Linux: `~/.config/Nebbie/nebbieedit.conf`
+            - macOS: `~/Library/Application Support/Nebbie/nebbieedit.conf`
+            - Windows: `%APPDATA%\Nebbie\nebbieedit.conf`

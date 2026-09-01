@@ -1,9 +1,9 @@
-name: Packages
+name: Izanagi & Cypher (packages)
 
 on:
   workflow_dispatch:
   push:
-    branches: ["cursor/**", "master"]
+    branches: ["main"]
     tags: ["v*"]
 
 jobs:

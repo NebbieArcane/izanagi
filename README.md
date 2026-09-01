@@ -52,7 +52,7 @@ Funzionalità principali:
 
 ## Download (senza compilare)
 
-A ogni push su `master`, la CI pubblica pacchetti precompilati per **Windows**, **macOS** e **Linux**.
+A ogni push su `main`, la CI pubblica pacchetti precompilati per **Windows**, **macOS** e **Linux**.
 
 ### Izanagi
 
@@ -209,7 +209,7 @@ I pacchetti scaricabili sono pubblicati **solo** da `NebbieArcane/izanagi` (tag 
 1. `NebbieArcane/izanagi` → **Settings → Actions → General** → abilita Actions
 2. **Settings → Secrets and variables → Actions** → copia i secret dal fork (se usi firma/notarizzazione macOS):
    `APPLE_TEAM_ID`, `APPLE_CERTIFICATE_BASE64`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_BASE64`
-3. **Actions** → *Nebbie Editor (release packages)* e *Nebbie Translate (release packages)* → **Run workflow** su `master`
+3. **Actions** → *Izanagi (release packages)* e *Cypher (release packages)* → **Run workflow** su `main`
 
 Per copiare subito gli asset già buildati dal fork:
 
