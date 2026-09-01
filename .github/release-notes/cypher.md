@@ -10,8 +10,7 @@ Scarica il pacchetto per la tua piattaforma (nessuna compilazione).
 | **macOS** | `cypher_*_macos.dmg` — trascina `Cypher.app` in Applicazioni |
 | **Linux** | `cypher_*_amd64.deb` — `sudo dpkg -i …` poi `sudo apt-get install -f` |
 
-**macOS — primo avvio:** se macOS blocca l'app, tasto destro → **Apri** (prima volta),
-oppure `xattr -cr /Applications/Cypher.app` (vedi `LEGGIMI.txt` nel DMG).
+**macOS — primo avvio:** se macOS dice che l'app è «danneggiata», non è il download corrotto: è Gatekeeper. Tasto destro → **Apri** (prima volta), oppure `xattr -cr /Applications/Cypher.app` (vedi `LEGGIMI.txt` nel DMG).
 Per aprirla senza questo passaggio serve la notarizzazione Apple (`docs/MACOS_SIGNING.md`).
 
 ### Primo avvio
