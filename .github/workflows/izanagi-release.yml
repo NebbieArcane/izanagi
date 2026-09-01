@@ -51,7 +51,12 @@ jobs:
 
       - name: Build app icons
         run: |
-          python3 scripts/generate-nebbie-icons.py nebbieedit
+          if [[ -f nebbie-qt/icons/izanagi.icns ]]; then
+            echo "Using committed izanagi.icns"
+          else
+            pip3 install pillow --break-system-packages
+            python3 scripts/generate-nebbie-icons.py nebbieedit
+          fi
 
       - name: Detect Apple signing configuration
         id: apple_signing
