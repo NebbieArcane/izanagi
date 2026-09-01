@@ -5,7 +5,7 @@
 After implementing a fix on `main`, always:
 
 1. Push to `NebbieArcane/izanagi` with `./scripts/push-to-izanagi.sh` (triggers Izanagi + Cypher release workflows on push to `main`).
-2. Wait for GitHub Actions on `NebbieArcane/izanagi` (`Izanagi (release packages)` and `Cypher (release packages)`) to finish.
+2. Wait for GitHub Actions on `NebbieArcane/izanagi` (`Izanagi (release packages)` and `Cypher (release packages)`) to finish; if `publish-release` fails, check logs and fix `scripts/publish-github-release.sh` or the workflow.
 3. Confirm packages are updated on https://github.com/NebbieArcane/izanagi/releases (tags `izanagi` and `cypher`).
 
 Do **not** open feature branches or publish releases unless the user explicitly asks otherwise.
