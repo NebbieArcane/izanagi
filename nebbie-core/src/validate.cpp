@@ -2,10 +2,13 @@
 
 #include "nebbie/edit.hpp"
 #include "nebbie/mud_text.hpp"
+#include "nebbie/special_proc_catalog.hpp"
 #include "nebbie/text_lines.hpp"
 
 #include <algorithm>
 #include <cctype>
+#include <map>
+#include <set>
 
 namespace nebbie {
 
@@ -407,20 +410,59 @@ void validate_guilds(const World& world, ValidationReport& report) {
 }
 
 void validate_special_procs(const World& world, ValidationReport& report) {
+    std::map<std::pair<char, long>, std::size_t> seen_entries;
+
     for (const auto& spe : world.special_procs) {
         const std::string where = std::string(1, spe.type) + " " + std::to_string(spe.vnum)
                                   + " (" + spe.procedure + ") ";
 
+        const auto key = std::make_pair(static_cast<char>(std::tolower(static_cast<unsigned char>(spe.type))),
+                                        spe.vnum);
+        const auto [it, inserted] = seen_entries.emplace(key, 1);
+        if (!inserted) {
+            ++it->second;
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "duplicate special proc assignment for vnum "
+                          + std::to_string(spe.vnum));
+        }
+
+        if (spe.procedure.empty()) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "procedure name is empty");
+        } else if (!is_known_special_proc(spe.type, spe.procedure)) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "unknown procedure name (not in server catalog)");
+        }
+
         switch (spe.type) {
         case 'm':
+        case 'M':
             if (!world.mobiles.empty() && !has_mobile(world, spe.vnum)) {
                 add_issue(report,
                           ValidationSeverity::error,
                           "special",
                           where + "mobile not found");
+            } else if (has_mobile(world, spe.vnum)) {
+                const auto& mob = world.mobiles.at(spe.vnum);
+                if ((mob.act & kMobActSpecFlag) == 0) {
+                    add_issue(report,
+                              ValidationSeverity::warning,
+                              "special",
+                              where + "mobile #" + std::to_string(spe.vnum)
+                                  + " has special proc but ACT_SPEC flag is not set",
+                              ValidationTarget::mob,
+                              spe.vnum);
+                }
             }
             break;
         case 'o':
+        case 'O':
             if (!world.objects.empty() && !has_object(world, spe.vnum)) {
                 add_issue(report,
                           ValidationSeverity::error,
@@ -429,6 +471,7 @@ void validate_special_procs(const World& world, ValidationReport& report) {
             }
             break;
         case 'r':
+        case 'R':
             if (!world.rooms.empty() && !has_room(world, spe.vnum)) {
                 add_issue(report,
                           ValidationSeverity::error,
@@ -437,7 +480,37 @@ void validate_special_procs(const World& world, ValidationReport& report) {
             }
             break;
         default:
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "unsupported type (expected m, o, or r)");
             break;
+        }
+    }
+
+    if (world.mobiles.empty()) {
+        return;
+    }
+
+    std::set<long> mobile_proc_vnums;
+    for (const auto& spe : world.special_procs) {
+        if (std::tolower(static_cast<unsigned char>(spe.type)) == 'm') {
+            mobile_proc_vnums.insert(spe.vnum);
+        }
+    }
+
+    for (const auto& [vnum, mob] : world.mobiles) {
+        if ((mob.act & kMobActSpecFlag) == 0) {
+            continue;
+        }
+        if (mobile_proc_vnums.find(vnum) == mobile_proc_vnums.end()) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      "mobile #" + std::to_string(vnum) + " (" + mob.short_descr
+                          + ") has ACT_SPEC but no M entry in myst.spe",
+                      ValidationTarget::mob,
+                      vnum);
         }
     }
 }

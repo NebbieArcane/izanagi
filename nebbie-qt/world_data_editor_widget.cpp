@@ -1,5 +1,7 @@
 #include "world_data_editor_widget.hpp"
 
+#include "nebbie/special_proc_catalog.hpp"
+
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
@@ -22,6 +24,19 @@ QString textFromEdit(const QTextEdit* field) {
 
 void setTextEdit(QTextEdit* field, const std::string& value) {
     field->setPlainText(QString::fromStdString(value));
+}
+
+int findComboTextInsensitive(const QComboBox* combo, const QString& text) {
+    if (!combo) {
+        return -1;
+    }
+    const std::string needle = text.trimmed().toStdString();
+    for (int i = 0; i < combo->count(); ++i) {
+        if (nebbie::special_proc_names_equal(combo->itemText(i).toStdString(), needle)) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 QWidget* wrapScroll(QWidget* content) {
@@ -207,7 +222,9 @@ void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     special_type_->addItem("r (stanza)", QVariant(QChar('r')));
     special_vnum_ = new QSpinBox;
     special_vnum_->setRange(0, 999999);
-    special_procedure_ = new QLineEdit;
+    special_procedure_ = new QComboBox;
+    special_procedure_->setEditable(true);
+    special_procedure_->setInsertPolicy(QComboBox::NoInsert);
     special_params_ = new QLineEdit;
     form->addRow("Tipo:", special_type_);
     form->addRow("Vnum:", special_vnum_);
@@ -218,7 +235,36 @@ void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     layout->addLayout(makeListEditorRow(special_list_, wrapScroll(form_host)));
     layout->addWidget(apply);
     connect(special_list_, &QListWidget::currentRowChanged, this, [this](int) { onSpecialSelected(); });
+    connect(special_type_, &QComboBox::currentIndexChanged, this, [this](int) {
+        refreshSpecialProcedureChoices();
+    });
+    refreshSpecialProcedureChoices();
     static_cast<QTabWidget*>(parent)->addTab(page, "Special");
+}
+
+void WorldDataEditorWidget::refreshSpecialProcedureChoices() {
+    if (!special_procedure_ || !special_type_) {
+        return;
+    }
+
+    const QString current = special_procedure_->currentText();
+    const char type = static_cast<char>(special_type_->currentData().toChar().unicode());
+    const auto& names = nebbie::special_proc_names_for_type(type);
+
+    special_procedure_->blockSignals(true);
+    special_procedure_->clear();
+    for (const auto& name : names) {
+        special_procedure_->addItem(QString::fromStdString(name));
+    }
+    if (!current.isEmpty()) {
+        const int index = findComboTextInsensitive(special_procedure_, current);
+        if (index >= 0) {
+            special_procedure_->setCurrentIndex(index);
+        } else {
+            special_procedure_->setEditText(current);
+        }
+    }
+    special_procedure_->blockSignals(false);
 }
 
 void WorldDataEditorWidget::buildDamageTab(QWidget* parent) {
@@ -481,7 +527,14 @@ void WorldDataEditorWidget::onSpecialSelected() {
     const int type_index = special_type_->findData(QVariant(QChar(spe.type)));
     special_type_->setCurrentIndex(type_index >= 0 ? type_index : 0);
     special_vnum_->setValue(static_cast<int>(spe.vnum));
-    special_procedure_->setText(QString::fromStdString(spe.procedure));
+    refreshSpecialProcedureChoices();
+    const QString procedure = QString::fromStdString(spe.procedure);
+    const int proc_index = findComboTextInsensitive(special_procedure_, procedure);
+    if (proc_index >= 0) {
+        special_procedure_->setCurrentIndex(proc_index);
+    } else {
+        special_procedure_->setEditText(procedure);
+    }
     special_params_->setText(QString::fromStdString(spe.params));
 }
 
@@ -500,7 +553,7 @@ void WorldDataEditorWidget::applySpecial() {
     auto& spe = world_->special_procs[index];
     spe.type = static_cast<char>(special_type_->currentData().toChar().unicode());
     spe.vnum = special_vnum_->value();
-    spe.procedure = special_procedure_->text().toStdString();
+    spe.procedure = special_procedure_->currentText().trimmed().toStdString();
     spe.params = special_params_->text().toStdString();
     item->setText(QString("%1 %2 %3")
                       .arg(QChar(spe.type))

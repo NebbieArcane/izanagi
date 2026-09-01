@@ -38,6 +38,10 @@ add_test(NAME wld-teleport-roundtrip COMMAND nebbie-wld-teleport-tests)
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
 
+add_executable(nebbie-special-proc-validate-tests test_special_proc_validate.cpp)
+target_link_libraries(nebbie-special-proc-validate-tests PRIVATE nebbie-core)
+add_test(NAME special-proc-validate-tests COMMAND nebbie-special-proc-validate-tests)
+
 add_executable(nebbie-phase4-tests test_phase4.cpp)
 target_link_libraries(nebbie-phase4-tests PRIVATE nebbie-core)
 

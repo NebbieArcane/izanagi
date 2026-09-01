@@ -47,6 +47,7 @@ private:
     void buildSocialTab(QWidget* parent);
     void buildPoseTab(QWidget* parent);
     void buildGuildTab(QWidget* parent);
+    void refreshSpecialProcedureChoices();
 
     nebbie::Shop* findShop(long vnum);
 
@@ -80,7 +81,7 @@ private:
     QListWidget* special_list_ = nullptr;
     QComboBox* special_type_ = nullptr;
     QSpinBox* special_vnum_ = nullptr;
-    QLineEdit* special_procedure_ = nullptr;
+    QComboBox* special_procedure_ = nullptr;
     QLineEdit* special_params_ = nullptr;
 
     QListWidget* damage_list_ = nullptr;
