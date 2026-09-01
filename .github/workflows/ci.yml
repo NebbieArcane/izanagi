@@ -41,10 +41,10 @@ jobs:
         run: ctest --test-dir build -R nebbietest-phase4 --output-on-failure
 
       - name: Build Qt GUI
-        run: test -x build/nebbie-qt/nebbieedit
+        run: test -x build/nebbie-qt/izanagi
 
-      - name: Build Nebbie Translate
-        run: test -x build/nebbie-translator/nebbie-translate
+      - name: Build Cypher
+        run: test -x build/nebbie-translator/cypher
 
   build-macos:
     runs-on: macos-latest
@@ -86,8 +86,8 @@ jobs:
           test -x build/nebbie-qt/Izanagi.app/Contents/MacOS/Izanagi
           test -f build/nebbie-qt/Izanagi.app/Contents/Resources/izanagi.icns
 
-      - name: Build Nebbie Translate
-        run: test -x build/nebbie-translator/nebbie-translate
+      - name: Build Cypher
+        run: test -x build/nebbie-translator/cypher
 
   build-windows:
     runs-on: windows-latest
@@ -142,8 +142,8 @@ jobs:
 
       - name: Build Qt GUI
         shell: pwsh
-        run: Test-Path ./build/nebbie-qt/Release/nebbieedit.exe
+        run: Test-Path ./build/nebbie-qt/Release/izanagi.exe
 
-      - name: Build Nebbie Translate
+      - name: Build Cypher
         shell: pwsh
-        run: Test-Path ./build/nebbie-translator/Release/nebbie-translate.exe
+        run: Test-Path ./build/nebbie-translator/Release/cypher.exe

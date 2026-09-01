@@ -66,15 +66,15 @@ fi
 echo "==> Preparing bundled sample lib (getworldlocal)"
 "${ROOT}/scripts/prepare-sample-lib.sh"
 
-if [[ ! -x "${BUILD}/nebbie-translator/nebbie-translate" ]]; then
-    echo "ERROR: nebbie-translate binary missing. Build first: ./scripts/build.sh --no-qt" >&2
+if [[ ! -x "${BUILD}/nebbie-translator/cypher" && ! -x "${BUILD}/nebbie-translator/nebbie-translate" ]]; then
+    echo "ERROR: cypher binary missing. Build first: ./scripts/build.sh --no-qt" >&2
     exit 1
 fi
 
 STAGING="$(mktemp -d)"
 mkdir -p "${DIST}"
 
-echo "==> Installing nebbie-translate into package staging (${PREFIX})"
+echo "==> Installing cypher into package staging (${PREFIX})"
 DESTDIR="${STAGING}" cmake --install "${BUILD}" --prefix "${PREFIX}"
 
 mkdir -p "${STAGING}/usr/share/nebbie-translate"
@@ -105,7 +105,7 @@ Depends: libc6 (>= 2.31), libstdc++6 (>= 10), libqt6core6 (>= 6.2.0) | libqt6cor
 Maintainer: Nebbie Editor <nebbie-editor@local>
 Installed-Size: ${INSTALLED_SIZE}
 Description: Lightweight room translator for Nebbie Arcane MUD
- Nebbie Translate edits room names, descriptions, extra descriptions and
+ Nebbie Translate (Cypher) edits room names, descriptions, extra descriptions and
  exit look text in myst.wld for translation workflows.
  Includes sample mudroot/lib under /usr/share/nebbie-translate/sample-mudroot.
 EOF

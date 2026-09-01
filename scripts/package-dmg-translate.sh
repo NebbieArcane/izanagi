@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a macOS disk image (.dmg) with nebbie-translate.app only.
+# Build a macOS disk image (.dmg) with Cypher.app only.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,7 +13,7 @@ usage() {
     cat <<'EOF'
 Usage: ./scripts/package-dmg-translate.sh [options]
 
-Builds dist/cypher_<version>_macos.dmg containing nebbie-translate.app
+Builds dist/cypher_<version>_macos.dmg containing Cypher.app
 
 Options:
   --no-build       Skip ./scripts/build.sh --no-qt --macos-bundle-translator
@@ -52,9 +52,12 @@ fi
 echo "==> Preparing bundled sample lib (getworldlocal)"
 "${ROOT}/scripts/prepare-sample-lib.sh"
 
-APP_SRC="${BUILD}/nebbie-translator/nebbie-translate.app"
+APP_SRC="${BUILD}/nebbie-translator/Cypher.app"
 if [[ ! -d "${APP_SRC}" ]]; then
-    echo "ERROR: ${APP_SRC} not found. Run: ./scripts/build.sh --no-qt --macos-bundle-translator" >&2
+    APP_SRC="${BUILD}/nebbie-translator/nebbie-translate.app"
+fi
+if [[ ! -d "${APP_SRC}" ]]; then
+    echo "ERROR: Cypher.app not found under ${BUILD}/nebbie-translator. Run: ./scripts/build.sh --no-qt --macos-bundle-translator" >&2
     exit 1
 fi
 
@@ -67,14 +70,14 @@ mkdir -p "${STAGING}"
 cp -R "${APP_SRC}" "${STAGING}/"
 cp -a "${DIST}/sample-mudroot" "${STAGING}/"
 cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
-Nebbie Translate (macOS)
-======================
+Cypher (macOS)
+==============
 
-1. Trascina nebbie-translate.app nella cartella Applicazioni
-2. Avvia Nebbie Translate → File → Apri libreria → mudroot o mudroot/lib
+1. Trascina Cypher.app nella cartella Applicazioni
+2. Avvia Cypher → File → Apri libreria → mudroot o mudroot/lib
 
 Se macOS blocca l'app al primo avvio: tasto destro sull'app → Apri,
-oppure in Terminale: xattr -cr /Applications/nebbie-translate.app
+oppure in Terminale: xattr -cr /Applications/Cypher.app
 
 Mondo di prova: sample-mudroot/lib
 EOF
@@ -85,7 +88,7 @@ rm -f "${DMG_FILE}"
 
 echo "==> Creating ${DMG_FILE}"
 hdiutil create \
-    -volname "Nebbie Translate" \
+    -volname "Cypher" \
     -srcfolder "${STAGING}" \
     -ov \
     -format UDZO \

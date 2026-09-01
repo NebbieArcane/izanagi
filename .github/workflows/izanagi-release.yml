@@ -28,7 +28,7 @@ jobs:
       - name: Verify .deb package
         run: |
           dpkg-deb --info dist/izanagi_*.deb
-          dpkg-deb --contents dist/izanagi_*.deb | grep -E 'bin/nebbieedit|share/nebbie-editor|icons/hicolor.*izanagi'
+          dpkg-deb --contents dist/izanagi_*.deb | grep -E 'bin/izanagi|share/nebbie-editor|icons/hicolor.*izanagi'
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4

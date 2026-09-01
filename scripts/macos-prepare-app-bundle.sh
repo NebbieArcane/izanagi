@@ -121,6 +121,15 @@ restore_bundle_icon() {
                 icns_name="nebbieedit"
             fi
             ;;
+        Cypher|nebbie-translate)
+            icns_name="cypher"
+            if [[ -f "${ROOT}/nebbie-translator/icons/cypher.icns" ]]; then
+                icns_src="${ROOT}/nebbie-translator/icons/cypher.icns"
+            elif [[ -f "${ROOT}/nebbie-translator/icons/nebbie-translate.icns" ]]; then
+                icns_src="${ROOT}/nebbie-translator/icons/nebbie-translate.icns"
+                icns_name="nebbie-translate"
+            fi
+            ;;
         *)
             return 0
             ;;

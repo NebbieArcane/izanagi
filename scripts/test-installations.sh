@@ -65,7 +65,10 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     run_cmd "linux-deb-extract" dpkg-deb -x "${DEB}" "${INSTALL_ROOT}" || true
 
     CLI="${INSTALL_ROOT}/usr/bin/nebbiedit"
-    GUI="${INSTALL_ROOT}/usr/bin/nebbieedit"
+    GUI="${INSTALL_ROOT}/usr/bin/izanagi"
+    if [[ ! -x "${GUI}" ]]; then
+      GUI="${INSTALL_ROOT}/usr/bin/nebbieedit"
+    fi
   DESKTOP="${INSTALL_ROOT}/usr/share/applications/nebbieedit.desktop"
 
     if [[ -x "${CLI}" ]]; then

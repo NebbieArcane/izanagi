@@ -3,7 +3,10 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(NEBBIE_TRANSLATE_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbie-translate.icns")
+set(NEBBIE_TRANSLATE_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/cypher.icns")
+if(NOT EXISTS "${NEBBIE_TRANSLATE_ICON_MAC}")
+    set(NEBBIE_TRANSLATE_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbie-translate.icns")
+endif()
 set(NEBBIE_TRANSLATE_ICON_WIN "${CMAKE_CURRENT_SOURCE_DIR}/icons/nebbie-translate.ico")
 
 add_executable(nebbie-translate
@@ -57,18 +60,23 @@ endif()
 
 if(WIN32)
     set_target_properties(nebbie-translate PROPERTIES WIN32_EXECUTABLE TRUE OUTPUT_NAME cypher)
+elseif(UNIX)
+    set_target_properties(nebbie-translate PROPERTIES OUTPUT_NAME cypher)
 endif()
 
 if(APPLE AND NEBBIE_MACOS_BUNDLE_TRANSLATOR)
     set_target_properties(nebbie-translate PROPERTIES
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.translate"
-        MACOSX_BUNDLE_BUNDLE_NAME "Cypher — Nebbie Arcane room editor"
+        OUTPUT_NAME Cypher
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.nebbie.cypher"
+        MACOSX_BUNDLE_BUNDLE_NAME "Cypher"
+        MACOSX_BUNDLE_DISPLAY_NAME "Cypher"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     )
     if(EXISTS "${NEBBIE_TRANSLATE_ICON_MAC}")
-        set_target_properties(nebbie-translate PROPERTIES MACOSX_BUNDLE_ICON_FILE nebbie-translate)
+        get_filename_component(_mac_icon_name "${NEBBIE_TRANSLATE_ICON_MAC}" NAME_WE)
+        set_target_properties(nebbie-translate PROPERTIES MACOSX_BUNDLE_ICON_FILE "${_mac_icon_name}")
     endif()
 endif()
 

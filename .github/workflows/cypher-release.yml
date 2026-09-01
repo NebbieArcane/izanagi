@@ -28,7 +28,7 @@ jobs:
       - name: Verify .deb package
         run: |
           dpkg-deb --info dist/cypher_*.deb
-          dpkg-deb --contents dist/cypher_*.deb | grep -E 'bin/nebbie-translate|share/nebbie-translate|icons/hicolor.*cypher'
+          dpkg-deb --contents dist/cypher_*.deb | grep -E 'bin/cypher|share/nebbie-translate|icons/hicolor.*cypher'
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
@@ -51,12 +51,8 @@ jobs:
 
       - name: Build app icons
         run: |
-          if [[ -f nebbie-translator/icons/nebbie-translate.icns ]]; then
-            echo "Using committed nebbie-translate.icns"
-          else
-            pip3 install pillow --break-system-packages
-            python3 scripts/generate-nebbie-icons.py nebbie-translate
-          fi
+          pip3 install pillow --break-system-packages
+          python3 scripts/generate-nebbie-icons.py nebbie-translate
 
       - name: Detect Apple signing configuration
         id: apple_signing
@@ -99,16 +95,18 @@ jobs:
       - name: Verify .dmg contents
         run: |
           hdiutil attach dist/cypher_*_macos.dmg -mountpoint /tmp/cypher-dmg -nobrowse
-          test -d /tmp/cypher-dmg/nebbie-translate.app
-          test -d /tmp/cypher-dmg/nebbie-translate.app/Contents/Frameworks
-          test -x /tmp/cypher-dmg/nebbie-translate.app/Contents/MacOS/nebbie-translate
+          trap 'hdiutil detach /tmp/cypher-dmg 2>/dev/null || true' EXIT
+          test -d /tmp/cypher-dmg/Cypher.app
+          test -d /tmp/cypher-dmg/Cypher.app/Contents/Frameworks
+          test -x /tmp/cypher-dmg/Cypher.app/Contents/MacOS/Cypher
+          test -f /tmp/cypher-dmg/Cypher.app/Contents/Resources/cypher.icns
+          test -f /tmp/cypher-dmg/LEGGIMI.txt
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
-            xcrun stapler validate /tmp/cypher-dmg/nebbie-translate.app
-            spctl -a -vv /tmp/cypher-dmg/nebbie-translate.app
+            xcrun stapler validate /tmp/cypher-dmg/Cypher.app
+            spctl -a -vv /tmp/cypher-dmg/Cypher.app
           else
             echo "Ad-hoc signed build — skipping stapler/spctl (first launch: tasto destro → Apri)."
           fi
-          hdiutil detach /tmp/cypher-dmg
 
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4

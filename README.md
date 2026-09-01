@@ -13,7 +13,7 @@ Il formato file resta allineato al server [Nebbie Arcane](https://github.com/Neb
 | | **Izanagi** | **Cypher** |
 |---|-------------|------------|
 | **Ruolo** | Editor completo del mondo | Editor leggero per tradurre i testi |
-| **Eseguibile** | `nebbieedit` (Linux/macOS) · `izanagi.exe` (Windows) | `nebbie-translate` (Linux/macOS) · `cypher.exe` (Windows) |
+| **Eseguibile** | `izanagi` (Linux) · `Izanagi.app` (macOS) · `izanagi.exe` (Windows) | `cypher` (Linux) · `Cypher.app` (macOS) · `cypher.exe` (Windows) |
 | **Release GitHub** | tag [`izanagi`](https://github.com/NebbieArcane/izanagi/releases/tag/izanagi) | tag [`cypher`](https://github.com/NebbieArcane/izanagi/releases/tag/cypher) |
 | **Config** | `nebbieedit.conf` | `nebbie-translate.conf` |
 
@@ -75,7 +75,7 @@ Ogni pacchetto include un mondo di esempio (`sample-mudroot`).
 | Piattaforma | File | Installazione |
 |-------------|------|----------------|
 | **Windows** | `cypher_*_windows_portable.zip` | Estrai → avvia **`cypher.exe`** |
-| **macOS** | `cypher_*_macos.dmg` | Trascina **`nebbie-translate.app`** in Applicazioni |
+| **macOS** | `cypher_*_macos.dmg` | Trascina **`Cypher.app`** in Applicazioni |
 | **Linux** | `cypher_*_amd64.deb` | `sudo dpkg -i cypher_*.deb` → `sudo apt-get install -f` |
 
 **Primo avvio Cypher:** File → Apri libreria → `mudroot/lib` → traduci → Salva.
@@ -87,7 +87,7 @@ Se macOS blocca l'applicazione: tasto destro → **Apri** (solo la prima volta),
 ```bash
 xattr -cr /Applications/Izanagi.app
 # oppure
-xattr -cr /Applications/nebbie-translate.app
+xattr -cr /Applications/Cypher.app
 ```
 
 Per distribuzione senza questo passaggio serve la notarizzazione Apple (`docs/MACOS_SIGNING.md`).

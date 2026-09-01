@@ -351,6 +351,11 @@ def write_platform_assets(spec: AppIconSpec, image: Image.Image) -> None:
     spec.icns.write_bytes(build_icns(image))
     print(f"Wrote {spec.icns}")
 
+    if spec.name == "nebbie-translate":
+        cypher_icns = spec.icns.parent / "cypher.icns"
+        cypher_icns.write_bytes(spec.icns.read_bytes())
+        print(f"Wrote {cypher_icns}")
+
     if spec.name == "nebbieedit":
         izanagi_icns = spec.icns.parent / "izanagi.icns"
         izanagi_icns.write_bytes(spec.icns.read_bytes())
