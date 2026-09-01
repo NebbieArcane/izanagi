@@ -108,6 +108,38 @@ void addRoomListItem(QListWidget* list, long vnum, const std::string& storage_na
     list->addItem(item);
 }
 
+bool room_editor_snapshot_matches(const nebbie::Room& before, const nebbie::Room& after) {
+    if (before.name != after.name || before.description != after.description
+        || before.room_flags != after.room_flags || before.sector_type != after.sector_type
+        || before.tele_time != after.tele_time || before.tele_targ != after.tele_targ
+        || before.tele_mask != after.tele_mask || before.tele_cnt != after.tele_cnt
+        || before.river_speed != after.river_speed || before.river_dir != after.river_dir
+        || before.moblim != after.moblim || before.bright_at_night != after.bright_at_night
+        || before.bright_at_day != after.bright_at_day || before.exits.size() != after.exits.size()
+        || before.extra_descs.size() != after.extra_descs.size()) {
+        return false;
+    }
+
+    for (std::size_t i = 0; i < before.exits.size(); ++i) {
+        const nebbie::Exit& lhs = before.exits[i];
+        const nebbie::Exit& rhs = after.exits[i];
+        if (lhs.direction != rhs.direction || lhs.description != rhs.description
+            || lhs.keyword != rhs.keyword || lhs.exit_info != rhs.exit_info || lhs.key != rhs.key
+            || lhs.to_room != rhs.to_room || lhs.open_cmd != rhs.open_cmd) {
+            return false;
+        }
+    }
+
+    for (std::size_t i = 0; i < before.extra_descs.size(); ++i) {
+        if (before.extra_descs[i].keyword != after.extra_descs[i].keyword
+            || before.extra_descs[i].description != after.extra_descs[i].description) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
     return qobject_cast<nebbie::qt::MudColorListDelegate*>(list->itemDelegate());
 }
@@ -337,7 +369,13 @@ void MainWindow::setupUi() {
     root_layout->addWidget(tabs_);
     setCentralWidget(central);
 
-    connect(room_list_, &QListWidget::currentRowChanged, this, [this](int) { onRoomSelected(); });
+    connect(room_list_, &QListWidget::currentItemChanged, this,
+            [this](QListWidgetItem* /*current*/, QListWidgetItem* previous) {
+                if (previous) {
+                    persistRoomEditorState(previous);
+                }
+                onRoomSelected();
+            });
     connect(mob_list_, &QListWidget::currentRowChanged, this, [this](int) { onMobSelected(); });
     connect(obj_list_, &QListWidget::currentRowChanged, this, [this](int) { onObjSelected(); });
     connect(room_apply, &QPushButton::clicked, this, &MainWindow::applyRoomChanges);
@@ -1741,6 +1779,28 @@ void MainWindow::onRoomSelected() {
         return;
     }
     room_editor_->loadFromRoom(*room);
+}
+
+void MainWindow::persistRoomEditorState(QListWidgetItem* item) {
+    if (!item) {
+        return;
+    }
+    const long vnum = static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    nebbie::Room* room = world_.find_room(vnum);
+    if (!room) {
+        return;
+    }
+
+    nebbie::Room updated = *room;
+    room_editor_->saveToRoom(updated);
+    if (room_editor_snapshot_matches(*room, updated)) {
+        return;
+    }
+
+    nebbie::assign_room_fields(*room, updated);
+    dirty_room_vnums_.insert(vnum);
+    nebbie::qt::refreshRoomListItemData(item, vnum, room->name);
+    markDirty();
 }
 
 void MainWindow::onMobSelected() {

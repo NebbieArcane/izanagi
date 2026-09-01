@@ -127,6 +127,7 @@ private:
     int currentZoneNum() const;
     void selectZoneByNum(int zone_num);
     void reloadRoomEditor(long vnum);
+    void persistRoomEditorState(QListWidgetItem* item);
     void refreshRoomEditorIfInboundExitsChanged(long target_vnum);
     void selectRoomByVnum(long vnum);
     void selectMobByVnum(long vnum);

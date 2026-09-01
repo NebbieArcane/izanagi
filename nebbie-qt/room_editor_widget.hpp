@@ -25,7 +25,7 @@ public:
     ~RoomEditorWidget() override;
 
     void loadFromRoom(const nebbie::Room& room);
-    void saveToRoom(nebbie::Room& room) const;
+    void saveToRoom(nebbie::Room& room);
     void setMaxLineLength(int max_length);
     void setShowColorCodes(bool show);
     bool showColorCodes() const { return show_color_codes_; }
@@ -52,6 +52,7 @@ private:
     void updateConditionalFields();
     void refreshExtraDescForm();
     void refreshExitForm(int row = -1);
+    void commitPendingExit();
     void setComboIntValue(QComboBox* combo, int value) const;
     void applyColorSettingsToFields();
     void hookMudField(nebbie::qt::MudColorTextEdit* field);

@@ -500,7 +500,15 @@ void RoomEditorWidget::updateTextMonitors() {
     nebbie::qt::updateAsciiMonitor(exit_ascii_info_, exit_description_->storageText().toStdString());
 }
 
-void RoomEditorWidget::saveToRoom(nebbie::Room& room) const {
+void RoomEditorWidget::commitPendingExit() {
+    if (loading_ || exit_to_room_->value() <= 0) {
+        return;
+    }
+    addOrUpdateExit();
+}
+
+void RoomEditorWidget::saveToRoom(nebbie::Room& room) {
+    commitPendingExit();
     room.name = name_->storageText().toStdString();
     room.description = description_->storageText().toStdString();
     room.sector_type = comboIntValue(sector_type_);
