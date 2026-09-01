@@ -400,6 +400,8 @@ void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
 
     updateConditionalFields();
     loading_ = false;
+    refreshExtraDescForm();
+    refreshExitForm();
     updateTextMonitors();
 }
 
@@ -589,8 +591,14 @@ void RoomEditorWidget::removeExit() {
 void RoomEditorWidget::refreshExitForm() {
     const auto* item = exit_list_->currentItem();
     if (!item) {
+        setComboIntValue(exit_direction_, 0);
+        exit_to_room_->setValue(0);
+        exit_description_->setStorageText({});
+        exit_keyword_->clear();
+        exit_flags_->setValue(0);
         exit_key_->setValue(-1);
         exit_open_cmd_->setValue(-1);
+        updateTextMonitors();
         return;
     }
     const nebbie::Exit exit = readExitItem(item);
