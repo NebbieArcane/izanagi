@@ -38,18 +38,18 @@ github_ssh_ok() {
   grep -qi 'successfully authenticated' <<<"$output"
 }
 
-push_all() {
+push_main() {
   local target="$1"
   local mode="${2:-https}"
-  echo "Pushing branches to $target ..."
+  echo "Pushing main to $target ..."
   if [[ "$mode" == ssh ]]; then
-    git_ssh push "$target" --all
+    git_ssh push "$target" main:main
     if git tag -l | grep -q .; then
       echo "Pushing tags ..."
       git_ssh push "$target" --tags
     fi
   else
-    git push "$target" --all
+    git push "$target" main:main
     if git tag -l | grep -q .; then
       echo "Pushing tags ..."
       git push "$target" --tags
@@ -61,7 +61,7 @@ if [[ "$USE_SSH" == "1" || ( "$USE_SSH" == "auto" && "$(ssh_ready && echo yes ||
   echo "Using SSH agent at ${SSH_AUTH_SOCK:-<unset>}"
   ssh-add -l || true
   if github_ssh_ok; then
-    push_all "$REPO_SSH" ssh
+    push_main "$REPO_SSH" ssh
     echo "OK: https://github.com/NebbieArcane/izanagi"
     exit 0
   fi
@@ -81,5 +81,5 @@ if ! git remote get-url "$REMOTE_NAME" >/dev/null 2>&1; then
 else
   git remote set-url "$REMOTE_NAME" "$REPO_HTTPS"
 fi
-push_all "$REMOTE_NAME" https
+push_main "$REMOTE_NAME" https
 echo "OK: https://github.com/NebbieArcane/izanagi"
