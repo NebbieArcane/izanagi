@@ -80,6 +80,7 @@ void usage() {
         << "  nebbiedit guild list\n"
         << "  nebbiedit guild show <name>\n"
         << "  nebbiedit validate <lib-directory>\n"
+        << "  nebbiedit repair-wld <lib-directory>   (fix TUNNEL moblim lines for server boot)\n"
         << "  nebbiedit check mob <myst.mob-path>\n"
         << "  nebbiedit check obj <myst.obj-path>\n"
         << "  nebbiedit check wld <myst.wld-path>\n"
@@ -587,6 +588,34 @@ bool run(int argc, char** argv) {
             }
             usage();
             return false;
+        }
+
+        if (cmd == "repair-wld") {
+            if (argc < 3) {
+                usage();
+                return false;
+            }
+            const std::filesystem::path lib = argv[2];
+            const std::filesystem::path wld_path = lib / "myst.wld";
+            if (!std::filesystem::exists(wld_path)) {
+                std::cerr << "myst.wld not found in " << lib << '\n';
+                return false;
+            }
+
+            nebbie::World world;
+            nebbie::LibContext context;
+            nebbie::load_lib(world, lib, context, [](const std::string& msg) {
+                std::cout << msg << '\n';
+            });
+
+            const std::filesystem::path backup = lib / "myst.wld.bak";
+            std::filesystem::copy_file(wld_path, backup, std::filesystem::copy_options::overwrite_existing);
+            nebbie::save_myst_wld(world, wld_path, [](const std::string& msg) {
+                std::cout << msg << '\n';
+            });
+            std::cout << "Repaired myst.wld for server compatibility (" << world.rooms.size()
+                      << " rooms). Backup: " << backup << '\n';
+            return true;
         }
 
         if (cmd == "validate") {
