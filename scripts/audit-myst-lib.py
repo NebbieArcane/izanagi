@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Audit myst.* monoliths for merge artifacts that truncate server boot loading."""
+"""Audit myst.* monoliths for merge artifacts that truncate server boot loading.
+
+For automated repair use `nebbiedit repair-lib <lib-directory>`.
+"""
 
 from __future__ import annotations
 

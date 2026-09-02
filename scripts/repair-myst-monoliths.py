@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Remove premature myst monolith terminators introduced by bad Aree merges."""
+"""Remove premature myst monolith terminators introduced by bad Aree merges.
+
+Prefer `nebbiedit repair-lib <lib-directory>` which also rewrites myst.wld for
+server-compatible TUNNEL room export.
+"""
 
 from __future__ import annotations
 

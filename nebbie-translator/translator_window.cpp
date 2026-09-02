@@ -14,6 +14,7 @@
 
 #include "nebbie/edit.hpp"
 #include "nebbie/io.hpp"
+#include "nebbie/monolith_audit.hpp"
 #include "nebbie/validate.hpp"
 
 #include <QAction>
@@ -492,7 +493,8 @@ void TranslatorWindow::validateLib() {
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::append_monolith_validation(report, lib_path_);
     showValidation(report);
     if (report.ok()) {
         if (report.warning_count() > 0) {

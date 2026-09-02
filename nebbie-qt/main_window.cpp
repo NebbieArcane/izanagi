@@ -22,6 +22,7 @@
 #include "nebbie/constants.hpp"
 #include "nebbie/overlay_io.hpp"
 #include "nebbie/io.hpp"
+#include "nebbie/monolith_audit.hpp"
 #include "nebbie/validate.hpp"
 #include "nebbie/world_index.hpp"
 #include "nebbie/zone_graph.hpp"
@@ -2439,7 +2440,8 @@ void MainWindow::validateLib() {
         QMessageBox::information(this, "Valida", "Apri prima una libreria.");
         return;
     }
-    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::append_monolith_validation(report, lib_path_);
     showValidation(report, QStringLiteral("Report validazione mondo intero (Nebbie Editor)"));
     if (report.ok()) {
         if (report.warning_count() > 0) {

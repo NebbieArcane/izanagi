@@ -39,6 +39,10 @@ add_executable(nebbie-wld-tunnel-moblim-tests test_wld_tunnel_moblim.cpp)
 target_link_libraries(nebbie-wld-tunnel-moblim-tests PRIVATE nebbie-core)
 add_test(NAME wld-tunnel-moblim-save COMMAND nebbie-wld-tunnel-moblim-tests)
 
+add_executable(nebbie-monolith-audit-tests test_monolith_audit.cpp)
+target_link_libraries(nebbie-monolith-audit-tests PRIVATE nebbie-core)
+add_test(NAME monolith-audit-tests COMMAND nebbie-monolith-audit-tests)
+
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
 
