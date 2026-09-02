@@ -43,6 +43,8 @@ private slots:
     void onGuildSelected();
     void applyShop();
     void applySpecial();
+    void addSpecial();
+    void removeSpecial();
     void applyDamage();
     void applySocial();
     void applyPose();
@@ -56,6 +58,9 @@ private:
     void buildPoseTab(QWidget* parent);
     void buildGuildTab(QWidget* parent);
     void refreshSpecialProcedureChoices();
+    void clearSpecialForm();
+    nebbie::SpecialProc readSpecialForm() const;
+    void selectSpecialIndex(std::size_t index);
     void applyMudFieldSettings();
     nebbie::qt::MudFieldList mudFields() const;
 

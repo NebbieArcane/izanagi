@@ -1028,4 +1028,98 @@ bool move_zone_reset(World& world, const int zone_num, const std::size_t from_in
     return true;
 }
 
+namespace {
+
+void trim_special_proc_string(std::string& value) {
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front()))) {
+        value.erase(value.begin());
+    }
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back()))) {
+        value.pop_back();
+    }
+}
+
+bool normalize_special_proc(SpecialProc& entry, std::string* error) {
+    entry.type = static_cast<char>(std::tolower(static_cast<unsigned char>(entry.type)));
+    trim_special_proc_string(entry.procedure);
+    trim_special_proc_string(entry.params);
+
+    if (!is_valid_special_proc_type(entry.type)) {
+        if (error) {
+            *error = "tipo non valido (usa m, o o r)";
+        }
+        return false;
+    }
+    if (entry.vnum <= 0) {
+        if (error) {
+            *error = "vnum deve essere maggiore di zero";
+        }
+        return false;
+    }
+    if (entry.procedure.empty()) {
+        if (error) {
+            *error = "nome procedura obbligatorio";
+        }
+        return false;
+    }
+    return true;
+}
+
+} // namespace
+
+bool is_valid_special_proc_type(const char type) {
+    switch (std::tolower(static_cast<unsigned char>(type))) {
+    case 'm':
+    case 'o':
+    case 'r':
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool special_proc_exists(const World& world, const char type, const long vnum, const std::size_t ignore_index) {
+    const char normalized = static_cast<char>(std::tolower(static_cast<unsigned char>(type)));
+    for (std::size_t i = 0; i < world.special_procs.size(); ++i) {
+        if (i == ignore_index) {
+            continue;
+        }
+        const auto& spe = world.special_procs[i];
+        if (std::tolower(static_cast<unsigned char>(spe.type)) == normalized && spe.vnum == vnum) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool add_special_proc(World& world, SpecialProc entry, std::string* error) {
+    if (!normalize_special_proc(entry, error)) {
+        return false;
+    }
+    world.special_procs.push_back(std::move(entry));
+    return true;
+}
+
+bool update_special_proc(World& world, const std::size_t index, SpecialProc entry, std::string* error) {
+    if (index >= world.special_procs.size()) {
+        if (error) {
+            *error = "special proc non trovata";
+        }
+        return false;
+    }
+    if (!normalize_special_proc(entry, error)) {
+        return false;
+    }
+    world.special_procs[index] = std::move(entry);
+    return true;
+}
+
+bool remove_special_proc(World& world, const std::size_t index) {
+    if (index >= world.special_procs.size()) {
+        return false;
+    }
+    world.special_procs.erase(world.special_procs.begin() + static_cast<std::ptrdiff_t>(index));
+    return true;
+}
+
 } // namespace nebbie

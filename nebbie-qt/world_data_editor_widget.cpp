@@ -2,6 +2,7 @@
 
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
+#include "nebbie/edit.hpp"
 #include "nebbie/special_proc_catalog.hpp"
 
 #include <QComboBox>
@@ -11,6 +12,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSpinBox>
@@ -228,6 +230,9 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
 void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
+    layout->addWidget(new QLabel(
+        "Assegnazioni in myst.spe (file globale libreria). Formato riga: "
+        "M <vnum> <procedura> [parametri]. Salva la libreria per scrivere il file."));
     special_list_ = new QListWidget;
     auto* form_host = new QWidget;
     auto* form = new QFormLayout(form_host);
@@ -245,16 +250,57 @@ void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     form->addRow("Vnum:", special_vnum_);
     form->addRow("Procedure:", special_procedure_);
     form->addRow("Params:", special_params_);
+    auto* buttons = new QHBoxLayout;
+    auto* add = new QPushButton("Nuova special proc");
     auto* apply = new QPushButton("Applica special proc");
+    auto* remove = new QPushButton("Rimuovi");
+    buttons->addWidget(add);
+    buttons->addWidget(apply);
+    buttons->addWidget(remove);
+    buttons->addStretch();
+    connect(add, &QPushButton::clicked, this, &WorldDataEditorWidget::addSpecial);
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applySpecial);
+    connect(remove, &QPushButton::clicked, this, &WorldDataEditorWidget::removeSpecial);
     layout->addLayout(makeListEditorRow(special_list_, wrapScroll(form_host)));
-    layout->addWidget(apply);
+    layout->addLayout(buttons);
     connect(special_list_, &QListWidget::currentRowChanged, this, [this](int) { onSpecialSelected(); });
     connect(special_type_, &QComboBox::currentIndexChanged, this, [this](int) {
         refreshSpecialProcedureChoices();
     });
     refreshSpecialProcedureChoices();
     static_cast<QTabWidget*>(parent)->addTab(page, "Special");
+}
+
+void WorldDataEditorWidget::clearSpecialForm() {
+    if (!special_type_ || !special_vnum_ || !special_procedure_ || !special_params_) {
+        return;
+    }
+    special_type_->setCurrentIndex(0);
+    special_vnum_->setValue(0);
+    refreshSpecialProcedureChoices();
+    special_procedure_->setEditText(QString());
+    special_params_->clear();
+}
+
+nebbie::SpecialProc WorldDataEditorWidget::readSpecialForm() const {
+    nebbie::SpecialProc spe;
+    spe.type = static_cast<char>(special_type_->currentData().toChar().unicode());
+    spe.vnum = special_vnum_->value();
+    spe.procedure = special_procedure_->currentText().trimmed().toStdString();
+    spe.params = special_params_->text().trimmed().toStdString();
+    return spe;
+}
+
+void WorldDataEditorWidget::selectSpecialIndex(const std::size_t index) {
+    if (!special_list_) {
+        return;
+    }
+    for (int row = 0; row < special_list_->count(); ++row) {
+        if (static_cast<std::size_t>(special_list_->item(row)->data(Qt::UserRole).toLongLong()) == index) {
+            special_list_->setCurrentRow(row);
+            return;
+        }
+    }
 }
 
 void WorldDataEditorWidget::refreshSpecialProcedureChoices() {
@@ -547,21 +593,81 @@ void WorldDataEditorWidget::applySpecial() {
     }
     auto* item = special_list_->currentItem();
     if (!item) {
+        QMessageBox::information(this, "Special proc", "Seleziona una special proc da modificare.");
         return;
     }
     const std::size_t index = static_cast<std::size_t>(item->data(Qt::UserRole).toLongLong());
-    if (index >= world_->special_procs.size()) {
+    nebbie::SpecialProc spe = readSpecialForm();
+    std::string error;
+    if (!nebbie::update_special_proc(*world_, index, spe, &error)) {
+        QMessageBox::warning(this, "Special proc", QString::fromStdString(error));
         return;
     }
-    auto& spe = world_->special_procs[index];
-    spe.type = static_cast<char>(special_type_->currentData().toChar().unicode());
-    spe.vnum = special_vnum_->value();
-    spe.procedure = special_procedure_->currentText().trimmed().toStdString();
-    spe.params = special_params_->text().toStdString();
-    item->setText(QString("%1 %2 %3")
-                      .arg(QChar(spe.type))
-                      .arg(spe.vnum)
-                      .arg(QString::fromStdString(spe.procedure)));
+    if (nebbie::special_proc_exists(*world_, spe.type, spe.vnum, index)) {
+        QMessageBox::information(
+            this,
+            "Special proc",
+            "Attenzione: esiste gia' un'altra assegnazione per lo stesso tipo e vnum.");
+    }
+    refresh();
+    selectSpecialIndex(index);
+    emit modified();
+}
+
+void WorldDataEditorWidget::addSpecial() {
+    if (!world_) {
+        QMessageBox::information(this, "Special proc", "Apri prima una libreria.");
+        return;
+    }
+
+    nebbie::SpecialProc spe = readSpecialForm();
+    std::string error;
+    if (!nebbie::add_special_proc(*world_, spe, &error)) {
+        QMessageBox::warning(this, "Special proc", QString::fromStdString(error));
+        return;
+    }
+    const std::size_t index = world_->special_procs.size() - 1;
+    if (nebbie::special_proc_exists(*world_, spe.type, spe.vnum, index)) {
+        QMessageBox::information(
+            this,
+            "Special proc",
+            "Attenzione: esiste gia' un'altra assegnazione per lo stesso tipo e vnum.");
+    }
+    refresh();
+    selectSpecialIndex(index);
+    emit modified();
+}
+
+void WorldDataEditorWidget::removeSpecial() {
+    if (!world_) {
+        return;
+    }
+    auto* item = special_list_->currentItem();
+    if (!item) {
+        QMessageBox::information(this, "Special proc", "Seleziona una special proc da rimuovere.");
+        return;
+    }
+    const std::size_t index = static_cast<std::size_t>(item->data(Qt::UserRole).toLongLong());
+    const QString label = item->text();
+    const auto answer = QMessageBox::question(
+        this,
+        "Rimuovi special proc",
+        QString("Rimuovere %1 da myst.spe?").arg(label),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+    if (!nebbie::remove_special_proc(*world_, index)) {
+        QMessageBox::warning(this, "Special proc", "Impossibile rimuovere la special proc selezionata.");
+        return;
+    }
+    refresh();
+    if (special_list_->count() > 0) {
+        special_list_->setCurrentRow(std::min<int>(static_cast<int>(index), special_list_->count() - 1));
+    } else {
+        clearSpecialForm();
+    }
     emit modified();
 }
 

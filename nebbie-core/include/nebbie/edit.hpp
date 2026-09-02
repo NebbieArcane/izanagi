@@ -201,6 +201,13 @@ bool update_zone_reset(World& world, int zone_num, std::size_t index, const Rese
 bool remove_zone_reset(World& world, int zone_num, std::size_t index);
 bool move_zone_reset(World& world, int zone_num, std::size_t from_index, std::size_t to_index);
 
+bool is_valid_special_proc_type(char type);
+bool special_proc_exists(const World& world, char type, long vnum,
+                         std::size_t ignore_index = static_cast<std::size_t>(-1));
+bool add_special_proc(World& world, SpecialProc entry, std::string* error = nullptr);
+bool update_special_proc(World& world, std::size_t index, SpecialProc entry, std::string* error = nullptr);
+bool remove_special_proc(World& world, std::size_t index);
+
 RoomEdit room_edit_from_flags(const std::map<std::string, std::string>& flags);
 MobEdit mob_edit_from_flags(const std::map<std::string, std::string>& flags);
 ObjEdit obj_edit_from_flags(const std::map<std::string, std::string>& flags);

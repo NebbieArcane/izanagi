@@ -19,6 +19,7 @@
 #include "path_util.hpp"
 #include "validation_report_ui.hpp"
 #include "nebbie/edit.hpp"
+#include "nebbie/constants.hpp"
 #include "nebbie/overlay_io.hpp"
 #include "nebbie/io.hpp"
 #include "nebbie/validate.hpp"
@@ -278,7 +279,15 @@ void MainWindow::setupUi() {
     world_data_editor_ = new WorldDataEditorWidget;
     world_data_tab_ = world_data_editor_;
     tabs_->addTab(world_data_tab_, QString());
-    connect(world_data_editor_, &WorldDataEditorWidget::modified, this, &MainWindow::markDirty);
+    connect(world_data_editor_, &WorldDataEditorWidget::modified, this, [this]() {
+        if (!world_.special_procs.empty()) {
+            context_.has_spe = true;
+            if (context_.spe_path.empty()) {
+                context_.spe_path = nebbie::SPECIAL_FILE;
+            }
+        }
+        markDirty();
+    });
 
     map_tab_ = new QWidget;
     auto* map_layout = new QVBoxLayout(map_tab_);
