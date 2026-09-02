@@ -35,6 +35,10 @@ add_executable(nebbie-wld-teleport-tests test_wld_teleport.cpp)
 target_link_libraries(nebbie-wld-teleport-tests PRIVATE nebbie-core)
 add_test(NAME wld-teleport-roundtrip COMMAND nebbie-wld-teleport-tests)
 
+add_executable(nebbie-wld-tunnel-moblim-tests test_wld_tunnel_moblim.cpp)
+target_link_libraries(nebbie-wld-tunnel-moblim-tests PRIVATE nebbie-core)
+add_test(NAME wld-tunnel-moblim-save COMMAND nebbie-wld-tunnel-moblim-tests)
+
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
 

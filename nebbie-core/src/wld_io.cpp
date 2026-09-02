@@ -199,9 +199,8 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
         }
     }
 
-    if (room.room_flags & TUNNEL) {
-        std::fprintf(fp, "%ld\n", room.moblim > 0 ? room.moblim : 1);
-    }
+    // NebbieArcane load_one_room() does not read a standalone moblim line before
+    // D/E/L/S aux records; emitting one breaks boot with "unknown auxiliary code '1'".
 
     for (const auto& exit : room.exits) {
         std::fprintf(fp, "D%d\n", exit.direction);
