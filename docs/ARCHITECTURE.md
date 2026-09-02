@@ -49,6 +49,10 @@ world/      # stato runtime stanza (oggetti/mob a terra), NON prototipi
 5. **DB import:** `scripts/import-overlays-to-db.sh` importa i corpi overlay in tabelle SQLite con nome scelto interattivamente (es. `nebbie-mob`).
 6. **DB (roadmap):** stesso modello `World`, persistenza alternativa; i file restano source of truth finché il boot non migra.
 
+### Build Aree (`NebbieArcane/Aree`)
+
+Il deploy concatena `src/<area>/<area>.*` in `mudroot/myst.*` con `deploy_aree.php` (invocato da `build.sh`). I marker EOF (`#$`, `%%`, `#0`) devono comparire **solo** in `src/_tail/`; se un'area singola li contiene (export Izanagi, copia da monolite), il merge li propagava e il server tronca il caricamento. Fix canonico: `scripts/aree/deploy_aree.php`.
+
 ## Moduli editor
 
 1. **nebbie-core** — modello in memoria + I/O (portable C++17)
