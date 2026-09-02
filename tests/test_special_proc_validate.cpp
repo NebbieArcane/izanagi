@@ -1,8 +1,11 @@
 #include "nebbie/special_proc_catalog.hpp"
+#include "nebbie/edit.hpp"
+#include "nebbie/io.hpp"
 #include "nebbie/types.hpp"
 #include "nebbie/validate.hpp"
 #include "nebbie/world.hpp"
 
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -32,6 +35,41 @@ int main() {
         }
         if (nebbie::is_known_special_proc('m', "NotARealProcEver")) {
             throw std::runtime_error("unexpected catalog match for fake proc");
+        }
+
+        nebbie::World add_world;
+        nebbie::SpecialProc new_proc;
+        new_proc.type = 'm';
+        new_proc.vnum = 3016;
+        new_proc.procedure = "Incastonatore";
+        std::string add_error;
+        if (!nebbie::add_special_proc(add_world, new_proc, &add_error)) {
+            throw std::runtime_error("add_special_proc failed: " + add_error);
+        }
+        if (add_world.special_procs.size() != 1
+            || add_world.special_procs.front().procedure != "Incastonatore") {
+            throw std::runtime_error("add_special_proc did not append entry");
+        }
+        if (!nebbie::remove_special_proc(add_world, 0) || !add_world.special_procs.empty()) {
+            throw std::runtime_error("remove_special_proc failed");
+        }
+
+        const auto spe_out = std::filesystem::path("build/spe-add-roundtrip");
+        std::filesystem::create_directories(spe_out);
+        nebbie::SpecialProc roundtrip_proc;
+        roundtrip_proc.type = 'm';
+        roundtrip_proc.vnum = 3016;
+        roundtrip_proc.procedure = "Incastonatore";
+        if (!nebbie::add_special_proc(add_world, roundtrip_proc, &add_error)) {
+            throw std::runtime_error("roundtrip add_special_proc failed: " + add_error);
+        }
+        nebbie::save_myst_spe(add_world, spe_out / "myst.spe");
+        nebbie::World loaded;
+        nebbie::load_myst_spe(loaded, spe_out / "myst.spe");
+        if (loaded.special_procs.size() != 1
+            || loaded.special_procs.front().vnum != 3016
+            || loaded.special_procs.front().procedure != "Incastonatore") {
+            throw std::runtime_error("myst.spe roundtrip failed for appended special proc");
         }
 
         nebbie::World world;
