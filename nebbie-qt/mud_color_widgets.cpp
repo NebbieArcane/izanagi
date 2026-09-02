@@ -2,6 +2,8 @@
 
 #include "nebbie/text_lines.hpp"
 
+#include <QApplication>
+#include <QClipboard>
 #include <QHelpEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -102,6 +104,39 @@ void MudColorTextEdit::insertColorCode(const QString& code) {
     storage_.insert(storage_cursor, code);
     rebuildDocument(storage_cursor + code.size());
     emit storageTextChanged(storage_);
+}
+
+void MudColorTextEdit::insertStorageTextAtCursor(const QString& text) {
+    if (text.isEmpty()) {
+        return;
+    }
+
+    QString normalized = text;
+    if (single_line_mode_) {
+        normalized.replace(QLatin1Char('\r'), QLatin1Char(' '));
+        normalized.replace(QLatin1Char('\n'), QLatin1Char(' '));
+    }
+
+    const int storage_cursor =
+        display_position_to_storage(storage_, textCursor().position(), show_color_codes_);
+    storage_.insert(storage_cursor, normalized);
+    rebuildDocument(storage_cursor + normalized.size());
+    emit storageTextChanged(storage_);
+}
+
+void MudColorTextEdit::pastePlainText() {
+    const QClipboard* clipboard = QApplication::clipboard();
+    if (!clipboard) {
+        return;
+    }
+    insertStorageTextAtCursor(clipboard->text());
+}
+
+void MudColorTextEdit::insertFromMimeData(const QMimeData* source) {
+    if (!source) {
+        return;
+    }
+    insertStorageTextAtCursor(source->text());
 }
 
 void MudColorTextEdit::rebuildDocument(int preferred_storage_cursor) {

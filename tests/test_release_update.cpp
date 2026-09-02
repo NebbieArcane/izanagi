@@ -76,16 +76,16 @@ int main() {
 
         const QByteArray same_version_body = sampleReleaseJson(
             QStringLiteral("izanagi"),
-            {QStringLiteral("izanagi_0.1.0%1").arg(platform_suffix)});
+            {QStringLiteral("izanagi_0.1.13%1").arg(platform_suffix)});
         QJsonDocument same_doc = QJsonDocument::fromJson(same_version_body);
         QJsonObject same_root = same_doc.object();
         same_root.insert(QStringLiteral("published_at"), QStringLiteral("2026-09-02T12:00:00Z"));
-        const auto newer_build = parseReleaseResponse(QJsonDocument(same_root).toJson(),
-                                                      ReleaseProduct::Izanagi,
-                                                      QStringLiteral("0.1.0"),
-                                                      QStringLiteral("2026-09-01T00:00:00Z"));
-        expect(newer_build.ok, "same version newer build parse ok");
-        expect(newer_build.update_available, "newer published build detected");
+        const auto same_version = parseReleaseResponse(QJsonDocument(same_root).toJson(),
+                                                       ReleaseProduct::Izanagi,
+                                                       QStringLiteral("0.1.13"),
+                                                       QStringLiteral("2026-09-01T00:00:00Z"));
+        expect(same_version.ok, "same version parse ok");
+        expect(!same_version.update_available, "no update when versions match");
 
         const auto run_number_update = parseReleaseResponse(
             release_body, ReleaseProduct::Izanagi, QStringLiteral("0.1.100"));

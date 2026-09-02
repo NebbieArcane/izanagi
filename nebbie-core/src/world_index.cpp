@@ -757,6 +757,34 @@ std::optional<long> suggest_object_vnum(const WorldIndex& index) {
     return std::nullopt;
 }
 
+std::optional<long> suggest_mob_vnum_in_zone(const WorldIndex& index, const int zone_num) {
+    const WorldIndexZone* zone = find_world_index_zone(index, zone_num);
+    if (!zone) {
+        return std::nullopt;
+    }
+
+    for (long vnum = zone->bottom; vnum <= zone->top; ++vnum) {
+        if (!mob_vnum_taken(index, vnum)) {
+            return vnum;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<long> suggest_object_vnum_in_zone(const WorldIndex& index, const int zone_num) {
+    const WorldIndexZone* zone = find_world_index_zone(index, zone_num);
+    if (!zone) {
+        return std::nullopt;
+    }
+
+    for (long vnum = zone->bottom; vnum <= zone->top; ++vnum) {
+        if (!object_vnum_taken(index, vnum)) {
+            return vnum;
+        }
+    }
+    return std::nullopt;
+}
+
 std::optional<VnumRange> suggest_room_vnum_range_in_zone(const WorldIndex& index, const int zone_num,
                                                          const int block_size) {
     const WorldIndexZone* zone = find_world_index_zone(index, zone_num);

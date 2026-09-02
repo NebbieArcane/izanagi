@@ -1,15 +1,20 @@
 #pragma once
 
+#include "mud_editor_fields.hpp"
 #include "nebbie/types.hpp"
 
 #include <QWidget>
 
+#include <vector>
+
 class QCheckBox;
 class QComboBox;
-class QLineEdit;
 class QSpinBox;
-class QTextEdit;
 class FlagGroupWidget;
+
+namespace nebbie::qt {
+class MudColorTextEdit;
+}
 
 class MobEditorWidget : public QWidget {
     Q_OBJECT
@@ -20,13 +25,23 @@ public:
     void loadFromMobile(const nebbie::Mobile& mob);
     void saveToMobile(nebbie::Mobile& mob) const;
 
+    void setMaxLineLength(int max_length);
+    void setShowColorCodes(bool show);
+    nebbie::qt::MudColorTextEdit* focusedMudField() const;
+    void focusPrimaryTextField();
+
 private:
     void updateTypeDependentFields();
+    void applyMudFieldSettings();
+    nebbie::qt::MudFieldList mudFields() const;
 
-    QLineEdit* name_ = nullptr;
-    QTextEdit* short_descr_ = nullptr;
-    QTextEdit* long_descr_ = nullptr;
-    QTextEdit* description_ = nullptr;
+    int max_line_length_ = 0;
+    bool show_color_codes_ = false;
+
+    nebbie::qt::MudColorTextEdit* name_ = nullptr;
+    nebbie::qt::MudColorTextEdit* short_descr_ = nullptr;
+    nebbie::qt::MudColorTextEdit* long_descr_ = nullptr;
+    nebbie::qt::MudColorTextEdit* description_ = nullptr;
 
     QComboBox* mobtype_ = nullptr;
     QSpinBox* mult_att_ = nullptr;
@@ -62,8 +77,8 @@ private:
     FlagGroupWidget* meta_immune_flags_ = nullptr;
     FlagGroupWidget* susceptible_flags_ = nullptr;
 
-    QLineEdit* sounds_ = nullptr;
-    QLineEdit* distant_sounds_ = nullptr;
-    QTextEdit* extra_sounds_ = nullptr;
+    nebbie::qt::MudColorTextEdit* sounds_ = nullptr;
+    nebbie::qt::MudColorTextEdit* distant_sounds_ = nullptr;
+    nebbie::qt::MudColorTextEdit* extra_sounds_ = nullptr;
     QWidget* sounds_panel_ = nullptr;
 };

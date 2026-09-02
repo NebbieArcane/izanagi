@@ -157,8 +157,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupUi();
     setupMenus();
     retranslateUi();
-    room_editor_->setMaxLineLength(app_config_.max_line_length);
-    room_editor_->setShowColorCodes(app_config_.show_color_codes);
+    applyTextEditorSettings();
     if (auto* delegate = roomListDelegate(room_list_)) {
         delegate->setShowColorCodes(app_config_.show_color_codes);
     }
@@ -674,10 +673,23 @@ nebbie::ValidationOptions MainWindow::validationOptions() const {
     return options;
 }
 
+void MainWindow::applyTextEditorSettings() {
+    room_editor_->setMaxLineLength(app_config_.max_line_length);
+    room_editor_->setShowColorCodes(app_config_.show_color_codes);
+    mob_editor_->setMaxLineLength(app_config_.max_line_length);
+    mob_editor_->setShowColorCodes(app_config_.show_color_codes);
+    obj_editor_->setMaxLineLength(app_config_.max_line_length);
+    obj_editor_->setShowColorCodes(app_config_.show_color_codes);
+    zone_editor_->setMaxLineLength(app_config_.max_line_length);
+    zone_editor_->setShowColorCodes(app_config_.show_color_codes);
+    world_data_editor_->setMaxLineLength(app_config_.max_line_length);
+    world_data_editor_->setShowColorCodes(app_config_.show_color_codes);
+}
+
 void MainWindow::toggleExtendedColorView(bool enabled) {
     app_config_.show_color_codes = enabled;
     nebbie::qt::write_config(app_config_);
-    room_editor_->setShowColorCodes(enabled);
+    applyTextEditorSettings();
     if (auto* delegate = roomListDelegate(room_list_)) {
         delegate->setShowColorCodes(enabled);
         room_list_->viewport()->update();
@@ -699,10 +711,35 @@ void MainWindow::insertColorCode() {
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
-    if (auto* field = room_editor_->focusedMudField()) {
-        field->insertColorCode(dialog.selectedCode());
-        setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+    nebbie::qt::MudColorTextEdit* field = activeMudTextField();
+    if (!field) {
+        setStatus("Seleziona un campo di testo prima di inserire un colore.");
+        return;
     }
+    field->insertColorCode(dialog.selectedCode());
+    setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+}
+
+nebbie::qt::MudColorTextEdit* MainWindow::activeMudTextField() const {
+    const auto pick = [](nebbie::qt::MudColorTextEdit* field) -> nebbie::qt::MudColorTextEdit* {
+        return field && field->hasFocus() ? field : nullptr;
+    };
+    if (auto* field = pick(room_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(mob_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(obj_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(zone_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(world_data_editor_->focusedMudField())) {
+        return field;
+    }
+    return nullptr;
 }
 
 void MainWindow::scheduleStartupUpdateCheck() {
@@ -752,7 +789,8 @@ void MainWindow::editLineLengthLimit() {
     const int value = QInputDialog::getInt(
         this,
         "Limite caratteri per riga",
-        "Numero massimo di caratteri per riga nei testi stanza (Windows, Linux e macOS).\n"
+        "Numero massimo di caratteri per riga nei testi MUD "
+        "(stanze, mob, oggetti, zone e dati mondo).\n"
         "Imposta 0 per disattivare.\n\n"
         "Salvato in:\n" + nebbie::qt::default_config_path(),
         app_config_.max_line_length,
@@ -766,8 +804,7 @@ void MainWindow::editLineLengthLimit() {
 
     app_config_.max_line_length = value;
     nebbie::qt::write_config(app_config_);
-    room_editor_->setMaxLineLength(app_config_.max_line_length);
-    room_editor_->setShowColorCodes(app_config_.show_color_codes);
+    applyTextEditorSettings();
     if (app_config_.max_line_length > 0) {
         setStatus(QString("Limite righe impostato a %1 caratteri.").arg(app_config_.max_line_length));
     } else {
@@ -1297,7 +1334,7 @@ void MainWindow::selectZoneByNum(const int zone_num) {
     }
 }
 
-int MainWindow::preferredZoneNumForNewRoom() const {
+int MainWindow::preferredZoneNum() const {
     if (const int zone_num = currentZoneNum(); zone_num > 0) {
         return zone_num;
     }
@@ -1312,6 +1349,21 @@ int MainWindow::preferredZoneNumForNewRoom() const {
             return world_.zones[static_cast<std::size_t>(room->zone_index)].num;
         }
     }
+    if (const auto* mob_item = mob_list_->currentItem()) {
+        const long mob_vnum = mob_item->data(Qt::UserRole).toLongLong();
+        if (const nebbie::Zone* zone = world_.zone_for_vnum(mob_vnum)) {
+            return zone->num;
+        }
+    }
+    if (const auto* obj_item = obj_list_->currentItem()) {
+        const long obj_vnum = obj_item->data(Qt::UserRole).toLongLong();
+        if (const nebbie::Zone* zone = world_.zone_for_vnum(obj_vnum)) {
+            return zone->num;
+        }
+    }
+    if (world_.zones.size() == 1) {
+        return world_.zones.front().num;
+    }
     return 0;
 }
 
@@ -1325,56 +1377,65 @@ nebbie::WorldIndex MainWindow::worldIndexForValidation() const {
 }
 
 long MainWindow::suggestRoomVnum() const {
-    if (world_index_) {
-        const int zone_num = preferredZoneNumForNewRoom();
-        if (zone_num > 0) {
-            const auto suggested = nebbie::suggest_room_vnum_in_zone(*world_index_, zone_num);
-            if (suggested) {
-                return *suggested;
-            }
+    const nebbie::WorldIndex index = worldIndexForValidation();
+    const int zone_num = preferredZoneNum();
+    if (zone_num > 0) {
+        const auto suggested = nebbie::suggest_room_vnum_in_zone(index, zone_num);
+        if (suggested) {
+            return *suggested;
         }
-        for (const auto& zone : world_index_->zones) {
-            const auto suggested = nebbie::suggest_room_vnum_in_zone(*world_index_, zone.zone_num);
-            if (suggested) {
-                return *suggested;
-            }
+    }
+    for (const auto& zone : index.zones) {
+        const auto suggested = nebbie::suggest_room_vnum_in_zone(index, zone.zone_num);
+        if (suggested) {
+            return *suggested;
         }
     }
     return nebbie::suggest_next_room_vnum(world_);
 }
 
 long MainWindow::suggestMobVnum() const {
-    if (world_index_) {
-        const auto suggested = nebbie::suggest_mob_vnum(*world_index_);
+    const nebbie::WorldIndex index = worldIndexForValidation();
+    const int zone_num = preferredZoneNum();
+    if (zone_num > 0) {
+        const auto suggested = nebbie::suggest_mob_vnum_in_zone(index, zone_num);
         if (suggested) {
             return *suggested;
         }
+    }
+    const auto suggested = nebbie::suggest_mob_vnum(index);
+    if (suggested) {
+        return *suggested;
     }
     return nebbie::suggest_next_mob_vnum(world_);
 }
 
 long MainWindow::suggestObjectVnum() const {
-    if (world_index_) {
-        const auto suggested = nebbie::suggest_object_vnum(*world_index_);
+    const nebbie::WorldIndex index = worldIndexForValidation();
+    const int zone_num = preferredZoneNum();
+    if (zone_num > 0) {
+        const auto suggested = nebbie::suggest_object_vnum_in_zone(index, zone_num);
         if (suggested) {
             return *suggested;
         }
+    }
+    const auto suggested = nebbie::suggest_object_vnum(index);
+    if (suggested) {
+        return *suggested;
     }
     return nebbie::suggest_next_object_vnum(world_);
 }
 
 bool MainWindow::warnIfRemoteVnumConflict(const QString& kind, const long vnum) const {
-    if (!world_index_) {
-        return true;
-    }
+    const nebbie::WorldIndex index = worldIndexForValidation();
 
     bool taken = false;
     if (kind == QStringLiteral("room")) {
-        taken = nebbie::room_vnum_taken(*world_index_, vnum);
+        taken = nebbie::room_vnum_taken(index, vnum);
     } else if (kind == QStringLiteral("mob")) {
-        taken = nebbie::mob_vnum_taken(*world_index_, vnum);
+        taken = nebbie::mob_vnum_taken(index, vnum);
     } else if (kind == QStringLiteral("object")) {
-        taken = nebbie::object_vnum_taken(*world_index_, vnum);
+        taken = nebbie::object_vnum_taken(index, vnum);
     }
     if (!taken) {
         return true;
@@ -1628,7 +1689,7 @@ void MainWindow::reserveVnums() {
     form->addRow("end_vnum:", end_vnum);
     form->addRow("note:", note);
 
-    const int preferred_zone = preferredZoneNumForNewRoom();
+    const int preferred_zone = preferredZoneNum();
     if (preferred_zone > 0) {
         const int zone_index = zone_combo->findData(preferred_zone);
         if (zone_index >= 0) {
@@ -2231,6 +2292,8 @@ void MainWindow::createMob() {
 
     refreshMobList();
     selectMobByVnum(vnum);
+    onMobSelected();
+    mob_editor_->focusPrimaryTextField();
     markDirty();
     setStatus(QString("Creato mob #%1.").arg(vnum));
 }
@@ -2258,6 +2321,8 @@ void MainWindow::createObject() {
 
     refreshObjectList();
     selectObjectByVnum(vnum);
+    onObjSelected();
+    obj_editor_->focusPrimaryTextField();
     markDirty();
     setStatus(QString("Creato oggetto #%1.").arg(vnum));
 }

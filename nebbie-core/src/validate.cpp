@@ -139,6 +139,8 @@ void append_room_validation(const World& world,
 
             check_field(room.name, "name");
             check_field(room.description, "description");
+            check_field(room.bright_at_night, "bright_at_night");
+            check_field(room.bright_at_day, "bright_at_day");
             for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
                 const auto& extra = room.extra_descs[extra_index];
                 const TextLineLengthReport line_report =
@@ -563,9 +565,78 @@ ValidationReport validate_rooms(const World& world,
     return report;
 }
 
+void append_mob_text_validation(const World& world, ValidationReport& report, const ValidationOptions& options) {
+    if (options.max_line_length <= 0) {
+        return;
+    }
+
+    const auto check_field = [&](long vnum, const std::string& text, const std::string& field_label) {
+        const TextLineLengthReport line_report = check_text_line_lengths(text, options.max_line_length);
+        for (const auto& issue : line_report.overlong) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "mob_text",
+                      "mobile " + std::to_string(vnum) + " " + field_label + " line "
+                          + std::to_string(issue.line_number) + " has "
+                          + std::to_string(issue.length) + " characters (max "
+                          + std::to_string(options.max_line_length) + ")",
+                      ValidationTarget::mob,
+                      vnum);
+        }
+    };
+
+    for (const auto& [vnum, mob] : world.mobiles) {
+        check_field(vnum, mob.name, "name");
+        check_field(vnum, mob.short_descr, "short_descr");
+        check_field(vnum, mob.long_descr, "long_descr");
+        check_field(vnum, mob.description, "description");
+        check_field(vnum, mob.sounds, "sounds");
+        check_field(vnum, mob.distant_sounds, "distant_sounds");
+        for (std::size_t index = 0; index < mob.extra_sound_strings.size(); ++index) {
+            check_field(vnum, mob.extra_sound_strings[index], "extra_sound " + std::to_string(index));
+        }
+    }
+}
+
+void append_object_text_validation(const World& world,
+                                   ValidationReport& report,
+                                   const ValidationOptions& options) {
+    if (options.max_line_length <= 0) {
+        return;
+    }
+
+    const auto check_field = [&](long vnum, const std::string& text, const std::string& field_label) {
+        const TextLineLengthReport line_report = check_text_line_lengths(text, options.max_line_length);
+        for (const auto& issue : line_report.overlong) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "object_text",
+                      "object " + std::to_string(vnum) + " " + field_label + " line "
+                          + std::to_string(issue.line_number) + " has "
+                          + std::to_string(issue.length) + " characters (max "
+                          + std::to_string(options.max_line_length) + ")",
+                      ValidationTarget::object,
+                      vnum);
+        }
+    };
+
+    for (const auto& [vnum, obj] : world.objects) {
+        check_field(vnum, obj.name, "name");
+        check_field(vnum, obj.short_descr, "short_descr");
+        check_field(vnum, obj.description, "description");
+        check_field(vnum, obj.action_description, "action_description");
+        for (std::size_t index = 0; index < obj.extra_descs.size(); ++index) {
+            check_field(vnum, obj.extra_descs[index].description,
+                         "extra desc " + std::to_string(index));
+        }
+    }
+}
+
 ValidationReport validate_world(const World& world, const ValidationOptions& options) {
     ValidationReport report;
     append_room_validation(world, report, options, nullptr);
+    append_mob_text_validation(world, report, options);
+    append_object_text_validation(world, report, options);
     validate_resets(world, report);
     validate_shops(world, report);
     validate_guilds(world, report);
@@ -599,6 +670,8 @@ ValidationReport validate_translatable_rooms(const World& world,
 
             check_field(room.name, "name");
             check_field(room.description, "description");
+            check_field(room.bright_at_night, "bright_at_night");
+            check_field(room.bright_at_day, "bright_at_day");
             for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
                 check_field(room.extra_descs[extra_index].description,
                             "extra desc " + std::to_string(extra_index));

@@ -13,6 +13,10 @@
 #include "nebbie/zone_partition.hpp"
 
 #include <QMainWindow>
+
+namespace nebbie::qt {
+class MudColorTextEdit;
+}
 #include <QTimer>
 
 #include <QEvent>
@@ -142,7 +146,9 @@ private:
     void markDirty();
     void markClean();
     std::vector<long> roomsPendingSaveValidation() const;
-    int preferredZoneNumForNewRoom() const;
+    int preferredZoneNum() const;
+    nebbie::qt::MudColorTextEdit* activeMudTextField() const;
+    void applyTextEditorSettings();
     long suggestRoomVnum() const;
     long suggestMobVnum() const;
     long suggestObjectVnum() const;

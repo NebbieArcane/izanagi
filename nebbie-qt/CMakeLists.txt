@@ -19,6 +19,8 @@ add_executable(nebbieedit
     app_i18n.hpp
     edit_menu.cpp
     edit_menu.hpp
+    mud_editor_fields.cpp
+    mud_editor_fields.hpp
     app_theme.cpp
     app_theme.hpp
     application_log.cpp

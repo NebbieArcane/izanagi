@@ -1,6 +1,8 @@
 #include "mob_editor_widget.hpp"
 
 #include "flag_group_widget.hpp"
+#include "mud_color_widgets.hpp"
+#include "mud_editor_fields.hpp"
 #include "nebbie/mob_catalog.hpp"
 
 #include <QCheckBox>
@@ -9,30 +11,22 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QScrollArea>
 #include <QSizePolicy>
 #include <QSpinBox>
 #include <QTabWidget>
-#include <QTextEdit>
 #include <QVBoxLayout>
 
 namespace {
 
-void configureLineField(QLineEdit* field) {
-    field->setMinimumWidth(420);
-    field->setMinimumHeight(30);
-    field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-}
-
-void configureShortTextField(QTextEdit* field) {
+void configureShortTextField(nebbie::qt::MudColorTextEdit* field) {
     field->setMinimumHeight(56);
     field->setMaximumHeight(80);
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     field->setLineWrapMode(QTextEdit::WidgetWidth);
 }
 
-void configureTextField(QTextEdit* field, const int min_height) {
+void configureTextField(nebbie::qt::MudColorTextEdit* field, const int min_height) {
     field->setMinimumHeight(min_height);
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -127,13 +121,13 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* text_tab = new QWidget;
     auto* text_form = new QFormLayout(text_tab);
-    name_ = new QLineEdit;
-    configureLineField(name_);
-    short_descr_ = new QTextEdit;
+    name_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(name_);
+    short_descr_ = new nebbie::qt::MudColorTextEdit;
     configureShortTextField(short_descr_);
-    long_descr_ = new QTextEdit;
+    long_descr_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(long_descr_, 110);
-    description_ = new QTextEdit;
+    description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(description_, 130);
     text_form->addRow("Name (keywords~):", name_);
     text_form->addRow("Short description:", short_descr_);
@@ -260,11 +254,11 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* sound_tab = new QWidget;
     auto* sound_form = new QFormLayout(sound_tab);
-    sounds_ = new QLineEdit;
-    configureLineField(sounds_);
-    distant_sounds_ = new QLineEdit;
-    configureLineField(distant_sounds_);
-    extra_sounds_ = new QTextEdit;
+    sounds_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(sounds_);
+    distant_sounds_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(distant_sounds_);
+    extra_sounds_ = new nebbie::qt::MudColorTextEdit;
     extra_sounds_->setPlaceholderText("One sound string per line (after local and distant sounds)");
     configureTextField(extra_sounds_, 100);
     sound_form->addRow("Sounds:", sounds_);
@@ -285,21 +279,47 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     updateTypeDependentFields();
 }
 
+nebbie::qt::MudFieldList MobEditorWidget::mudFields() const {
+    return {name_, short_descr_, long_descr_, description_, sounds_, distant_sounds_, extra_sounds_};
+}
+
+void MobEditorWidget::applyMudFieldSettings() {
+    nebbie::qt::applyMudFieldSettings(mudFields(), max_line_length_, show_color_codes_);
+}
+
+void MobEditorWidget::setMaxLineLength(const int max_length) {
+    max_line_length_ = max_length < 0 ? 0 : max_length;
+    applyMudFieldSettings();
+}
+
+void MobEditorWidget::setShowColorCodes(const bool show) {
+    show_color_codes_ = show;
+    applyMudFieldSettings();
+}
+
+nebbie::qt::MudColorTextEdit* MobEditorWidget::focusedMudField() const {
+    return nebbie::qt::focusedMudField(mudFields());
+}
+
+void MobEditorWidget::focusPrimaryTextField() {
+    short_descr_->setFocus();
+}
+
 void MobEditorWidget::updateTypeDependentFields() {
     const char mobtype = comboTypeValue(mobtype_);
     const bool uses_hit_dice = nebbie::mob_uses_hit_dice(mobtype);
     hit_dice_row_->setVisible(uses_hit_dice);
     hit_bonus_row_->setVisible(!uses_hit_dice);
     mult_att_->setEnabled(nebbie::mob_type_uses_mult_att(mobtype));
-    sounds_panel_->setEnabled(nebbie::mob_type_uses_sounds(mobtype) || !sounds_->text().isEmpty()
-                              || !distant_sounds_->text().isEmpty());
+    sounds_panel_->setEnabled(nebbie::mob_type_uses_sounds(mobtype) || !sounds_->storageText().isEmpty()
+                              || !distant_sounds_->storageText().isEmpty());
 }
 
 void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {
-    name_->setText(QString::fromStdString(mob.name));
-    short_descr_->setPlainText(QString::fromStdString(mob.short_descr));
-    long_descr_->setPlainText(QString::fromStdString(mob.long_descr));
-    description_->setPlainText(QString::fromStdString(mob.description));
+    name_->setStorageText(QString::fromStdString(mob.name));
+    short_descr_->setStorageText(QString::fromStdString(mob.short_descr));
+    long_descr_->setStorageText(QString::fromStdString(mob.long_descr));
+    description_->setStorageText(QString::fromStdString(mob.description));
 
     setComboTypeValue(mobtype_, mob.mobtype);
     mult_att_->setValue(mob.mult_att);
@@ -329,24 +349,24 @@ void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {
     act_flags_->setValue(mob.act);
     affected_flags_->setValue(mob.affected_by);
 
-    sounds_->setText(QString::fromStdString(mob.sounds));
-    distant_sounds_->setText(QString::fromStdString(mob.distant_sounds));
+    sounds_->setStorageText(QString::fromStdString(mob.sounds));
+    distant_sounds_->setStorageText(QString::fromStdString(mob.distant_sounds));
     {
         QStringList lines;
         for (const auto& line : mob.extra_sound_strings) {
             lines.push_back(QString::fromStdString(line));
         }
-        extra_sounds_->setPlainText(lines.join('\n'));
+        extra_sounds_->setStorageText(lines.join('\n'));
     }
 
     updateTypeDependentFields();
 }
 
 void MobEditorWidget::saveToMobile(nebbie::Mobile& mob) const {
-    mob.name = name_->text().toStdString();
-    mob.short_descr = short_descr_->toPlainText().toStdString();
-    mob.long_descr = long_descr_->toPlainText().toStdString();
-    mob.description = description_->toPlainText().toStdString();
+    mob.name = name_->storageText().toStdString();
+    mob.short_descr = short_descr_->storageText().toStdString();
+    mob.long_descr = long_descr_->storageText().toStdString();
+    mob.description = description_->storageText().toStdString();
 
     mob.mobtype = comboTypeValue(mobtype_);
     mob.mult_att = mult_att_->value();
@@ -385,10 +405,10 @@ void MobEditorWidget::saveToMobile(nebbie::Mobile& mob) const {
     mob.act = act_flags_->value();
     mob.affected_by = affected_flags_->value();
 
-    mob.sounds = sounds_->text().toStdString();
-    mob.distant_sounds = distant_sounds_->text().toStdString();
+    mob.sounds = sounds_->storageText().toStdString();
+    mob.distant_sounds = distant_sounds_->storageText().toStdString();
     mob.extra_sound_strings.clear();
-    for (const QString& line : extra_sounds_->toPlainText().split('\n')) {
+    for (const QString& line : extra_sounds_->storageText().split('\n')) {
         const std::string value = line.trimmed().toStdString();
         if (!value.empty()) {
             mob.extra_sound_strings.push_back(value);

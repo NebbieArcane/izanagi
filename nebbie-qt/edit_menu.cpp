@@ -1,6 +1,8 @@
 #include "edit_menu.hpp"
 
 #include "app_i18n.hpp"
+#include "mud_color_widgets.hpp"
+#include "mud_editor_fields.hpp"
 
 #include <QApplication>
 #include <QComboBox>
@@ -72,10 +74,9 @@ void copyFocusedText() {
     }
 }
 
-void pasteFocusedText() {
-    dispatchToEditor<QTextEdit>(&QTextEdit::paste);
-    dispatchToEditor<QPlainTextEdit>(&QPlainTextEdit::paste);
-    dispatchToEditor<QLineEdit>(&QLineEdit::paste);
+void pastePlainTextFocused() {
+    QWidget* widget = findTextInputWidget(QApplication::focusWidget());
+    pastePlainTextIntoWidget(widget);
 }
 
 void selectAllFocusedText() {
@@ -113,7 +114,12 @@ void addStandardEditMenu(QMenuBar* menu_bar) {
 
     auto* paste_action = edit_menu->addAction(appTr("menu.paste"));
     paste_action->setShortcut(QKeySequence::Paste);
-    QObject::connect(paste_action, &QAction::triggered, paste_action, []() { pasteFocusedText(); });
+    QObject::connect(paste_action, &QAction::triggered, paste_action, []() { pastePlainTextFocused(); });
+
+    auto* paste_plain_action = edit_menu->addAction(appTr("menu.paste_plain"));
+    paste_plain_action->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V));
+    QObject::connect(paste_plain_action, &QAction::triggered, paste_plain_action,
+                     []() { pastePlainTextFocused(); });
 
     edit_menu->addSeparator();
 

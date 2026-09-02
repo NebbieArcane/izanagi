@@ -1,5 +1,7 @@
 #include "world_data_editor_widget.hpp"
 
+#include "mud_color_widgets.hpp"
+#include "mud_editor_fields.hpp"
 #include "nebbie/special_proc_catalog.hpp"
 
 #include <QComboBox>
@@ -13,17 +15,30 @@
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QTabWidget>
-#include <QTextEdit>
 #include <QVBoxLayout>
 
 namespace {
 
-QString textFromEdit(const QTextEdit* field) {
-    return field->toPlainText();
+nebbie::qt::MudColorTextEdit* makeSingleLineMudField() {
+    auto* field = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(field);
+    return field;
 }
 
-void setTextEdit(QTextEdit* field, const std::string& value) {
-    field->setPlainText(QString::fromStdString(value));
+nebbie::qt::MudColorTextEdit* makeMultiLineMudField(const int max_height = 72) {
+    auto* field = new nebbie::qt::MudColorTextEdit;
+    field->setMaximumHeight(max_height);
+    return field;
+}
+
+QString textFromEdit(const nebbie::qt::MudColorTextEdit* field) {
+    return field ? field->storageText() : QString();
+}
+
+void setTextEdit(nebbie::qt::MudColorTextEdit* field, const std::string& value) {
+    if (field) {
+        field->setStorageText(QString::fromStdString(value));
+    }
 }
 
 int findComboTextInsensitive(const QComboBox* combo, const QString& text) {
@@ -172,13 +187,13 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
     shop_open2_->setRange(0, 24);
     shop_close2_ = new QSpinBox;
     shop_close2_->setRange(0, 24);
-    shop_msg_buy_ = new QLineEdit;
-    shop_msg_sell_ = new QLineEdit;
-    shop_no_item1_ = new QLineEdit;
-    shop_no_item2_ = new QLineEdit;
-    shop_no_buy_ = new QLineEdit;
-    shop_no_cash1_ = new QLineEdit;
-    shop_no_cash2_ = new QLineEdit;
+    shop_msg_buy_ = makeSingleLineMudField();
+    shop_msg_sell_ = makeSingleLineMudField();
+    shop_no_item1_ = makeSingleLineMudField();
+    shop_no_item2_ = makeSingleLineMudField();
+    shop_no_buy_ = makeSingleLineMudField();
+    shop_no_cash1_ = makeSingleLineMudField();
+    shop_no_cash2_ = makeSingleLineMudField();
     form->addRow("Vnum:", shop_vnum_);
     form->addRow("Keeper (mob):", shop_keeper_);
     form->addRow("Room:", shop_room_);
@@ -275,23 +290,18 @@ void WorldDataEditorWidget::buildDamageTab(QWidget* parent) {
     auto* form = new QFormLayout(form_host);
     damage_attack_type_ = new QSpinBox;
     damage_attack_type_->setRange(0, 999);
-    damage_die_attacker_ = new QTextEdit;
-    damage_die_victim_ = new QTextEdit;
-    damage_die_room_ = new QTextEdit;
-    damage_miss_attacker_ = new QTextEdit;
-    damage_miss_victim_ = new QTextEdit;
-    damage_miss_room_ = new QTextEdit;
-    damage_hit_attacker_ = new QTextEdit;
-    damage_hit_victim_ = new QTextEdit;
-    damage_hit_room_ = new QTextEdit;
-    damage_god_attacker_ = new QTextEdit;
-    damage_god_victim_ = new QTextEdit;
-    damage_god_room_ = new QTextEdit;
-    for (QTextEdit* field : {damage_die_attacker_, damage_die_victim_, damage_die_room_, damage_miss_attacker_,
-                            damage_miss_victim_, damage_miss_room_, damage_hit_attacker_, damage_hit_victim_,
-                            damage_hit_room_, damage_god_attacker_, damage_god_victim_, damage_god_room_}) {
-        field->setMaximumHeight(72);
-    }
+    damage_die_attacker_ = makeMultiLineMudField();
+    damage_die_victim_ = makeMultiLineMudField();
+    damage_die_room_ = makeMultiLineMudField();
+    damage_miss_attacker_ = makeMultiLineMudField();
+    damage_miss_victim_ = makeMultiLineMudField();
+    damage_miss_room_ = makeMultiLineMudField();
+    damage_hit_attacker_ = makeMultiLineMudField();
+    damage_hit_victim_ = makeMultiLineMudField();
+    damage_hit_room_ = makeMultiLineMudField();
+    damage_god_attacker_ = makeMultiLineMudField();
+    damage_god_victim_ = makeMultiLineMudField();
+    damage_god_room_ = makeMultiLineMudField();
     form->addRow("Attack type:", damage_attack_type_);
     form->addRow("Die attacker:", damage_die_attacker_);
     form->addRow("Die victim:", damage_die_victim_);
@@ -325,19 +335,14 @@ void WorldDataEditorWidget::buildSocialTab(QWidget* parent) {
     social_hide_->setRange(0, 1);
     social_min_pos_ = new QSpinBox;
     social_min_pos_->setRange(0, 15);
-    social_char_no_arg_ = new QTextEdit;
-    social_others_no_arg_ = new QTextEdit;
-    social_char_found_ = new QTextEdit;
-    social_others_found_ = new QTextEdit;
-    social_vict_found_ = new QTextEdit;
-    social_not_found_ = new QTextEdit;
-    social_char_auto_ = new QTextEdit;
-    social_others_auto_ = new QTextEdit;
-    for (QTextEdit* field :
-         {social_char_no_arg_, social_others_no_arg_, social_char_found_, social_others_found_, social_vict_found_,
-          social_not_found_, social_char_auto_, social_others_auto_}) {
-        field->setMaximumHeight(64);
-    }
+    social_char_no_arg_ = makeMultiLineMudField(64);
+    social_others_no_arg_ = makeMultiLineMudField(64);
+    social_char_found_ = makeMultiLineMudField(64);
+    social_others_found_ = makeMultiLineMudField(64);
+    social_vict_found_ = makeMultiLineMudField(64);
+    social_not_found_ = makeMultiLineMudField(64);
+    social_char_auto_ = makeMultiLineMudField(64);
+    social_others_auto_ = makeMultiLineMudField(64);
     form->addRow("act_nr:", social_act_nr_);
     form->addRow("hide:", social_hide_);
     form->addRow("min_victim_position:", social_min_pos_);
@@ -366,10 +371,8 @@ void WorldDataEditorWidget::buildPoseTab(QWidget* parent) {
     pose_level_ = new QSpinBox;
     pose_level_->setRange(0, 60);
     for (int i = 0; i < 4; ++i) {
-        pose_poser_[i] = new QTextEdit;
-        pose_room_[i] = new QTextEdit;
-        pose_poser_[i]->setMaximumHeight(56);
-        pose_room_[i]->setMaximumHeight(56);
+        pose_poser_[i] = makeMultiLineMudField(56);
+        pose_room_[i] = makeMultiLineMudField(56);
         form->addRow(QString("Poser class %1:").arg(i), pose_poser_[i]);
         form->addRow(QString("Room class %1:").arg(i), pose_room_[i]);
     }
@@ -388,7 +391,7 @@ void WorldDataEditorWidget::buildGuildTab(QWidget* parent) {
     guild_list_ = new QListWidget;
     auto* form_host = new QWidget;
     auto* form = new QFormLayout(form_host);
-    guild_name_ = new QLineEdit;
+    guild_name_ = makeSingleLineMudField();
     guild_guard_mob_ = new QSpinBox;
     guild_guard_mob_->setRange(0, 999999);
     guild_guard_room_ = new QSpinBox;
@@ -462,13 +465,13 @@ void WorldDataEditorWidget::onShopSelected() {
     shop_close1_->setValue(shop->close1);
     shop_open2_->setValue(shop->open2);
     shop_close2_->setValue(shop->close2);
-    shop_msg_buy_->setText(QString::fromStdString(shop->message_buy));
-    shop_msg_sell_->setText(QString::fromStdString(shop->message_sell));
-    shop_no_item1_->setText(QString::fromStdString(shop->no_such_item1));
-    shop_no_item2_->setText(QString::fromStdString(shop->no_such_item2));
-    shop_no_buy_->setText(QString::fromStdString(shop->do_not_buy));
-    shop_no_cash1_->setText(QString::fromStdString(shop->missing_cash1));
-    shop_no_cash2_->setText(QString::fromStdString(shop->missing_cash2));
+    shop_msg_buy_->setStorageText(QString::fromStdString(shop->message_buy));
+    shop_msg_sell_->setStorageText(QString::fromStdString(shop->message_sell));
+    shop_no_item1_->setStorageText(QString::fromStdString(shop->no_such_item1));
+    shop_no_item2_->setStorageText(QString::fromStdString(shop->no_such_item2));
+    shop_no_buy_->setStorageText(QString::fromStdString(shop->do_not_buy));
+    shop_no_cash1_->setStorageText(QString::fromStdString(shop->missing_cash1));
+    shop_no_cash2_->setStorageText(QString::fromStdString(shop->missing_cash2));
 }
 
 void WorldDataEditorWidget::applyShop() {
@@ -499,13 +502,13 @@ void WorldDataEditorWidget::applyShop() {
     shop->close1 = shop_close1_->value();
     shop->open2 = shop_open2_->value();
     shop->close2 = shop_close2_->value();
-    shop->message_buy = shop_msg_buy_->text().toStdString();
-    shop->message_sell = shop_msg_sell_->text().toStdString();
-    shop->no_such_item1 = shop_no_item1_->text().toStdString();
-    shop->no_such_item2 = shop_no_item2_->text().toStdString();
-    shop->do_not_buy = shop_no_buy_->text().toStdString();
-    shop->missing_cash1 = shop_no_cash1_->text().toStdString();
-    shop->missing_cash2 = shop_no_cash2_->text().toStdString();
+    shop->message_buy = shop_msg_buy_->storageText().toStdString();
+    shop->message_sell = shop_msg_sell_->storageText().toStdString();
+    shop->no_such_item1 = shop_no_item1_->storageText().toStdString();
+    shop->no_such_item2 = shop_no_item2_->storageText().toStdString();
+    shop->do_not_buy = shop_no_buy_->storageText().toStdString();
+    shop->missing_cash1 = shop_no_cash1_->storageText().toStdString();
+    shop->missing_cash2 = shop_no_cash2_->storageText().toStdString();
     item->setData(Qt::UserRole, static_cast<qlonglong>(shop->vnum));
     item->setText(QString("#%1 keeper=%2 room=%3").arg(shop->vnum).arg(shop->keeper).arg(shop->in_room));
     emit modified();
@@ -729,7 +732,7 @@ void WorldDataEditorWidget::onGuildSelected() {
         return;
     }
     const auto& guild = world_->guilds[index];
-    guild_name_->setText(QString::fromStdString(guild.base_filename));
+    guild_name_->setStorageText(QString::fromStdString(guild.base_filename));
     guild_guard_mob_->setValue(guild.guard_mob);
     guild_guard_room_->setValue(guild.guard_room);
     guild_guard_dir_->setValue(guild.guard_dir);
@@ -753,7 +756,7 @@ void WorldDataEditorWidget::applyGuild() {
         return;
     }
     auto& guild = world_->guilds[index];
-    guild.base_filename = guild_name_->text().toStdString();
+    guild.base_filename = guild_name_->storageText().toStdString();
     guild.guard_mob = guild_guard_mob_->value();
     guild.guard_room = guild_guard_room_->value();
     guild.guard_dir = guild_guard_dir_->value();
@@ -764,4 +767,58 @@ void WorldDataEditorWidget::applyGuild() {
     guild.member_book_obj = guild_member_book_->value();
     item->setText(QString::fromStdString(guild.base_filename));
     emit modified();
+}
+
+nebbie::qt::MudFieldList WorldDataEditorWidget::mudFields() const {
+    nebbie::qt::MudFieldList fields = {shop_msg_buy_,
+                                       shop_msg_sell_,
+                                       shop_no_item1_,
+                                       shop_no_item2_,
+                                       shop_no_buy_,
+                                       shop_no_cash1_,
+                                       shop_no_cash2_,
+                                       damage_die_attacker_,
+                                       damage_die_victim_,
+                                       damage_die_room_,
+                                       damage_miss_attacker_,
+                                       damage_miss_victim_,
+                                       damage_miss_room_,
+                                       damage_hit_attacker_,
+                                       damage_hit_victim_,
+                                       damage_hit_room_,
+                                       damage_god_attacker_,
+                                       damage_god_victim_,
+                                       damage_god_room_,
+                                       social_char_no_arg_,
+                                       social_others_no_arg_,
+                                       social_char_found_,
+                                       social_others_found_,
+                                       social_vict_found_,
+                                       social_not_found_,
+                                       social_char_auto_,
+                                       social_others_auto_,
+                                       guild_name_};
+    for (int i = 0; i < 4; ++i) {
+        fields.push_back(pose_poser_[i]);
+        fields.push_back(pose_room_[i]);
+    }
+    return fields;
+}
+
+void WorldDataEditorWidget::applyMudFieldSettings() {
+    nebbie::qt::applyMudFieldSettings(mudFields(), max_line_length_, show_color_codes_);
+}
+
+void WorldDataEditorWidget::setMaxLineLength(const int max_length) {
+    max_line_length_ = max_length < 0 ? 0 : max_length;
+    applyMudFieldSettings();
+}
+
+void WorldDataEditorWidget::setShowColorCodes(const bool show) {
+    show_color_codes_ = show;
+    applyMudFieldSettings();
+}
+
+nebbie::qt::MudColorTextEdit* WorldDataEditorWidget::focusedMudField() const {
+    return nebbie::qt::focusedMudField(mudFields());
 }

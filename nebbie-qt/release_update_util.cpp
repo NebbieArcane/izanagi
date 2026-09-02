@@ -135,17 +135,8 @@ ReleaseUpdateInfo parseReleaseResponse(const QByteArray& body,
     info.ok = true;
     info.latest_version = best_version;
     info.download_url = best_url;
+    (void)build_timestamp_iso;
     info.update_available = compareVersions(current_version, best_version) < 0;
-
-    if (!info.update_available && compareVersions(current_version, best_version) == 0
-        && !build_timestamp_iso.isEmpty()) {
-        const QString published_at = root.value(QStringLiteral("published_at")).toString();
-        const QDateTime published = QDateTime::fromString(published_at, Qt::ISODate);
-        const QDateTime built = QDateTime::fromString(build_timestamp_iso, Qt::ISODate);
-        if (published.isValid() && built.isValid() && published > built) {
-            info.update_available = true;
-        }
-    }
     return info;
 }
 

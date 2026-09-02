@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mud_editor_fields.hpp"
 #include "nebbie/types.hpp"
 #include "nebbie/world.hpp"
 
@@ -7,9 +8,12 @@
 
 class QComboBox;
 class QLabel;
-class QLineEdit;
 class QListWidget;
 class QSpinBox;
+
+namespace nebbie::qt {
+class MudColorTextEdit;
+}
 
 class ZoneEditorWidget : public QWidget {
     Q_OBJECT
@@ -22,6 +26,10 @@ public:
     void saveZoneInfoTo(nebbie::Zone& zone) const;
     int zoneNum() const { return zone_num_; }
     void selectResetIndex(int index);
+
+    void setMaxLineLength(int max_length);
+    void setShowColorCodes(bool show);
+    nebbie::qt::MudColorTextEdit* focusedMudField() const;
 
 signals:
     void zoneModified();
@@ -47,12 +55,15 @@ private:
     nebbie::ResetCommand readResetForm() const;
     int currentResetIndex() const;
     void setComboIntValue(QComboBox* combo, int value) const;
+    void applyMudFieldSettings();
 
     nebbie::World* world_ = nullptr;
     int zone_num_ = 0;
+    int max_line_length_ = 0;
+    bool show_color_codes_ = false;
 
     QLabel* zone_num_label_ = nullptr;
-    QLineEdit* name_ = nullptr;
+    nebbie::qt::MudColorTextEdit* name_ = nullptr;
     QLabel* bottom_label_ = nullptr;
     QSpinBox* top_ = nullptr;
     QSpinBox* lifespan_ = nullptr;

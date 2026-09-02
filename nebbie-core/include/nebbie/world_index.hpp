@@ -55,6 +55,8 @@ std::optional<long> suggest_room_vnum_in_zone(const WorldIndex& index, int zone_
 std::optional<VnumRange> suggest_room_vnum_range_in_zone(const WorldIndex& index, int zone_num, int block_size = 10);
 std::optional<long> suggest_mob_vnum(const WorldIndex& index);
 std::optional<long> suggest_object_vnum(const WorldIndex& index);
+std::optional<long> suggest_mob_vnum_in_zone(const WorldIndex& index, int zone_num);
+std::optional<long> suggest_object_vnum_in_zone(const WorldIndex& index, int zone_num);
 
 const WorldIndexZone* find_world_index_zone(const WorldIndex& index, int zone_num);
 bool validate_reservation(const WorldIndex& index, const WorldIndexReservation& reservation, std::string* error_out = nullptr);

@@ -35,6 +35,7 @@ constexpr TranslationEntry kTranslations[] = {
     {"menu.cut", "&Taglia", "Cu&t"},
     {"menu.copy", "&Copia", "&Copy"},
     {"menu.paste", "I&ncolla", "&Paste"},
+    {"menu.paste_plain", "Incolla senza formattazione", "Paste plain text"},
     {"menu.select_all", "Seleziona &tutto", "Select &all"},
     {"menu.tools", "&Strumenti", "&Tools"},
     {"menu.validate_world", "Valida &mondo intero...", "Validate &entire world..."},
