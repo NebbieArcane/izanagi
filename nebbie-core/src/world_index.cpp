@@ -728,7 +728,8 @@ std::optional<long> suggest_room_vnum_in_zone(const WorldIndex& index, const int
     }
 
     for (const auto& range : zone->rooms_free) {
-        for (long vnum = range.start; vnum <= range.end; ++vnum) {
+        const long start = std::max(1L, range.start);
+        for (long vnum = start; vnum <= range.end; ++vnum) {
             if (!room_vnum_taken(index, vnum)) {
                 return vnum;
             }

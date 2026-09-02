@@ -94,7 +94,12 @@ long first_zone_bottom(const World& world) {
     if (world.zones.empty()) {
         return 1;
     }
-    return world.zones.front().bottom;
+    for (const Zone& zone : world.zones) {
+        if (zone.bottom >= 1) {
+            return zone.bottom;
+        }
+    }
+    return std::max(1L, static_cast<long>(world.zones.front().bottom));
 }
 
 int zone_index_for_vnum(const World& world, long vnum) {
@@ -289,7 +294,7 @@ long suggest_next_room_vnum(const World& world) {
     if (max_vnum > 0) {
         return max_vnum + 1;
     }
-    return first_zone_bottom(world);
+    return std::max(1L, first_zone_bottom(world));
 }
 
 long suggest_next_mob_vnum(const World& world) {

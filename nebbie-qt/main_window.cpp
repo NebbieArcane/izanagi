@@ -1386,12 +1386,15 @@ long MainWindow::suggestRoomVnum() const {
         }
     }
     for (const auto& zone : index.zones) {
+        if (zone.zone_num <= 0) {
+            continue;
+        }
         const auto suggested = nebbie::suggest_room_vnum_in_zone(index, zone.zone_num);
         if (suggested) {
             return *suggested;
         }
     }
-    return nebbie::suggest_next_room_vnum(world_);
+    return std::max(1L, nebbie::suggest_next_room_vnum(world_));
 }
 
 long MainWindow::suggestMobVnum() const {
@@ -2248,7 +2251,7 @@ void MainWindow::createRoom() {
     }
 
     bool ok = false;
-    const int suggested = static_cast<int>(suggestRoomVnum());
+    const int suggested = std::max(1, static_cast<int>(suggestRoomVnum()));
     const int vnum = QInputDialog::getInt(this, "Nuova stanza", "Vnum stanza:", suggested, 1, 999999, 1, &ok);
     if (!ok) {
         return;
