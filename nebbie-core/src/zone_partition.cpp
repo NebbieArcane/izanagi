@@ -207,6 +207,24 @@ std::string zone_pack_directory_name(const int zone_num, const std::string& zone
     return prefix.str() + '-' + slug;
 }
 
+std::string aree_area_slug(const int zone_num, const std::string& zone_name) {
+    std::string slug;
+    for (const unsigned char c : zone_name) {
+        if (std::isalnum(c) != 0) {
+            slug.push_back(static_cast<char>(std::tolower(c)));
+        } else if (!slug.empty() && slug.back() != '-') {
+            slug.push_back('-');
+        }
+    }
+    while (!slug.empty() && slug.back() == '-') {
+        slug.pop_back();
+    }
+    if (slug.empty()) {
+        return "zone" + std::to_string(zone_num);
+    }
+    return slug;
+}
+
 ZonePartitionReport export_zone_pack(const World& world,
                                      const std::filesystem::path& output_root,
                                      const int zone_num,
@@ -221,7 +239,9 @@ ZonePartitionReport export_zone_pack(const World& world,
     const ZoneEntitySet entities = collect_zone_entities(world, zone_num, options);
     report.warnings.insert(report.warnings.end(), entities.warnings.begin(), entities.warnings.end());
 
-    const auto zone_dir = output_root / zone_pack_directory_name(zone->num, zone->name);
+    const auto zone_dir = options.aree_layout
+                              ? output_root / aree_area_slug(zone->num, zone->name)
+                              : output_root / zone_pack_directory_name(zone->num, zone->name);
     std::error_code ec;
     std::filesystem::create_directories(zone_dir, ec);
 
@@ -231,13 +251,21 @@ ZonePartitionReport export_zone_pack(const World& world,
         if (progress) {
             progress("Writing zone pack monoliths in " + zone_dir.string());
         }
-        save_myst_zon(subset, zone_dir / ZONE_FILE, progress);
-        save_myst_wld(subset, zone_dir / WORLD_FILE, progress);
+        const MystSaveOptions save_options{.write_eof_markers = options.write_eof_markers};
+        const std::string area_basename =
+            options.aree_layout ? aree_area_slug(zone->num, zone->name) : std::string{};
+        const auto zon_path = options.aree_layout ? zone_dir / (area_basename + ".zon") : zone_dir / ZONE_FILE;
+        const auto wld_path = options.aree_layout ? zone_dir / (area_basename + ".wld") : zone_dir / WORLD_FILE;
+        const auto mob_path = options.aree_layout ? zone_dir / (area_basename + ".mob") : zone_dir / MOB_FILE;
+        const auto obj_path = options.aree_layout ? zone_dir / (area_basename + ".obj") : zone_dir / OBJ_FILE;
+
+        save_myst_zon(subset, zon_path, progress, save_options);
+        save_myst_wld(subset, wld_path, progress, save_options);
         if (!subset.mobiles.empty()) {
-            save_myst_mob(subset, zone_dir / MOB_FILE, progress);
+            save_myst_mob(subset, mob_path, progress, save_options);
         }
         if (!subset.objects.empty()) {
-            save_myst_obj(subset, zone_dir / OBJ_FILE, progress);
+            save_myst_obj(subset, obj_path, progress, save_options);
         }
     }
 

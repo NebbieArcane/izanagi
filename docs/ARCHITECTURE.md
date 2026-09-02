@@ -44,7 +44,7 @@ world/      # stato runtime stanza (oggetti/mob a terra), NON prototipi
 
 1. **Ora:** `World` in memoria da `myst.*` + overlay (`load_lib` applica `rooms/`, `objects/`, `mobiles/`, `zones/`).
 2. **Export:** `export_myst_to_overlays()` / CLI `nebbiedit overlay export <lib>` scrive file per-entità compatibili col boot server.
-3. **Partizione per zona:** `export_zone_pack()` / `export_all_zone_packs()` / CLI `nebbiedit zone split` crea sottodirectory `zone-NNNN-nome/` con monoliti filtrati (stanze nel range, mob/oggetti dai reset e negozi) più overlay.
+3. **Partizione per zona:** `export_zone_pack()` / `nebbiedit zone split` — pacchetti per zona **senza** `#$`/`%%`/`#0` (merge Aree). Flag `--aree-layout` → `slug/slug.zon` come `src/<area>/`. Il salvataggio libreria intera (`save_lib`) mantiene i terminatori solo in coda al monolite.
 4. **Save:** modalità sicura (`myst.*` only) vs compatibile server (file in overlay per entità modificate).
 5. **DB import:** `scripts/import-overlays-to-db.sh` importa i corpi overlay in tabelle SQLite con nome scelto interattivamente (es. `nebbie-mob`).
 6. **DB (roadmap):** stesso modello `World`, persistenza alternativa; i file restano source of truth finché il boot non migra.

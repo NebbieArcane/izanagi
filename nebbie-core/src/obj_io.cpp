@@ -356,7 +356,8 @@ void load_myst_obj(World& world, const std::filesystem::path& path, ProgressCall
     std::fclose(fp);
 }
 
-void save_myst_obj(const World& world, const std::filesystem::path& path, ProgressCallback progress) {
+void save_myst_obj(const World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   MystSaveOptions options) {
     FILE* fp = open_file_write(path, "object file");
     if (progress) {
         progress("Writing " + path.string());
@@ -367,7 +368,9 @@ void save_myst_obj(const World& world, const std::filesystem::path& path, Progre
         write_object_entry(fp, obj);
     }
 
-    std::fprintf(fp, "%%%%\n");
+    if (options.write_eof_markers) {
+        std::fprintf(fp, "%%%%\n");
+    }
     std::fclose(fp);
 }
 

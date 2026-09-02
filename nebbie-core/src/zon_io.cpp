@@ -151,7 +151,8 @@ void load_myst_zon(World& world, const std::filesystem::path& path, ProgressCall
     std::fclose(fp);
 }
 
-void save_myst_zon(const World& world, const std::filesystem::path& path, ProgressCallback progress) {
+void save_myst_zon(const World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   MystSaveOptions options) {
     if (progress) {
         progress("Saving " + path.string());
     }
@@ -163,7 +164,9 @@ void save_myst_zon(const World& world, const std::filesystem::path& path, Progre
         std::fprintf(fp, "%d %d %d\n", zone.top, zone.lifespan, zone.reset_mode);
         write_zone_reset_commands(fp, zone);
     }
-    std::fprintf(fp, "#$\n");
+    if (options.write_eof_markers) {
+        std::fprintf(fp, "#$\n");
+    }
     std::fclose(fp);
 }
 

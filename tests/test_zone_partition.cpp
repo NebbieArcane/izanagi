@@ -72,6 +72,24 @@ int main(int argc, char** argv) {
             || !std::filesystem::exists(zone_dir / nebbie::OBJ_FILE)) {
             throw std::runtime_error("zone pack missing monolith files");
         }
+
+        const std::string mob_text =
+            [&]() {
+                std::ifstream in(zone_dir / nebbie::MOB_FILE);
+                return std::string(std::istreambuf_iterator<char>(in), {});
+            }();
+        if (mob_text.find("%%\n") != std::string::npos || mob_text.find("%%\r\n") != std::string::npos) {
+            throw std::runtime_error("zone pack mob must not contain EOF %% marker (Aree merge)");
+        }
+        const std::string zon_text =
+            [&]() {
+                std::ifstream in(zone_dir / nebbie::ZONE_FILE);
+                return std::string(std::istreambuf_iterator<char>(in), {});
+            }();
+        if (zon_text.find("#$\n") != std::string::npos) {
+            throw std::runtime_error("zone pack zon must not contain EOF #$ marker (Aree merge)");
+        }
+
         if (!std::filesystem::exists(zone_dir / nebbie::OVERLAY_ROOMS_DIR / "3001")
             || !std::filesystem::exists(zone_dir / nebbie::OVERLAY_ZONES_DIR / "1.zon")) {
             throw std::runtime_error("zone pack missing overlay directories");

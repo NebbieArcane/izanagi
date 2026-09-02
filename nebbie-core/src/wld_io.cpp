@@ -293,7 +293,8 @@ void load_myst_wld(World& world, const std::filesystem::path& path, ProgressCall
     std::fclose(fp);
 }
 
-void save_myst_wld(const World& world, const std::filesystem::path& path, ProgressCallback progress) {
+void save_myst_wld(const World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   MystSaveOptions options) {
     if (progress) {
         progress("Saving " + path.string());
     }
@@ -304,7 +305,9 @@ void save_myst_wld(const World& world, const std::filesystem::path& path, Progre
         std::fprintf(fp, "#%ld\n", room.vnum);
         write_room_body(fp, room, world);
     }
-    std::fprintf(fp, "#0\n");
+    if (options.write_eof_markers) {
+        std::fprintf(fp, "#0\n");
+    }
     std::fclose(fp);
 }
 

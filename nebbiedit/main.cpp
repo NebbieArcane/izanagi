@@ -28,6 +28,10 @@ nebbie::ZonePartitionOptions parse_zone_partition_options(int argc, char** argv,
             options.write_monolith_files = false;
         } else if (flag == "--no-shops") {
             options.include_shop_entities = false;
+        } else if (flag == "--aree-layout") {
+            options.aree_layout = true;
+        } else if (flag == "--with-eof-markers") {
+            options.write_eof_markers = true;
         } else {
             throw std::runtime_error("Unknown zone partition flag: " + flag);
         }
@@ -57,8 +61,8 @@ void usage() {
         << "  nebbiedit zone show <zone-number>\n"
         << "  nebbiedit zone rooms <zone-number>\n"
         << "  nebbiedit zone graph <zone-number> [--dot]\n"
-        << "  nebbiedit zone split <lib-directory> <output-directory> [--no-overlays|--no-monoliths|--no-shops]\n"
-        << "  nebbiedit zone split-one <lib-directory> <zone-number> <output-directory> [--no-overlays|--no-monoliths|--no-shops]\n"
+        << "  nebbiedit zone split <lib-directory> <output-directory> [--aree-layout] [--with-eof-markers] [--no-overlays|--no-monoliths|--no-shops]\n"
+        << "  nebbiedit zone split-one <lib-directory> <zone-number> <output-directory> [--aree-layout] [--with-eof-markers] [--no-overlays|--no-monoliths|--no-shops]\n"
         << "  nebbiedit zone merge <zones-root> <merged-lib-directory>\n"
         << "  nebbiedit room list <lib-directory> [vnum-prefix]\n"
         << "  nebbiedit room show <lib-directory> <vnum>\n"
