@@ -31,6 +31,7 @@ add_library(nebbie-core
     src/overlay_io.cpp
     src/zone_partition.cpp
     src/monolith_audit.cpp
+    src/aree_workspace.cpp
 )
 
 target_include_directories(nebbie-core PUBLIC include)

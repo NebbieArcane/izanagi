@@ -1,0 +1,5 @@
+* M 3000 ShopperNoAct 
+* M 3007 ShopperNoAct
+M 3015 MobIdent
+O 3027 enter_obj scatola 3033
+

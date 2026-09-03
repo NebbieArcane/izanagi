@@ -1,0 +1,696 @@
+#3000
+Gwynyar~
+Gwynyar~
+Un vecchio elfo con la barba bianca
+~
+Un vecchio elfo con la barba bianca
+~
+2|64|1048576|2097152 8|128|2048|32768|65536|16777216|33554432|134217728 350 A 3
+51 0 -10 300 1d3+17
+-1 150000 4 2
+8 8 4 0 2048 0
+#3001
+flippy~
+Flippy il fornaio~
+Flyppy il fornaio
+~
+Flyppy il fornaio
+~
+2|64|1048576 8|128|2048|32768|16777216|33554432 -1000 N
+51 -10 -10 300 1d3+52
+-1 60000 0 4
+8 8 0
+#3002
+tricky~
+Tricky il mercante~
+Tricky il mercante
+~
+Tricky il mercante
+~
+2|64|1048576 8|128|2048|32768|16777216|33554432 -1000 N
+51 -15 -10 300 1d3+52
+-1 60000 0 4
+8 8 0
+#3003
+bogordian~
+Bogordian l'armiere~
+Bogordian l'armiere
+~
+Bogordian l'armiere
+~
+2|64|1048576 33554432 -1000 N
+1 20 10 0 1d3+3
+-1 0 18 1
+8 8 0
+#3004
+bracco~
+Bracco il fabbro di Myst~
+Bracco il fabbro di Myst
+~
+Bracco il fabbro di Myst
+~
+2|64|1048576 8|128|2048|32768|65536|16777216|33554432 -1000 N
+51 0 -10 400 1d3+102
+-1 250000 2 3
+8 8 0
+#3005
+niobe~
+Niobe la receptionist~
+Niobe la receptionist
+~
+Niobe la receptionist
+~
+2|1048576 8|128|32768|65536|16777216|33554432 -1000 N
+51 -10 -10 200 1d3+102
+-1 10000 6 2
+8 8 5 0 2048 0
+#3006
+nemo~
+Nemo il barcaiolo~
+Nemo il barcaiolo
+~
+Nemo il barcaiolo
+~
+2|1048576 33554432 1000 N
+35 -6 -10 0 1d3+30
+-1 0 12 1
+8 8 4 0 1024|2048 0
+#3007
+drunky~
+Drunky il barman~
+$c0006Drunky$c0007 il barman sta intrattenendo i clienti con le sue storie.
+~
+Drunky il barman e' vestito molto elegantemente.
+Indossa diversi monili d'oro, tra cui spicca una grande catena intorno al collo.
+Drunky ti sorride e noti anche i suoi denti nuovi, anche loro dorati.
+
+~
+2|64|1048576 32768|33554432 1000 L 2
+30 4 -10 0 1d3+7
+-1 5000 10 77
+8 8 1
+$c0011[$c0015Drunky$c0011] vi dice '... e cosi' dopo anni di sacrifici, finalmente posso godermi un bel gruzzoletto e vivere serenamente!'$c0007
+
+$c0011[$c0015Drunky$c0011] vi dice 'Vi ho mai raccontato di quella volta che Tethys in persona venne ad ubriacarsi al "$c0009Soffio del Drago$c0011"?'$c0007
+~
+~
+#3008
+Lo scriba di Myst~
+Lo scriba di Myst~
+Lo scriba di Myst
+~
+Lo scriba di Myst
+~
+2|2048|1048576 8|128|2048|32768|65536|16777216|33554432|134217728 -1000 A 3
+51 0 10 500 1d3+102
+-1 0 -1 2
+8 8 3 0 2048 0
+#3010
+drina lungabarba~
+Drina Lungabarba~
+Una nana dalla lunga barba nera ti accoglie con un ampio sorriso.
+~
+Non e' troppo bassa per essere una nana, ha una lunga barba
+nera, gli occhi azzurri e la dentatura a posto.
+E' vestita con una tunica di seta gialla.
+~
+2|128|1048576 32768 0 L 2
+19 10 10 200 1d3+15
+-1 0 14 3
+8 8 2
+Dimmi tesoro, che tipo di massaggio preferisci?
+~
+Mmm...  mmm....
+~
+#3011
+elsinella foltachioma~
+Elsinella Foltachioma~
+Una ragazza dai lunghi capelli biondi ti sorride.
+~
+E' alta circa un metro e sessanta, ha dei lunghi capelli biondi
+e gli occhi verdi. Ha circa venti anni ed ha un corpo decisamente
+tonico. E' vestita con una tunica di seta azzurra.
+~
+2|128|1048576 0 0 L 2
+19 10 10 200 1d3+15
+-1 0 13 1
+8 8 2
+Dimmi tesoro, che tipo di massaggio preferisci?
+~
+Dove lo vuoi il massaggio? Va bene cosi?
+~
+#3012
+marsilla~
+Marsilla schienalarga~
+Una giovane mezzo gigante ti sorride ed allunga una manona
+verso di te.
+~
+E' alta circa tre metri, ha dei corti capelli neri e gli occhi dello
+stesso colore. Ha circa venti anni ed ha delle forme veramente
+imponenti. E' vestita con una tunica di seta rossa.
+~
+2|128|1048576 32768 0 L 2
+19 10 10 200 1d3+15
+-1 0 14 77
+8 8 2
+Dimmi tesoro, che tipo di massaggio preferisci?
+~
+Non ti preoccupare, vedrai che non ti faro' male.
+~
+#3013
+custode~
+La Custode del tempio di Eros~
+Una signora un po' attempata accoglie i...fedeli del tempio.
+~
+Ha circa una cinquantina d'anni, ma conserva ancora una fascino
+che colpisce.
+~
+2|1048576|4194304 0 0 L 3
+41 -5 -2 600 1d3+21
+-1 15000 12 1
+8 8 5 1024 2048|4096 0
+Dimmi tesoro, che tipo di massaggio preferisci?
+Se sei nuovo leggi pure il cartello.
+~
+~
+#3014
+turkut~
+Turkut tronco di quercia~
+Turkut e' pronto a punire coloro che non versano l'offerta a Eros.
+~
+E' un guerriero dai muscoli d'acciaio.
+~
+134217728 0 0 A 4
+51 -8 -10 600 1d3+36
+-1 0 3 1
+8 8 4 0 1024|2048|4096 0
+#3015
+leoven elfo~
+Leoven Arcanscape~
+Un giovane elfo sta controllando l'inventario.
+~
+Un  elfo  con  uno  strano  abbigliamento, sembra provenire da un
+altro  tempo.  Ha  la faccia simpatica e, come prima impressione,
+senti che puoi fidarti di lui.
+~
+2|64|1048576|2097152 32768|33554432 350 L 3
+51 0 -10 300 1d3+17
+-1 150000 4 2
+8 8 4 0 2048 0
+$c0013[$c0015Leoven Arcanscape$c0013] ti dice 'Cerca l'uscita, puoi farcela :-)'$c0007 
+~
+Senti dei rumori sopra la tua testa...
+~
+#3020
+mork~
+Mork il maestro dei maghi~
+Mork il maestro dei maghi
+~
+Mork il maestro dei maghi
+~
+2|64|1048576|2097152 8|128|2048|32768|65536|16777216|33554432|134217728 349 N
+50 0 -10 200 1d3+22
+-1 0 2 2
+8 8 4 0 2048 0
+#3021
+opus~
+Opus il maestro dei chierici~
+Opus il maestro dei chierici
+~
+Opus il maestro dei chierici
+~
+2|64|1048576|8388608 8|128|2048|32768|65536|16777216|33554432|134217728 -350 N
+50 -20 -10 200 1d3+30
+-1 0 2 2
+8 8 4 0 2048 0
+#3022
+spanky~
+Spanky il maestro dei ladri~
+Spanky il maestro dei ladri
+~
+Spanky il maestro dei ladri
+~
+2|64|1048576|16777216 8|128|2048|32768|65536|16777216|33554432|134217728 -350 A 3
+50 -10 -10 200 1d3+50
+-1 0 11 4
+8 8 1
+#3023
+Magnus~
+Magnus il maestro dei guerrieri~
+Magnus il maestro dei guerrieri
+~
+Magnus il maestro dei guerrieri
+~
+2|64|1048576|4194304 8|128|2048|32768|65536|16777216|33554432|134217728 1000 A 4
+50 -10 -10 200 1d3+50
+-1 0 11 4
+8 8 1
+#3040
+oste~
+L'oste~
+Un oste sta preparando alcuni vassoi dietro il bancone.
+~
+Sembra stanco, e poco propenso a sopportare fastidi nel suo bar.
+~
+2 0 900 N
+29 2 2 120 1d3+16
+-1 2000 14 1
+8 8 4 0 2048 0
+#3041
+attendente~
+L'Attendente~
+Un attendente si muove qui in giro
+~
+Sembra stanco ed impegnato.
+~
+2 0 900 A 3
+29 2 2 120 1d3+9
+-1 2000 15 1
+8 8 4 0 2048 0
+#3042
+attendente mago~
+L'Attendente~
+Un attendente presta servizio qui.
+~
+Un tempo era un mago avventuroso, forse.
+~
+2 0 600 N
+24 1 2 120 1d3+7
+-1 2000 18 1
+8 8 4 0 2048 0
+#3043
+attendente~
+L'Attendente~
+Un attendente e' qui in meditazione
+~
+~
+2 0 600 N
+24 1 2 120 1d3+7
+-1 2000 18 1
+8 8 4 0 2048 0
+#3044
+attendente~
+L'Attendente~
+Un attendente che conosce dove i suoi clienti tengono i soldi, e' qui
+~
+~
+2 0 600 N
+25 1 2 120 1d3+7
+-1 2000 13 1
+8 8 4 0 2048 0
+#3045
+attendente~
+L'Attendente~
+Un attendente che sembra un orso e' qui.
+~
+~
+2 0 600 N
+24 1 2 120 1d3+7
+-1 2000 18 1
+8 8 4 0 2048 0
+#3046
+filthy~
+Filthy~
+Filthy e' qui pronto a servirti esotici drink.
+~
+Un tipo gioviale, e non troppo pulito.
+~
+2 0 600 N
+29 1 2 120 1d3+16
+-1 2000 15 1
+8 8 4 0 2048 0
+#3047
+Deynor anziano~
+Deynor~
+Un anziano uomo borbotta tra se e se, meglio lasciarlo stare
+~
+Forse e' un vecchio pazzo che agita una bacchetta di legno... ma forse no...
+~
+4|64|2097152 33554432|134217728 1000 A 4
+50 -10 -10 200 1d3+40
+-1 10000 0 1
+8 8 4 0 1|2|4|8|512|1024|2048|4096 128
+#3060
+guardia~
+Una guardia di Myst~
+Una guardia di Myst
+~
+Una guardia di Myst
+~
+64|1048576|268435456 0 1000 A 3
+30 10 -10 0 1d3+12
+-1 500 12 1
+8 8 1
+#3061
+spazzino~
+uno Spazzino~
+uno spazzino
+~
+uno spazzino
+~
+4|64 0 -1000 N
+1 20 10 0 1d3+3
+-1 0 18 1
+8 8 0
+#3062
+gatto~
+un Gatto delle nebbie~
+un Gatto delle nebbie
+~
+un Gatto delle nebbie
+~
+64 0 -349 N
+2 20 10 0 1d3+3
+-1 0 16 18
+8 8 0
+#3063
+cittadino~
+un Cittadino~
+un Cittadino
+~
+un Cittadino
+~
+64 0 -349 N
+1 20 10 0 1d3+3
+-1 0 18 1
+8 8 0
+#3064
+ubriacone~
+un Ubriacone~
+un Ubriacone
+~
+un Ubriacone
+~
+4|64 0 -1000 N
+1 20 10 0 1d3+3
+-1 0 18 1
+8 8 0
+#3067
+sentinella~
+una sentinella~
+una sentinella
+~
+una sentinella
+~
+64|1048576|268435456 0 1000 N
+20 5 10 0 1d3+10
+-1 0 12 1
+8 8 1
+#3068
+monaco~
+Un monaco rinnegato~
+Un monaco rinnegato
+~
+Un monaco rinnegato
+~
+67108864 0 0 N
+30 0 -10 0 1d3+7
+-1 0 11 1
+8 8 0
+#3069
+guardia~
+una guardia scelta~
+una guardia scelta
+~
+una guardia scelta
+~
+2|64|1048576|268435456 0 1000 N
+22 0 10 0 1d3+12
+-1 0 12 1
+8 8 1
+#3070
+cittadino~
+un apprendista fabbro~
+un apprendista fabbro
+~
+un apprendista fabbro
+~
+64 0 -349 N
+1 20 10 0 1d3+3
+-1 0 18 1
+8 8 0
+#3073
+saggio~
+Il saggio~
+Il grande saggio
+~
+Il grande saggio
+~
+0 0 0 A 3
+26 0 -10 0 1d3+7
+-1 0 17 1
+8 8 1
+#3074
+cacciatore~
+Il cacciatore~
+Il cacciatore
+~
+Il cacciatore
+~
+0 0 0 N
+26 0 -10 0 1d3+7
+-1 0 17 1
+8 8 0
+#3077
+kronan maestro barbaro~
+il Maestro Barbaro~
+Kronan il maestro barbaro e' qui
+~
+Enorme e tutto muscoli. Ha il portamento orgoglioso di chi sa di essere un
+vero capo.
+~
+2|134217728 128|134217728 1000 A 5
+60 -15 -10 100 1d3+50
+-1 8794 11 1
+8 8 4 1|2|4|8 16|32|64|2048 0
+#3090
+micio~
+il micio~
+Un piccolo micino e' qui
+~
+Un piccolo micino gioca contento qui...gasp che unghie!
+~
+2|4 0 400 N
+1 20 9 4 1d3+0
+-1 0 18 18
+8 8 0
+#3091
+cucciolo~
+un cucciolo~
+un cucciolo di razza gioca qui per terra
+~
+Beh, dai denti non sembrerebbe tanto piccolo!
+~
+2|4 0 400 N
+1 20 9 6 1d3+0
+-1 0 23 18
+8 8 0
+#3092
+piccione~
+un piccione~
+Un piccione zompetta attorno cercando cibo
+~
+Wow che becco!
+~
+2|4 0 400 N
+3 19 8 4 1d3+1
+-1 0 14 18
+8 8 0
+#3093
+mastino~
+un Mastino~
+Un grosso mastino da guerra si aggira qui
+~
+Sembra affamato
+~
+2|4 0 400 N
+6 18 7 4 1d3+2
+-1 0 14 18
+8 8 0
+#3094
+lupo~
+un lupo~
+Un lupo addestrato e' qui
+~
+Benche' addestrato..meglio girare al largo
+~
+2|4 0 0 A 2
+8 17 6 4 1d3+1
+-1 0 12 18
+8 8 0
+#3095
+davdak arcanscape elfo~
+Davdak Arcanscape~
+Un elfo di bell'aspetto ti guarda con attenzione.
+~
+Un elfo di bell'aspetto, non riesci a capire la sua eta', solo una
+cosa ti e' chiara: e' sicuramente imparentato con Leoven!
+~
+64|2048|1048576|2097152 32768|33554432 350 L 3
+60 0 -10 300 1d3+17
+-1 500 4 2
+8 8 4 0 2048 0 
+$c0013[$c0015Davdak Arcanscape$c0013] ti dice 'Posso aiutarti in qualche modo?'$c0007
+~
+Qualcuno qui vicino sta fischiettando allegramente.
+~
+#3100
+cameriera~
+la cameriera~
+Una cameriera e' qui, aspettando i tuoi ordini
+~
+Molto graziosa, capelli neri, occhi azzurri! WOW!
+~
+2 0 1000 N
+29 2 2 120 1d3+16
+-1 2000 14 1
+8 8 5 0 2048 0
+#3120
+uomo boschi~
+un uomo dei boschi~
+Un uomo dei boschi venuto in citta'
+~
+Vende pelli a buon prezzo...
+~
+0 0 800 N
+3 18 7 3 1d3+1
+-1 13 12 1
+8 8 1
+#3121
+papera~
+una papera~
+Un papera si aggira per lo stagno
+~
+Molto carina
+~
+2 2048 1000 N
+1 20 9 0 1d3+1
+-1 0 14 16
+8 8 0
+#3122
+anatra~
+l'anatra~
+Un'anatra starnazza verso di te
+~
+Che casino! Sarebbe meglio strozzarla!
+~
+2 2048 1000 N
+1 20 10 0 1d1+4
+-1 0 24 16
+8 8 0
+#3123
+corvo~
+il Corvo~
+Un nero corvaccio svolazza in giro
+~
+Sembra contento di vederti
+~
+64|128 2048 1000 N
+1 20 10 0 1d3+5
+-1 0 12 16
+8 8 0
+#3124
+cigno~
+un cigno~
+Un bel cigno si muove con eleganza
+~
+Un cigno grassottello si aggira felice per lo stagno
+~
+64 2048 1000 N
+2 20 10 0 1d4+0
+-1 0 4 16
+8 8 0
+#3140
+capo guardie~
+il Capo delle guardie~
+Il Capo delle guardie sembra incazzato nero!
+~
+Un Capo molto arrabbiato!
+~
+2|4|32 8 1000 A 2
+24 0 6 84 1d3+6
+-1 100 18 1
+8 8 1
+#3141
+guardia~
+la guardia pazza~
+Un guardia incazzata nera, si scaglia su di te!
+~
+~
+2|4|32 0 1000 A 2
+18 10 7 50 1d3+5
+-1 50 18 1
+8 8 1
+#3142
+segretaria~
+la Segretaria~
+Una segretaria sta' ordinando della carte dietro un tavolo.
+~
+Sembra molto impegnata... e ti dice 'Mi scusi ma oggi non e' giornata,
+torni domani prego'
+~
+2 0 900 N
+17 9 2 40 1d3+3
+-1 100 17 1
+8 8 2
+#3143
+primo cittadino~
+il Primo Cittadino~
+Il Primo Cittadino lavora qui.
+~
+Sembra antico, sovraffaticato e sottopagato!
+~
+2 0 900 A 2
+25 2 0 135 1d3+7
+-1 1000 11 1
+4 4 1
+#3144
+ronda~
+La Ronda~
+La ronda passa gridando 'Sono le 7 sette e tutto va bene!'
+~
+Nonstante abbia una clessidra portatile, dice sempre la stessa ora.
+~
+64|128 0 900 L 1
+10 15 -2 0 1d3+5
+-1 100 13 1
+8 8 1
+La ronda controlla la sua clessidra portatile
+~
+Senti qualcuno gridare
+~
+#21363
+paladin gm guildmaster~
+the paladin guildmaster~
+the paladin guildmaster is standing here
+~
+     A strong, powerful man, yet kindly looking.
+~
+2 128 1000 A 5
+60 -10 -10 96 1d3+40
+-1 8000 6 1
+8 8 4 1|2|4|8 16|32|64|2048 0
+#21366
+psionist gm guildmaster~
+the psionist guildmaster~
+the psionist guildmaster is standing here.
+~
+Bald and beautiful! You sense a powerful mind behind those dark blue
+eyes of his.
+~
+2 0 1000 A 5
+60 -15 -10 96 1d3+40
+-1 8000 1 1
+8 8 5 1|2|4|8 16|32|64|2048 0
+#21367
+ranger gm guildmaster~
+the ranger guildmaster~
+the ranger guildmaster is standing here.
+~
+     Catlike in movement and silent as a mouse, you would never hear this
+man move up behind you!
+~
+2 0 1000 A 5
+60 -10 -10 0 1d3+55
+-1 0 1 1
+8 8 4 1|2|4|8 16|32|64|2048 0

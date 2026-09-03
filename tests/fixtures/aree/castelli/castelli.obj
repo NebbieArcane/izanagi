@@ -1,0 +1,338 @@
+#20023
+~
+Oggetto fittizio~
+~
+~
+15 0 1
+0 0 0 0 
+0 0 0
+#34001
+chiave monty~
+la chiave di Montero~
+una grossa chiave fatta di uno strano materiale~
+~
+4 8|512|2048|4096|8192|16384|262144|4194304|8388608|16777216|33554432|67108864|134217728 1|16384
+0 0 0 0 
+0 20000 0
+#34002
+orecchino simbolo monty~
+il Simbolo dei Mezzi-Giganti~
+un orecchino con il Simbolo della casata dei Mezzi-Giganti~
+~
+9 131072 1|262144
+1 1 0 0 
+1 25000 0
+A
+40 1
+#34003
+simbolo~
+Simbolo Sacro~
+uno strano simbolo~
+~
+1 1|16|64|128|512|2048 1|16384
+0 0 0 0 
+1 23000 500
+A
+41 -5
+A
+3 -1
+A
+18 2
+#34004
+mazzolo mazza~
+Mazzolo dei Giganti~
+un mazza da guerra~
+~
+5 4|512|2048|32768|131072|268435456 1|8192
+0 3 7 7 
+0 20000 0
+A
+40 2
+A
+2 1
+A
+13 5
+#34011
+veste stelle lia~
+Veste che canta~
+Tra le morbide pieghe in ombra scintilla la polvere di $c0001s$c0002t$c0013e$c0011l$c0009l$c0011e~
+~
+9 1|2|256|1024|262144|524288|16777216|268435456 1|8
+9 9 0 0 
+1 100000 0
+E
+veste~
+Tra le morbide pieghe in ombra scintilla la polvere di $c0001s$c0002t$c0013e$c0011l$c0009l$c0011e
+~
+A
+28 135167
+#34023
+chiave~
+la chiave della Marca Meridionale~
+Una pesante chiave giace nella polvere.~
+~
+18 4|262144 1|16384
+0 0 0 0 
+1 100 0
+#34024
+chiave~
+la chiave della Marca Occidentale~
+Una pesante chiave giace nella polvere.~
+~
+18 4|262144 1|16384
+0 0 0 0 
+1 100 0
+#34025
+chiave~
+la chiave del Bastione della Contea~
+Una pesante chiave giace nella polvere.~
+~
+18 4|262144 1|16384
+0 0 0 0 
+1 100 0
+#34026
+chiave~
+la chiave della Marca Settentrionale~
+Una pesante chiave giace nella polvere.~
+~
+18 4|262144 1|16384
+0 0 0 0 
+1 100 0
+#34027
+chiave~
+La chiave dell'Emiro dell'ovest~
+Per terra noti una chiave di metallo scuro~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34028
+chiave~
+La chiave dell'Emiro delle montagne~
+Per terra noti una chiave di metallo scuro~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34029
+chiave~
+La chiave dell'Emiro del nord~
+Per terra noti una chiave di metallo scuro~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34101
+clava distruzione blacky~
+Clava della distruzione.~
+Una gigantesca clava pulsante di energia.~
+~
+5 16|64|256|512|2048|4096|8192|16384|8388608|16777216|33554432 1|8192
+0 8 4 4 
+30 500000 100000
+A
+30 66
+A
+51 50
+A
+3 -5
+A
+40 6
+A
+30 23
+#34102
+pelle corpetto sconosciuta blacky~
+Corpetto in pelle sconosciuta.~
+Una armatura di pelle sconosciuta e' qui.~
+~
+9 16|256|512|2048|4096|8192|8388608|16777216|33554432|134217728 1|8
+8 8 0 0 
+10 50000 15000
+E
+pelle~
+Il materiale di cui e' fatta ti risulta totalmente sconosciuto, ma sei sicuro si trattasse di un essere vivente.
+Se sia stato "vivente" in questo pianeta poi non sai dirlo.
+~
+A
+5 2
+A
+29 96
+A
+11 20
+A
+10 30
+#34103
+cintura troll blacky~
+Cintura dei troll~
+Una cintura di pelle con ossa e sangue raggrumato e' qui.~
+~
+9 0 1|2048
+4 4 0 0 
+0 0 0
+A
+29 2058
+A
+10 40
+A
+17 -20
+#34104
+orecchino osso blacky~
+orecchino d'osso~
+un orecchino d'osso e' qui.~
+~
+9 4|64|256|512|2048|4096|8192|16384|8388608|16777216|33554432|134217728 1|262144
+0 0 0 0 
+1 100000 15000
+A
+29 654344244
+#34105
+tamburi guerra blacky~
+tamburi della guerra~
+alcuni tamburi sono posati a terra, e suonano ritmi di guerra.~
+I tamburi suonano un ritmo di guerra che ti penetra nella mente alimentando la tua sete di sangue.~
+23 16|64|262144 0
+2 0 0 0 
+100 0 0
+E
+tamburi~
+Dei grandi tamburi suonano dei ritmi di guerra, senza nessuno che li manovri.
+~
+#34106
+altare oro blacky~
+altare d'oro~
+un altare d'oro e' qui, sporco di sangue.~
+~
+8 4|256 0
+0 0 0 0 
+500 1000000 -1
+E
+altare oro~
+L'altare e' finemente decorato, o almeno lo era.
+Sangue rappreso copre buona parte della sua superficie, e ammaccature di ogni genere hanno ormai segnato quello che un tempo doveva essere un altare degno della chiesa principale di una grande citta'.
+Non credi proprio che sia stato fatto apposta per stare qui. 
+~
+#34201
+maglio mazza ogu~
+Maglio dei Titani~
+~
+~
+5 1|4|1024|2048|4096|8192|16384|33554432|67108864|134217728 128
+0 1 12 4 
+10 2000 -1
+A
+30 39
+A
+19 2
+#34202
+chiave~
+la chiave della Marca Orientale~
+Una pesante chiave giace nella polvere.~
+~
+18 4|262144 1|16384
+0 0 0 0 
+1 100 0
+#34203
+bandiera~
+La bandiera del Principato~
+La bandiera del Principato e' issata sul pennone.~
+~
+12 16|1024|2048|262144 1|16384
+0 0 0 0 
+2 2000 -1
+A
+6 4
+#34204
+chiave~
+La chiave dell'Emiro dell'est~
+Per terra noti una chiave di metallo scuro~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34205
+chiave~
+La chiave dell'Emiro del fiume~
+Per terra noti una chiave di metallo scuro~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34206
+stendardo~
+Lo stendardo del sultano~
+Lo stendardo del sultano ondeggia lievemente.~
+~
+12 16|512|2048|262144 1|16384
+0 0 0 0 
+2 2000 -1
+A
+6 4
+#34207
+chiave~
+La chiave della fortezza del nord~
+Per terra noti una chiave di metallo con inciso il simbolo
+imperiale.~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34208
+chiave~
+La chiave della fortezza della collina~
+Per terra noti una chiave di metallo con inciso il simbolo
+imperiale.~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34209
+chiave~
+La chiave della fortezza delle terre oscure~
+Per terra noti una chiave di metallo con inciso il simbolo
+imperiale.~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34210
+chiave~
+La chiave della fortezza dell'ovest~
+Per terra noti una chiave di metallo con inciso il simbolo
+imperiale.~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34211
+chiave~
+La chiave della fortezza del sud~
+Per terra noti una chiave di metallo con inciso il simbolo
+imperiale.~
+~
+18 4|262144 1
+0 0 0 0 
+1 1 0
+#34212
+vessillo~
+Il vessillo imperiale~
+Il vessillo dell'Impero e' appoggiato qui.~
+~
+12 16|512|1024|262144 1|16384
+0 0 0 0 
+2 2000 -1
+A
+6 4
+#34302
+scopa~
+Scopa di Azzurra~
+Una scopa~
+~
+5 2|8|1024|2048|4096|8192|16384|32768|262144|524288|4194304|8388608|33554432|67108864|134217728 1|8192
+0 5 5 7 
+60 100000 -1
+E
+scopa~
+E' molto robusta
+~
+A
+40 4

@@ -1,0 +1,2018 @@
+#3000
+Myst la capitale delle nebbie~
+stanza di raccordo non accessibile
+~
+-1 8388608 0 
+S
+#3001
+La piazza delle Nebbie~
+Ti  trovi  nel fulcro della citta' di Myst. Grandi statue sono al
+centro  di  questa piazza circolare. Ai lati ci sono alti palazzi
+splendidamente  rifiniti  da  bassorilievi nelle facciate. Ad est
+vedi una piccola cappella, nella parte ovest della piazza vi sono
+diversi  edifici.  A  nord  si erge imponente il Palazzo sede del
+Governo.
+~
+-1 8388608 1 
+D0
+Il cancello d'ingresso
+~
+~
+1 0 3301 -1
+D1
+Ingresso alla Cappella
+~
+~
+0 0 3003 -1
+D2
+La piazza del grande arco
+~
+~
+0 0 3012 -1
+D3
+Piazza delle Nebbie
+~
+~
+0 0 3004 -1
+S
+#3002
+Birreria "$c0009Soffio del Drago$c0007"~
+
+Noti che l'ambiente e' stato completamente ristrutturato, al posto del solito bancone c'e' un'insegna luminosa raffigurante due boccali di birra.
+
+Leggi un avviso luminoso:
+
+*************************************************************************************
+*                              $c4204 NUOVA GESTIONE $c0007                                     *
+*								    *
+*  L'antica Osteria il "$c0009Soffio del Drago$c0007" e' lieta di comunicare ai gentili Clienti *
+* che, grazie  a  nuovi  imprenditori,  le attivita' di ristoro proseguiranno nella *
+* nuova e piu' ampia Birreria qui a nord.                                           *
+*                                                                                   *
+* Entrate a bervi una birra, vi aspettiamo!                                         *
+*************************************************************************************
+
+Dalla parte opposta una nuova e rifinita scala a chiocciola porta alle stanze superiori.
+
+~
+-1 8388608 1 
+D0
+Ingresso all'$c0001Oscura Birreria$c0007
+~
+~
+0 0 8601 -1
+D1
+Piazza delle Nebbie
+~
+~
+0 0 3004 -1
+D3
+Una  enorme bacheca e' appesa alla parete. Ma sei troppo distante
+per poterla leggere.
+~
+~
+0 0 3067 -1
+D4
+La zona notte
+~
+~
+0 0 3008 -1
+S
+#3003
+Ingresso alla Cappella~
+Sul  lato  est  della  piazza  si erge una piccola cappella dalla
+curiosa  forma quasi sferica, appesi alle pareti ci sono numerosi
+simboli sacri.
+Quasi inciampi su una $c0008mattonella$c0007 sconnessa.
+~
+-1 4|16|32|128|8388608 1 
+D1
+~
+~
+0 0 99 -1
+D3
+La piazza delle Nebbie
+~
+~
+0 0 3001 -1
+D4
+La torre delle leggi
+~
+~
+0 0 3021 -1
+E
+mattonella~
+Una mattonella sembra essersi staccata dal pavimento a causa dell'usura.
+Non ha niente di particolare, sembra come tutte le altre. Ma mentre la sposti leggermente un $c0011luccichio$c0007 attira la tua attenzione.
+~
+E
+luccichio~
+Sposti la mattonella ed incastrato nella malta sottostante vedi un grande uovo di bronzo con un'$c0015iscrizione.$c0007
+~
+E
+iscrizione~
+L'uovo e' finemente decorato e sembra essere un Ex Voto.
+Probabilmente durante i lavori alla pavimentazione deve essere caduto fuori dalla vicina Cappella.
+L'iscrizione recita:
+"$c0011Sto perdendo le speranze di tornare a casa.
+Chissa' come staranno, speriamo si siano salvati, prego per loro ogni giorno.
+Sono passati due mesi dall'eruzione ed ancora non riesco a trovare un passaggio, il magma non accenna a solidificarsi e le colate continuano imperterrite.
+Ho provato a passare dal versante proibito, ma ho visto un cumulo di cenere muoversi ed emettere uno stridio. Non ho resistito, sono fuggito. 
+Sono un minatore, non un eroe. Non mi piace quando la terra si muove da sola. Troppe volte ho risvegliato cose che non dovevo.
+Fortunatamente c'e' il fiume di fango a proteggerli, spero sia sufficiente a fermare la furia del vulcano.
+Dovro' pazientare, spero che presto il magma si calmi e che finalmente si trasformi in arenaria vulcanica, in modo da lasciarmi tornare a casa.
+Che Alar aiuti la mia famiglia, spero stiano tutti bene, e ci ricongiunga presto.
+
+Igor Zoklov$c0007".
+~
+S
+#3004
+La zona occidentale della Piazza delle Nebbie~
+Sulla parte ovest della piazza si trovai l'ingresso della famosa
+osteria  "Soffio del Drago", noto in tutti i reami per essere
+il  luogo  di  partenza delle piu' famose spedizioni di caccia ai
+draghi.  A sud vedi un Ufficio Postale, mentre a nord, immerso in
+un quieto giardino si erge un piccolo tempio.
+~
+-1 8388608 1 
+D0
+Un  vialetto percorre un tranquillo giardino fino all'ingresso di
+un piccolo tempio in marmo bianco.
+~
+~
+0 0 11100 -1
+D1
+La piazza delle Nebbie
+~
+~
+0 0 3001 -1
+D2
+L'Ufficio Postale
+~
+~
+0 0 3065 -1
+D3
+L'osteria "Soffio del Drago"
+~
+~
+0 0 3002 -1
+S
+#3005
+Il Tempio di Eros~
+Le  luci soffuse e la nebbiolina prodotta dalla resina che brucia
+in  diversi bracieri, ti impediscono di mettere a fuoco l'ambiente
+che  ti  circonda.  Riesci  a  distinguere un'ampia vasca posta a
+livello  del  pavimento per permettere ai visitatori di lavarsi i
+piedi.  Diverse  porte  si  aprono  sui vari lati della stanza di
+forma ottagonale. Un $c0011cartello $c0007e' illuminato da una torcia.
+~
+-1 4|8|8388608 1 
+D0
+La camera di Drina Lungabarba
+~
+~
+1 0 3007 -1
+D1
+La camera di Elsinella Foltachioma
+~
+~
+1 0 3098 -1
+D2
+La strada del porto
+~
+~
+1 0 3078 -1
+D3
+La camera di Marsilla Schienalarga.
+~
+~
+1 0 3096 -1
+E
+cartello~
+Nel Tempio di Eros si viene per rilassarsi e per curare il corpo
+e lo spirito. Non sono ammesse violenze di alcun genere.
+Queste sono le offerte da versare:
+- per massaggi con unguenti curativi (MASSAGGI); 5.000 monete d'oro
+- per la meditazione (SPIRIT); 2.000 monete d'oro
+- per i massaggi di eros (EROS); 10.000 monete d'oro
+Le offerte sono obbligatorie e NON sono ammesse eccezioni.
+I trasgressori passeranno per le mani di Turkut Tronco di Quercia.
+~
+S
+#3006
+La soffitta dell'alchimista~
+Scatole e pacchi sono sparsi ovunque, la confusione regna sovrana
+in questa stanza. Probabilmente la riapertura del negozio e' stata
+fatta troppo presto oppure i lavori si sono dilungati troppo. 
+Da dietro al bancone, improvvisamente, fa capolino un giovane elfo.
+Non ti sembra che ci siano uscite visibili.
+~
+-1 4|8|16|64|128|32768|8388608|16777216 0 
+E
+botola~
+Botola? Non c'e' nessuna botola qui!
+~
+E
+lancetta lancette orologio~
+Vedi orologi?
+~
+E
+pacchi pacco~
+Sotto ad un pacco noti una cartello che probabilmente deve essere affisso.
+~
+E
+cartello~
+Nuove prestazioni:
+scrivi  <$c0009buy$c0007> e ti forniro' le tue caratteristiche oppure passami un oggetto e ti diro' le sue proprieta'!
+~
+S
+#3007
+La camera di Drina Lungabarba.~
+Tre  bracieri  diffondono  nella  stanza  un gradevole profumo di
+incenso  profumato.  Numerosi  cuscini  sono  poggiati su soffici
+tappeti  decorati. In un angolo c'e' un grosso $c0011pezzo di roccia$c0007. I
+muri sono tutti affrescati con scene traboccanti d'eros.
+~
+-1 8|8388608 1 
+D2
+Il Tempio di Eros
+~
+~
+0 0 3005 -1
+E
+pezzo roccia~
+Esaminandolo bene, pare un blocco di roccia proveniente dalle
+montagne dell'est.
+~
+S
+#3008
+La zona notte~
+Da  dietro  un  bancone  emerge  l'esile figura della locandiera,
+tutta  intenta a compilare moduli e a fare conti. Alle sue spalle
+un  corridoio  porta  alle camere da letto. Un $c0003cartello $c0007e' appeso
+alla parete.
+~
+-1 4|8|16|32|8388608 1 
+D5
+L'osteria "Soffio del Drago"
+~
+~
+0 0 3002 -1
+E
+cartello~
+$c0011comandi utili:
+$c0014rent $c0007: per noleggiare una camera da letto e poter quindi 
+       salvare il personaggio.
+$c0014offer$c0007: per valutare il costo giornaliero dell'affitto di una 
+       stanza
+~
+S
+#3009
+La Panetteria~
+Imbiancato di farina un piccolo halfling ti sorride mostrandoti i
+suoi prodotti. C'e' un $c0003cartello $c0007appeso alla parete.
+~
+-1 16|8388608 1 
+D0
+la Strada Commerciale
+~
+~
+0 0 3016 -1
+E
+cartello~
+$c0014list:$c0007 ti mostra cosa vende il negoziante
+$c0014buy (nome):$c0007 per acquistare
+$c0014sell (nome):$c0007 per vendere un oggetto
+$c0014value (nome):$c0007 per vedere quanto ti offre il negoziante per l'acquisto dell'oggetto
+~
+S
+#3010
+L'antro del mercante~
+In  questo negozio sono appese alle parete torce e suppellettili
+di  ogni  genere,  da  dietro  il bancone un uomo col turbante e'
+intento a contare dei soldi. C'e' un $c0003cartello$c0007.
+~
+-1 16|8388608 1 
+D2
+la Strada Commerciale
+~
+~
+0 0 3016 -1
+E
+cartello~
+$c0014list:$c0007 ti mostra cosa vende il negoziante
+$c0014buy (nome):$c0007 per acquistare
+$c0014sell (nome):$c0007 per vendere un oggetto
+$c0014value (nome):$c0007 per vedere quanto ti offre il negoziante per l'acquisto dell'oggetto
+~
+S
+#3011
+Il negozio dell'Armaiolo~
+Spade,  mazze,  fruste  e  ogni genere di oggetti per il perfetto
+combattente  sono  appesi  all'interno  di  teche. Un $c0003cartello $c0007e'
+appeso alla parete.
+
+~
+-1 16|32|128|8388608 1 
+D2
+la Strada Commerciale
+
+~
+~
+0 0 3013 -1
+E
+cartello~
+$c0014list:$c0007 ti mostra cosa vende il negoziante
+$c0014buy (nome):$c0007 per acquistare
+$c0014sell (nome):$c0007 per vendere un oggetto
+$c0014value (nome):$c0007 per vedere quanto ti offre il negoziante per l'acquisto dell'oggetto
+~
+S
+#3012
+La piazza del grande arco~
+Questa  piazza  e' caratterizzata da un enorme arco alto quasi 30
+metri.
+Al di sotto dell'arco si dipanano strade in ogni direzione, Verso
+nord  c'e'  la Piazza delle Nebbie, ad est la strada Commerciale,
+ad  ovest la strada delle Gilde mentre a sud c'e' la piazza delle
+statue.
+~
+-1 8388608 1 
+D0
+La piazza delle Nebbie
+~
+~
+0 0 3001 -1
+D1
+la Strada Commerciale
+~
+~
+0 0 3013 -1
+D2
+La piazza delle statue
+~
+~
+0 0 3077 -1
+D3
+La strada delle Gilde
+~
+~
+0 0 3031 -1
+S
+#3013
+la Strada Commerciale~
+In  questa strada e' concentrato il commercio cittadino, numerosi
+negozi   si  trovano  ai  lati  della  strada.  Verso  nord  c'e'
+l'armaiolo, mentre a sud si trova il fabbro.
+~
+-1 8388608 1 
+D0
+Il negozio dell'Armaiolo
+~
+~
+0 0 3011 -1
+D1
+strada commerciale
+~
+~
+0 0 3016 -1
+D2
+~
+~
+0 0 3020 -1
+D3
+~
+~
+0 0 3012 -1
+S
+#3016
+la Strada Commerciale~
+In  questa strada e' concentrato il commercio cittadino, numerosi
+negozi  si  trovano  ai  lati  della  strada.  Verso nord c'e' il
+negozio di un mercante mentre a sud c'e' una panetteria.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3010 -1
+D1
+~
+~
+0 0 3019 -1
+D2
+~
+~
+0 0 3009 -1
+D3
+[003013 (strada commerciale)
+~
+~
+0 0 3013 -1
+S
+#3019
+la Strada Commerciale~
+In  questa strada e' concentrato il commercio cittadino, numerosi
+negozi  si  trovano  ai  lati  della  strada.  Verso nord c'e' il
+laboratorio di un alchimista ad est vedi una banca, mentre a sud
+inizia la strada dei pini.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3033 -1
+D1
+~
+~
+0 0 8001 -1
+D2
+~
+~
+0 0 3024 -1
+D3
+~
+~
+0 0 3016 -1
+S
+#3020
+Il Fabbro~
+Un  grassissimo nano (piu' largo che alto!) e' intento a forgiare
+armature. C'e' un $c0003cartello $c0007appeso alla parete.
+~
+-1 16|32|128|8388608 1 
+D0
+la Strada Commerciale
+~
+~
+0 0 3013 -1
+E
+cartello~
+$c0014list:$c0007 ti mostra cosa vende il negoziante
+$c0014buy (nome):$c0007 per acquistare
+$c0014sell (nome):$c0007 per vendere un oggetto
+$c0014value (nome):$c0007 per vedere quanto ti offre il negoziante per l'acquisto dell'oggetto
+~
+S
+#3021
+La torre delle leggi~
+Queste  sono  le poche ma fondamentali leggi vergate dai Superni.
+Esse  rappresentano  le  norme  fondamentali del nostro mondo: la
+trasgressione  e'  la colpa piu' grave per un abitante di Nebbie.
+Questo  e'  un  gioco multiutente. Da cio' consegue che TUTTI gli
+utenti devono avere UGUALI opportunita' di divertirsi. 
+La  filosofia  di  base,  pertanto,  puo'  essere  riassunta  nel
+seguente, semplice, principio: $c0011'ciascuno e' libero di giocare nel
+modo  che  preferisce, fintantoche' le sue azioni non limitano la
+liberta' altrui '$c0007. Per garantire il rispetto di tale principio, e
+solo  a  questo  scopo, sono state stilate queste poche, semplici
+regole che ogni giocatore e' tenuto a seguire scrupolosamente. 
+Anche  gli  Immortali  e  gli  Dei  sono tenuti a rispettare tali
+regole.
+~
+-1 8388608 1 
+D4
+~
+~
+0 0 3022 -1
+D5
+~
+~
+0 0 3003 -1
+S
+#3022
+la torre delle leggi~
+$c00111.Comunicazione. 
+$c0007E'  VIETATO  abusare  dei  canali pubblici (say, gossip, auction,
+emote,  title,  set group name... e soprattutto SHOUT). Per abuso
+si intende: 
+* usare un linguaggio scurrile; 
+* disturbare  il  gioco  altrui  con frasi offensive, assillanti,
+  insistenti;
+* eccedere nell'uso di tali canali per questioni non direttamente
+  inerenti il gioco o comunque il mondo di Nebbie. 
+Infatti  l'OffTopic (OT) NON e' vietato, sin quando e' motivato e
+soprattutto estremamente limitato.
+
+$c00112.Multiplaying  (MP).
+$c0007Il multiplaying e' VIETATO. Ovviamente cio' non significa che non
+si  possa  disporre di piu' di  un personaggio,  il  che  anzi  e' 
+consigliato   e  raccomandato per apprezzare  tutti  i  possibili
+risvolti  del  gioco:  semplicemente  NON  si  possono  avere  in 
+gioco  contemporaneamente due o  piu' personaggi.  E'  ugualmente 
+VIETATO  cedere  ad  altri  giocatori  la  password di un proprio
+personaggio.  
+E'  in ogni caso vietato avvantaggiare un proprio personaggio con
+un altro proprio personaggio soprattutto nei seguenti modi: 
+
+*indebolendo MOB con il primo per farli uccidere al secondo 
+*usando incantesimi su altri personaggi dello stesso giocatore 
+*passando EQ fra personaggi dello stesso giocatore
+*facendo  lasciare  da  un  personaggi  EQ  in luoghi isolati per
+ recuperarli con altri propri personaggi
+*vale lo stesso anche per i soldi e gli XP
+*vassallare un proprio personaggio
+
+$c00113.Sfruttamento di bug.
+$c0007Chiunque  sfrutti  scientemente  un bug a proprio vantaggio sara'
+punito con la cancellazione (nuke) del personaggio
+~
+-1 8388608 1 
+D4
+~
+~
+0 0 3023 -1
+D5
+~
+~
+0 0 3021 -1
+S
+#3023
+La torre delle leggi~
+$c00114.Pkill (i).$c0007
+Nebbie  Arcane  e' un mud PKILL, questo vuol dire che ogni pg che
+raggiunga  il  31  livello  puo' attaccare od essere attaccato da
+altri pg.
+SOLO  a giocatori che abbiano il flag PKILL settato e' consentito
+arrecare  danno  ad  altri  giocatori,  a  patto che anche questi
+ultimi abbiano il flag PKILL settato.
+$c00115.Pkill  (ii).$c0007
+L'unica  eccezione  alla norma precedente riguarda i LADRI  puri 
+(monoclasse):    questi, e SOLO questi, quando abbiano raggiunto 
+il    livello  per  avere  il flag PKILL settato POSSONO derubare
+TUTTI gli altri giocatori, compresi i non-pk.
+$c00116.Pkill  (iii). $c0007
+In    qualunque    caso,    non  e' permesso sottrarre denaro  o 
+oggetti  dal  cadavere  di  un  giocatore.  Unica  eccezione: il 
+vincitore    di    un  combattimento  Pkilling  ha  il diritto di
+depredare il cadavere del suo (ex) avversario.
+Depredare  significa  prendere  tutto  cio'  che vi e' contenuto,
+inclusi  oggetti  particolari  come  gli  oggetti  'editati'.  Il
+'bottino'  diviene  proprieta'  del  vincitore, che puo' disporne
+come meglio crede.
+$c0009NON  E' PERMESSO depredare un cadavere se il personaggio e' morto
+per mano di un mob o di morte naturale (i.e. veleno).
+$c0007
+$c00117.Pkill  (iv).$c0007
+In  un  combattimento  Pkilling ogni giocatore ha il diritto  di 
+utilizzare    TUTTE  le proprie arti ed abilita'. Come gia' detto
+non    sara'   pero'  permesso  il  saccheggio  del  cadavere  se
+l'uccisione  avviene  per mano di un mob; a meno che si tratti di
+mob  servant (mob charmato, monster summon o similari), in questo
+caso  e'  come se l'uccisione fosse avvenuta per mano diretta del
+pg.
+~
+-1 8388608 1 
+D4
+~
+~
+8 0 3068 -1
+D5
+~
+~
+0 0 3022 -1
+S
+#3024
+La strada dei pini~
+Questa  strada  ha  poche  abitazioni  ai suoi lati, alti pini la
+fiancheggiano,  verso  sud ovest vedi una torre. C'e' un $c0003cartello$c0007
+con delle indicazioni piantato per terra.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3019 -1
+D2
+~
+~
+0 0 3025 -1
+E
+cartello~
+Strada dei Pini:
+direzione per la discarica, la torre di Redferne e il Cimitero di Myst.
+~
+S
+#3025
+La strada dei pini~
+Questa  strada  ha  poche  abitazioni  ai suoi lati, alti pini la
+fiancheggiano, verso ovest vedi una torre.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3019 -1
+D2
+~
+~
+0 0 3026 -1
+D3
+~
+~
+0 0 1228 -1
+S
+#3026
+La strada dei pini~
+Questa  strada  ha  poche  abitazioni  ai suoi lati, alti pini la
+fiancheggiano,  verso est vedi l'ingresso ad una discarica mentre
+a sud c'e' il cancello di un cimitero.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3025 -1
+D1
+~
+~
+0 0 3027 -1
+D2
+~
+~
+0 0 3082 -1
+S
+#3027
+La discarica~
+Questo  e'  il  luogo  dove  gli  spazzini  di Myst depositano la
+spazzatura ricoprendola con la terra.
+~
+-1 8388608 1 
+D1
+~
+~
+0 0 3029 -1
+D3
+~
+~
+0 0 3026 -1
+S
+#3028
+Viale del Grifone~
+Il viale conduce a nord verso il centro di Myst ed a sud verso le
+alte mura di cinta.
+~
+-1 8388608 1 
+D0
+La piazza delle statue.
+~
+~
+0 0 3077 -1
+D2
+ponte sul fiume
+~
+~
+0 0 3083 -1
+S
+#3029
+La discarica~
+Questo  e'  il  luogo  dove  gli  spazzini  di Myst depositano la
+spazzatura ricoprendola con la terra. Il cattivo odore e' davvero
+pungente.
+~
+-1 8388608 1 
+D1
+~
+~
+0 0 3030 -1
+D3
+~
+~
+0 0 3027 -1
+S
+#3030
+La discarica~
+Questo  e'  il  luogo  dove  gli  spazzini  di Myst depositano la
+spazzatura  ricoprendola  con  la terra. L'odore della spazzatura
+qui  si  mischia  con  quello  delle  fogne rendendo l'aria quasi
+irrespirabile.
+~
+-1 8388608 0 
+D3
+~
+~
+0 0 3029 -1
+D5
+~
+~
+0 0 7030 -1
+S
+#3031
+La strada delle Gilde~
+In  questa  strada i maestri di tutte le discipline hanno fondato
+delle  scuole  dove  i  giovani iniziati apprendono dall'arte del
+combattimento  a  quella  della  magia. Da tutto il mondo giovani
+aspiranti  vengono  sino  qua  con  la  speranza di diventare dei
+grandi eroi.
+~
+-1 8388608 1 
+D1
+~
+~
+0 0 3012 -1
+D3
+~
+~
+0 0 3032 -1
+S
+#3032
+La strada delle Gilde~
+In  questa  strada i maestri di tutte le discipline hanno fondato
+delle  scuole  dove  i  giovani iniziati apprendono dall'arte del
+combattimento  a  quella  della  magia. Da tutto il mondo giovani
+aspiranti  vengono  sino  qua  con  la  speranza di diventare dei
+grandi  eroi.  Verso  sud  c'e' una chiesa, mentre a nord vedi un
+tempio dall'aspetto austero.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3097 -1
+D1
+~
+~
+0 0 3031 -1
+D2
+~
+~
+0 0 3037 -1
+D3
+~
+~
+0 0 3045 -1
+S
+#3033
+Il $c0014nuovo$c0007 laboratorio dell'alchimista~
+Un vecchio elfo col cappello a punta armeggia tra alambicchi e strane pozioni.
+Un $c0003cartello$c0007 e' appeso alla parete. 
+Non ti sembra che sia cambiato niente o forse si'?
+Hai proprio una pessima memoria!
+~
+-1 8|8388608 0 
+D2
+~
+~
+0 0 3019 -1
+D4
+Guardando in alto non noti niente di speciale, solo il soffitto.
+~
+lancetta~
+1|2|8|32|256 0 3006 372
+E
+cartello~
+$c0014list:$c0007 ti mostra cosa vende il negoziante
+$c0014buy (nome):$c0007 per acquistare
+$c0014sell (nome):$c0007 per vendere un oggetto
+$c0014value (nome):$c0007 per vedere quanto ti offre il negoziante per l'acquisto dell'oggetto
+~
+E
+botola~
+E'  troppo  in alto e non ci puoi arrivare... quando ti servono i
+titani non ci sono mai!
+~
+E
+orologio~
+L'ora  che  segna e' completamente sbagliata... la tua pignoleria
+ti costringe a sistemare le lancette...
+~
+E
+lancette~
+Le  lancette  dell'orologio  segnano  l'orario sbagliato, prova a
+girarne una...
+~
+E
+niente~
+Niente,  beh  proprio niente no! Il soffitto ha cambiato colore e
+ci sono molte piu' cose sulle pareti.
+~
+E
+pareti~
+Quella  di  sinistra ti sembra tale e quale a prima mentre su quella di destra ti sembra sia cambiato qualcosa.
+~
+E
+destra~
+Noti un nuovo e strano orologio.
+~
+E
+soffitto~
+Improvvisamente te lo ricordi:
+il  $c0012colore$c0007  e'  quello della sua prima inaugurazione solo che era
+stato ricoperto dai fumi dei mille esperimenti di Gwynyar!
+~
+E
+colore~
+Osservando  meglio  ti sembra di vedere i lineamenti di qualcosa, forse un'apertura.
+~
+E
+apertura~
+Cosa sara' mai?
+
+Ma certo e' una botola!
+~
+S
+#3034
+Il tempio dell'ordine dei Paladini~
+Il  tempio  dell'ordine  dei Paladini e' completamente spoglio di
+ogni  oggetto ornamentale, solo gli essenziali oggetti sacri sono
+appesi alle pareti assieme a delle spade.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3035 -1
+D2
+~
+~
+0 0 3097 -1
+S
+#3035
+L'aula di addestramento~
+Qui  i  giovani Paladini di tutti i reami si esercitano nell'arte
+della guerra e della preghiera.
+~
+-1 8388608 1 
+D2
+~
+~
+0 0 3034 -1
+D4
+~
+~
+0 0 3089 -1
+S
+#3036
+Il regno della Mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3091 -1
+D1
+~
+~
+0 0 3054 -1
+S
+#3037
+L'ingresso della chiesa~
+Ti  trovi  innanzi ad una chiesa dall'aspetto barocco e opulento,
+ogni sorta di orpello sembra sia stato inserito nella facciata.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3032 -1
+D2
+~
+~
+0 0 3038 -1
+S
+#3038
+La chiesa~
+Ti  trovi  nella  navata  centrale della chiesa, enormi colonne a
+spirale   arrivano  sino  al  soffitto  ampiamente  decorato  con
+affreschi  di ogni genere. Statue in oro zecchino raffigurano gli
+dei. Verso sud c'e' l'altare.
+~
+-1 4|8388608 1 
+D0
+~
+~
+0 0 3037 -1
+D1
+~
+~
+0 0 3040 -1
+D2
+~
+~
+0 0 3042 -1
+D3
+~
+~
+0 0 3039 -1
+S
+#3039
+La navata occidentale~
+Ti  trovi nella navata occidentale della chiesa, enormi colonne a
+spirale   arrivano  sino  al  soffitto  ampiamente  decorato  con
+affreschi  di ogni genere. Statue in oro zecchino raffigurano gli
+dei. Verso sud c'e' l'altare.
+~
+-1 8388608 1 
+D1
+~
+~
+0 0 3038 -1
+D2
+~
+~
+0 0 3041 -1
+S
+#3040
+la navata orientale~
+Ti  trovi  nella  navata orientale della chiesa, enormi colonne a
+spirale   arrivano  sino  al  soffitto  ampiamente  decorato  con
+affreschi  di ogni genere. Statue in oro zecchino raffigurano gli
+dei.
+Verso sud c'e' l'altare.
+~
+-1 8388608 1 
+D2
+~
+~
+0 0 3081 -1
+D3
+~
+~
+0 0 3038 -1
+S
+#3041
+La navata centrale~
+Ti  trovi  nella  navata  centrale della chiesa, enormi colonne a
+spirale   arrivano  sino  al  soffitto  ampiamente  decorato  con
+affreschi  di ogni genere. Statue in oro zecchino raffigurano gli
+dei.
+Verso sud c'e' l'altare.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3039 -1
+D1
+~
+~
+0 0 3042 -1
+D2
+~
+~
+0 0 3081 -1
+S
+#3042
+La navata orientale~
+Ti  trovi  nella  navata  centrale della chiesa, enormi colonne a
+spirale   arrivano  sino  al  soffitto  ampiamente  decorato  con
+affreschi  di ogni genere. Statue in oro zecchino raffigurano gli
+dei.
+Verso est c'e' l'altare.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3038 -1
+D1
+~
+~
+0 0 3081 -1
+D2
+~
+~
+0 0 3044 -1
+D3
+~
+~
+0 0 3041 -1
+S
+#3043
+Piazzetta del municipio (l'antro del newbie)~
+In  questa  piazzetta  ci  stanno  alcuni  newbie  che cercano di
+formare  un  bel  gruppo!:).  A nord c'e' la scacchiera, a sud il
+municipio:
+Un $c0009cartello decorato$c0007 ti invita ad essere letto!
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 1800 -1
+D1
+~
+~
+0 0 3077 -1
+D2
+~
+~
+0 0 32501 -1
+D3
+~
+~
+0 0 1499 -1
+E
+cartello decorato~
+$c0014Municipio(sud):$c0007
+piano terra 1- 5 livelli (consigliati)
+1 piano     6-10 liv.
+2 piano    11-14 liv.
+
+$c0014Circo(nord):
+$c0007Consigliato per avventurieri piu' esperti (5-15 liv.)
+
+$c0014Scacchiera(ovest):
+$c0007Per chi e' alle prime armi (1-15 liv.)
+~
+S
+#3044
+L'altare~
+Dietro  l'altare  vedi un piccolo nano dall'aspetto un po' obeso,
+agghindato  con oggetti e pietre preziose e vestito di una tunica
+color porpora. C'e' uno strano $c0010arazzo $c0007appeso alla parete.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3042 -1
+E
+arazzo~
+rappresenta  quello  che  e'  stato il piu' grande chierico della
+storia: il principe $c0011Aiuto$c0007.
+~
+S
+#3045
+La strada delle Gilde~
+In  questa  strada i maestri di tutte le discipline hanno fondato
+delle  scuole  dove  i  giovani iniziati apprendono dall'arte del
+combattimento  a  quella  della  magia. Da tutto il mondo giovani
+aspiranti  vengono  sino  qua  con  la  speranza di diventare dei
+grandi  eroi.  Verso sud c'e' un PORTALE di pietra che emette una
+fortissima luce rossa, mentre a nord vedi un' alta torre.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3046 -1
+D1
+~
+~
+0 0 3032 -1
+D2
+~
+~
+0 0 3051 -1
+D3
+~
+~
+0 0 3061 -1
+S
+#3046
+Ingresso alla torre della Magia~
+Davanti  a  te  si  erge  una  strettissima torre alta piu' di 50
+metri.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3047 -1
+D2
+~
+~
+0 0 3045 -1
+S
+#3047
+La torre della magia~
+Questo  e'  il piano terra della torre della magia, alambicchi di
+ogni  tipo e una quantita' inusitata di libri riempono la stanza,
+una scala a chiocciola porta verso l'alto.
+~
+-1 8388608 1 
+D2
+~
+~
+0 0 3046 -1
+D4
+~
+~
+0 0 3048 -1
+S
+#3048
+La torre della Magia~
+Questo  e'  il Primo piano della torre della magia, alambicchi di
+ogni  tipo e una quantita' inusitata di libri riempono la stanza,
+una scala a chiocciola porta verso l'alto.
+~
+-1 8388608 1 
+D4
+~
+~
+0 0 3085 -1
+D5
+~
+~
+0 0 3047 -1
+S
+#3049
+Il porto fluviale~
+Questo e' il porto d'approdo per tutta la navigazione fluviale.
+Numerose barche sono nella spiaggetta del porticciolo, ai margini
+del porticciolo c'e' un esperto marinaio.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3079 -1
+D2
+~
+~
+0 0 3203 -1
+S
+#3050
+La Cima della Torre~
+Ti  senti un po' frastornato dalla visione che ti appare davanti:
+scope  e  alambicchi  "danzano"  all'unisono  seguendo gli ordini
+impartitigli  attraverso una bacchetta agitata da uno strano uomo
+vestito  con  una  tunica  blu  e  un  cappello  a punta. Noti un
+$c0015bassorilievo $c0007nella parete a nord.
+~
+-1 8388608 1 
+D5
+~
+~
+0 0 3085 -1
+E
+bassorilievo~
+rappresenta  l'esile  figura di una strega assieme a quella di un
+giovane mago.
+Sotto il bassorilievo c'e' la scritta:
+$c0011Arcadia$c0007 e $c0011Tacos $c0007i miei maggiori successi!.
+~
+S
+#3051
+Il portale della Mente~
+Un  portale  in  pietra  di  forma  circolare pulsa di luce rossa
+intermittente,  guardando  all'interno riesci a vedere come delle
+scariche  elettriche. Un $c0003CARTELLO $c0007e' appeso nella parte superiore
+del portale.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3045 -1
+D2
+~
+~
+0 0 3091 -1
+E
+cartello~
+$c0009Ingresso nel regno della MENTE!$c0007
+o...  tu....  psionico  che  vuoi progredire nelle tue  capacita'
+passa il portale ed entra nella mente.
+~
+S
+#3052
+Crocicchio dell'ovest~
+In  questo  punto  la strada si fa un po' meno battuta e prosegue
+all'interno di un' ampia foresta.
+~
+-1 8388608 2 
+D1
+~
+~
+0 0 82 -1
+D3
+~
+~
+0 0 6000 -1
+S
+#3053
+Crocicchio dell'est~
+In  questo  punto  la strada si fa un po' meno battuta e prosegue
+verso l'enorme catena montuosa dell'est.
+~
+-1 8388608 0 
+D1
+~
+~
+0 0 3503 -1
+D3
+~
+~
+0 0 98 -1
+S
+#3054
+Dentro il regno della mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3055 -1
+D3
+~
+~
+0 0 3036 -1
+S
+#3055
+Dentro il regno della mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D1
+~
+~
+0 0 3056 -1
+D2
+~
+~
+0 0 3054 -1
+S
+#3056
+Dentro il regno della mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D2
+~
+~
+0 0 3057 -1
+D3
+~
+~
+0 0 3055 -1
+S
+#3057
+Dentro il regno della mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3056 -1
+D3
+~
+~
+0 0 3058 -1
+S
+#3058
+Dentro il regno della mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3059 -1
+D1
+~
+~
+0 0 3057 -1
+S
+#3059
+Dentro il regno della mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D2
+~
+~
+0 0 3058 -1
+D4
+~
+~
+0 0 3090 -1
+S
+#3060
+La piazza d'Armi~
+Nella  piazza  quadrata  numerosi  guerrieri  si esibiscono in un
+torneo. Verso nord est c'e' una casa.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3066 -1
+D3
+~
+~
+0 0 3063 -1
+S
+#3061
+La strada delle Gilde~
+In  questa  strada i maestri di tutte le discipline hanno fondato
+delle  scuole  dove  i  giovani iniziati apprendono dall'arte del
+combattimento  a  quella  della  magia. Da tutto il mondo giovani
+aspiranti  vengono  sino  qua  con  la  speranza di diventare dei
+grandi  eroi.  Verso  sud  c'e'  un  una catapecchia col tetto di
+paglia,  mentre  a  nord  c'e'  una  piazza  d'armi e ad ovest un
+accampamento con delle tende.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3062 -1
+D1
+~
+~
+0 0 3045 -1
+D2
+~
+~
+0 0 3071 -1
+D3
+~
+~
+0 0 3069 -1
+S
+#3062
+Ingresso alla piazza d'Armi~
+Verso  nord  si  apre  una grande piazza d'armi, senti il fragore
+delle spade e delle armature che si scontrano.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3063 -1
+D2
+~
+~
+0 0 3061 -1
+S
+#3063
+La piazza d'Armi~
+Nella  piazza  quadrata  numerosi  guerrieri  si esibiscono in un
+torneo. Verso nord est c'e' una casa.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3099 -1
+D1
+~
+~
+0 0 3060 -1
+D2
+~
+~
+0 0 3062 -1
+S
+#3064
+Crocicchio del sud~
+In  questo  punto  la strada si fa un po' meno battuta e prosegue
+all'interno di un' ampia  foresta.
+A sud noti un avamposto militare.
+~
+-1 8388608 2 
+D0
+~
+~
+0 0 93 -1
+D1
+~
+~
+0 0 27000 -1
+D2
+~
+~
+0 0 15351 -1
+D3
+~
+~
+0 0 9601 -1
+S
+#3065
+L'Ufficio Postale~
+Quasi  sommerso da enormi mucchi di papiri sbuca fuori un elfetto
+tutto  intento  a smistare la posta. C'e' un $c0003cartello $c0007appeso alla
+parete.
+~
+-1 4|16|32|128|1024|8388608 1 
+D0
+~
+~
+0 0 3004 -1
+E
+cartello~
+$c0011comandi utili:$c0007
+$c0014mail (nome persona):$c0007 per spedire una lettera
+$c0014receive:$c0007 per controllare se c'e' posta in arrivo
+~
+S
+#3066
+La piazza d'Armi~
+Nella  piazza  quadrata  numerosi  guerrieri  si esibiscono in un
+torneo. Verso nord est c'e' una casa.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3092 -1
+D2
+~
+~
+0 0 3060 -1
+D3
+~
+~
+0 0 3099 -1
+S
+#3067
+La Bacheca~
+Un' enorme bacheca e' appesa alla parete, qui gli avventurieri di
+Myst  si  lasciano  dei  messaggi  di  interesse  comune. C'e' un
+$c0003cartello$c0007.
+~
+-1 4|16|32|64|128|8388608 1 
+D1
+L'osteria e' decisamente vivace e rumorosa!
+~
+~
+0 0 3002 -1
+E
+cartello~
+$c0011comandi utili:$c0007
+$c0014look at bacheca:$c0007 per vedere la lista dei messaggi
+$c0014read (numero):$c0007 per leggere un determinato messaggio
+$c0014write (titolo del messaggio):$c0007 per scriverne uno
+~
+S
+#3068
+La torre delle leggi~
+$c00118.Accanimento.
+$c0007E' VIETATO l'ACCANIMENTO. Per accanimento si intende:
+*  l'uccisione  (pkill)  ripetuta di un giocatore, da parte di un
+singolo giocatore o  di un gruppo, il cui scopo o comunque il cui
+effetto  risulti  nell'impossibilita'  o in qualunque altra seria
+limitazione delle possibilita' di gioco della vittima: ad esempio
+pkillandolo  piu' volte al giorno, o tutti i giorni. Si considera
+accanimento,  per di piu'  aggravato, anche nel  caso che i pkill
+siano  effettuati  da personaggi diversi appartenenti allo stesso
+giocatore;  o  su  personaggi  diversi  appartenenti  allo stesso
+giocatore.
+
+$c00119.Disturbo.$c0007
+Come e' vietato il danneggiamento da parte dei giocatori pk verso
+i  giocatori  non-pk  (e  le  contravvenzioni a questa norma sono
+passibili di severe punizioni) e' vietato il disturbo da parte di
+giocatori non-pk nei confronti di giocatori pk. Per disturbo deve
+intendersi  qualunque  azione, in particolare se ripetuta, tesa a
+rallentare,  appesantire  il gioco, compreso l'utilizzo di canali
+di  comunicazione  e  di  'socials',  che  sia  messa  in atto da
+giocatori   non-pk  confidando  nella  'protezione'  dovuta  alla
+non-danneggiabilita' da parte di giocatori pk.
+Ogni  contravvenzione  alle norme qui riportate, E SOLO A QUESTE,
+deve essere segnalata con precisione agli Dei Superni. In caso di
+accertamento    dell'effettiva    violazione,   il/i  giocatore/i
+responsabile/i  andra'  incontro  a  punizioni  severe, che vanno
+dalla  spoliazione  parziale  o  totale, alla perdita di livelli,
+sino alla cancellazione ('nuke') del personaggio.
+
+$c0011Nota sull'RPG.$c0007
+Il  gioco  di  ruolo  (GDR  o  RPG) NON e' obbligatorio; e' pero'
+sempre  preferibile mantenere un atteggiamento consono. Tanto nei
+combattimenti  pkill  che  nel  gioco  in generale. Un eccesso di
+comportamento  non-RPG  rischia di sfociare nella contravvenzione
+ad una o piu' delle summenzionate regole.
+Avete  letto  tutte  queste  "popo'"  di  leggi?  ma allora siete
+proprio dei bravi ragazzi. Buon proseguimento e...
+$c0010DIVERTITEVI!$c0007
+~
+-1 8388608 0 
+D5
+~
+~
+8 0 3023 -1
+S
+#3069
+Ingresso all'accampamento dei Barbari~
+Numerose  tende sono disposte a semicerchio, di fronte ad esse ci
+stanno  dei  fuochi  e degli irsuti e muscolosi barbari intenti a
+divorare carcasse di animali.
+~
+-1 8388608 0 
+D1
+~
+~
+0 0 3061 -1
+D3
+~
+~
+0 0 3070 -1
+S
+#3070
+La tenda del signore dei Barbari~
+Una stupenda pelle di orso ricopre quasi tutto il corpo di questo
+gigante  di  quattro  metri,  da  cui  emergono  solo le possenti
+braccia  e  la  testa cinta da una corona di ossa. Appesa al muro
+c'e'  una  $c0001pelle  $c0007ben  tesa con dei lacci dove e' stato disegnato
+qualcosa sopra.
+~
+-1 16|8388608 0 
+D1
+~
+~
+0 0 3069 -1
+E
+pelle~
+c'e' la rappresentazione del piu' grande barbaro del passato
+$c0011Grung il tritaossa$c0007!
+~
+S
+#3071
+Ingresso ad una catapecchia~
+Una    piccola    catapecchia   dal  tetto  in  paglia  si  regge
+"miracolosamente" su fragili fondamenta.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3061 -1
+D2
+~
+~
+0 0 3072 -1
+S
+#3072
+La catapecchia~
+La stanza e' completamente spoglia.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3071 -1
+D3
+~
+~
+0 0 3073 -1
+S
+#3073
+La catapecchia~
+La stanza e' completamente spoglia. Vedi una botola in basso.
+~
+-1 8388608 0 
+D1
+~
+~
+0 0 3072 -1
+D5
+~
+botola~
+1 0 3074 -1
+S
+#3074
+Un passaggio sotterraneo~
+Una scaletta di legno scende verso il basso.
+~
+-1 8388608 0 
+D4
+~
+~
+0 0 3073 -1
+D5
+~
+~
+0 0 3075 -1
+S
+#3075
+Un passaggio sotterraneo~
+La scala continua a scendere verso il basso!!
+~
+-1 8388608 0 
+D4
+~
+~
+0 0 3074 -1
+D5
+~
+~
+0 0 3076 -1
+S
+#3076
+La stanza del maestro dei Ladri~
+Un  halfling  ricoperto  da  un  mantello  nero,  e' seduto ad un
+tavolo, la stanza e' vuota fatta eccezione per il tavolo e alcune
+lanterne. Noti un piccolo $c0015bassorilievo $c0007nella parete a nord.
+~
+-1 16|8388608 0 
+D4
+~
+~
+0 0 3075 -1
+E
+bassorilievo~
+rappresenta il piu' grande Ladro della storia:
+$c0011Briareos l'ingannatore.$c0007
+~
+S
+#3077
+La piazza delle statue~
+In  questa  piazza  ci  sono  tre  $c0011statue  $c0007di  marmo  su un ampio
+piedistallo raffiguranti gli dei. Verso est c'e' la strada per il
+porto  fluviale,  a  sud  c'e' il ponte sul fiume mentre ad ovest
+vedi la piazzetta del municipio.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3012 -1
+D1
+~
+~
+0 0 3078 -1
+D2
+~
+~
+0 0 3028 -1
+D3
+~
+~
+0 0 3043 -1
+E
+statue~
+raffigurano Alar l'Oscuro con la sua consorte Darkstar
+al loro fianco c'e' il piccolo Xanathon.
+Osservano una quarta indecifrabile figura in marmo
+nell'atto di rotolare giu dal piedistallo.
+~
+S
+#3078
+La strada del porto~
+Questa  strada sterrata costeggia il fiume e conduce direttamente
+al porto fluviale di Myst. A est si alza una torre, mentre a nord
+c'e'  l'ingresso  di  un  edificio  di  forma  ottagonale  da cui
+proviene un leggero profumo di fiori di campo.
+Un  $c0003insegna  $c0007e' posta sopra la volta d'ingresso. A sud si ergono,
+tetre, le prigioni.
+~
+-1 8388608 0 
+D0
+Il Tempio di Eros.
+~
+~
+1|32|512 0 3005 -1
+D1
+~
+~
+0 0 3079 -1
+D2
+Le prigioni
+~
+~
+1 0 3346 -1
+D3
+~
+~
+0 0 3077 -1
+E
+insegna~
+Il Tempio di Eros.
+Temporaneamente chiuso ai pellegrini di ogni razza.
+~
+S
+#3079
+La strada del porto~
+Questa  strada sterrata costeggia il fiume e conduce direttamente
+al porto fluviale di Myst.
+~
+-1 8388608 0 
+D1
+Vedi l'ingresso ad una strana struttura tutta sbilenca.
+~
+~
+0 0 110 -1
+D2
+~
+~
+0 0 3049 -1
+D3
+~
+~
+0 0 3078 -1
+S
+#3080
+ingresso redferne~
+Immersa nel verde si erge una torre altissima.
+~
+-1 8388608 1 
+D1
+~
+~
+0 0 3025 -1
+D4
+~
+~
+0 0 7914 -1
+S
+#3081
+La navata centrale~
+Ti  trovi  nella  navata  centrale della chiesa, enormi colonne a
+spirale   arrivano  sino  al  soffitto  ampiamente  decorato  con
+affreschi  di ogni genere. Statue in oro zecchino raffigurano gli
+dei.
+Verso sud c'e' l'altare.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3041 -1
+D3
+~
+~
+0 0 3042 -1
+S
+#3082
+L'Ingresso al cimitero~
+La  strada  dei  pini  si  interrompe  dinnanzi  al  cancello del
+cimitero  di  Myst.  Percepisci  un'  aura  spettrale e tenebrosa
+provenire da questo luogo.
+Verso  est  vedi  un  viale  che conduce ad una splendida magione
+sulla collina.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3026 -1
+D1
+~
+~
+0 0 8014 -1
+D2
+~
+~
+0 0 3400 -1
+S
+#3083
+Viale del Grifone~
+Questo  viale  parte dalle mura cittadine e porta verso il centro
+della  capitale  del  Principato, a nord. A sud gli alti bastioni
+difendono la citta' dagli attacchi esterni. Per uscire dal centro
+abitato  occorre  passare  per  il  portone  difeso dalle guardie
+cittadine.
+~
+-1 8388608 1 
+D0
+Viale del Grifone.
+~
+~
+0 0 3028 -1
+D2
+Le porte della citta'
+~
+portone~
+1|128 0 3084 -1
+S
+#3084
+Le porte della citta'~
+Alti  bastioni  posti  dietro al ponte proteggono la citta' dalle
+possibili  invasioni,  un  nutrito  gruppo  di  guardie svolge un
+lavoro di sorveglianza. Per entrare in citta' occorre passare per
+un alto portone in legno di quercia rinforzato con numerose liste
+metalliche. A sud ci si allontana dalle mura cittadine.
+Ad est vedi un tempio dall'aria molto antica.
+~
+-1 8388608 0 
+D0
+ponte sul fiume
+~
+portone~
+1|128 0 3083 -1
+D1
+Pochi gradini ben curati ti hanno portato a calpestare un bel pavimento in  marmo rosa lucidissimo.
+Di fronte a te noti un imponente Tempio, reso ancor piu' maestoso  dai
+riflessi  della luce  creata dal braciere  votivo che costantemente lo
+illumina.
+~
+~
+0 0 32920 -1
+D2
+~
+~
+0 0 3086 -1
+S
+#3085
+La torre della Magia~
+Questo e' il Secondo piano della torre della magia, alambicchi di
+ogni  tipo e una quantita' inusitata di libri riempono la stanza,
+una scala a chiocciola porta verso l'alto.
+~
+-1 8388608 0 
+D4
+~
+~
+0 0 3050 -1
+D5
+~
+~
+0 0 3048 -1
+S
+#3086
+Fuori dalle porte di Myst~
+Sei  di  fronte  alla  citta'  di Myst, la splendida capitale del
+Principato.  Le  alte mura cittadine si sviluppano sia ad est che
+ad    ovest.  A  sud  c'e'  il  crocevia  delle  piu'  importanti
+carovaniere  di queste terre, un punto di passaggio obbligato per
+i numerosi viaggiatori che solcano le lande nebbiose.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3084 -1
+D2
+~
+~
+0 0 3087 -1
+S
+#3087
+Il Crocevia~
+In   questo  punto  si  intersecano  le  piu'  importanti  strade
+carovaniere  per tutto il mondo conosciuto. C'e' anche la fermata
+dell' efficientissima diligenza di Myst.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3086 -1
+D1
+~
+~
+0 0 94 -1
+D2
+~
+~
+0 0 83 -1
+D3
+~
+~
+0 0 50 -1
+D4
+~
+~
+0 0 5 -1
+S
+#3088
+Il campo dei Ranger~
+Seduto  su  di  un  tronco di quercia un uomo vestito di verde e'
+intento  a costruirsi delle frecce. Tutto intorno ci sono rangers
+che   intonano  canti  stonati  innanzi  al  fuoco.  Noti  alcune
+$c0001incisioni $c0007in dei ceppi.
+~
+-1 16|8388608 0 
+D0
+~
+~
+0 0 88 -1
+E
+incisioni~
+rappresentano il piu' grande ranger della storia:
+$c0011Aragorn il figlio di Arathorn$c0007
+~
+S
+#3089
+La stanza del maestro dell'ordine dei Paladini~
+Seduto  su  una  sedia  all'apparenza  molto  scomoda si trova il
+maestro  dell'ordine  dei paladini, attraverso le fessure del suo
+elmo  vedi  i  suoi occhi vitrei che ti scrutano nel tentativo di
+percepire la tua aura.
+~
+-1 16|8388608 1 
+D5
+~
+~
+0 0 3035 -1
+S
+#3090
+Il signore del pensiero~
+Adesso  tutte  le  visioni scompaiono d'incanto, lasciando la tua
+mente  libera,  davanti a te c'e' un uomo assorto in meditazione.
+Nella parete a nord noti un $c0015bassorilievo$c0007.
+~
+-1 16|8388608 0 
+D5
+~
+~
+0 0 3059 -1
+E
+bassorilievo~
+rappresenta tre grandi psi della storia.
+$c0011Xanathon $c0007l'halfling e i due mezzigiganti $c0011Khweenna $c0007ed $c0011Ecaton$c0007
+~
+S
+#3091
+Il regno della Mente~
+Ti  senti  confuso, immagini dal passato e dal futuro inondano il
+tuo  cervello.  Riesci  comunque  ad  individuare la direzione da
+prendere.
+~
+-1 8388608 0 
+D0
+~
+~
+0 0 3051 -1
+D2
+~
+~
+0 0 3036 -1
+S
+#3092
+L'alloggio del comandante delle guardie~
+In  questa  piccola  casetta abita il comandante delle guardie di
+Myst,  e'  considerato  il  piu' grande spadaccino della citta' e
+numerosi  aspiranti  guerrieri  vengono  da  lui per apprendere i
+rudimenti  dell'arte  della  guerra.  Noti  un $c0015bassorilievo $c0007nella
+parete a nord.
+~
+-1 16|8388608 0 
+D2
+~
+~
+0 0 3066 -1
+E
+bassorilievo~
+Sono rappresentati due grandi guerrieri del passato.
+I due mezzogiganti $c0011Montero $c0007e $c0011Falcon$c0007
+~
+S
+#3096
+La camera di Marsilla Schienalarga~
+Tre  bracieri  diffondono  nella  stanza  un gradevole profumo di
+incenso  profumato.  Un  ampio  lenzuolo di seta ricopre un letto
+straordinariamente fuori misura. I muri sono tutti affrescati con
+scene traboccanti d'eros.
+~
+-1 8|8388608 1 
+D1
+Il Tempio di Eros
+~
+~
+1 0 3005 -1
+S
+#3097
+Ingresso al tempio dei Paladini~
+Ti trovi innanzi ad un tempio dall'aspetto austero, sede di tutti
+i Paladini delle nebbie Arcane.
+~
+-1 8388608 1 
+D0
+~
+~
+0 0 3034 -1
+D2
+~
+~
+0 0 3032 -1
+S
+#3098
+La camera di Elsinella Foltachioma~
+Tre  bracieri  diffondono  nella  stanza  un gradevole profumo di
+incenso  profumato.  Numerosi  cuscini  sono  poggiati su soffici
+tappeti decorati. Un catino colmo d'acqua e' posto accanto ad una
+parete.  I  muri  sono  tutti  affrescati  con  scene traboccanti
+d'eros.
+~
+-1 8|8388608 1 
+D3
+Il Tempio di Eros
+~
+~
+1 0 3005 -1
+S
+#3099
+La piazza d'Armi~
+Nella  piazza  quadrata  numerosi  guerrieri  si esibiscono in un
+torneo. Verso nord est c'e' una casa.
+~
+-1 8388608 0 
+D1
+~
+~
+0 0 3066 -1
+D2
+~
+~
+0 0 3063 -1
+S

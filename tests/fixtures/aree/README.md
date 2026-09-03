@@ -1,26 +1,35 @@
 # Campioni aree Aree (per test e revisione)
 
-Per far verificare a Izanagi / al Cloud Agent come sono scritti i file di area singola nel repo **Aree**:
+Fixture reali: `castelli/`, `myst/` (zone #340 e #30). Nessun terminatore EOF nei file area.
 
-1. Copia **una** cartella `src/<nome-area>/` (tutti i file `.zon`, `.wld`, `.mob`, `.obj`, …) qui sotto, es.:
-   ```
-   tests/fixtures/aree/<nome-area>/<nome-area>.zon
-   tests/fixtures/aree/<nome-area>/<nome-area>.wld
-   ...
-   ```
+Per far verificare altre aree al Cloud Agent:
 
-2. Oppure incolla in chat le **ultime 15 righe** di ciascun file (soprattutto `.zon`, `.mob`, `.obj`, `.wld`) per vedere se ci sono `#$`, `%%`, `#0`.
+1. Copia `src/<nome-area>/` qui sotto, oppure
+2. Allega uno zip in chat (come `castelli.zip`), oppure
+3. Incolla le ultime righe di `.zon` / `.mob` / `.obj` / `.wld`
 
-3. Oppure apri una PR su `izanagi` con solo quella cartella in `tests/fixtures/aree/`.
+## Layout richiesto da deploy_aree.php
 
-## Cosa deve contenere un file area (per `deploy_aree.php`)
+```
+<workspace>/
+  <area>/
+    <area>.zon
+    <area>.wld
+    <area>.mob
+    <area>.obj
+    <area>.shp   (opzionale)
+    <area>.spe   (opzionale)
+```
 
-| File | OK | Da evitare nel body |
-|------|-----|---------------------|
-| `.zon` | `#N` + reset comandi | `#$` (solo in `_tail`) |
-| `.mob` / `.obj` | voci `#vnum` | `%%` / `%%~` |
-| `.wld` | stanze `#vnum` … `S` | `#0` (solo in `_tail`) |
+Il nome della cartella **deve** coincidere con il prefisso dei file.
 
-Izanagi **Salva libreria** su `mudroot/lib` scrive il monolite completo **con** terminatori finali (corretto per il server).
+## Cosa NON deve esserci nei file area
 
-**Dividi per zone** / `nebbiedit zone split` scrive pacchetti **senza** terminatori (compatibile Aree). Usa `--aree-layout` per nomi `slug/slug.zon` come in `src/<area>/`.
+| File | Evitare |
+|------|---------|
+| `.zon` | `#$` |
+| `.mob` / `.obj` | `%%` / `%%~` |
+| `.wld` | `#0` |
+
+Izanagi in modalità workspace salva senza questi marker; il monolite li riceve solo da `_tail` al build.
+

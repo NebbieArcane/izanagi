@@ -43,6 +43,10 @@ add_executable(nebbie-monolith-audit-tests test_monolith_audit.cpp)
 target_link_libraries(nebbie-monolith-audit-tests PRIVATE nebbie-core)
 add_test(NAME monolith-audit-tests COMMAND nebbie-monolith-audit-tests)
 
+add_executable(nebbie-aree-workspace-tests test_aree_workspace.cpp)
+target_link_libraries(nebbie-aree-workspace-tests PRIVATE nebbie-core)
+add_test(NAME aree-workspace-fixtures COMMAND nebbie-aree-workspace-tests)
+
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
 

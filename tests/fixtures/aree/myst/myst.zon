@@ -1,0 +1,108 @@
+#30
+Myst~
+3099 20 2
+*! Items initializations
+O 0 1500 0 3001 1 *! 001500 [Fontana della vita] caricato nella stanza 003001 [La piazza delle Nebbie]
+O 0 3095 1 3012 1 *! 003095 [Il Libro degli Eroi] caricato nella stanza 003012 [La piazza del grande arco]
+O 0 3097 1 3067 1 *! 003097 [una bacheca per gli avvisi] caricato nella stanza 003067 [La Bacheca]
+O 0 3027 1 3006 1 *! 003027 [una scatola] caricato nella stanza 003006 [La soffitta dell'alchimista]
+*! Mobiles initializations
+M 0 3000 1 3033 *!003000 [Gwynyar] caricato nella stanza 003033 [Il $c0014nuovo$c0007 laboratorio dell'alchimista]
+G 1 3050 0 *! 003050 [una pergamena di identificazione] dato al MOB 003000 [Gwynyar]
+G 1 3051 0 *! 003051 [una pozione gialla per vedere l'invisibile] dato al MOB 003000 [Gwynyar]
+G 1 3052 0 *! 003052 [una pergamena di ritorno] dato al MOB 003000 [Gwynyar]
+G 1 3053 0 *! 003053 [una bacchetta di invisibilita'] dato al MOB 003000 [Gwynyar]
+G 1 3054 0 *! 003054 [una verga del sonno] dato al MOB 003000 [Gwynyar]
+G 1 3055 0 *! 003055 [una pozione bianca] dato al MOB 003000 [Gwynyar]
+G 1 3056 0 *! 003056 [una pozione dorata] dato al MOB 003000 [Gwynyar]
+G 1 3057 0 *! 003057 [una pozione argentea] dato al MOB 003000 [Gwynyar]
+M 0 3001 1 3009 *!003001 [Flippy il fornaio] caricato nella stanza 003009 [La Panetteria]
+G 1 3010 0 *! 003010 [una pagnotta] dato al MOB 003001 [Flippy il fornaio]
+G 1 3011 0 *! 003011 [una pastarella] dato al MOB 003001 [Flippy il fornaio]
+G 1 3012 0 *! 003012 [uno sfilatino] dato al MOB 003001 [Flippy il fornaio]
+G 1 3013 0 *! 003013 [un biscotto] dato al MOB 003001 [Flippy il fornaio]
+M 0 3002 1 3010 *!003002 [Tricky il mercante] caricato nella stanza 003010 [L'antro del mercante]
+G 1 3005 0 *! 003005 [un falcetto] dato al MOB 003002 [Tricky il mercante]
+G 1 3006 0 *! 003006 [una piccola pala] dato al MOB 003002 [Tricky il mercante]
+G 1 3030 0 *! 003030 [una torcia] dato al MOB 003002 [Tricky il mercante]
+G 1 3031 0 *! 003031 [una lanterna] dato al MOB 003002 [Tricky il mercante]
+G 1 3032 0 *! 003032 [una borsa] dato al MOB 003002 [Tricky il mercante]
+G 1 3035 0 *! 003035 [un pezzo di papiro] dato al MOB 003002 [Tricky il mercante]
+G 1 3036 0 *! 003036 [una penna inchiostrata] dato al MOB 003002 [Tricky il mercante]
+M 0 3003 1 3011 *!003003 [Bogordian l'armiere] caricato nella stanza 003011 [Il negozio dell'Armaiolo]
+G 1 3090 0 *! 003090 [uno spadone a 2-mani] dato al MOB 003003 [Bogordian l'armiere]
+G 1 3092 0 *! 003092 [un'ascia a 2-mani] dato al MOB 003003 [Bogordian l'armiere]
+M 0 3004 1 3020 *!003004 [Bracco il fabbro di Myst] caricato nella stanza 003020 [Il Fabbro]
+G 1 3040 0 *! 003040 [un pettorale di piastre] dato al MOB 003004 [Bracco il fabbro di Myst]
+G 1 3047 0 *! 003047 [una maglia elfica] dato al MOB 003004 [Bracco il fabbro di Myst]
+G 1 3073 0 *! 003073 [un paio di guanti a piastre] dato al MOB 003004 [Bracco il fabbro di Myst]
+G 1 3080 0 *! 003080 [un paio di gambali di bronzo] dato al MOB 003004 [Bracco il fabbro di Myst]
+M 0 3005 1 3008 *!003005 [Niobe la receptionist] caricato nella stanza 003008 [La zona notte]
+M 0 3006 1 3049 *!003006 [Nemo il barcaiolo] caricato nella stanza 003049 [Il porto fluviale]
+G 1 3060 0 *! 003060 [una zattera] dato al MOB 003006 [Nemo il barcaiolo]
+G 1 3061 0 *! 003061 [una canoa] dato al MOB 003006 [Nemo il barcaiolo]
+M 0 3007 1 8663 *!003007 [Drunky il barman] caricato nella stanza 008663 [Stanza sconosciuta]
+E 1 3009 0 3 *! 003009 [Una grande e massiccia $c0011collana d'oro$c0007] indossato dal MOB 003007 [Drunky il barman] necklace (1)
+E 1 3009 0 4 *! 003009 [Una grande e massiccia $c0011collana d'oro$c0007] indossato dal MOB 003007 [Drunky il barman] necklace (2)
+E 1 3016 0 5 *! 003016 [La $c0011giacca$c0007 con bavero in pelliccia maculata.] indossato dal MOB 003007 [Drunky il barman] body
+E 1 3007 0 6 *! 003007 [Un$c0011 fedora fluorescente$c0007] indossato dal MOB 003007 [Drunky il barman] Head
+E 1 3019 0 7 *! 003019 [Dei $c0011pantaloni$c0007 con una $c0009riga$c0007 sul fianco] indossato dal MOB 003007 [Drunky il barman] Legs
+E 1 3026 0 8 *! 003026 [Le ultimissime $c0010scarpe$c0007 della Dike] indossato dal MOB 003007 [Drunky il barman] Feet
+E 1 3018 0 13 *! 003018 [Una $c0009cintura elasticizzata $c0007con una $c0014D$c0004 $c0007sulla fibia.] indossato dal MOB 003007 [Drunky il barman] Waist
+E 1 3017 0 14 *! 003017 [Enormi$c0011 bracciali $c0007in oro con borchie di $c0015diamanti$c0007] indossato dal MOB 003007 [Drunky il barman] Right wrist
+E 1 3017 0 15 *! 003017 [Enormi$c0011 bracciali $c0007in oro con borchie di $c0015diamanti$c0007] indossato dal MOB 003007 [Drunky il barman] Left wrist
+E 1 3015 0 16 *! 003015 [Un enorme boccale di $c0011birra$c0007] indossato dal MOB 003007 [Drunky il barman] Wield
+E 1 3014 0 17 *! 003014 [Il $c0014bastone$c0007 di Drunky] indossato dal MOB 003007 [Drunky il barman] hold
+E 1 3008 0 21 *! 003008 [Un paio di $c0013occhiali di Herpes$c0007] indossato dal MOB 003007 [Drunky il barman] eyes
+G 1 3000 0 *! 003000 [un barile di birra] dato al MOB 003007 [Drunky il barman]
+G 1 3001 0 *! 003001 [una bottiglia di torcibudella] dato al MOB 003007 [Drunky il barman]
+G 1 3002 0 *! 003002 [una fiasca di birra chiara] dato al MOB 003007 [Drunky il barman]
+G 1 3003 0 *! 003003 [una bottiglia di cristallo soffiato] dato al MOB 003007 [Drunky il barman]
+G 1 3004 0 *! 003004 [una bottiglietta di brandivino] dato al MOB 003007 [Drunky il barman]
+M 0 3008 1 3065 *!003008 [Lo scriba di Myst] caricato nella stanza 003065 [L'Ufficio Postale]
+M 0 3010 1 3007 *!003010 [Drina Lungabarba] caricato nella stanza 003007 [La camera di Drina Lungabarba.]
+F 1 2 31 *! Paura verso razza Vegetable man
+M 0 3011 1 3098 *!003011 [Elsinella Foltachioma] caricato nella stanza 003098 [La camera di Elsinella Foltachioma]
+F 1 2 31 *! Paura verso razza Vegetable man
+M 0 3012 1 3096 *!003012 [Marsilla schienalarga] caricato nella stanza 003096 [La camera di Marsilla Schienalarga]
+F 1 2 11 *! Paura verso razza Insect
+M 0 3013 1 3005 *!003013 [La Custode del tempio di Eros] caricato nella stanza 003005 [Il Tempio di Eros]
+M 0 3020 1 3050 *!003020 [Mork il maestro dei maghi] caricato nella stanza 003050 [La Cima della Torre]
+M 0 3021 1 3044 *!003021 [Opus il maestro dei chierici] caricato nella stanza 003044 [L'altare]
+M 0 3022 1 3076 *!003022 [Spanky il maestro dei ladri] caricato nella stanza 003076 [La stanza del maestro dei Ladri]
+M 0 3023 1 3092 *!003023 [Magnus il maestro dei guerrieri] caricato nella stanza 003092 [L'alloggio del comandante delle guardie]
+M 0 3041 1 3061 *!003041 [L'Attendente] caricato nella stanza 003061 [La strada delle Gilde]
+M 0 3047 1 3047 *!003047 [Deynor] caricato nella stanza 003047 [La torre della magia]
+E 1 3058 0 17 *! 003058 [un piccolo contenitore di vetro] indossato dal MOB 003047 [Deynor] hold
+M 0 3060 5 3012 *!003060 [Una guardia di Myst] caricato nella stanza 003012 [La piazza del grande arco]
+M 0 3060 5 3043 *!003060 [Una guardia di Myst] caricato nella stanza 003043 [Piazzetta del municipio (l'antro del newbie)]
+M 0 3061 4 3001 *!003061 [uno Spazzino] caricato nella stanza 003001 [La piazza delle Nebbie]
+M 0 3062 5 3083 *!003062 [un Gatto delle nebbie] caricato nella stanza 003083 [Viale del Grifone]
+M 0 3063 5 3012 *!003063 [un Cittadino] caricato nella stanza 003012 [La piazza del grande arco]
+M 0 3064 5 3019 *!003064 [un Ubriacone] caricato nella stanza 003019 [la Strada Commerciale]
+M 0 3067 5 3077 *!003067 [una sentinella] caricato nella stanza 003077 [La piazza delle statue]
+M 0 3068 1 3052 *!003068 [Un monaco rinnegato] caricato nella stanza 003052 [Crocicchio dell'ovest]
+M 0 3069 6 3084 *!003069 [una guardia scelta] caricato nella stanza 003084 [Le porte della citta']
+M 0 3070 1 3053 *!003070 [un apprendista fabbro] caricato nella stanza 003053 [Crocicchio dell'est]
+M 0 3073 1 3003 *!003073 [Il saggio] caricato nella stanza 003003 [Ingresso alla Cappella]
+M 0 3095 1 3004 *!003095 [Davdak Arcanscape] caricato nella stanza 003004 [La piazza delle Nebbie]  
+M 0 3074 1 3064 *!003074 [Il cacciatore] caricato nella stanza 003064 [Crocicchio del sud]
+M 0 3077 1 3070 *!003077 [il Maestro Barbaro] caricato nella stanza 003070 [La tenda del signore dei Barbari]
+M 0 3144 1 3004 *!003144 [La Ronda] caricato nella stanza 003004 [La zona occidentale della Piazza delle Nebbie]
+M 0 21363 1 3089 *!021363 [the paladin guildmaster] caricato nella stanza 003089 [La stanza del maestro dell'ordine dei Paladini]
+M 0 21366 1 3090 *!021366 [the psionist guildmaster] caricato nella stanza 003090 [Il signore del pensiero]
+M 0 21367 1 3088 *!021367 [the ranger guildmaster] caricato nella stanza 003088 [Il campo dei Ranger]
+M 0 3015 1 3006 *!003015 [Leoven Arcanscape] caricato nella stanza 003006 [La soffitta dell'alchimista]
+*! Exits initializations
+D 0 3001 0 1 *! Uscita North della stanza 003001 [La piazza delle Nebbie]: Chiusa
+D 0 3005 0 1 *! Uscita North della stanza 003005 [Il Tempio di Eros]: Chiusa
+D 0 3005 1 1 *! Uscita East della stanza 003005 [Il Tempio di Eros]: Chiusa
+D 0 3005 2 1 *! Uscita South della stanza 003005 [Il Tempio di Eros]: Chiusa
+D 0 3005 3 1 *! Uscita West della stanza 003005 [Il Tempio di Eros]: Chiusa
+D 0 3033 4 1 *! Uscita Up della stanza 003033 [Il $c0014nuovo$c0007 laboratorio dell'alchimista]: Chiusa
+D 0 3073 5 1 *! Uscita Down della stanza 003073 [La catapecchia]: Chiusa
+D 0 3078 0 2 *! Uscita North della stanza 003078 [La strada del porto]: Chiusa a chiave
+D 0 3078 2 1 *! Uscita South della stanza 003078 [La strada del porto]: Chiusa
+D 0 3096 1 1 *! Uscita East della stanza 003096 [La camera di Marsilla Schienalarga]: Chiusa
+D 0 3098 3 1 *! Uscita West della stanza 003098 [La camera di Elsinella Foltachioma]: Chiusa
+S
