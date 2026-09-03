@@ -251,7 +251,8 @@ ZonePartitionReport export_zone_pack(const World& world,
         if (progress) {
             progress("Writing zone pack monoliths in " + zone_dir.string());
         }
-        const MystSaveOptions save_options{.write_eof_markers = options.write_eof_markers};
+        MystSaveOptions save_options;
+        save_options.write_eof_markers = options.write_eof_markers;
         const std::string area_basename =
             options.aree_layout ? aree_area_slug(zone->num, zone->name) : std::string{};
         const auto zon_path = options.aree_layout ? zone_dir / (area_basename + ".zon") : zone_dir / ZONE_FILE;
