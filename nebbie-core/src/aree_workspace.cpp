@@ -250,4 +250,8 @@ std::vector<AreeArchiveInfo> list_aree_archives(const AreeWorkspace& workspace, 
     return archives;
 }
 
+std::filesystem::path aree_session_storage_root(const AreeWorkspace& workspace, const std::string& area_folder) {
+    return workspace.izanagi_dir / "sessions" / area_folder;
+}
+
 } // namespace nebbie

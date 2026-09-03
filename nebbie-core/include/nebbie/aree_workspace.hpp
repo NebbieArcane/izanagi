@@ -59,4 +59,6 @@ void restore_aree_area_from_archive(const AreeWorkspace& workspace, const std::s
 
 std::vector<AreeArchiveInfo> list_aree_archives(const AreeWorkspace& workspace, const std::string& area_folder);
 
+std::filesystem::path aree_session_storage_root(const AreeWorkspace& workspace, const std::string& area_folder);
+
 } // namespace nebbie

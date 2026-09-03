@@ -16,6 +16,8 @@ struct AppConfig {
     QString last_update_check;
     QString dismissed_update_version;
     QString ui_language = QStringLiteral("it");
+    QString aree_workspace_root;
+    QString aree_last_area;
 };
 
 QString default_config_path();

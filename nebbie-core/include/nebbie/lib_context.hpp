@@ -38,6 +38,9 @@ struct LibContext {
 
     std::vector<std::string> load_warnings;
 
+    /** When false, omit #$ / %% / #0 on save (Aree per-area files). */
+    bool write_eof_markers_on_save = true;
+
     bool has_any() const;
 };
 

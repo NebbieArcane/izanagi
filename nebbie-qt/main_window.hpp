@@ -4,6 +4,7 @@
 #include "app_i18n.hpp"
 #include "application_log.hpp"
 #include "release_update_checker.hpp"
+#include "nebbie/aree_workspace.hpp"
 #include "nebbie/edit.hpp"
 #include "nebbie/lib_context.hpp"
 #include "nebbie/session.hpp"
@@ -31,16 +32,19 @@ class QNetworkAccessManager;
 
 class QTabWidget;
 class QListWidget;
+class QListWidgetItem;
 class QLineEdit;
 class QTextEdit;
 class QSpinBox;
 class QLabel;
 class QPlainTextEdit;
 class QCloseEvent;
+class QDockWidget;
 class QWidget;
 class QComboBox;
 class QPushButton;
-class QListWidgetItem;
+class QTableWidget;
+class QTableWidgetItem;
 class ZoneMapWidget;
 class WorldZoneMapWidget;
 class QCheckBox;
@@ -68,6 +72,10 @@ public slots:
     void onAutosaveTick();
     void restoreFromWorkspace();
     void restoreVersion();
+    void openAreeWorkspace();
+    void openAreeArea();
+    void restoreAreeArchive();
+    void onAreeAreaActivated();
     void onValidationIssueActivated(QListWidgetItem* item);
 
 private slots:
@@ -112,10 +120,16 @@ protected:
 private:
     void setupUi();
     void setupMenus();
+    void setupAreeDock();
     void retranslateUi();
     void updateBranding();
     void scheduleStartupUpdateCheck();
     void loadLib(const std::filesystem::path& path);
+    void loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first, const std::string& archive_label);
+    void clearAreeMode();
+    void refreshAreeAreaList();
+    std::filesystem::path sessionStorageRoot() const;
+    bool promptAreeSessionStart(const QString& area_name, bool& archive_first, QString& archive_label);
     void rememberLibPath(const std::filesystem::path& path);
     void refreshRoomList();
     void refreshMobList();
@@ -159,6 +173,9 @@ private:
     nebbie::World world_;
     nebbie::LibContext context_;
     std::filesystem::path lib_path_;
+    std::filesystem::path session_storage_path_;
+    std::optional<nebbie::AreeWorkspace> aree_workspace_;
+    std::optional<std::string> aree_area_folder_;
     bool dirty_ = false;
     std::set<long> dirty_room_vnums_;
     nebbie::qt::AppConfig app_config_;
@@ -220,4 +237,10 @@ private:
     QPlainTextEdit* world_map_details_ = nullptr;
     QCheckBox* world_map_broken_only_ = nullptr;
     QLabel* world_map_stats_ = nullptr;
+
+    QDockWidget* aree_dock_ = nullptr;
+    QTableWidget* aree_table_ = nullptr;
+    QPushButton* aree_open_button_ = nullptr;
+    QPushButton* aree_restore_button_ = nullptr;
+    std::vector<nebbie::AreeAreaInfo> aree_areas_;
 };

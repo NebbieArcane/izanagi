@@ -261,11 +261,12 @@ std::map<std::filesystem::path, std::vector<Key>> group_by_source_path(
 void save_tracked_rooms(const World& world,
                         const LibContext& context,
                         ProgressCallback progress) {
+    const MystSaveOptions save_options{.write_eof_markers = context.write_eof_markers_on_save};
     const std::filesystem::path primary = context.wld_path.empty()
                                               ? std::filesystem::path(WORLD_FILE)
                                               : context.wld_path;
     if (context.room_sources.empty()) {
-        save_myst_wld(world, context.root / primary, progress);
+        save_myst_wld(world, context.root / primary, progress, save_options);
         return;
     }
 
@@ -277,33 +278,35 @@ void save_tracked_rooms(const World& world,
         }
     }
     for (const auto& [filename, vnums] : grouped) {
-        save_myst_wld(make_room_subset(world, vnums), context.root / filename, progress);
+        save_myst_wld(make_room_subset(world, vnums), context.root / filename, progress, save_options);
     }
 }
 
 void save_tracked_zones(const World& world,
                         const LibContext& context,
                         ProgressCallback progress) {
+    const MystSaveOptions save_options{.write_eof_markers = context.write_eof_markers_on_save};
     const std::filesystem::path primary = context.zon_path.empty() ? std::filesystem::path(ZONE_FILE)
                                                                    : context.zon_path;
     if (context.zone_sources.empty()) {
-        save_myst_zon(world, context.root / primary, progress);
+        save_myst_zon(world, context.root / primary, progress, save_options);
         return;
     }
 
     auto grouped = group_by_source_path(context.zone_sources);
     for (const auto& [filename, zone_nums] : grouped) {
-        save_myst_zon(make_zone_subset(world, zone_nums), context.root / filename, progress);
+        save_myst_zon(make_zone_subset(world, zone_nums), context.root / filename, progress, save_options);
     }
 }
 
 void save_tracked_mobiles(const World& world,
                           const LibContext& context,
                           ProgressCallback progress) {
+    const MystSaveOptions save_options{.write_eof_markers = context.write_eof_markers_on_save};
     const std::filesystem::path primary = context.mob_path.empty() ? std::filesystem::path(MOB_FILE)
                                                                    : context.mob_path;
     if (context.mobile_sources.empty()) {
-        save_myst_mob(world, context.root / primary, progress);
+        save_myst_mob(world, context.root / primary, progress, save_options);
         return;
     }
 
@@ -315,17 +318,18 @@ void save_tracked_mobiles(const World& world,
         }
     }
     for (const auto& [filename, vnums] : grouped) {
-        save_myst_mob(make_mobile_subset(world, vnums), context.root / filename, progress);
+        save_myst_mob(make_mobile_subset(world, vnums), context.root / filename, progress, save_options);
     }
 }
 
 void save_tracked_objects(const World& world,
                           const LibContext& context,
                           ProgressCallback progress) {
+    const MystSaveOptions save_options{.write_eof_markers = context.write_eof_markers_on_save};
     const std::filesystem::path primary = context.obj_path.empty() ? std::filesystem::path(OBJ_FILE)
                                                                    : context.obj_path;
     if (context.object_sources.empty()) {
-        save_myst_obj(world, context.root / primary, progress);
+        save_myst_obj(world, context.root / primary, progress, save_options);
         return;
     }
 
@@ -337,7 +341,7 @@ void save_tracked_objects(const World& world,
         }
     }
     for (const auto& [filename, vnums] : grouped) {
-        save_myst_obj(make_object_subset(world, vnums), context.root / filename, progress);
+        save_myst_obj(make_object_subset(world, vnums), context.root / filename, progress, save_options);
     }
 }
 

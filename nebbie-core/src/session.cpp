@@ -240,17 +240,19 @@ AutosaveResult run_autosave(const World& world,
                             const LibContext& context,
                             const std::filesystem::path& lib_root,
                             const SessionConfig& config,
-                            std::chrono::system_clock::time_point last_version_time) {
+                            std::chrono::system_clock::time_point last_version_time,
+                            const std::filesystem::path& session_root) {
+    const std::filesystem::path storage_root = session_root.empty() ? lib_root : session_root;
     AutosaveResult result;
-    save_snapshot(world, context, workspace_dir(lib_root), "workspace");
+    save_snapshot(world, context, workspace_dir(storage_root), "workspace");
     result.workspace_updated = true;
 
     const auto now = std::chrono::system_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - last_version_time).count();
     if (elapsed >= config.version_interval_sec) {
-        result.version_id = create_version(world, context, lib_root, "autosave");
+        result.version_id = create_version(world, context, storage_root, "autosave");
         result.version_created = true;
-        prune_versions(lib_root, config.max_versions);
+        prune_versions(storage_root, config.max_versions);
     }
 
     return result;
@@ -259,11 +261,13 @@ AutosaveResult run_autosave(const World& world,
 void save_lib_with_backup(const World& world,
                           const LibContext& context,
                           const std::filesystem::path& lib_root,
-                          ProgressCallback progress) {
+                          ProgressCallback progress,
+                          const std::filesystem::path& session_root) {
+    const std::filesystem::path storage_root = session_root.empty() ? lib_root : session_root;
     const std::string id = timestamp_id();
-    const auto backup_dir = version_path(versions_dir(lib_root), id, "pre-save");
+    const auto backup_dir = version_path(versions_dir(storage_root), id, "pre-save");
     backup_lib_on_disk(context, backup_dir, "pre-save");
-    prune_versions(lib_root, SessionConfig{}.max_versions);
+    prune_versions(storage_root, SessionConfig{}.max_versions);
 
     LibContext live_context = context;
     live_context.root = lib_root;

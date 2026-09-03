@@ -19,6 +19,7 @@
 #include "path_util.hpp"
 #include "validation_report_ui.hpp"
 #include "nebbie/edit.hpp"
+#include "nebbie/aree_workspace.hpp"
 #include "nebbie/constants.hpp"
 #include "nebbie/overlay_io.hpp"
 #include "nebbie/io.hpp"
@@ -27,6 +28,7 @@
 #include "nebbie/world_index.hpp"
 #include "nebbie/zone_graph.hpp"
 
+#include <QAbstractItemView>
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
@@ -35,6 +37,8 @@
 #include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QDockWidget>
+#include <QHeaderView>
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QTabWidget>
@@ -61,6 +65,8 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 #include <stdexcept>
 
@@ -147,6 +153,15 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
     return qobject_cast<nebbie::qt::MudColorListDelegate*>(list->itemDelegate());
 }
 
+std::optional<nebbie::AreeAreaInfo> selectedAreeArea(const QTableWidget* table,
+                                                     const std::vector<nebbie::AreeAreaInfo>& areas) {
+    const int row = table->currentRow();
+    if (row < 0 || row >= static_cast<int>(areas.size())) {
+        return std::nullopt;
+    }
+    return areas[static_cast<std::size_t>(row)];
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -157,6 +172,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     connect(update_checker_, &nebbie::qt::ReleaseUpdateChecker::checkFinished, this,
             &MainWindow::onUpdateCheckFinished);
     setupUi();
+    setupAreeDock();
     setupMenus();
     retranslateUi();
     applyTextEditorSettings();
@@ -499,6 +515,43 @@ void MainWindow::setupUi() {
     connect(autosave_timer_, &QTimer::timeout, this, &MainWindow::onAutosaveTick);
 }
 
+void MainWindow::setupAreeDock() {
+    aree_dock_ = new QDockWidget(this);
+    aree_dock_->setObjectName(QStringLiteral("areeWorkspaceDock"));
+    aree_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
+    auto* dock_widget = new QWidget;
+    auto* layout = new QVBoxLayout(dock_widget);
+
+    aree_table_ = new QTableWidget(0, 4);
+    aree_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    aree_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+    aree_table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    aree_table_->verticalHeader()->setVisible(false);
+    aree_table_->horizontalHeader()->setStretchLastSection(true);
+    aree_table_->setColumnWidth(0, 100);
+    aree_table_->setColumnWidth(1, 52);
+    aree_table_->setColumnWidth(2, 140);
+    layout->addWidget(aree_table_, 1);
+
+    auto* buttons = new QHBoxLayout;
+    aree_open_button_ = new QPushButton;
+    aree_restore_button_ = new QPushButton;
+    buttons->addWidget(aree_open_button_);
+    buttons->addWidget(aree_restore_button_);
+    layout->addLayout(buttons);
+
+    aree_dock_->setWidget(dock_widget);
+    addDockWidget(Qt::LeftDockWidgetArea, aree_dock_);
+    aree_dock_->hide();
+
+    connect(aree_open_button_, &QPushButton::clicked, this, &MainWindow::openAreeArea);
+    connect(aree_restore_button_, &QPushButton::clicked, this, &MainWindow::restoreAreeArchive);
+    connect(aree_table_, &QTableWidget::cellDoubleClicked, this, [this](int, int) { openAreeArea(); });
+    connect(aree_table_, &QTableWidget::itemSelectionChanged, this, &MainWindow::onAreeAreaActivated);
+    onAreeAreaActivated();
+}
+
 void MainWindow::setupMenus() {
     auto* file_menu = menuBar()->addMenu(appTr("menu.file"));
 
@@ -506,6 +559,10 @@ void MainWindow::setupMenus() {
     open_action->setShortcut(QKeySequence::Open);
     connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
 
+    auto* open_aree_action = file_menu->addAction(appTr("menu.open_aree_workspace"));
+    connect(open_aree_action, &QAction::triggered, this, &MainWindow::openAreeWorkspace);
+
+    file_menu->addSeparator();
     auto* reload_action = file_menu->addAction(appTr("menu.reload_lib"));
     reload_action->setShortcut(QKeySequence::Refresh);
     reload_action->setToolTip(appTr("menu.reload_lib_tip"));
@@ -638,6 +695,14 @@ void MainWindow::retranslateUi() {
     if (map_tabs_) {
         map_tabs_->setTabText(0, appTr("tab.map_zone"));
         map_tabs_->setTabText(1, appTr("tab.map_world"));
+    }
+    if (aree_dock_) {
+        aree_dock_->setWindowTitle(appTr("aree.dock_title"));
+        const QStringList headers = {appTr("aree.col_folder"), appTr("aree.col_zone"), appTr("aree.col_name"),
+                                     appTr("aree.col_top")};
+        aree_table_->setHorizontalHeaderLabels(headers);
+        aree_open_button_->setText(appTr("aree.open_area"));
+        aree_restore_button_->setText(appTr("aree.restore_archive"));
     }
     if (lib_path_.empty() && statusBar()->currentMessage().isEmpty()) {
         statusBar()->showMessage(appTr("status.ready"));
@@ -951,6 +1016,7 @@ bool MainWindow::promptForLibPath(const QString& reason) {
 }
 
 void MainWindow::loadLib(const std::filesystem::path& path) {
+    clearAreeMode();
     nebbie::World loaded_world;
     nebbie::LibContext loaded_context;
     nebbie::load_lib(loaded_world, path, loaded_context);
@@ -958,6 +1024,7 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     world_ = std::move(loaded_world);
     context_ = std::move(loaded_context);
     lib_path_ = path;
+    session_storage_path_ = path;
     room_filter_.clear();
     mob_filter_.clear();
     object_filter_.clear();
@@ -984,6 +1051,261 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     lib_label_->setText(label);
     last_version_time_ = std::chrono::system_clock::now();
     autosave_timer_->start();
+}
+
+std::filesystem::path MainWindow::sessionStorageRoot() const {
+    if (!session_storage_path_.empty()) {
+        return session_storage_path_;
+    }
+    return lib_path_;
+}
+
+void MainWindow::clearAreeMode() {
+    aree_workspace_.reset();
+    aree_area_folder_.reset();
+    aree_areas_.clear();
+    if (aree_table_) {
+        aree_table_->setRowCount(0);
+    }
+    if (aree_dock_) {
+        aree_dock_->hide();
+    }
+}
+
+void MainWindow::refreshAreeAreaList() {
+    if (!aree_workspace_) {
+        return;
+    }
+
+    aree_areas_ = nebbie::scan_aree_areas(*aree_workspace_);
+    aree_table_->setRowCount(static_cast<int>(aree_areas_.size()));
+    for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
+        const nebbie::AreeAreaInfo& area = aree_areas_[static_cast<std::size_t>(row)];
+        aree_table_->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(area.folder_name)));
+        aree_table_->setItem(row, 1, new QTableWidgetItem(QString::number(area.zone_num)));
+        aree_table_->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(area.zone_name)));
+        aree_table_->setItem(row, 3, new QTableWidgetItem(QString::number(area.top_vnum)));
+    }
+    aree_table_->resizeColumnsToContents();
+
+    lib_label_->setText(appTr("aree.status_workspace",
+                              nebbie::qt::qstring_from_path(aree_workspace_->root),
+                              QString::number(aree_areas_.size())));
+}
+
+void MainWindow::openAreeWorkspace() {
+    const QString initial = app_config_.aree_workspace_root.isEmpty() ? nebbie::qt::read_lib_path()
+                                                                      : app_config_.aree_workspace_root;
+    const QString dir = QFileDialog::getExistingDirectory(
+        this, appTr("menu.open_aree_workspace"), initial.isEmpty() ? QDir::homePath() : initial,
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    if (dirty_ && !confirmSaveIfDirty()) {
+        return;
+    }
+
+    const std::filesystem::path root = nebbie::qt::path_from_qstring(dir);
+    aree_workspace_ = nebbie::make_aree_workspace(root);
+    app_config_.aree_workspace_root = dir;
+    nebbie::qt::write_config(app_config_);
+
+    aree_dock_->show();
+    refreshAreeAreaList();
+    setStatus(appTr("aree.status_workspace", dir, QString::number(aree_areas_.size())));
+
+    if (!app_config_.aree_last_area.isEmpty()) {
+        for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
+            if (aree_table_->item(row, 0)->text() == app_config_.aree_last_area) {
+                aree_table_->selectRow(row);
+                break;
+            }
+        }
+    }
+}
+
+void MainWindow::onAreeAreaActivated() {
+    const bool has_selection = aree_table_->currentRow() >= 0;
+    aree_open_button_->setEnabled(has_selection);
+    aree_restore_button_->setEnabled(has_selection && aree_workspace_.has_value());
+}
+
+bool MainWindow::promptAreeSessionStart(const QString& area_name, bool& archive_first, QString& archive_label) {
+    QDialog dialog(this);
+    dialog.setWindowTitle(appTr("aree.session_title"));
+
+    auto* layout = new QVBoxLayout(&dialog);
+    layout->addWidget(new QLabel(appTr("aree.session_prompt", area_name)));
+
+    auto* archive_check = new QCheckBox(appTr("aree.archive_before"));
+    archive_check->setChecked(true);
+    layout->addWidget(archive_check);
+
+    auto* comment_edit = new QLineEdit;
+    comment_edit->setPlaceholderText(appTr("aree.archive_comment"));
+    layout->addWidget(comment_edit);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return false;
+    }
+
+    archive_first = archive_check->isChecked();
+    archive_label = comment_edit->text().trimmed();
+    return true;
+}
+
+void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first,
+                              const std::string& archive_label) {
+    if (!aree_workspace_) {
+        return;
+    }
+
+    if (archive_first) {
+        try {
+            nebbie::archive_aree_area(*aree_workspace_, area.folder_name, archive_label);
+        } catch (const std::exception& ex) {
+            QMessageBox::critical(this, appTr("aree.session_title"),
+                                  appTr("aree.archive_failed", QString::fromUtf8(ex.what())));
+            return;
+        }
+    }
+
+    if (dirty_ && !confirmSaveIfDirty()) {
+        return;
+    }
+
+    nebbie::World loaded_world;
+    nebbie::LibContext loaded_context;
+    loaded_context.write_eof_markers_on_save = false;
+    nebbie::load_lib(loaded_world, area.path, loaded_context);
+
+    world_ = std::move(loaded_world);
+    context_ = std::move(loaded_context);
+    context_.write_eof_markers_on_save = false;
+    lib_path_ = area.path;
+    session_storage_path_ = nebbie::aree_session_storage_root(*aree_workspace_, area.folder_name);
+    aree_area_folder_ = area.folder_name;
+
+    app_config_.aree_last_area = QString::fromStdString(area.folder_name);
+    nebbie::qt::write_config(app_config_);
+
+    room_filter_.clear();
+    mob_filter_.clear();
+    object_filter_.clear();
+    room_search_->clear();
+    mob_search_->clear();
+    obj_search_->clear();
+    markClean();
+    refreshRoomList();
+    refreshMobList();
+    refreshObjectList();
+    refreshZoneList();
+    refreshZoneMap();
+    refreshWorldZoneMap();
+    zone_editor_->setWorld(&world_);
+    world_data_editor_->setWorld(&world_);
+
+    const QString label = appTr("aree.status_loaded", nebbie::qt::qstring_from_path(area.path),
+                                QString::number(world_.zones.size()), QString::number(world_.rooms.size()));
+    lib_label_->setText(label);
+    last_version_time_ = std::chrono::system_clock::now();
+    autosave_timer_->start();
+    setStatus(label);
+}
+
+void MainWindow::openAreeArea() {
+    if (!aree_workspace_) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.no_workspace"));
+        return;
+    }
+
+    const auto selected = selectedAreeArea(aree_table_, aree_areas_);
+    if (!selected) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.select_area"));
+        return;
+    }
+
+    bool archive_first = true;
+    QString archive_label;
+    if (!promptAreeSessionStart(QString::fromStdString(selected->folder_name), archive_first, archive_label)) {
+        return;
+    }
+
+    loadAreeArea(*selected, archive_first, archive_label.toStdString());
+}
+
+void MainWindow::restoreAreeArchive() {
+    if (!aree_workspace_) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.no_workspace"));
+        return;
+    }
+
+    const auto selected = selectedAreeArea(aree_table_, aree_areas_);
+    if (!selected) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.select_area"));
+        return;
+    }
+
+    const auto archives = nebbie::list_aree_archives(*aree_workspace_, selected->folder_name);
+    if (archives.empty()) {
+        QMessageBox::information(this, appTr("aree.restore_title"), appTr("aree.no_archives"));
+        return;
+    }
+
+    QStringList labels;
+    labels.reserve(static_cast<int>(archives.size()));
+    for (const auto& archive : archives) {
+        QString label = QString::fromStdString(archive.id);
+        if (!archive.label.empty()) {
+            label += QStringLiteral(" — ") + QString::fromStdString(archive.label);
+        }
+        labels << label;
+    }
+
+    bool ok = false;
+    const QString choice = QInputDialog::getItem(this, appTr("aree.restore_title"),
+                                                 appTr("aree.restore_prompt", QString::fromStdString(selected->folder_name)),
+                                                 labels, 0, false, &ok);
+    if (!ok || choice.isEmpty()) {
+        return;
+    }
+
+    const int index = labels.indexOf(choice);
+    if (index < 0 || index >= static_cast<int>(archives.size())) {
+        return;
+    }
+
+    const auto& archive = archives[static_cast<std::size_t>(index)];
+    const auto answer = QMessageBox::question(
+        this, appTr("aree.restore_title"),
+        appTr("aree.restore_confirm", QString::fromStdString(selected->folder_name),
+              QString::fromStdString(archive.id)),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+
+    try {
+        nebbie::restore_aree_area_from_archive(*aree_workspace_, selected->folder_name, archive.path);
+    } catch (const std::exception& ex) {
+        QMessageBox::critical(this, appTr("aree.restore_title"),
+                              appTr("aree.restore_failed", QString::fromUtf8(ex.what())));
+        return;
+    }
+
+    if (aree_area_folder_ && *aree_area_folder_ == selected->folder_name && !lib_path_.empty()) {
+        reloadLib();
+    }
+
+    setStatus(appTr("aree.restore_ok"));
+    QMessageBox::information(this, appTr("aree.restore_title"), appTr("aree.restore_ok"));
 }
 
 void MainWindow::refreshRoomList() {
@@ -2470,7 +2792,7 @@ void MainWindow::saveLib() {
     const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
     if (rooms_to_check.empty()) {
         try {
-            nebbie::save_lib_with_backup(world_, context_, lib_path_);
+            nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
             markClean();
             last_version_time_ = std::chrono::system_clock::now();
             setStatus("Libreria salvata (backup creato in .nebbie/versions).");
@@ -2518,7 +2840,7 @@ void MainWindow::saveLib() {
     }
 
     try {
-        nebbie::save_lib_with_backup(world_, context_, lib_path_);
+        nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();
         last_version_time_ = std::chrono::system_clock::now();
         setStatus("Libreria salvata (backup creato in .nebbie/versions).");
@@ -2534,7 +2856,7 @@ void MainWindow::saveLibForce() {
         return;
     }
     try {
-        nebbie::save_lib_with_backup(world_, context_, lib_path_);
+        nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();
         last_version_time_ = std::chrono::system_clock::now();
         setStatus("Libreria salvata (forzato, backup creato).");
@@ -2549,7 +2871,8 @@ void MainWindow::onAutosaveTick() {
     }
 
     try {
-        const auto result = nebbie::run_autosave(world_, context_, lib_path_, session_config_, last_version_time_);
+        const auto result =
+            nebbie::run_autosave(world_, context_, lib_path_, session_config_, last_version_time_, sessionStorageRoot());
         if (result.version_created) {
             last_version_time_ = std::chrono::system_clock::now();
         }
@@ -2572,7 +2895,7 @@ void MainWindow::restoreFromWorkspace() {
         return;
     }
 
-    const auto workspace = nebbie::workspace_dir(lib_path_);
+    const auto workspace = nebbie::workspace_dir(sessionStorageRoot());
     std::error_code ec;
     if (!std::filesystem::exists(workspace, ec)) {
         QMessageBox::information(this, "Cronologia", "Nessun autosalvataggio workspace trovato.");
@@ -2607,7 +2930,7 @@ void MainWindow::restoreVersion() {
         return;
     }
 
-    const auto versions = nebbie::list_versions(lib_path_);
+    const auto versions = nebbie::list_versions(sessionStorageRoot());
     if (versions.empty()) {
         QMessageBox::information(this, "Cronologia", "Nessuna versione salvata in .nebbie/versions.");
         return;
@@ -2639,7 +2962,7 @@ void MainWindow::restoreVersion() {
     }
 
     try {
-        const auto snapshot = nebbie::versions_dir(lib_path_) / versions[static_cast<std::size_t>(index)].id;
+        const auto snapshot = nebbie::versions_dir(sessionStorageRoot()) / versions[static_cast<std::size_t>(index)].id;
         nebbie::restore_snapshot(world_, context_, snapshot);
         markDirty();
         refreshRoomList();

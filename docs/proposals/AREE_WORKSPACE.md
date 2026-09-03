@@ -1,7 +1,7 @@
 # Workspace Aree in Izanagi
 
 **Branch:** `cursor/aree-workspace-92f1`  
-**Stato:** P0 core in corso (scan + archivio/ripristino)  
+**Stato:** P0 core + P1 GUI (lista, apertura, archivio, ripristino)  
 **Build monolite:** `deploy_aree.php` in NebbieArcane/Aree (non modificabile)
 
 ---
