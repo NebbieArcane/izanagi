@@ -181,7 +181,7 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     reset_buttons->addWidget(reset_goto_entity);
     reset_buttons->addStretch();
     reset_layout->addLayout(reset_buttons);
-    tabs->addTab(new QScrollArea, "Reset (myst.zon)");
+    tabs->addTab(new QScrollArea, tr("Comandi reset di zona (.zon)"));
     {
         auto* scroll = qobject_cast<QScrollArea*>(tabs->widget(1));
         scroll->setWidgetResizable(true);

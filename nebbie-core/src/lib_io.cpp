@@ -148,6 +148,38 @@ void track_object_sources(LibContext& context,
     assign_long_sources(context.object_sources, path, vnums);
 }
 
+void capture_zon_file_snapshot(LibContext& context, const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input) {
+        return;
+    }
+    const std::string bytes((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+    context.zon_file_snapshot_by_leaf[path.filename().string()] = bytes;
+}
+
+bool write_zon_file_snapshot(const LibContext& context,
+                             const std::filesystem::path& file_path,
+                             const std::vector<int>& zone_nums) {
+    if (context.write_eof_markers_on_save) {
+        return false;
+    }
+    for (const int zone_num : zone_nums) {
+        if (context.dirty_zone_nums.count(zone_num) != 0) {
+            return false;
+        }
+    }
+    const auto snapshot_it = context.zon_file_snapshot_by_leaf.find(file_path.filename().string());
+    if (snapshot_it == context.zon_file_snapshot_by_leaf.end()) {
+        return false;
+    }
+    std::ofstream output(file_path, std::ios::binary);
+    if (!output) {
+        return false;
+    }
+    output.write(snapshot_it->second.data(), static_cast<std::streamsize>(snapshot_it->second.size()));
+    return output.good();
+}
+
 bool file_has_non_whitespace_content(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
     if (!input) {
@@ -364,13 +396,35 @@ void save_tracked_zones(const World& world,
     const std::filesystem::path primary = context.zon_path.empty() ? std::filesystem::path(ZONE_FILE)
                                                                    : context.zon_path;
     if (context.zone_sources.empty()) {
+        std::vector<int> zone_nums;
+        zone_nums.reserve(world.zones.size());
+        for (const Zone& zone : world.zones) {
+            zone_nums.push_back(zone.num);
+        }
+        if (write_zon_file_snapshot(context, context.root / primary, zone_nums)) {
+            if (progress) {
+                progress("Writing (preserve) " + (context.root / primary).string());
+            }
+            return;
+        }
         save_myst_zon(world, context.root / primary, progress, save_options);
         return;
     }
 
     auto grouped = group_by_source_path(context.zone_sources);
-    for (const auto& [filename, zone_nums] : grouped) {
-        save_myst_zon(make_zone_subset(world, zone_nums), context.root / filename, progress, save_options);
+    for (const auto& [filename, zone_nums_long] : grouped) {
+        std::vector<int> zone_nums;
+        zone_nums.reserve(zone_nums_long.size());
+        for (const long value : zone_nums_long) {
+            zone_nums.push_back(static_cast<int>(value));
+        }
+        if (write_zon_file_snapshot(context, context.root / filename, zone_nums)) {
+            if (progress) {
+                progress("Writing (preserve) " + (context.root / filename).string());
+            }
+            continue;
+        }
+        save_myst_zon(make_zone_subset(world, zone_nums_long), context.root / filename, progress, save_options);
     }
 }
 
@@ -524,6 +578,7 @@ void load_lib(World& world,
             const std::vector<long> vnums = scan_hash_vnums(path);
             load_myst_zon(world, path, progress, clear_existing);
             track_zone_sources(context, path.filename(), vnums);
+            capture_zon_file_snapshot(context, path);
         });
 
     load_discovered_files(
@@ -699,9 +754,16 @@ void save_lib(const World& world, LibContext& context, ProgressCallback progress
 
     if (!context.write_eof_markers_on_save) {
         refresh_captured_source_blocks(context);
+        const auto refresh_zon = [&](const std::filesystem::path& relative) {
+            capture_zon_file_snapshot(context, context.root / relative);
+        };
+        if (context.has_zon) {
+            refresh_zon(context.zon_path.empty() ? std::filesystem::path(ZONE_FILE) : context.zon_path);
+        }
         context.dirty_room_vnums.clear();
         context.dirty_mobile_vnums.clear();
         context.dirty_object_vnums.clear();
+        context.dirty_zone_nums.clear();
     }
 }
 

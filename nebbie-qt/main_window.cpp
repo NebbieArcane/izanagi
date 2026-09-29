@@ -419,7 +419,13 @@ void MainWindow::setupUi() {
     connect(obj_search_, &QLineEdit::textChanged, this, &MainWindow::onObjSearchChanged);
     connect(zone_list_, &QListWidget::currentRowChanged, this, [this](int) { onZoneSelected(); });
     connect(zone_apply, &QPushButton::clicked, this, &MainWindow::applyZoneChanges);
-    connect(zone_editor_, &ZoneEditorWidget::zoneModified, this, [this]() { markDirty(); });
+    connect(zone_editor_, &ZoneEditorWidget::zoneModified, this, [this]() {
+        markDirty();
+        const int zone_num = currentZoneNum();
+        if (zone_num > 0) {
+            dirty_zone_nums_.insert(zone_num);
+        }
+    });
     connect(zone_editor_, &ZoneEditorWidget::gotoRoomRequested, this, [this](long vnum) {
         if (!world_.find_room(vnum)) {
             QMessageBox::information(this, "Zone", QString("Room #%1 does not exist in this library.").arg(vnum));
@@ -1685,6 +1691,7 @@ void MainWindow::applyZoneChanges() {
     }
     zone_editor_->loadFromZone(*zone);
     markDirty();
+    dirty_zone_nums_.insert(zone_num);
     setStatus(QString("Zone %1 updated in memory.").arg(zone_num));
 }
 
@@ -3032,9 +3039,11 @@ void MainWindow::syncDirtyEntityVnumsToContext() {
     context_.dirty_room_vnums.clear();
     context_.dirty_mobile_vnums.clear();
     context_.dirty_object_vnums.clear();
+    context_.dirty_zone_nums.clear();
     context_.dirty_room_vnums.insert(dirty_room_vnums_.begin(), dirty_room_vnums_.end());
     context_.dirty_mobile_vnums.insert(dirty_mobile_vnums_.begin(), dirty_mobile_vnums_.end());
     context_.dirty_object_vnums.insert(dirty_object_vnums_.begin(), dirty_object_vnums_.end());
+    context_.dirty_zone_nums.insert(dirty_zone_nums_.begin(), dirty_zone_nums_.end());
 }
 
 void MainWindow::markDirty() {
@@ -3047,6 +3056,7 @@ void MainWindow::markClean() {
     dirty_room_vnums_.clear();
     dirty_mobile_vnums_.clear();
     dirty_object_vnums_.clear();
+    dirty_zone_nums_.clear();
     updateBranding();
 }
 

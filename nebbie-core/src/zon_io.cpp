@@ -86,6 +86,13 @@ void write_zone_reset_commands(FILE* fp, const Zone& zone) {
             }
             continue;
         }
+        if (!cmd.raw_line.empty()) {
+            std::fprintf(fp, "%c%s", cmd.command, cmd.raw_line.c_str());
+            if (cmd.raw_line.back() != '\n') {
+                std::fprintf(fp, "\n");
+            }
+            continue;
+        }
         std::fprintf(fp, "%c %d %d %d %d %d\n",
                      cmd.command,
                      cmd.if_flag,

@@ -105,6 +105,38 @@ int main() {
                    || wld_dirty.find("-1 8|64|32768 0\n") != std::string::npos,
                "dirty room rewrite must preserve -1 zone line prefix");
 
+        std::filesystem::path castelli_fixture;
+        for (const char* candidate : {"tests/fixtures/aree/castelli", "../tests/fixtures/aree/castelli",
+                                      "../../tests/fixtures/aree/castelli"}) {
+            if (std::filesystem::is_directory(candidate)) {
+                castelli_fixture = candidate;
+                break;
+            }
+        }
+        if (castelli_fixture.empty()) {
+            throw std::runtime_error("castelli fixture not found");
+        }
+        const auto zon_work = std::filesystem::temp_directory_path() / "nebbie-preserve-zon-test";
+        if (std::filesystem::exists(zon_work)) {
+            std::filesystem::remove_all(zon_work);
+        }
+        std::filesystem::create_directories(zon_work);
+        for (const auto& entry : std::filesystem::directory_iterator(castelli_fixture)) {
+            if (entry.is_regular_file()) {
+                std::filesystem::copy_file(entry.path(), zon_work / entry.path().filename(),
+                                           std::filesystem::copy_options::overwrite_existing);
+            }
+        }
+        nebbie::World zon_world;
+        nebbie::LibContext zon_context;
+        zon_context.write_eof_markers_on_save = false;
+        nebbie::load_lib(zon_world, zon_work, zon_context);
+        const std::string zon_before = read_file(zon_work / "castelli.zon");
+        expect(zon_before.find("*!") != std::string::npos, "fixture zon should contain *! annotations");
+        nebbie::save_lib(zon_world, zon_context);
+        const std::string zon_after = read_file(zon_work / "castelli.zon");
+        expect(zon_before == zon_after, "preserve save must keep castelli.zon byte-identical including *! lines");
+
         std::cout << "OK\n";
         return 0;
     } catch (const std::exception& ex) {

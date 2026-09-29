@@ -893,6 +893,24 @@ std::string reset_command_summary(const ResetCommand& cmd) {
     summary += " a3=" + std::to_string(cmd.arg3);
     summary += " a4=" + std::to_string(cmd.arg4);
 
+    if (!cmd.raw_line.empty()) {
+        std::string trimmed = cmd.raw_line;
+        while (!trimmed.empty() && (trimmed.back() == '\n' || trimmed.back() == '\r')) {
+            trimmed.pop_back();
+        }
+        const std::size_t bang = trimmed.find("*!");
+        if (bang != std::string::npos) {
+            std::string note = trimmed.substr(bang + 2);
+            while (!note.empty() && (note.front() == ' ' || note.front() == '\t')) {
+                note.erase(note.begin());
+            }
+            if (!note.empty()) {
+                summary += " — ";
+                summary += note;
+            }
+        }
+    }
+
     switch (cmd.command) {
     case 'M':
         summary += " (mob #" + std::to_string(cmd.arg1) + " -> room #" + std::to_string(cmd.arg3)

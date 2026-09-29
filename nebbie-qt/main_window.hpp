@@ -182,6 +182,7 @@ private:
     std::set<long> dirty_room_vnums_;
     std::set<long> dirty_mobile_vnums_;
     std::set<long> dirty_object_vnums_;
+    std::set<int> dirty_zone_nums_;
     nebbie::qt::AppConfig app_config_;
     std::optional<nebbie::WorldIndex> world_index_;
     QNetworkAccessManager* network_ = nullptr;

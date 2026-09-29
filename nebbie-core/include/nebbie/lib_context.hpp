@@ -47,6 +47,10 @@ struct LibContext {
     std::unordered_set<long> dirty_room_vnums;
     std::unordered_set<long> dirty_mobile_vnums;
     std::unordered_set<long> dirty_object_vnums;
+    std::unordered_set<int> dirty_zone_nums;
+
+    /** Byte snapshot of .zon files at load (Aree: rewrite only when dirty_zone_nums). */
+    std::unordered_map<std::string, std::string> zon_file_snapshot_by_leaf;
 
     std::vector<std::string> load_warnings;
 
