@@ -68,7 +68,7 @@ std::string read_exit_data_line(FILE* fp) {
     }
 }
 
-void read_exit(FILE* fp, Room& room, int direction) {
+void read_exit(FILE* fp, Room& room, int direction, const World& world) {
     Exit exit;
     exit.direction = direction;
     exit.description = fread_string(fp);
@@ -85,6 +85,14 @@ void read_exit(FILE* fp, Room& room, int direction) {
     exit.key = nums[1];
     exit.to_room = nums[2];
     exit.open_cmd = nums.size() >= 4 ? nums[3] : -1;
+
+    if (exit_data_line_looks_like_zone_line(room, data_line, world)) {
+        exit.data_line_raw.reset();
+        exit.exit_info = 0;
+        exit.key = 0;
+        exit.to_room = 0;
+        exit.open_cmd = -1;
+    }
 
     room.exits.push_back(exit);
 }
@@ -181,7 +189,7 @@ void read_room_body(FILE* fp, Room& room, World& world) {
     while (std::fscanf(fp, " %160s", token) == 1) {
         switch (token[0]) {
         case 'D':
-            read_exit(fp, room, std::atoi(token + 1));
+            read_exit(fp, room, std::atoi(token + 1), world);
             break;
         case 'E': {
             ExtraDesc extra;
@@ -232,7 +240,7 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
         std::fprintf(fp, "%s~\n", exit.description.c_str());
         std::fprintf(fp, "%s~\n", exit.keyword.c_str());
         std::ostringstream exit_line;
-        write_exit_data_line(exit_line, exit);
+        write_exit_data_line(exit_line, room, world, exit);
         std::fputs(exit_line.str().c_str(), fp);
     }
 

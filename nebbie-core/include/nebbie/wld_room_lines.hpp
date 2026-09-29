@@ -15,8 +15,11 @@ bool zone_data_line_matches_room(const std::string& raw, const Room& room, const
 
 bool exit_data_line_matches(const Exit& exit, const std::string& raw);
 
+/** True when a myst.wld exit numeric line is really a misplaced room zone line. */
+bool exit_data_line_looks_like_zone_line(const Room& room, const std::string& raw, const World& world);
+
 void write_zone_data_line(std::ostream& out, const Room& room, const World& world);
 
-void write_exit_data_line(std::ostream& out, const Exit& exit);
+void write_exit_data_line(std::ostream& out, const Room& room, const World& world, const Exit& exit);
 
 } // namespace nebbie

@@ -88,6 +88,35 @@ bool exit_data_line_matches(const Exit& exit, const std::string& raw) {
     return open_cmd == exit.open_cmd;
 }
 
+bool exit_data_line_looks_like_zone_line(const Room& room, const std::string& raw, const World& world) {
+    if (room.zone_data_line_raw) {
+        std::string a = raw;
+        std::string b = *room.zone_data_line_raw;
+        while (!a.empty() && (a.back() == ' ' || a.back() == '\t')) {
+            a.pop_back();
+        }
+        while (!b.empty() && (b.back() == ' ' || b.back() == '\t')) {
+            b.pop_back();
+        }
+        if (a == b) {
+            return true;
+        }
+    }
+
+    const auto nums = parse_numbers(raw);
+    if (nums.size() < 3) {
+        return false;
+    }
+    if (nums[1] != room.room_flags) {
+        return false;
+    }
+    if (nums[2] != room.sector_type) {
+        return false;
+    }
+    const long zone_field = room_zone_field_for_save(room, world);
+    return nums[0] == zone_field || nums[0] == -1L;
+}
+
 void write_zone_data_line(std::ostream& out, const Room& room, const World& world) {
     if (room.zone_data_line_raw && zone_data_line_matches_room(*room.zone_data_line_raw, room, world)) {
         out << *room.zone_data_line_raw << '\n';
@@ -111,14 +140,15 @@ void write_zone_data_line(std::ostream& out, const Room& room, const World& worl
     }
 }
 
-void write_exit_data_line(std::ostream& out, const Exit& exit) {
-    if (exit.data_line_raw && exit_data_line_matches(exit, *exit.data_line_raw)) {
+void write_exit_data_line(std::ostream& out, const Room& room, const World& world, const Exit& exit) {
+    if (exit.data_line_raw && !exit_data_line_looks_like_zone_line(room, *exit.data_line_raw, world)
+        && exit_data_line_matches(exit, *exit.data_line_raw)) {
         out << *exit.data_line_raw << '\n';
         return;
     }
 
     std::optional<std::string> flag_style;
-    if (exit.data_line_raw) {
+    if (exit.data_line_raw && !exit_data_line_looks_like_zone_line(room, *exit.data_line_raw, world)) {
         const auto end_pos = exit.data_line_raw->find_first_of(" \t");
         flag_style = end_pos == std::string::npos ? *exit.data_line_raw
                                                   : exit.data_line_raw->substr(0, end_pos);

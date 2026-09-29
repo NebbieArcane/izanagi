@@ -139,7 +139,7 @@ std::string format_room_block(const Room& room, const World& world) {
         out << 'D' << exit.direction << '\n';
         append_string_field(out, exit.description);
         append_string_field(out, exit.keyword);
-        write_exit_data_line(out, exit);
+        write_exit_data_line(out, room, world, exit);
     }
 
     for (const auto& extra : room.extra_descs) {
