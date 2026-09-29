@@ -6,6 +6,9 @@ on:
     branches: ["main"]
     tags: ["v*"]
 
+env:
+  NEBBIE_VERSION: 0.1.${{ github.run_number }}
+
 jobs:
   package-linux-deb:
     runs-on: ubuntu-latest

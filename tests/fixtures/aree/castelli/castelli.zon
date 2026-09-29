@@ -1,0 +1,400 @@
+#340
+Castelli dei Principi~
+34999 20 0
+*! Inizializzazione della zona 340
+
+*****Castelli dei Principi *****
+
+M 0 34001 1 34001  *! Mob 34001 (Sabrina, la governante) nella stanza 34001 (Ingresso al Castello) Sabrina - governante di Montero
+
+M 0 34003 3 34008  *! Mob 34003 (un cigno bianco) nella stanza 34008 (Il laghetto)
+
+M 0 34004 3 34008  *! Mob 34004 (un piccolo anatroccolo) nella stanza 34008 (Il laghetto)
+
+M 0 34005 1 34021  *! Mob 34005 (Il guardiano) nella stanza 34021 (Il cortile interno)
+H 1 5 0  *! Odio verso pc/mob con allineamento inferiore o uguale a 0
+
+M 0 34006 4 34023  *! Mob 34006 (Un cavallo) nella stanza 34023 (Le scuderie)
+
+M 0 34006 4 34032  *! Mob 34006 (Un cavallo) nella stanza 34032 (Le scuderie)
+
+M 0 34006 4 34041  *! Mob 34006 (Un cavallo) nella stanza 34041 (Le scuderie)
+
+M 0 34006 4 34050  *! Mob 34006 (Un cavallo) nella stanza 34050 (Le scuderie)
+
+M 0 34006 4 34059  *! Mob 34006 (Un cavallo) nella stanza 34059 (Le scuderie)
+
+M 0 34007 1 34066  *! Mob 34007 (Un grosso eunuco) nella stanza 34066 (L'atrio)
+
+M 0 34008 2 34071  *! Mob 34008 (Una concubina) nella stanza 34071 (L'harem)
+
+M 0 34008 2 34080  *! Mob 34008 (Una concubina) nella stanza 34080 (L'harem)
+
+M 0 34008 2 34089  *! Mob 34008 (Una concubina) nella stanza 34089 (L'harem)
+
+M 0 34008 2 34098  *! Mob 34008 (Una concubina) nella stanza 34098 (L'harem)
+
+M 0 34008 2 34112  *! Mob 34008 (Una concubina) nella stanza 34112 (L'harem)
+
+M 0 34009 1 34116  *! Mob 34009 (Il guardiano della torre) nella stanza 34116 (Il voltone)
+
+M 0 34010 1 34030  *! Mob 34010 (Il guardiano) nella stanza 34030 (Il cortile interno)
+
+M 0 34011 1 34039  *! Mob 34011 (Il guardiano) nella stanza 34039 (Il cortile interno)
+
+M 0 34012 1 34048  *! Mob 34012 (Il guardiano) nella stanza 34048 (Il cortile interno)
+
+M 0 34013 1 34057  *! Mob 34013 (Il guardiano) nella stanza 34057 (Il cortile interno)
+
+M 0 34014 1 34075  *! Mob 34014 (Un grosso eunuco) nella stanza 34075 (L'atrio)
+
+M 0 34015 1 34084  *! Mob 34015 (Un grosso eunuco) nella stanza 34084 (L'atrio)
+
+M 0 34016 1 34093  *! Mob 34016 (Un grosso eunuco) nella stanza 34093 (L'atrio)
+
+M 0 34017 1 34107  *! Mob 34017 (Un grosso eunuco) nella stanza 34107 (L'atrio)
+
+M 0 34018 1 34125  *! Mob 34018 (Il guardiano della torre) nella stanza 34125 (Il voltone)
+
+M 0 34019 1 34133  *! Mob 34019 (Il guardiano della torre) nella stanza 34133 (Il voltone)
+
+M 0 34020 1 34141  *! Mob 34020 (Il guardiano della torre) nella stanza 34141 (Il voltone)
+
+M 0 34021 1 34149  *! Mob 34021 (Il guardiano della torre) nella stanza 34149 (Il voltone)
+
+M 0 34101 1 34101  *! Mob 34101 (Ragnarok, l'Ulan del clan di BlackRock) nella stanza 34101 (Ingresso alla grotta)
+E 1 34102 0 5  *! Sul corpo: 034102 (Corpetto in pelle sconosciuta.)
+E 1 34101 0 16  *! Impugnato: 034101 (Clava della distruzione.)
+E 1 34104 0 20  *! All'orecchio sinistro: 034104 (orecchino d'osso)
+H 1 4 8 *! Odio verso la classe Paladins
+H 1 6 800 *! Odio verso pc/mob con allineamento superiore o uguale a 800
+
+M 0 34102 0 34104  *! Mob 34102 (un anziano chierico) nella stanza 34104 (Altare della guerra)
+
+***** Ogun *****
+
+M 0 34202 1 34202  *! Mob 34202 (Lothar il Custode) nella stanza 34202 (Posto di Guardia)
+
+M 0 34203 1 34203  *! Mob 34203 (Commensale) nella stanza 34203 (Salone dei banchetti)
+
+M 0 34206 1 34203  *! Mob 34206 (Commensale) nella stanza 34203 (Salone dei banchetti)
+
+M 0 34207 1 34203  *! Mob 34207 (Servo) nella stanza 34203 (Salone dei banchetti)
+
+M 0 34208 1 34203  *! Mob 34208 (Commensale) nella stanza 34203 (Salone dei banchetti)
+
+M 0 34210 1 34203  *! Mob 34210 (Commensale) nella stanza 34203 (Salone dei banchetti)
+
+M 0 34211 1 34203  *! Mob 34211 (Servo) nella stanza 34203 (Salone dei banchetti)
+
+M 0 34300 1 34024  *! Mob 34300 (La governante) nella stanza 34024 (La camera del Principe)
+
+M 0 34301 1 34303  *! Mob 34301 (Il Gattone bianco di Fouler) nella stanza 34303 ($c0013Stanza privata di Fouler)
+H 1 5 -350 Sei cattivo vattene prima che torni il mio padrone *! Odio verso pc/mob con allineamento inferiore o uguale a -350
+H 1 4 5 Vattene grrr *! Odio verso la classe Monks
+
+M 0 34302 2 34306  *! Mob 34302 (Un ape svolazza indaffarata) nella stanza 34306 (Giardino)
+H 1 4 5 Vattene maledetto *! Odio verso la classe Monks
+H 1 5 -350 Sei un po' troppo malvagio per restare qui *! Odio verso pc/mob con allineamento inferiore o uguale a -350
+
+M 0 34303 1 34305  *! Mob 34303 (Azzurra) nella stanza 34305 (Sala riunioni)
+H 1 4 5 Vattene da qui *! Odio verso la classe Monks
+H 1 5 -350 Non sei degno di camminare in questi luoghi *! Odio verso pc/mob con allineamento inferiore o uguale a -350
+
+M 0 34304 1 34309  *! Mob 34304 (civetta) nella stanza 34309 (La stanza di Eowyn)
+F 1 5 -350 Vattene da questa stanza cattivone *! Paura verso pc/mob con allineamento inferiore o uguale a -350
+
+M 0 34305 1 34311  *! Mob 34305 (Warka) nella stanza 34311 (La stanza di Heyman)
+F 1 5 -349  *! Paura verso pc/mob con allineamento inferiore o uguale a -349
+
+M 0 34306 1 34313  *! Mob 34306 (Tante piccole formiche $c0010verdi) nella stanza 34313 ($c0010Dove sognano le Formiche verdi)
+
+M 0 34306 1 34313  *! Mob 34306 (Tante piccole formiche $c0010verdi) nella stanza 34313 ($c0010Dove sognano le Formiche verdi)
+
+M 0 34306 1 34313  *! Mob 34306 (Tante piccole formiche $c0010verdi) nella stanza 34313 ($c0010Dove sognano le Formiche verdi)
+
+M 0 34306 1 34313  *! Mob 34306 (Tante piccole formiche $c0010verdi) nella stanza 34313 ($c0010Dove sognano le Formiche verdi)
+
+M 0 34306 1 34313  *! Mob 34306 (Tante piccole formiche $c0010verdi) nella stanza 34313 ($c0010Dove sognano le Formiche verdi)
+
+M 0 34307 15 34024  *! Mob 34307 (Il cassiere del principe) nella stanza 34024 (La camera del Principe)
+
+M 0 34307 15 34034  *! Mob 34307 (Il cassiere del principe) nella stanza 34034 (La camera del Principe)
+
+M 0 34307 15 34043  *! Mob 34307 (Il cassiere del principe) nella stanza 34043 (La camera del Principe)
+
+M 0 34307 15 34052  *! Mob 34307 (Il cassiere del principe) nella stanza 34052 (La camera del Principe)
+
+M 0 34307 15 34061  *! Mob 34307 (Il cassiere del principe) nella stanza 34061 (La camera del Principe)
+
+M 0 34307 15 34072  *! Mob 34307 (Il cassiere del principe) nella stanza 34072 (La camera del Principe)
+
+M 0 34307 15 34081  *! Mob 34307 (Il cassiere del principe) nella stanza 34081 (La camera del Principe)
+
+M 0 34307 15 34090  *! Mob 34307 (Il cassiere del principe) nella stanza 34090 (La camera del Principe)
+
+M 0 34307 15 34099  *! Mob 34307 (Il cassiere del principe) nella stanza 34099 (La camera del Principe)
+
+M 0 34307 15 34113  *! Mob 34307 (Il cassiere del principe) nella stanza 34113 (La camera del Principe)
+
+M 0 34307 15 34122  *! Mob 34307 (Il cassiere del principe) nella stanza 34122 (La camera del Principe)
+
+M 0 34307 15 34131  *! Mob 34307 (Il cassiere del principe) nella stanza 34131 (La camera del Principe)
+
+M 0 34307 15 34139  *! Mob 34307 (Il cassiere del principe) nella stanza 34139 (La camera del Principe)
+
+M 0 34307 15 34147  *! Mob 34307 (Il cassiere del principe) nella stanza 34147 (La camera del Principe)
+
+M 0 34307 15 34156  *! Mob 34307 (Il cassiere del principe) nella stanza 34156 (La camera del Principe)
+
+M 0 34308 1 34034  *! Mob 34308 (La governante) nella stanza 34034 (La camera del Principe)
+
+M 0 34309 1 34043  *! Mob 34309 (La governante) nella stanza 34043 (La camera del Principe)
+
+M 0 34310 1 34052  *! Mob 34310 (La governante) nella stanza 34052 (La camera del Principe)
+
+M 0 34311 1 34061  *! Mob 34311 (La governante) nella stanza 34061 (La camera del Principe)
+
+M 0 34312 1 34072  *! Mob 34312 (La governante) nella stanza 34072 (La camera del Principe)
+
+M 0 34313 1 34081  *! Mob 34313 (La governante) nella stanza 34081 (La camera del Principe)
+
+M 0 34314 1 34090  *! Mob 34314 (La governante) nella stanza 34090 (La camera del Principe)
+
+M 0 34315 1 34099  *! Mob 34315 (La governante) nella stanza 34099 (La camera del Principe)
+
+M 0 34316 1 34113  *! Mob 34316 (La governante) nella stanza 34113 (La camera del Principe)
+
+M 0 34317 1 34122  *! Mob 34317 (La governante) nella stanza 34122 (La camera del Principe)
+
+M 0 34318 1 34131  *! Mob 34318 (La governante) nella stanza 34131 (La camera del Principe)
+
+M 0 34319 1 34139  *! Mob 34319 (La governante) nella stanza 34139 (La camera del Principe)
+
+M 0 34320 1 34147  *! Mob 34320 (La governante) nella stanza 34147 (La camera del Principe)
+
+M 0 34321 1 34156  *! Mob 34321 (La governante) nella stanza 34156 (La camera del Principe)
+
+O 0 20023 1 34004 1  *! Carica oggetto 20023 (Oggetto fittizio) nella stanza 34004 (Postazione di Ingresso)
+
+O 0 34203 5 34028 1  *! Carica oggetto 34203 (La bandiera del Principato) nella stanza 34028 (La cima della torre)
+
+O 0 34203 5 34037 1  *! Carica oggetto 34203 (La bandiera del Principato) nella stanza 34037 (La cima della torre)
+
+O 0 34203 5 34046 1  *! Carica oggetto 34203 (La bandiera del Principato) nella stanza 34046 (La cima della torre)
+
+O 0 34203 5 34055 1  *! Carica oggetto 34203 (La bandiera del Principato) nella stanza 34055 (La cima della torre)
+
+O 0 34203 5 34064 1  *! Carica oggetto 34203 (La bandiera del Principato) nella stanza 34064 (La cima della torre)
+
+O 0 34206 10 34073 1  *! Carica oggetto 34206 (Lo stendardo del sultano) nella stanza 34073 (La cima del maniero)
+
+O 0 34206 10 34082 1  *! Carica oggetto 34206 (Lo stendardo del sultano) nella stanza 34082 (La cima del maniero)
+
+O 0 34206 10 34091 1  *! Carica oggetto 34206 (Lo stendardo del sultano) nella stanza 34091 (La cima del maniero)
+
+O 0 34206 10 34100 1  *! Carica oggetto 34206 (Lo stendardo del sultano) nella stanza 34100 (La cima del maniero)
+
+O 0 34206 10 34114 1  *! Carica oggetto 34206 (Lo stendardo del sultano) nella stanza 34114 (La cima del maniero)
+
+O 0 34212 5 34121 1  *! Carica oggetto 34212 (Il vessillo imperiale) nella stanza 34121 (La sala del consiglio di guerra)
+
+O 0 34212 5 34130 1  *! Carica oggetto 34212 (Il vessillo imperiale) nella stanza 34130 (La sala del consiglio di guerra)
+
+O 0 34212 5 34138 1  *! Carica oggetto 34212 (Il vessillo imperiale) nella stanza 34138 (La sala del consiglio di guerra)
+
+O 0 34212 5 34146 1  *! Carica oggetto 34212 (Il vessillo imperiale) nella stanza 34146 (La sala del consiglio di guerra)
+
+O 0 34212 5 34155 1  *! Carica oggetto 34212 (Il vessillo imperiale) nella stanza 34155 (La sala del consiglio di guerra)
+
+D 0 34001 0 1  *! Uscita north della stanza 34001 (Ingresso al Castello): chiusa
+D 0 34002 2 1  *! Uscita south della stanza 34002 (Piazza d'armi): chiusa
+D 0 34003 0 0  *! Uscita north della stanza 34003 (Ingresso al Maschio): aperta
+D 0 34004 2 0  *! Uscita south della stanza 34004 (Postazione di Ingresso): aperta
+D 0 34004 5 2  *! Uscita down della stanza 34004 (Postazione di Ingresso): chiusa a chiave
+D 0 34005 4 2  *! Uscita up della stanza 34005 (Stanza di Montero): chiusa a chiave
+D 0 34009 0 0  *! Uscita north della stanza 34009 (L'antro): aperta
+D 0 34009 4 1  *! Uscita up della stanza 34009 (L'antro): chiusa
+D 0 34010 2 1  *! Uscita south della stanza 34010 (Il pozzo): chiusa
+D 0 34020 0 2  *! Uscita north della stanza 34020 (di fronte al castello): chiusa a chiave
+D 0 34021 0 1  *! Uscita north della stanza 34021 (Il cortile interno): chiusa
+D 0 34021 1 1  *! Uscita east della stanza 34021 (Il cortile interno): chiusa
+D 0 34021 2 2  *! Uscita south della stanza 34021 (Il cortile interno): chiusa a chiave
+D 0 34021 3 1  *! Uscita west della stanza 34021 (Il cortile interno): chiusa
+D 0 34021 5 1  *! Uscita down della stanza 34021 (Il cortile interno): chiusa
+D 0 34022 1 1  *! Uscita east della stanza 34022 (L'armeria): chiusa
+D 0 34023 3 1  *! Uscita west della stanza 34023 (Le scuderie): chiusa
+D 0 34025 0 1  *! Uscita north della stanza 34025 (Il salone): chiusa
+D 0 34025 2 1  *! Uscita south della stanza 34025 (Il salone): chiusa
+D 0 34027 2 1  *! Uscita south della stanza 34027 (La cappella): chiusa
+D 0 34029 0 2  *! Uscita north della stanza 34029 (di fronte al castello): chiusa a chiave
+D 0 34030 0 1  *! Uscita north della stanza 34030 (Il cortile interno): chiusa
+D 0 34030 1 1  *! Uscita east della stanza 34030 (Il cortile interno): chiusa
+D 0 34030 2 2  *! Uscita south della stanza 34030 (Il cortile interno): chiusa a chiave
+D 0 34030 3 1  *! Uscita west della stanza 34030 (Il cortile interno): chiusa
+D 0 34030 5 1  *! Uscita down della stanza 34030 (Il cortile interno): chiusa
+D 0 34031 1 1  *! Uscita east della stanza 34031 (L'armeria): chiusa
+D 0 34032 3 1  *! Uscita west della stanza 34032 (Le scuderie): chiusa
+D 0 34033 0 1  *! Uscita north della stanza 34033 (Il salone): chiusa
+D 0 34033 2 1  *! Uscita south della stanza 34033 (Il salone): chiusa
+D 0 34036 2 1  *! Uscita south della stanza 34036 (La cappella): chiusa
+D 0 34038 0 2  *! Uscita north della stanza 34038 (di fronte al castello): chiusa a chiave
+D 0 34039 0 1  *! Uscita north della stanza 34039 (Il cortile interno): chiusa
+D 0 34039 1 1  *! Uscita east della stanza 34039 (Il cortile interno): chiusa
+D 0 34039 2 2  *! Uscita south della stanza 34039 (Il cortile interno): chiusa a chiave
+D 0 34039 3 1  *! Uscita west della stanza 34039 (Il cortile interno): chiusa
+D 0 34039 5 1  *! Uscita down della stanza 34039 (Il cortile interno): chiusa
+D 0 34040 1 1  *! Uscita east della stanza 34040 (L'armeria): chiusa
+D 0 34041 3 1  *! Uscita west della stanza 34041 (Le scuderie): chiusa
+D 0 34042 0 1  *! Uscita north della stanza 34042 (Il salone): chiusa
+D 0 34042 2 1  *! Uscita south della stanza 34042 (Il salone): chiusa
+D 0 34045 2 1  *! Uscita south della stanza 34045 (La cappella): chiusa
+D 0 34047 0 2  *! Uscita north della stanza 34047 (di fronte al castello): chiusa a chiave
+D 0 34048 0 1  *! Uscita north della stanza 34048 (Il cortile interno): chiusa
+D 0 34048 1 1  *! Uscita east della stanza 34048 (Il cortile interno): chiusa
+D 0 34048 2 2  *! Uscita south della stanza 34048 (Il cortile interno): chiusa a chiave
+D 0 34048 3 1  *! Uscita west della stanza 34048 (Il cortile interno): chiusa
+D 0 34048 5 1  *! Uscita down della stanza 34048 (Il cortile interno): chiusa
+D 0 34049 1 1  *! Uscita east della stanza 34049 (L'armeria): chiusa
+D 0 34050 3 1  *! Uscita west della stanza 34050 (Le scuderie): chiusa
+D 0 34051 0 1  *! Uscita north della stanza 34051 (Il salone): chiusa
+D 0 34051 2 1  *! Uscita south della stanza 34051 (Il salone): chiusa
+D 0 34054 2 1  *! Uscita south della stanza 34054 (La cappella): chiusa
+D 0 34056 0 2  *! Uscita north della stanza 34056 (di fronte al castello): chiusa a chiave
+D 0 34057 0 1  *! Uscita north della stanza 34057 (Il cortile interno): chiusa
+D 0 34057 1 1  *! Uscita east della stanza 34057 (Il cortile interno): chiusa
+D 0 34057 2 2  *! Uscita south della stanza 34057 (Il cortile interno): chiusa a chiave
+D 0 34057 3 1  *! Uscita west della stanza 34057 (Il cortile interno): chiusa
+D 0 34057 5 1  *! Uscita down della stanza 34057 (Il cortile interno): chiusa
+D 0 34058 1 1  *! Uscita east della stanza 34058 (L'armeria): chiusa
+D 0 34059 3 1  *! Uscita west della stanza 34059 (Le scuderie): chiusa
+D 0 34060 0 1  *! Uscita north della stanza 34060 (Il salone): chiusa
+D 0 34060 2 1  *! Uscita south della stanza 34060 (Il salone): chiusa
+D 0 34063 2 1  *! Uscita south della stanza 34063 (La cappella): chiusa
+D 0 34065 0 2  *! Uscita north della stanza 34065 (Uno spiazzo): chiusa a chiave
+D 0 34066 2 2  *! Uscita south della stanza 34066 (L'atrio): chiusa a chiave
+D 0 34066 3 1  *! Uscita west della stanza 34066 (L'atrio): chiusa
+D 0 34066 5 1  *! Uscita down della stanza 34066 (L'atrio): chiusa
+D 0 34067 4 1  *! Uscita up della stanza 34067 (La sala delle torture): chiusa
+D 0 34068 3 1  *! Uscita west della stanza 34068 (La sala ricevimenti): chiusa
+D 0 34069 1 1  *! Uscita east della stanza 34069 (Gli alloggi dei vassalli): chiusa
+D 0 34070 0 1  *! Uscita north della stanza 34070 (Sala del mappamondo): chiusa
+D 0 34070 3 1  *! Uscita west della stanza 34070 (Sala del mappamondo): chiusa
+D 0 34071 1 1  *! Uscita east della stanza 34071 (L'harem): chiusa
+D 0 34072 2 1  *! Uscita south della stanza 34072 (La camera del Principe): chiusa
+D 0 34074 0 2  *! Uscita north della stanza 34074 (Uno spiazzo): chiusa a chiave
+D 0 34075 2 2  *! Uscita south della stanza 34075 (L'atrio): chiusa a chiave
+D 0 34075 3 1  *! Uscita west della stanza 34075 (L'atrio): chiusa
+D 0 34075 5 1  *! Uscita down della stanza 34075 (L'atrio): chiusa
+D 0 34076 4 1  *! Uscita up della stanza 34076 (La sala delle torture): chiusa
+D 0 34077 3 1  *! Uscita west della stanza 34077 (La sala ricevimenti): chiusa
+D 0 34078 1 1  *! Uscita east della stanza 34078 (Gli alloggi dei vassalli): chiusa
+D 0 34079 0 1  *! Uscita north della stanza 34079 (Sala del mappamondo): chiusa
+D 0 34079 3 1  *! Uscita west della stanza 34079 (Sala del mappamondo): chiusa
+D 0 34080 1 1  *! Uscita east della stanza 34080 (L'harem): chiusa
+D 0 34081 2 1  *! Uscita south della stanza 34081 (La camera del Principe): chiusa
+D 0 34083 0 2  *! Uscita north della stanza 34083 (Uno spiazzo): chiusa a chiave
+D 0 34084 2 2  *! Uscita south della stanza 34084 (L'atrio): chiusa a chiave
+D 0 34084 3 1  *! Uscita west della stanza 34084 (L'atrio): chiusa
+D 0 34084 5 1  *! Uscita down della stanza 34084 (L'atrio): chiusa
+D 0 34085 4 1  *! Uscita up della stanza 34085 (La sala delle torture): chiusa
+D 0 34086 3 1  *! Uscita west della stanza 34086 (La sala ricevimenti): chiusa
+D 0 34087 1 1  *! Uscita east della stanza 34087 (Gli alloggi dei vassalli): chiusa
+D 0 34088 0 1  *! Uscita north della stanza 34088 (Sala del mappamondo): chiusa
+D 0 34088 3 1  *! Uscita west della stanza 34088 (Sala del mappamondo): chiusa
+D 0 34089 1 1  *! Uscita east della stanza 34089 (L'harem): chiusa
+D 0 34090 2 1  *! Uscita south della stanza 34090 (La camera del Principe): chiusa
+D 0 34092 0 2  *! Uscita north della stanza 34092 (Uno spiazzo): chiusa a chiave
+D 0 34093 2 2  *! Uscita south della stanza 34093 (L'atrio): chiusa a chiave
+D 0 34093 3 1  *! Uscita west della stanza 34093 (L'atrio): chiusa
+D 0 34093 5 1  *! Uscita down della stanza 34093 (L'atrio): chiusa
+D 0 34094 4 1  *! Uscita up della stanza 34094 (La sala delle torture): chiusa
+D 0 34095 3 1  *! Uscita west della stanza 34095 (La sala ricevimenti): chiusa
+D 0 34096 1 1  *! Uscita east della stanza 34096 (Gli alloggi dei vassalli): chiusa
+D 0 34097 0 1  *! Uscita north della stanza 34097 (Sala del mappamondo): chiusa
+D 0 34097 3 1  *! Uscita west della stanza 34097 (Sala del mappamondo): chiusa
+D 0 34098 1 1  *! Uscita east della stanza 34098 (L'harem): chiusa
+D 0 34099 2 1  *! Uscita south della stanza 34099 (La camera del Principe): chiusa
+D 0 34106 0 2  *! Uscita north della stanza 34106 (Uno spiazzo): chiusa a chiave
+D 0 34107 2 2  *! Uscita south della stanza 34107 (L'atrio): chiusa a chiave
+D 0 34107 3 1  *! Uscita west della stanza 34107 (L'atrio): chiusa
+D 0 34107 5 1  *! Uscita down della stanza 34107 (L'atrio): chiusa
+D 0 34108 4 1  *! Uscita up della stanza 34108 (La sala delle torture): chiusa
+D 0 34109 3 1  *! Uscita west della stanza 34109 (La sala ricevimenti): chiusa
+D 0 34110 1 1  *! Uscita east della stanza 34110 (Gli alloggi dei vassalli): chiusa
+D 0 34111 0 1  *! Uscita north della stanza 34111 (Sala del mappamondo): chiusa
+D 0 34111 3 1  *! Uscita west della stanza 34111 (Sala del mappamondo): chiusa
+D 0 34112 1 1  *! Uscita east della stanza 34112 (L'harem): chiusa
+D 0 34113 2 1  *! Uscita south della stanza 34113 (La camera del Principe): chiusa
+D 0 34115 0 2  *! Uscita north della stanza 34115 (Il ponte elevatoio): chiusa a chiave
+D 0 34116 2 2  *! Uscita south della stanza 34116 (Il voltone): chiusa a chiave
+D 0 34116 5 1  *! Uscita down della stanza 34116 (Il voltone): chiusa
+D 0 34118 0 1  *! Uscita north della stanza 34118 (Il cortile): chiusa
+D 0 34119 2 1  *! Uscita south della stanza 34119 (Il Salone di rappresentanza): chiusa
+D 0 34119 3 1  *! Uscita west della stanza 34119 (Il Salone di rappresentanza): chiusa
+D 0 34120 1 1  *! Uscita east della stanza 34120 (Gli alloggi dei vassalli): chiusa
+D 0 34121 0 1  *! Uscita north della stanza 34121 (La sala del consiglio di guerra): chiusa
+D 0 34122 2 1  *! Uscita south della stanza 34122 (La camera del Principe): chiusa
+D 0 34124 0 2  *! Uscita north della stanza 34124 (Il ponte elevatoio): chiusa a chiave
+D 0 34125 2 2  *! Uscita south della stanza 34125 (Il voltone): chiusa a chiave
+D 0 34125 5 1  *! Uscita down della stanza 34125 (Il voltone): chiusa
+D 0 34127 0 1  *! Uscita north della stanza 34127 (Il cortile): chiusa
+D 0 34128 2 1  *! Uscita south della stanza 34128 (Il Salone di rappresentanza): chiusa
+D 0 34128 3 1  *! Uscita west della stanza 34128 (Il Salone di rappresentanza): chiusa
+D 0 34129 1 1  *! Uscita east della stanza 34129 (Gli alloggi dei vassalli): chiusa
+D 0 34130 0 1  *! Uscita north della stanza 34130 (La sala del consiglio di guerra): chiusa
+D 0 34131 2 1  *! Uscita south della stanza 34131 (La camera del Principe): chiusa
+D 0 34132 0 2  *! Uscita north della stanza 34132 (Il ponte elevatoio): chiusa a chiave
+D 0 34133 2 2  *! Uscita south della stanza 34133 (Il voltone): chiusa a chiave
+D 0 34133 5 1  *! Uscita down della stanza 34133 (Il voltone): chiusa
+D 0 34135 0 1  *! Uscita north della stanza 34135 (Il cortile): chiusa
+D 0 34136 2 1  *! Uscita south della stanza 34136 (Il Salone di rappresentanza): chiusa
+D 0 34136 3 1  *! Uscita west della stanza 34136 (Il Salone di rappresentanza): chiusa
+D 0 34137 1 1  *! Uscita east della stanza 34137 (Gli alloggi dei vassalli): chiusa
+D 0 34138 0 1  *! Uscita north della stanza 34138 (La sala del consiglio di guerra): chiusa
+D 0 34139 2 1  *! Uscita south della stanza 34139 (La camera del Principe): chiusa
+D 0 34140 0 2  *! Uscita north della stanza 34140 (Il ponte elevatoio): chiusa a chiave
+D 0 34141 2 2  *! Uscita south della stanza 34141 (Il voltone): chiusa a chiave
+D 0 34141 5 1  *! Uscita down della stanza 34141 (Il voltone): chiusa
+D 0 34143 0 1  *! Uscita north della stanza 34143 (Il cortile): chiusa
+D 0 34144 2 1  *! Uscita south della stanza 34144 (Il Salone di rappresentanza): chiusa
+D 0 34144 3 1  *! Uscita west della stanza 34144 (Il Salone di rappresentanza): chiusa
+D 0 34145 1 1  *! Uscita east della stanza 34145 (Gli alloggi dei vassalli): chiusa
+D 0 34146 0 1  *! Uscita north della stanza 34146 (La sala del consiglio di guerra): chiusa
+D 0 34147 2 1  *! Uscita south della stanza 34147 (La camera del Principe): chiusa
+D 0 34148 0 2  *! Uscita north della stanza 34148 (Il ponte elevatoio): chiusa a chiave
+D 0 34149 2 2  *! Uscita south della stanza 34149 (Il voltone): chiusa a chiave
+D 0 34149 5 1  *! Uscita down della stanza 34149 (Il voltone): chiusa
+D 0 34151 0 1  *! Uscita north della stanza 34151 (Il cortile): chiusa
+D 0 34153 2 1  *! Uscita south della stanza 34153 (Il Salone di rappresentanza): chiusa
+D 0 34153 3 1  *! Uscita west della stanza 34153 (Il Salone di rappresentanza): chiusa
+D 0 34154 1 1  *! Uscita east della stanza 34154 (Gli alloggi dei vassalli): chiusa
+D 0 34155 0 1  *! Uscita north della stanza 34155 (La sala del consiglio di guerra): chiusa
+D 0 34156 2 1  *! Uscita south della stanza 34156 (La camera del Principe): chiusa
+D 0 34201 0 0  *! Uscita north della stanza 34201 (Viale Alberato): aperta
+D 0 34202 2 0  *! Uscita south della stanza 34202 (Posto di Guardia): aperta
+D 0 34301 1 1  *! Uscita east della stanza 34301 ($c0013Ingresso alla roccaforte del Principe Fouler): chiusa
+D 0 34302 0 1  *! Uscita north della stanza 34302 (Tempio di Darkstar): chiusa
+D 0 34302 1 1  *! Uscita east della stanza 34302 (Tempio di Darkstar): chiusa
+D 0 34303 0 1  *! Uscita north della stanza 34303 ($c0013Stanza privata di Fouler): chiusa
+D 0 34303 3 1  *! Uscita west della stanza 34303 ($c0013Stanza privata di Fouler): chiusa
+D 0 34303 5 1  *! Uscita down della stanza 34303 ($c0013Stanza privata di Fouler): chiusa
+D 0 34304 1 0  *! Uscita east della stanza 34304 (Cortile interno): aperta
+D 0 34304 2 1  *! Uscita south della stanza 34304 (Cortile interno): chiusa
+D 0 34304 3 0  *! Uscita west della stanza 34304 (Cortile interno): aperta
+D 0 34305 3 0  *! Uscita west della stanza 34305 (Sala riunioni): aperta
+D 0 34306 0 1  *! Uscita north della stanza 34306 (Giardino): chiusa
+D 0 34306 3 1  *! Uscita west della stanza 34306 (Giardino): chiusa
+D 0 34307 2 1  *! Uscita south della stanza 34307 (Il regno di Heartbreaker): chiusa
+D 0 34309 1 0  *! Uscita east della stanza 34309 (La stanza di Eowyn): aperta
+D 0 34310 0 1  *! Uscita north della stanza 34310 (Colonnato): chiusa
+D 0 34310 2 1  *! Uscita south della stanza 34310 (Colonnato): chiusa
+D 0 34311 0 1  *! Uscita north della stanza 34311 (La stanza di Heyman): chiusa
+D 0 34312 2 1  *! Uscita south della stanza 34312 (L'osservatorio di Myst): chiusa
+D 0 34313 2 1  *! Uscita south della stanza 34313 ($c0010Dove sognano le Formiche verdi): chiusa
+D 0 34314 0 1  *! Uscita north della stanza 34314 (Colonnato): chiusa
+D 0 34314 2 1  *! Uscita south della stanza 34314 (Colonnato): chiusa
+D 0 34315 4 1  *! Uscita up della stanza 34315 ($c0013Vasca idromassaggio): chiusa
+
+*! Fine dell'inizializzazione della zona 340
+S

@@ -33,7 +33,9 @@ cleanup() {
 }
 
 read_version() {
-    VERSION="$(sed -n 's/^project(nebbie-editor VERSION \([^ )]*\).*/\1/p' "${ROOT}/CMakeLists.txt")"
+    # shellcheck disable=SC1091
+    source "${ROOT}/scripts/nebbie-version.sh"
+    VERSION="$(nebbie_resolve_version "${BUILD}" "${ROOT}")"
     if [[ -z "${VERSION}" ]]; then
         VERSION="0.0.0"
     fi
@@ -62,7 +64,7 @@ trap cleanup EXIT
 read_version
 
 if [[ "${RUN_BUILD}" -eq 1 ]]; then
-    "${ROOT}/scripts/build.sh"
+    "${ROOT}/scripts/build.sh" --no-translator
 fi
 
 echo "==> Preparing bundled sample lib (getworldlocal)"
@@ -72,7 +74,7 @@ if [[ ! -x "${BUILD}/nebbiedit/nebbiedit" ]]; then
     echo "ERROR: CLI binary missing. Build first: ./scripts/build.sh" >&2
     exit 1
 fi
-if [[ ! -x "${BUILD}/nebbie-qt/nebbieedit" ]]; then
+if [[ ! -x "${BUILD}/nebbie-qt/izanagi" && ! -x "${BUILD}/nebbie-qt/nebbieedit" ]]; then
     echo "ERROR: GUI binary missing. Install Qt 6 and rebuild." >&2
     exit 1
 fi
@@ -112,7 +114,7 @@ Depends: libc6 (>= 2.31), libstdc++6 (>= 10), libqt6core6 (>= 6.2.0) | libqt6cor
 Maintainer: Nebbie Editor <nebbie-editor@local>
 Installed-Size: ${INSTALLED_SIZE}
 Description: World editor for Nebbie Arcane MUD
- Nebbie Editor provides a CLI (nebbiedit) and Qt GUI (nebbieedit) to edit
+ Nebbie Editor provides a CLI (nebbiedit) and Qt GUI (izanagi) to edit
  myst.* world files and overlay directories for Nebbie Arcane servers.
  Includes a sample mudroot/lib under /usr/share/nebbie-editor/sample-mudroot.
 EOF

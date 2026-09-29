@@ -1,5 +1,10 @@
 #include "world_data_editor_widget.hpp"
 
+#include "mud_color_widgets.hpp"
+#include "mud_editor_fields.hpp"
+#include "nebbie/edit.hpp"
+#include "nebbie/special_proc_catalog.hpp"
+
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
@@ -7,21 +12,48 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QTabWidget>
-#include <QTextEdit>
 #include <QVBoxLayout>
 
 namespace {
 
-QString textFromEdit(const QTextEdit* field) {
-    return field->toPlainText();
+nebbie::qt::MudColorTextEdit* makeSingleLineMudField() {
+    auto* field = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(field);
+    return field;
 }
 
-void setTextEdit(QTextEdit* field, const std::string& value) {
-    field->setPlainText(QString::fromStdString(value));
+nebbie::qt::MudColorTextEdit* makeMultiLineMudField(const int max_height = 72) {
+    auto* field = new nebbie::qt::MudColorTextEdit;
+    field->setMaximumHeight(max_height);
+    return field;
+}
+
+QString textFromEdit(const nebbie::qt::MudColorTextEdit* field) {
+    return field ? field->storageText() : QString();
+}
+
+void setTextEdit(nebbie::qt::MudColorTextEdit* field, const std::string& value) {
+    if (field) {
+        field->setStorageText(QString::fromStdString(value));
+    }
+}
+
+int findComboTextInsensitive(const QComboBox* combo, const QString& text) {
+    if (!combo) {
+        return -1;
+    }
+    const std::string needle = text.trimmed().toStdString();
+    for (int i = 0; i < combo->count(); ++i) {
+        if (nebbie::special_proc_names_equal(combo->itemText(i).toStdString(), needle)) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 QWidget* wrapScroll(QWidget* content) {
@@ -157,13 +189,13 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
     shop_open2_->setRange(0, 24);
     shop_close2_ = new QSpinBox;
     shop_close2_->setRange(0, 24);
-    shop_msg_buy_ = new QLineEdit;
-    shop_msg_sell_ = new QLineEdit;
-    shop_no_item1_ = new QLineEdit;
-    shop_no_item2_ = new QLineEdit;
-    shop_no_buy_ = new QLineEdit;
-    shop_no_cash1_ = new QLineEdit;
-    shop_no_cash2_ = new QLineEdit;
+    shop_msg_buy_ = makeSingleLineMudField();
+    shop_msg_sell_ = makeSingleLineMudField();
+    shop_no_item1_ = makeSingleLineMudField();
+    shop_no_item2_ = makeSingleLineMudField();
+    shop_no_buy_ = makeSingleLineMudField();
+    shop_no_cash1_ = makeSingleLineMudField();
+    shop_no_cash2_ = makeSingleLineMudField();
     form->addRow("Vnum:", shop_vnum_);
     form->addRow("Keeper (mob):", shop_keeper_);
     form->addRow("Room:", shop_room_);
@@ -198,6 +230,9 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
 void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
+    layout->addWidget(new QLabel(
+        "Assegnazioni in myst.spe (file globale libreria). Formato riga: "
+        "M <vnum> <procedura> [parametri]. Salva la libreria per scrivere il file."));
     special_list_ = new QListWidget;
     auto* form_host = new QWidget;
     auto* form = new QFormLayout(form_host);
@@ -207,18 +242,90 @@ void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     special_type_->addItem("r (stanza)", QVariant(QChar('r')));
     special_vnum_ = new QSpinBox;
     special_vnum_->setRange(0, 999999);
-    special_procedure_ = new QLineEdit;
+    special_procedure_ = new QComboBox;
+    special_procedure_->setEditable(true);
+    special_procedure_->setInsertPolicy(QComboBox::NoInsert);
     special_params_ = new QLineEdit;
     form->addRow("Tipo:", special_type_);
     form->addRow("Vnum:", special_vnum_);
     form->addRow("Procedure:", special_procedure_);
     form->addRow("Params:", special_params_);
+    auto* buttons = new QHBoxLayout;
+    auto* add = new QPushButton("Nuova special proc");
     auto* apply = new QPushButton("Applica special proc");
+    auto* remove = new QPushButton("Rimuovi");
+    buttons->addWidget(add);
+    buttons->addWidget(apply);
+    buttons->addWidget(remove);
+    buttons->addStretch();
+    connect(add, &QPushButton::clicked, this, &WorldDataEditorWidget::addSpecial);
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applySpecial);
+    connect(remove, &QPushButton::clicked, this, &WorldDataEditorWidget::removeSpecial);
     layout->addLayout(makeListEditorRow(special_list_, wrapScroll(form_host)));
-    layout->addWidget(apply);
+    layout->addLayout(buttons);
     connect(special_list_, &QListWidget::currentRowChanged, this, [this](int) { onSpecialSelected(); });
+    connect(special_type_, &QComboBox::currentIndexChanged, this, [this](int) {
+        refreshSpecialProcedureChoices();
+    });
+    refreshSpecialProcedureChoices();
     static_cast<QTabWidget*>(parent)->addTab(page, "Special");
+}
+
+void WorldDataEditorWidget::clearSpecialForm() {
+    if (!special_type_ || !special_vnum_ || !special_procedure_ || !special_params_) {
+        return;
+    }
+    special_type_->setCurrentIndex(0);
+    special_vnum_->setValue(0);
+    refreshSpecialProcedureChoices();
+    special_procedure_->setEditText(QString());
+    special_params_->clear();
+}
+
+nebbie::SpecialProc WorldDataEditorWidget::readSpecialForm() const {
+    nebbie::SpecialProc spe;
+    spe.type = static_cast<char>(special_type_->currentData().toChar().unicode());
+    spe.vnum = special_vnum_->value();
+    spe.procedure = special_procedure_->currentText().trimmed().toStdString();
+    spe.params = special_params_->text().trimmed().toStdString();
+    return spe;
+}
+
+void WorldDataEditorWidget::selectSpecialIndex(const std::size_t index) {
+    if (!special_list_) {
+        return;
+    }
+    for (int row = 0; row < special_list_->count(); ++row) {
+        if (static_cast<std::size_t>(special_list_->item(row)->data(Qt::UserRole).toLongLong()) == index) {
+            special_list_->setCurrentRow(row);
+            return;
+        }
+    }
+}
+
+void WorldDataEditorWidget::refreshSpecialProcedureChoices() {
+    if (!special_procedure_ || !special_type_) {
+        return;
+    }
+
+    const QString current = special_procedure_->currentText();
+    const char type = static_cast<char>(special_type_->currentData().toChar().unicode());
+    const auto& names = nebbie::special_proc_names_for_type(type);
+
+    special_procedure_->blockSignals(true);
+    special_procedure_->clear();
+    for (const auto& name : names) {
+        special_procedure_->addItem(QString::fromStdString(name));
+    }
+    if (!current.isEmpty()) {
+        const int index = findComboTextInsensitive(special_procedure_, current);
+        if (index >= 0) {
+            special_procedure_->setCurrentIndex(index);
+        } else {
+            special_procedure_->setEditText(current);
+        }
+    }
+    special_procedure_->blockSignals(false);
 }
 
 void WorldDataEditorWidget::buildDamageTab(QWidget* parent) {
@@ -229,23 +336,18 @@ void WorldDataEditorWidget::buildDamageTab(QWidget* parent) {
     auto* form = new QFormLayout(form_host);
     damage_attack_type_ = new QSpinBox;
     damage_attack_type_->setRange(0, 999);
-    damage_die_attacker_ = new QTextEdit;
-    damage_die_victim_ = new QTextEdit;
-    damage_die_room_ = new QTextEdit;
-    damage_miss_attacker_ = new QTextEdit;
-    damage_miss_victim_ = new QTextEdit;
-    damage_miss_room_ = new QTextEdit;
-    damage_hit_attacker_ = new QTextEdit;
-    damage_hit_victim_ = new QTextEdit;
-    damage_hit_room_ = new QTextEdit;
-    damage_god_attacker_ = new QTextEdit;
-    damage_god_victim_ = new QTextEdit;
-    damage_god_room_ = new QTextEdit;
-    for (QTextEdit* field : {damage_die_attacker_, damage_die_victim_, damage_die_room_, damage_miss_attacker_,
-                            damage_miss_victim_, damage_miss_room_, damage_hit_attacker_, damage_hit_victim_,
-                            damage_hit_room_, damage_god_attacker_, damage_god_victim_, damage_god_room_}) {
-        field->setMaximumHeight(72);
-    }
+    damage_die_attacker_ = makeMultiLineMudField();
+    damage_die_victim_ = makeMultiLineMudField();
+    damage_die_room_ = makeMultiLineMudField();
+    damage_miss_attacker_ = makeMultiLineMudField();
+    damage_miss_victim_ = makeMultiLineMudField();
+    damage_miss_room_ = makeMultiLineMudField();
+    damage_hit_attacker_ = makeMultiLineMudField();
+    damage_hit_victim_ = makeMultiLineMudField();
+    damage_hit_room_ = makeMultiLineMudField();
+    damage_god_attacker_ = makeMultiLineMudField();
+    damage_god_victim_ = makeMultiLineMudField();
+    damage_god_room_ = makeMultiLineMudField();
     form->addRow("Attack type:", damage_attack_type_);
     form->addRow("Die attacker:", damage_die_attacker_);
     form->addRow("Die victim:", damage_die_victim_);
@@ -279,19 +381,14 @@ void WorldDataEditorWidget::buildSocialTab(QWidget* parent) {
     social_hide_->setRange(0, 1);
     social_min_pos_ = new QSpinBox;
     social_min_pos_->setRange(0, 15);
-    social_char_no_arg_ = new QTextEdit;
-    social_others_no_arg_ = new QTextEdit;
-    social_char_found_ = new QTextEdit;
-    social_others_found_ = new QTextEdit;
-    social_vict_found_ = new QTextEdit;
-    social_not_found_ = new QTextEdit;
-    social_char_auto_ = new QTextEdit;
-    social_others_auto_ = new QTextEdit;
-    for (QTextEdit* field :
-         {social_char_no_arg_, social_others_no_arg_, social_char_found_, social_others_found_, social_vict_found_,
-          social_not_found_, social_char_auto_, social_others_auto_}) {
-        field->setMaximumHeight(64);
-    }
+    social_char_no_arg_ = makeMultiLineMudField(64);
+    social_others_no_arg_ = makeMultiLineMudField(64);
+    social_char_found_ = makeMultiLineMudField(64);
+    social_others_found_ = makeMultiLineMudField(64);
+    social_vict_found_ = makeMultiLineMudField(64);
+    social_not_found_ = makeMultiLineMudField(64);
+    social_char_auto_ = makeMultiLineMudField(64);
+    social_others_auto_ = makeMultiLineMudField(64);
     form->addRow("act_nr:", social_act_nr_);
     form->addRow("hide:", social_hide_);
     form->addRow("min_victim_position:", social_min_pos_);
@@ -320,10 +417,8 @@ void WorldDataEditorWidget::buildPoseTab(QWidget* parent) {
     pose_level_ = new QSpinBox;
     pose_level_->setRange(0, 60);
     for (int i = 0; i < 4; ++i) {
-        pose_poser_[i] = new QTextEdit;
-        pose_room_[i] = new QTextEdit;
-        pose_poser_[i]->setMaximumHeight(56);
-        pose_room_[i]->setMaximumHeight(56);
+        pose_poser_[i] = makeMultiLineMudField(56);
+        pose_room_[i] = makeMultiLineMudField(56);
         form->addRow(QString("Poser class %1:").arg(i), pose_poser_[i]);
         form->addRow(QString("Room class %1:").arg(i), pose_room_[i]);
     }
@@ -342,7 +437,7 @@ void WorldDataEditorWidget::buildGuildTab(QWidget* parent) {
     guild_list_ = new QListWidget;
     auto* form_host = new QWidget;
     auto* form = new QFormLayout(form_host);
-    guild_name_ = new QLineEdit;
+    guild_name_ = makeSingleLineMudField();
     guild_guard_mob_ = new QSpinBox;
     guild_guard_mob_->setRange(0, 999999);
     guild_guard_room_ = new QSpinBox;
@@ -416,13 +511,13 @@ void WorldDataEditorWidget::onShopSelected() {
     shop_close1_->setValue(shop->close1);
     shop_open2_->setValue(shop->open2);
     shop_close2_->setValue(shop->close2);
-    shop_msg_buy_->setText(QString::fromStdString(shop->message_buy));
-    shop_msg_sell_->setText(QString::fromStdString(shop->message_sell));
-    shop_no_item1_->setText(QString::fromStdString(shop->no_such_item1));
-    shop_no_item2_->setText(QString::fromStdString(shop->no_such_item2));
-    shop_no_buy_->setText(QString::fromStdString(shop->do_not_buy));
-    shop_no_cash1_->setText(QString::fromStdString(shop->missing_cash1));
-    shop_no_cash2_->setText(QString::fromStdString(shop->missing_cash2));
+    shop_msg_buy_->setStorageText(QString::fromStdString(shop->message_buy));
+    shop_msg_sell_->setStorageText(QString::fromStdString(shop->message_sell));
+    shop_no_item1_->setStorageText(QString::fromStdString(shop->no_such_item1));
+    shop_no_item2_->setStorageText(QString::fromStdString(shop->no_such_item2));
+    shop_no_buy_->setStorageText(QString::fromStdString(shop->do_not_buy));
+    shop_no_cash1_->setStorageText(QString::fromStdString(shop->missing_cash1));
+    shop_no_cash2_->setStorageText(QString::fromStdString(shop->missing_cash2));
 }
 
 void WorldDataEditorWidget::applyShop() {
@@ -453,13 +548,13 @@ void WorldDataEditorWidget::applyShop() {
     shop->close1 = shop_close1_->value();
     shop->open2 = shop_open2_->value();
     shop->close2 = shop_close2_->value();
-    shop->message_buy = shop_msg_buy_->text().toStdString();
-    shop->message_sell = shop_msg_sell_->text().toStdString();
-    shop->no_such_item1 = shop_no_item1_->text().toStdString();
-    shop->no_such_item2 = shop_no_item2_->text().toStdString();
-    shop->do_not_buy = shop_no_buy_->text().toStdString();
-    shop->missing_cash1 = shop_no_cash1_->text().toStdString();
-    shop->missing_cash2 = shop_no_cash2_->text().toStdString();
+    shop->message_buy = shop_msg_buy_->storageText().toStdString();
+    shop->message_sell = shop_msg_sell_->storageText().toStdString();
+    shop->no_such_item1 = shop_no_item1_->storageText().toStdString();
+    shop->no_such_item2 = shop_no_item2_->storageText().toStdString();
+    shop->do_not_buy = shop_no_buy_->storageText().toStdString();
+    shop->missing_cash1 = shop_no_cash1_->storageText().toStdString();
+    shop->missing_cash2 = shop_no_cash2_->storageText().toStdString();
     item->setData(Qt::UserRole, static_cast<qlonglong>(shop->vnum));
     item->setText(QString("#%1 keeper=%2 room=%3").arg(shop->vnum).arg(shop->keeper).arg(shop->in_room));
     emit modified();
@@ -481,7 +576,14 @@ void WorldDataEditorWidget::onSpecialSelected() {
     const int type_index = special_type_->findData(QVariant(QChar(spe.type)));
     special_type_->setCurrentIndex(type_index >= 0 ? type_index : 0);
     special_vnum_->setValue(static_cast<int>(spe.vnum));
-    special_procedure_->setText(QString::fromStdString(spe.procedure));
+    refreshSpecialProcedureChoices();
+    const QString procedure = QString::fromStdString(spe.procedure);
+    const int proc_index = findComboTextInsensitive(special_procedure_, procedure);
+    if (proc_index >= 0) {
+        special_procedure_->setCurrentIndex(proc_index);
+    } else {
+        special_procedure_->setEditText(procedure);
+    }
     special_params_->setText(QString::fromStdString(spe.params));
 }
 
@@ -491,21 +593,81 @@ void WorldDataEditorWidget::applySpecial() {
     }
     auto* item = special_list_->currentItem();
     if (!item) {
+        QMessageBox::information(this, "Special proc", "Seleziona una special proc da modificare.");
         return;
     }
     const std::size_t index = static_cast<std::size_t>(item->data(Qt::UserRole).toLongLong());
-    if (index >= world_->special_procs.size()) {
+    nebbie::SpecialProc spe = readSpecialForm();
+    std::string error;
+    if (!nebbie::update_special_proc(*world_, index, spe, &error)) {
+        QMessageBox::warning(this, "Special proc", QString::fromStdString(error));
         return;
     }
-    auto& spe = world_->special_procs[index];
-    spe.type = static_cast<char>(special_type_->currentData().toChar().unicode());
-    spe.vnum = special_vnum_->value();
-    spe.procedure = special_procedure_->text().toStdString();
-    spe.params = special_params_->text().toStdString();
-    item->setText(QString("%1 %2 %3")
-                      .arg(QChar(spe.type))
-                      .arg(spe.vnum)
-                      .arg(QString::fromStdString(spe.procedure)));
+    if (nebbie::special_proc_exists(*world_, spe.type, spe.vnum, index)) {
+        QMessageBox::information(
+            this,
+            "Special proc",
+            "Attenzione: esiste gia' un'altra assegnazione per lo stesso tipo e vnum.");
+    }
+    refresh();
+    selectSpecialIndex(index);
+    emit modified();
+}
+
+void WorldDataEditorWidget::addSpecial() {
+    if (!world_) {
+        QMessageBox::information(this, "Special proc", "Apri prima una libreria.");
+        return;
+    }
+
+    nebbie::SpecialProc spe = readSpecialForm();
+    std::string error;
+    if (!nebbie::add_special_proc(*world_, spe, &error)) {
+        QMessageBox::warning(this, "Special proc", QString::fromStdString(error));
+        return;
+    }
+    const std::size_t index = world_->special_procs.size() - 1;
+    if (nebbie::special_proc_exists(*world_, spe.type, spe.vnum, index)) {
+        QMessageBox::information(
+            this,
+            "Special proc",
+            "Attenzione: esiste gia' un'altra assegnazione per lo stesso tipo e vnum.");
+    }
+    refresh();
+    selectSpecialIndex(index);
+    emit modified();
+}
+
+void WorldDataEditorWidget::removeSpecial() {
+    if (!world_) {
+        return;
+    }
+    auto* item = special_list_->currentItem();
+    if (!item) {
+        QMessageBox::information(this, "Special proc", "Seleziona una special proc da rimuovere.");
+        return;
+    }
+    const std::size_t index = static_cast<std::size_t>(item->data(Qt::UserRole).toLongLong());
+    const QString label = item->text();
+    const auto answer = QMessageBox::question(
+        this,
+        "Rimuovi special proc",
+        QString("Rimuovere %1 da myst.spe?").arg(label),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+    if (!nebbie::remove_special_proc(*world_, index)) {
+        QMessageBox::warning(this, "Special proc", "Impossibile rimuovere la special proc selezionata.");
+        return;
+    }
+    refresh();
+    if (special_list_->count() > 0) {
+        special_list_->setCurrentRow(std::min<int>(static_cast<int>(index), special_list_->count() - 1));
+    } else {
+        clearSpecialForm();
+    }
     emit modified();
 }
 
@@ -676,7 +838,7 @@ void WorldDataEditorWidget::onGuildSelected() {
         return;
     }
     const auto& guild = world_->guilds[index];
-    guild_name_->setText(QString::fromStdString(guild.base_filename));
+    guild_name_->setStorageText(QString::fromStdString(guild.base_filename));
     guild_guard_mob_->setValue(guild.guard_mob);
     guild_guard_room_->setValue(guild.guard_room);
     guild_guard_dir_->setValue(guild.guard_dir);
@@ -700,7 +862,7 @@ void WorldDataEditorWidget::applyGuild() {
         return;
     }
     auto& guild = world_->guilds[index];
-    guild.base_filename = guild_name_->text().toStdString();
+    guild.base_filename = guild_name_->storageText().toStdString();
     guild.guard_mob = guild_guard_mob_->value();
     guild.guard_room = guild_guard_room_->value();
     guild.guard_dir = guild_guard_dir_->value();
@@ -711,4 +873,58 @@ void WorldDataEditorWidget::applyGuild() {
     guild.member_book_obj = guild_member_book_->value();
     item->setText(QString::fromStdString(guild.base_filename));
     emit modified();
+}
+
+nebbie::qt::MudFieldList WorldDataEditorWidget::mudFields() const {
+    nebbie::qt::MudFieldList fields = {shop_msg_buy_,
+                                       shop_msg_sell_,
+                                       shop_no_item1_,
+                                       shop_no_item2_,
+                                       shop_no_buy_,
+                                       shop_no_cash1_,
+                                       shop_no_cash2_,
+                                       damage_die_attacker_,
+                                       damage_die_victim_,
+                                       damage_die_room_,
+                                       damage_miss_attacker_,
+                                       damage_miss_victim_,
+                                       damage_miss_room_,
+                                       damage_hit_attacker_,
+                                       damage_hit_victim_,
+                                       damage_hit_room_,
+                                       damage_god_attacker_,
+                                       damage_god_victim_,
+                                       damage_god_room_,
+                                       social_char_no_arg_,
+                                       social_others_no_arg_,
+                                       social_char_found_,
+                                       social_others_found_,
+                                       social_vict_found_,
+                                       social_not_found_,
+                                       social_char_auto_,
+                                       social_others_auto_,
+                                       guild_name_};
+    for (int i = 0; i < 4; ++i) {
+        fields.push_back(pose_poser_[i]);
+        fields.push_back(pose_room_[i]);
+    }
+    return fields;
+}
+
+void WorldDataEditorWidget::applyMudFieldSettings() {
+    nebbie::qt::applyMudFieldSettings(mudFields(), max_line_length_, show_color_codes_);
+}
+
+void WorldDataEditorWidget::setMaxLineLength(const int max_length) {
+    max_line_length_ = max_length < 0 ? 0 : max_length;
+    applyMudFieldSettings();
+}
+
+void WorldDataEditorWidget::setShowColorCodes(const bool show) {
+    show_color_codes_ = show;
+    applyMudFieldSettings();
+}
+
+nebbie::qt::MudColorTextEdit* WorldDataEditorWidget::focusedMudField() const {
+    return nebbie::qt::focusedMudField(mudFields());
 }

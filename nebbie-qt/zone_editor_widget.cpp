@@ -1,5 +1,7 @@
 #include "zone_editor_widget.hpp"
 
+#include "mud_color_widgets.hpp"
+#include "mud_editor_fields.hpp"
 #include "nebbie/edit.hpp"
 #include "nebbie/zone_catalog.hpp"
 
@@ -82,8 +84,8 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
         info_tab));
     auto* info_form = new QFormLayout;
     zone_num_label_ = new QLabel("-");
-    name_ = new QLineEdit;
-    configureLineField(name_);
+    name_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(name_);
     bottom_label_ = new QLabel("-");
     top_ = new QSpinBox;
     top_->setRange(0, 999999);
@@ -220,6 +222,24 @@ void ZoneEditorWidget::selectResetIndex(const int index) {
     }
 }
 
+void ZoneEditorWidget::applyMudFieldSettings() {
+    nebbie::qt::applyMudFieldSettings({name_}, max_line_length_, show_color_codes_);
+}
+
+void ZoneEditorWidget::setMaxLineLength(const int max_length) {
+    max_line_length_ = max_length < 0 ? 0 : max_length;
+    applyMudFieldSettings();
+}
+
+void ZoneEditorWidget::setShowColorCodes(const bool show) {
+    show_color_codes_ = show;
+    applyMudFieldSettings();
+}
+
+nebbie::qt::MudColorTextEdit* ZoneEditorWidget::focusedMudField() const {
+    return name_;
+}
+
 void ZoneEditorWidget::setWorld(nebbie::World* world) {
     world_ = world;
 }
@@ -227,7 +247,7 @@ void ZoneEditorWidget::setWorld(nebbie::World* world) {
 void ZoneEditorWidget::loadFromZone(const nebbie::Zone& zone) {
     zone_num_ = zone.num;
     zone_num_label_->setText(QString::number(zone.num));
-    name_->setText(QString::fromStdString(zone.name));
+    name_->setStorageText(QString::fromStdString(zone.name));
     bottom_label_->setText(QString("%1").arg(zone.bottom));
     top_->setValue(zone.top);
     lifespan_->setValue(zone.lifespan);
@@ -236,7 +256,7 @@ void ZoneEditorWidget::loadFromZone(const nebbie::Zone& zone) {
 }
 
 void ZoneEditorWidget::saveZoneInfoTo(nebbie::Zone& zone) const {
-    zone.name = name_->text().toStdString();
+    zone.name = name_->storageText().toStdString();
     zone.top = top_->value();
     zone.lifespan = lifespan_->value();
     zone.reset_mode = comboIntValue(reset_mode_);

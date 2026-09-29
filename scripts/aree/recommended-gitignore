@@ -1,0 +1,16 @@
+# Copia in .gitignore alla radice del repo NebbieArcane/Aree
+
+# Izanagi / Nebbie session data (mai in Git)
+**/.nebbie/
+
+# Workspace Aree: archivi sandbox e sessioni
+.izanagi/
+
+# Overlay editor (se compaiono sotto un'area)
+**/rooms/
+**/objects/
+**/mobiles/
+**/zones/
+
+# Output build locale (decommenta se mudroot/ e' solo generato)
+# mudroot/

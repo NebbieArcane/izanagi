@@ -42,6 +42,10 @@ if ($QtPrefix) {
     $CmakeArgs += @("-DCMAKE_PREFIX_PATH=$QtPrefix")
 }
 
+if ($env:NEBBIE_VERSION) {
+    $CmakeArgs += @("-DNEBBIE_VERSION=$($env:NEBBIE_VERSION)")
+}
+
 Write-Host "==> cmake $($CmakeArgs -join ' ')"
 & cmake @CmakeArgs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

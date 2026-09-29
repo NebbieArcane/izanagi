@@ -88,7 +88,8 @@ bool parseVersionFromAssetName(const QString& asset_name,
 
 ReleaseUpdateInfo parseReleaseResponse(const QByteArray& body,
                                        const ReleaseProduct product,
-                                       const QString& current_version) {
+                                       const QString& current_version,
+                                       const QString& build_timestamp_iso) {
     ReleaseUpdateInfo info;
     info.current_version = current_version;
 
@@ -134,6 +135,7 @@ ReleaseUpdateInfo parseReleaseResponse(const QByteArray& body,
     info.ok = true;
     info.latest_version = best_version;
     info.download_url = best_url;
+    (void)build_timestamp_iso;
     info.update_available = compareVersions(current_version, best_version) < 0;
     return info;
 }

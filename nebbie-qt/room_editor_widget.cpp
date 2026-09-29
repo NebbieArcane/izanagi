@@ -6,6 +6,8 @@
 #include "nebbie/room_catalog.hpp"
 #include "room_text_monitors.hpp"
 
+#include "mud_editor_fields.hpp"
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QFrame>
@@ -200,10 +202,10 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     moblim_ = new QSpinBox;
     moblim_->setRange(1, 2000000000);
     moblim_form->addRow("moblim (TUNNEL):", moblim_);
-    bright_at_night_ = new QLineEdit;
-    bright_at_day_ = new QLineEdit;
-    configureLineField(bright_at_night_);
-    configureLineField(bright_at_day_);
+    bright_at_night_ = new nebbie::qt::MudColorTextEdit;
+    bright_at_day_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(bright_at_night_);
+    nebbie::qt::configureMudSingleLineField(bright_at_day_);
     auto* bright_form = new QFormLayout;
     bright_form->addRow("Bright at night (L):", bright_at_night_);
     bright_form->addRow("Bright at day (L):", bright_at_day_);
@@ -312,6 +314,8 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     hookMudField(description_);
     hookMudField(extra_desc_description_);
     hookMudField(exit_description_);
+    hookMudField(bright_at_night_);
+    hookMudField(bright_at_day_);
 
     river_panel_->setVisible(false);
     moblim_panel_->setVisible(false);
@@ -390,8 +394,8 @@ void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
     river_dir_->setValue(static_cast<int>(room.river_dir));
     moblim_->setValue(room.moblim > 0 ? static_cast<int>(room.moblim) : 1);
 
-    bright_at_night_->setText(QString::fromStdString(room.bright_at_night));
-    bright_at_day_->setText(QString::fromStdString(room.bright_at_day));
+    bright_at_night_->setStorageText(QString::fromStdString(room.bright_at_night));
+    bright_at_day_->setStorageText(QString::fromStdString(room.bright_at_day));
 
     extra_desc_list_->blockSignals(true);
     extra_desc_list_->clear();
@@ -466,6 +470,8 @@ void RoomEditorWidget::applyColorSettingsToFields() {
     apply(description_);
     apply(extra_desc_description_);
     apply(exit_description_);
+    apply(bright_at_night_);
+    apply(bright_at_day_);
 }
 
 void RoomEditorWidget::hookMudField(nebbie::qt::MudColorTextEdit* field) {
@@ -475,14 +481,8 @@ void RoomEditorWidget::hookMudField(nebbie::qt::MudColorTextEdit* field) {
 }
 
 nebbie::qt::MudColorTextEdit* RoomEditorWidget::focusedMudField() const {
-    const auto widgets = std::initializer_list<nebbie::qt::MudColorTextEdit*>{
-        name_, description_, extra_desc_description_, exit_description_};
-    for (auto* field : widgets) {
-        if (field && field->hasFocus()) {
-            return field;
-        }
-    }
-    return description_;
+    return nebbie::qt::focusedMudField(
+        {name_, description_, extra_desc_description_, exit_description_, bright_at_night_, bright_at_day_});
 }
 
 void RoomEditorWidget::updateTextMonitors() {
@@ -493,7 +493,6 @@ void RoomEditorWidget::updateTextMonitors() {
     nebbie::qt::updateLineLengthMonitor(description_line_info_, description_, max_line_length_);
     nebbie::qt::updateLineLengthMonitor(extra_desc_line_info_, extra_desc_description_, max_line_length_);
     nebbie::qt::updateLineLengthMonitor(exit_line_info_, exit_description_, max_line_length_);
-
     nebbie::qt::updateAsciiMonitor(name_ascii_info_, name_->storageText().toStdString());
     nebbie::qt::updateAsciiMonitor(description_ascii_info_, description_->storageText().toStdString());
     nebbie::qt::updateAsciiMonitor(extra_desc_ascii_info_, extra_desc_description_->storageText().toStdString());
@@ -533,8 +532,8 @@ void RoomEditorWidget::saveToRoom(nebbie::Room& room) {
         room.moblim = 0;
     }
 
-    room.bright_at_night = bright_at_night_->text().toStdString();
-    room.bright_at_day = bright_at_day_->text().toStdString();
+    room.bright_at_night = bright_at_night_->storageText().toStdString();
+    room.bright_at_day = bright_at_day_->storageText().toStdString();
 
     room.extra_descs.clear();
     for (int i = 0; i < extra_desc_list_->count(); ++i) {

@@ -1,6 +1,6 @@
 #include "nebbie/io.hpp"
 #include "nebbie/overlay_io.hpp"
-#include "nebbie/validate.hpp"
+#include "nebbie/monolith_audit.hpp"
 #include "nebbie/world.hpp"
 #include "nebbie/zone_graph.hpp"
 #include "nebbie/zone_partition.hpp"
@@ -28,6 +28,10 @@ nebbie::ZonePartitionOptions parse_zone_partition_options(int argc, char** argv,
             options.write_monolith_files = false;
         } else if (flag == "--no-shops") {
             options.include_shop_entities = false;
+        } else if (flag == "--aree-layout") {
+            options.aree_layout = true;
+        } else if (flag == "--with-eof-markers") {
+            options.write_eof_markers = true;
         } else {
             throw std::runtime_error("Unknown zone partition flag: " + flag);
         }
@@ -57,8 +61,8 @@ void usage() {
         << "  nebbiedit zone show <zone-number>\n"
         << "  nebbiedit zone rooms <zone-number>\n"
         << "  nebbiedit zone graph <zone-number> [--dot]\n"
-        << "  nebbiedit zone split <lib-directory> <output-directory> [--no-overlays|--no-monoliths|--no-shops]\n"
-        << "  nebbiedit zone split-one <lib-directory> <zone-number> <output-directory> [--no-overlays|--no-monoliths|--no-shops]\n"
+        << "  nebbiedit zone split <lib-directory> <output-directory> [--aree-layout] [--with-eof-markers] [--no-overlays|--no-monoliths|--no-shops]\n"
+        << "  nebbiedit zone split-one <lib-directory> <zone-number> <output-directory> [--aree-layout] [--with-eof-markers] [--no-overlays|--no-monoliths|--no-shops]\n"
         << "  nebbiedit zone merge <zones-root> <merged-lib-directory>\n"
         << "  nebbiedit room list <lib-directory> [vnum-prefix]\n"
         << "  nebbiedit room show <lib-directory> <vnum>\n"
@@ -80,6 +84,8 @@ void usage() {
         << "  nebbiedit guild list\n"
         << "  nebbiedit guild show <name>\n"
         << "  nebbiedit validate <lib-directory>\n"
+        << "  nebbiedit repair-lib <lib-directory>   (fix myst.* for NebbieArcane server boot)\n"
+        << "  nebbiedit repair-wld <lib-directory>   (alias: rewrite myst.wld only)\n"
         << "  nebbiedit check mob <myst.mob-path>\n"
         << "  nebbiedit check obj <myst.obj-path>\n"
         << "  nebbiedit check wld <myst.wld-path>\n"
@@ -589,6 +595,44 @@ bool run(int argc, char** argv) {
             return false;
         }
 
+        if (cmd == "repair-lib" || cmd == "repair-wld") {
+            if (argc < 3) {
+                usage();
+                return false;
+            }
+            const std::filesystem::path lib = argv[2];
+            if (cmd == "repair-wld") {
+                const std::filesystem::path wld_path = lib / "myst.wld";
+                if (!std::filesystem::exists(wld_path)) {
+                    std::cerr << "myst.wld not found in " << lib << '\n';
+                    return false;
+                }
+
+                nebbie::World world;
+                nebbie::LibContext context;
+                nebbie::load_lib(world, lib, context, [](const std::string& msg) {
+                    std::cout << msg << '\n';
+                });
+
+                const std::filesystem::path backup = lib / "myst.wld.bak";
+                std::filesystem::copy_file(wld_path, backup, std::filesystem::copy_options::overwrite_existing);
+                nebbie::save_myst_wld(world, wld_path, [](const std::string& msg) {
+                    std::cout << msg << '\n';
+                });
+                std::cout << "Repaired myst.wld for server compatibility (" << world.rooms.size()
+                          << " rooms). Backup: " << backup << '\n';
+                return true;
+            }
+
+            const nebbie::LibRepairReport report = nebbie::repair_lib_for_server(lib, [](const std::string& msg) {
+                std::cout << msg << '\n';
+            });
+            std::cout << "Repaired library for NebbieArcane server boot in " << lib << '\n';
+            std::cout << "  premature terminators removed: " << report.terminators_removed << '\n';
+            std::cout << "  myst.wld rewritten: " << (report.wld_rewritten ? "yes" : "no") << '\n';
+            return true;
+        }
+
         if (cmd == "validate") {
             if (argc < 3) {
                 usage();
@@ -598,7 +642,8 @@ bool run(int argc, char** argv) {
             nebbie::load_lib(world, argv[2], [](const std::string& msg) {
                 std::cout << msg << '\n';
             });
-            const nebbie::ValidationReport report = nebbie::validate_world(world);
+            nebbie::ValidationReport report = nebbie::validate_world(world);
+            nebbie::append_monolith_validation(report, argv[2]);
             for (const auto& issue : report.issues) {
                 const char* level = issue.severity == nebbie::ValidationSeverity::error
                                         ? "ERROR"

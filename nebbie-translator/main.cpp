@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     app.setApplicationName(nebbie::qt::cypherDisplayName());
     app.setApplicationDisplayName(nebbie::qt::cypherWindowTitle());
     app.setOrganizationName("Nebbie Arcane");
-    app.setApplicationVersion(QStringLiteral(NEBBIE_VERSION));
+    app.setApplicationVersion(nebbie::qt::applicationVersionLabel());
     nebbie::qt::applyDefaultAppTheme(app);
     const QIcon app_icon(QStringLiteral(":/app-icon.png"));
     app.setWindowIcon(app_icon);

@@ -1,6 +1,8 @@
 #include "obj_editor_widget.hpp"
 
 #include "flag_group_widget.hpp"
+#include "mud_color_widgets.hpp"
+#include "mud_editor_fields.hpp"
 #include "nebbie/obj_catalog.hpp"
 
 #include <QCheckBox>
@@ -26,14 +28,14 @@ void configureLineField(QLineEdit* field) {
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
-void configureShortTextField(QTextEdit* field) {
+void configureShortTextField(nebbie::qt::MudColorTextEdit* field) {
     field->setMinimumHeight(56);
     field->setMaximumHeight(80);
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     field->setLineWrapMode(QTextEdit::WidgetWidth);
 }
 
-void configureTextField(QTextEdit* field, const int min_height) {
+void configureTextField(nebbie::qt::MudColorTextEdit* field, const int min_height) {
     field->setMinimumHeight(min_height);
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -69,13 +71,13 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* text_tab = new QWidget;
     auto* text_form = new QFormLayout(text_tab);
-    name_ = new QLineEdit;
-    configureLineField(name_);
-    short_descr_ = new QTextEdit;
+    name_ = new nebbie::qt::MudColorTextEdit;
+    nebbie::qt::configureMudSingleLineField(name_);
+    short_descr_ = new nebbie::qt::MudColorTextEdit;
     configureShortTextField(short_descr_);
-    description_ = new QTextEdit;
+    description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(description_, 110);
-    action_description_ = new QTextEdit;
+    action_description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(action_description_, 100);
     action_description_->setPlaceholderText("Action description (e.g. weapons/potions); leave empty if unused");
     text_form->addRow("Name (keywords~):", name_);
@@ -176,7 +178,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_desc_list_ = new QListWidget;
     extra_desc_keyword_ = new QLineEdit;
     configureLineField(extra_desc_keyword_);
-    extra_desc_description_ = new QTextEdit;
+    extra_desc_description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(extra_desc_description_, 90);
     auto* extra_desc_form = new QFormLayout;
     extra_desc_form->addRow("Keyword:", extra_desc_keyword_);
@@ -214,11 +216,37 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_flags2_panel_->setVisible(false);
 }
 
+nebbie::qt::MudFieldList ObjEditorWidget::mudFields() const {
+    return {name_, short_descr_, description_, action_description_, extra_desc_description_};
+}
+
+void ObjEditorWidget::applyMudFieldSettings() {
+    nebbie::qt::applyMudFieldSettings(mudFields(), max_line_length_, show_color_codes_);
+}
+
+void ObjEditorWidget::setMaxLineLength(const int max_length) {
+    max_line_length_ = max_length < 0 ? 0 : max_length;
+    applyMudFieldSettings();
+}
+
+void ObjEditorWidget::setShowColorCodes(const bool show) {
+    show_color_codes_ = show;
+    applyMudFieldSettings();
+}
+
+nebbie::qt::MudColorTextEdit* ObjEditorWidget::focusedMudField() const {
+    return nebbie::qt::focusedMudField(mudFields());
+}
+
+void ObjEditorWidget::focusPrimaryTextField() {
+    short_descr_->setFocus();
+}
+
 void ObjEditorWidget::loadFromObject(const nebbie::GameObject& obj) {
-    name_->setText(QString::fromStdString(obj.name));
-    short_descr_->setPlainText(QString::fromStdString(obj.short_descr));
-    description_->setPlainText(QString::fromStdString(obj.description));
-    action_description_->setPlainText(QString::fromStdString(obj.action_description));
+    name_->setStorageText(QString::fromStdString(obj.name));
+    short_descr_->setStorageText(QString::fromStdString(obj.short_descr));
+    description_->setStorageText(QString::fromStdString(obj.description));
+    action_description_->setStorageText(QString::fromStdString(obj.action_description));
 
     setComboIntValue(type_flag_, obj.type_flag);
     value0_->setValue(obj.value[0]);
@@ -261,10 +289,10 @@ void ObjEditorWidget::loadFromObject(const nebbie::GameObject& obj) {
 }
 
 void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) const {
-    obj.name = name_->text().toStdString();
-    obj.short_descr = short_descr_->toPlainText().toStdString();
-    obj.description = description_->toPlainText().toStdString();
-    obj.action_description = action_description_->toPlainText().toStdString();
+    obj.name = name_->storageText().toStdString();
+    obj.short_descr = short_descr_->storageText().toStdString();
+    obj.description = description_->storageText().toStdString();
+    obj.action_description = action_description_->storageText().toStdString();
 
     obj.type_flag = comboIntValue(type_flag_);
     obj.value[0] = value0_->value();
@@ -309,7 +337,7 @@ void ObjEditorWidget::onExtraDescSelected() {
 
 void ObjEditorWidget::addExtraDesc() {
     const QString keyword = extra_desc_keyword_->text().trimmed();
-    const QString description = extra_desc_description_->toPlainText();
+    const QString description = extra_desc_description_->storageText();
     if (keyword.isEmpty() && description.trimmed().isEmpty()) {
         return;
     }
@@ -319,7 +347,7 @@ void ObjEditorWidget::addExtraDesc() {
     extra_desc_list_->addItem(item);
     extra_desc_list_->setCurrentItem(item);
     extra_desc_keyword_->clear();
-    extra_desc_description_->clear();
+    extra_desc_description_->setStorageText({});
 }
 
 void ObjEditorWidget::removeExtraDesc() {
@@ -335,11 +363,11 @@ void ObjEditorWidget::refreshExtraDescForm() {
     const auto* item = extra_desc_list_->currentItem();
     if (!item) {
         extra_desc_keyword_->clear();
-        extra_desc_description_->clear();
+        extra_desc_description_->setStorageText({});
         return;
     }
     extra_desc_keyword_->setText(item->data(Qt::UserRole).toString());
-    extra_desc_description_->setPlainText(item->data(Qt::UserRole + 1).toString());
+    extra_desc_description_->setStorageText(item->data(Qt::UserRole + 1).toString());
 }
 
 void ObjEditorWidget::onAffectSelected() {

@@ -25,9 +25,15 @@ add_library(nebbie-core
     src/obj_catalog.cpp
     src/room_catalog.cpp
     src/zone_catalog.cpp
+    src/special_proc_catalog.cpp
+    src/special_proc_catalog_data.cpp
     src/world_index.cpp
     src/overlay_io.cpp
     src/zone_partition.cpp
+    src/monolith_audit.cpp
+    src/aree_workspace.cpp
+    src/legacy_format.cpp
+    src/source_blocks.cpp
 )
 
 target_include_directories(nebbie-core PUBLIC include)

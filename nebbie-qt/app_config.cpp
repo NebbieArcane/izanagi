@@ -82,6 +82,10 @@ AppConfig read_config() {
             config.dismissed_update_version = value_after_equals(line);
         } else if (line.startsWith(QStringLiteral("ui_language="))) {
             config.ui_language = value_after_equals(line);
+        } else if (line.startsWith(QStringLiteral("aree_workspace_root="))) {
+            config.aree_workspace_root = value_after_equals(line);
+        } else if (line.startsWith(QStringLiteral("aree_last_area="))) {
+            config.aree_last_area = value_after_equals(line);
         }
     }
     return config;
@@ -119,6 +123,12 @@ bool write_config(const AppConfig& config) {
     }
     if (!config.ui_language.isEmpty()) {
         out << "ui_language=" << config.ui_language << '\n';
+    }
+    if (!config.aree_workspace_root.isEmpty()) {
+        out << "aree_workspace_root=" << config.aree_workspace_root << '\n';
+    }
+    if (!config.aree_last_area.isEmpty()) {
+        out << "aree_last_area=" << config.aree_last_area << '\n';
     }
     return true;
 }

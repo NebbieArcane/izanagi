@@ -2,9 +2,9 @@
 
 Strumenti desktop per modificare le librerie di mondo di [Nebbie Arcane](https://github.com/NebbieArcane/Server).
 
-Repository: **https://github.com/NebbieArcane/izanagi**
+Repository: **https://github.com/NebbieArcane/izanagi** (pubblico)
 
-Il progetto è indipendente dal codice del server: non servono permessi sull'organizzazione `NebbieArcane`. Il riferimento di formato resta il codice in `NebbieArcane/Server` (`src/db.cpp`, `src/db.hpp`).
+Il formato file resta allineato al server [Nebbie Arcane](https://github.com/NebbieArcane/Server) (`src/db.cpp`, `src/db.hpp`).
 
 ---
 
@@ -13,7 +13,7 @@ Il progetto è indipendente dal codice del server: non servono permessi sull'org
 | | **Izanagi** | **Cypher** |
 |---|-------------|------------|
 | **Ruolo** | Editor completo del mondo | Editor leggero per tradurre i testi |
-| **Eseguibile** | `nebbieedit` (Linux/macOS) · `izanagi.exe` (Windows) | `nebbie-translate` (Linux/macOS) · `cypher.exe` (Windows) |
+| **Eseguibile** | `izanagi` (Linux) · `Izanagi.app` (macOS) · `izanagi.exe` (Windows) | `cypher` (Linux) · `Cypher.app` (macOS) · `cypher.exe` (Windows) |
 | **Release GitHub** | tag [`izanagi`](https://github.com/NebbieArcane/izanagi/releases/tag/izanagi) | tag [`cypher`](https://github.com/NebbieArcane/izanagi/releases/tag/cypher) |
 | **Config** | `nebbieedit.conf` | `nebbie-translate.conf` |
 
@@ -61,7 +61,7 @@ A ogni push su `main`, la CI pubblica pacchetti precompilati per **Windows**, **
 | Piattaforma | File | Installazione |
 |-------------|------|----------------|
 | **Windows** | `izanagi_*_windows_portable.zip` | Estrai → avvia **`izanagi.exe`** (incluso `nebbiedit.exe` CLI opzionale) |
-| **macOS** | `izanagi_*_macos.dmg` | Trascina **`nebbieedit.app`** in Applicazioni |
+| **macOS** | `izanagi_*_macos.dmg` | Trascina **`Izanagi.app`** in Applicazioni |
 | **Linux** | `izanagi_*_amd64.deb` | `sudo dpkg -i izanagi_*.deb` → `sudo apt-get install -f` |
 
 **Primo avvio Izanagi:** File → Apri libreria → cartella `mudroot` o `mudroot/lib` → modifica → Salva.
@@ -75,7 +75,7 @@ Ogni pacchetto include un mondo di esempio (`sample-mudroot`).
 | Piattaforma | File | Installazione |
 |-------------|------|----------------|
 | **Windows** | `cypher_*_windows_portable.zip` | Estrai → avvia **`cypher.exe`** |
-| **macOS** | `cypher_*_macos.dmg` | Trascina **`nebbie-translate.app`** in Applicazioni |
+| **macOS** | `cypher_*_macos.dmg` | Trascina **`Cypher.app`** in Applicazioni |
 | **Linux** | `cypher_*_amd64.deb` | `sudo dpkg -i cypher_*.deb` → `sudo apt-get install -f` |
 
 **Primo avvio Cypher:** File → Apri libreria → `mudroot/lib` → traduci → Salva.
@@ -85,9 +85,9 @@ Ogni pacchetto include un mondo di esempio (`sample-mudroot`).
 Se macOS blocca l'applicazione: tasto destro → **Apri** (solo la prima volta), oppure:
 
 ```bash
-xattr -cr /Applications/nebbieedit.app
+xattr -cr /Applications/Izanagi.app
 # oppure
-xattr -cr /Applications/nebbie-translate.app
+xattr -cr /Applications/Cypher.app
 ```
 
 Per distribuzione senza questo passaggio serve la notarizzazione Apple (`docs/MACOS_SIGNING.md`).
@@ -202,22 +202,18 @@ docs/               Documentazione tecnica
 
 ## CI e release (maintainer)
 
-I pacchetti scaricabili sono pubblicati **solo** da `NebbieArcane/izanagi` (tag `izanagi` e `cypher`). Il fork `wizardmorgan/nebbie-arcane-editing-tools` non pubblica più release.
+Repository pubblico: **https://github.com/NebbieArcane/izanagi**
 
-**Setup una tantum** sul repo org (se le release non compaiono ancora):
-
-1. `NebbieArcane/izanagi` → **Settings → Actions → General** → abilita Actions
-2. **Settings → Secrets and variables → Actions** → copia i secret dal fork (se usi firma/notarizzazione macOS):
-   `APPLE_TEAM_ID`, `APPLE_CERTIFICATE_BASE64`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_BASE64`
-3. **Actions** → *Izanagi (release packages)* e *Cypher (release packages)* → **Run workflow** su `main`
-
-Per copiare subito gli asset già buildati dal fork:
+A ogni push su `main` la CI builda, testa e pubblica i pacchetti sui tag [`izanagi`](https://github.com/NebbieArcane/izanagi/releases/tag/izanagi) e [`cypher`](https://github.com/NebbieArcane/izanagi/releases/tag/cypher).
 
 ```bash
-./scripts/mirror-releases-to-izanagi.sh
+git push origin main
+gh run list --repo NebbieArcane/izanagi --limit 5
 ```
 
-(richiede `gh auth login` con accesso in scrittura a `NebbieArcane/izanagi`)
+**Secret opzionali** (firma/notarizzazione macOS): `APPLE_TEAM_ID`, `APPLE_CERTIFICATE_BASE64`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_BASE64` — vedi `docs/MACOS_SIGNING.md`.
+
+Per rilanciare manualmente: **Actions** → *Izanagi (release packages)* / *Cypher (release packages)* → **Run workflow** su `main`.
 
 ---
 

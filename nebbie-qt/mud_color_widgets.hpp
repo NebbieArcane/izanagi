@@ -2,6 +2,7 @@
 
 #include "mud_color_common.hpp"
 
+#include <QMimeData>
 #include <QTextEdit>
 
 namespace nebbie::qt {
@@ -21,6 +22,7 @@ public:
     void setSingleLineMode(bool single_line);
 
     void insertColorCode(const QString& code);
+    void pastePlainText();
 
 signals:
     void storageTextChanged(const QString& text);
@@ -29,11 +31,13 @@ protected:
     void paintEvent(QPaintEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
     bool event(QEvent* event) override;
+    void insertFromMimeData(const QMimeData* source) override;
 
 private slots:
     void onContentsChanged(int position, int charsRemoved, int charsAdded);
 
 private:
+    void insertStorageTextAtCursor(const QString& text);
     void rebuildDocument(int preferred_storage_cursor = -1);
     void updateRulerState();
     QTextCharFormat formatForState(const MudDisplayColorState& state) const;

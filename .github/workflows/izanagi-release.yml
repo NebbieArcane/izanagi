@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
 
+env:
+  NEBBIE_VERSION: 0.1.${{ github.run_number }}
+
 jobs:
   linux-deb:
     if: github.repository == 'NebbieArcane/izanagi'
@@ -28,7 +31,7 @@ jobs:
       - name: Verify .deb package
         run: |
           dpkg-deb --info dist/izanagi_*.deb
-          dpkg-deb --contents dist/izanagi_*.deb | grep -E 'bin/nebbieedit|share/nebbie-editor|icons/hicolor.*izanagi'
+          dpkg-deb --contents dist/izanagi_*.deb | grep -E 'bin/izanagi|share/nebbie-editor|icons/hicolor.*izanagi'
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
@@ -51,8 +54,8 @@ jobs:
 
       - name: Build app icons
         run: |
-          if [[ -f nebbie-qt/icons/nebbieedit.icns ]]; then
-            echo "Using committed nebbieedit.icns"
+          if [[ -f nebbie-qt/icons/izanagi.icns ]]; then
+            echo "Using committed izanagi.icns"
           else
             pip3 install pillow --break-system-packages
             python3 scripts/generate-nebbie-icons.py nebbieedit
@@ -101,13 +104,15 @@ jobs:
           set -euo pipefail
           hdiutil attach dist/izanagi_*_macos.dmg -mountpoint /tmp/izanagi-dmg -nobrowse
           trap 'hdiutil detach /tmp/izanagi-dmg 2>/dev/null || true' EXIT
-          test -d /tmp/izanagi-dmg/nebbieedit.app
-          test -d /tmp/izanagi-dmg/nebbieedit.app/Contents/Frameworks
-          test -x /tmp/izanagi-dmg/nebbieedit.app/Contents/MacOS/nebbieedit
+          test -d /tmp/izanagi-dmg/Izanagi.app
+          test -d /tmp/izanagi-dmg/Izanagi.app/Contents/Frameworks
+          test -x /tmp/izanagi-dmg/Izanagi.app/Contents/MacOS/Izanagi
+          test -f /tmp/izanagi-dmg/Izanagi.app/Contents/Resources/izanagi.icns
           test -f /tmp/izanagi-dmg/LEGGIMI.txt
+          codesign --verify --deep --strict /tmp/izanagi-dmg/Izanagi.app
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
-            xcrun stapler validate /tmp/izanagi-dmg/nebbieedit.app
-            spctl -a -vv /tmp/izanagi-dmg/nebbieedit.app
+            xcrun stapler validate /tmp/izanagi-dmg/Izanagi.app
+            spctl -a -vv /tmp/izanagi-dmg/Izanagi.app
           else
             echo "Ad-hoc signed build — skipping stapler/spctl (first launch: tasto destro → Apri)."
           fi

@@ -28,5 +28,6 @@ QString izanagiAboutText(const QString& version);
 QString cypherAboutText(const QString& version);
 
 QString githubReleaseRepo();
+QString applicationVersionLabel();
 
 } // namespace nebbie::qt

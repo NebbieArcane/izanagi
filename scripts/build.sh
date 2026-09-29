@@ -59,6 +59,18 @@ CMAKE_ARGS=(
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     "${ROOT}/scripts/check-macos-toolchain.sh"
+    if [[ "$MACOS_BUNDLE" -eq 1 || "$MACOS_BUNDLE_TRANSLATOR" -eq 1 ]]; then
+        if [[ ! -f "${ROOT}/nebbie-qt/icons/izanagi.icns" && ! -f "${ROOT}/nebbie-qt/icons/nebbieedit.icns" ]]; then
+            echo "==> Generating macOS Izanagi icons"
+            python3 "${ROOT}/scripts/generate-nebbie-icons.py" nebbieedit
+        fi
+        if [[ "$MACOS_BUNDLE_TRANSLATOR" -eq 1 \
+              && ! -f "${ROOT}/nebbie-translator/icons/cypher.icns" \
+              && ! -f "${ROOT}/nebbie-translator/icons/nebbie-translate.icns" ]]; then
+            echo "==> Generating macOS Cypher icons"
+            python3 "${ROOT}/scripts/generate-nebbie-icons.py" nebbie-translate
+        fi
+    fi
     CMAKE_ARGS+=(-DNEBBIE_MACOS_BUNDLE="$MACOS_BUNDLE")
     CMAKE_ARGS+=(-DNEBBIE_MACOS_BUNDLE_TRANSLATOR="$MACOS_BUNDLE_TRANSLATOR")
     if [[ -z "${CMAKE_PREFIX_PATH:-}" ]] && command -v brew >/dev/null 2>&1; then
@@ -76,6 +88,10 @@ if [[ ${#EXTRA_CMAKE_ARGS[@]} -gt 0 ]]; then
     CMAKE_ARGS+=("${EXTRA_CMAKE_ARGS[@]}")
 fi
 
+if [[ -n "${NEBBIE_VERSION:-}" ]]; then
+    CMAKE_ARGS+=(-DNEBBIE_VERSION="${NEBBIE_VERSION}")
+fi
+
 echo "==> cmake ${CMAKE_ARGS[*]}"
 cmake "${CMAKE_ARGS[@]}"
 
@@ -91,8 +107,12 @@ echo
 echo "Binaries:"
 echo "  CLI:  $BUILD_DIR/nebbiedit/nebbiedit"
 if [[ "$WITH_QT" -eq 1 ]]; then
-    if [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit" ]]; then
+    if [[ -x "$BUILD_DIR/nebbie-qt/Izanagi.app/Contents/MacOS/Izanagi" ]]; then
+        echo "  GUI:  $BUILD_DIR/nebbie-qt/Izanagi.app"
+    elif [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit" ]]; then
         echo "  GUI:  $BUILD_DIR/nebbie-qt/nebbieedit.app"
+    elif [[ -x "$BUILD_DIR/nebbie-qt/izanagi" ]]; then
+        echo "  GUI:  $BUILD_DIR/nebbie-qt/izanagi"
     elif [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit" ]]; then
         echo "  GUI:  $BUILD_DIR/nebbie-qt/nebbieedit"
     else
@@ -100,8 +120,12 @@ if [[ "$WITH_QT" -eq 1 ]]; then
     fi
 fi
 if [[ "$WITH_TRANSLATOR" -eq 1 ]]; then
-    if [[ -x "$BUILD_DIR/nebbie-translator/nebbie-translate.app/Contents/MacOS/nebbie-translate" ]]; then
+    if [[ -x "$BUILD_DIR/nebbie-translator/Cypher.app/Contents/MacOS/Cypher" ]]; then
+        echo "  Translate:  $BUILD_DIR/nebbie-translator/Cypher.app"
+    elif [[ -x "$BUILD_DIR/nebbie-translator/nebbie-translate.app/Contents/MacOS/nebbie-translate" ]]; then
         echo "  Translate:  $BUILD_DIR/nebbie-translator/nebbie-translate.app"
+    elif [[ -x "$BUILD_DIR/nebbie-translator/cypher" ]]; then
+        echo "  Translate:  $BUILD_DIR/nebbie-translator/cypher"
     elif [[ -x "$BUILD_DIR/nebbie-translator/nebbie-translate" ]]; then
         echo "  Translate:  $BUILD_DIR/nebbie-translator/nebbie-translate"
     else

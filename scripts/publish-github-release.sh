@@ -27,6 +27,17 @@ fi
 printf 'Release assets:\n'
 printf '  %s\n' "${ASSETS[@]}"
 
+CHECKSUMS_FILE="${ASSETS_DIR}/SHA256SUMS"
+(
+  cd "${ASSETS_DIR}"
+  : > SHA256SUMS
+  for asset in "${ASSETS[@]}"; do
+    sha256sum "$(basename "${asset}")" >> SHA256SUMS
+  done
+)
+ASSETS+=("${CHECKSUMS_FILE}")
+printf '  %s\n' "${CHECKSUMS_FILE}"
+
 if [[ -z "${GITHUB_SHA:-}" ]]; then
   echo "GITHUB_SHA is required" >&2
   exit 1

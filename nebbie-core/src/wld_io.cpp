@@ -199,9 +199,8 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
         }
     }
 
-    if (room.room_flags & TUNNEL) {
-        std::fprintf(fp, "%ld\n", room.moblim > 0 ? room.moblim : 1);
-    }
+    // NebbieArcane load_one_room() does not read a standalone moblim line before
+    // D/E/L/S aux records; emitting one breaks boot with "unknown auxiliary code '1'".
 
     for (const auto& exit : room.exits) {
         std::fprintf(fp, "D%d\n", exit.direction);
@@ -294,7 +293,8 @@ void load_myst_wld(World& world, const std::filesystem::path& path, ProgressCall
     std::fclose(fp);
 }
 
-void save_myst_wld(const World& world, const std::filesystem::path& path, ProgressCallback progress) {
+void save_myst_wld(const World& world, const std::filesystem::path& path, ProgressCallback progress,
+                   MystSaveOptions options) {
     if (progress) {
         progress("Saving " + path.string());
     }
@@ -305,7 +305,9 @@ void save_myst_wld(const World& world, const std::filesystem::path& path, Progre
         std::fprintf(fp, "#%ld\n", room.vnum);
         write_room_body(fp, room, world);
     }
-    std::fprintf(fp, "#0\n");
+    if (options.write_eof_markers) {
+        std::fprintf(fp, "#0\n");
+    }
     std::fclose(fp);
 }
 

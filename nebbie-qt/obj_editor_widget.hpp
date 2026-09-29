@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mud_editor_fields.hpp"
 #include "nebbie/types.hpp"
 
 #include <QWidget>
@@ -9,8 +10,11 @@ class QComboBox;
 class QLineEdit;
 class QListWidget;
 class QSpinBox;
-class QTextEdit;
 class FlagGroupWidget;
+
+namespace nebbie::qt {
+class MudColorTextEdit;
+}
 
 class ObjEditorWidget : public QWidget {
     Q_OBJECT
@@ -20,6 +24,11 @@ public:
 
     void loadFromObject(const nebbie::GameObject& obj);
     void saveToObject(nebbie::GameObject& obj) const;
+
+    void setMaxLineLength(int max_length);
+    void setShowColorCodes(bool show);
+    nebbie::qt::MudColorTextEdit* focusedMudField() const;
+    void focusPrimaryTextField();
 
 private slots:
     void onExtraDescSelected();
@@ -33,11 +42,16 @@ private:
     void refreshExtraDescForm();
     void refreshAffectForm();
     void setComboIntValue(QComboBox* combo, int value) const;
+    void applyMudFieldSettings();
+    nebbie::qt::MudFieldList mudFields() const;
 
-    QLineEdit* name_ = nullptr;
-    QTextEdit* short_descr_ = nullptr;
-    QTextEdit* description_ = nullptr;
-    QTextEdit* action_description_ = nullptr;
+    int max_line_length_ = 0;
+    bool show_color_codes_ = false;
+
+    nebbie::qt::MudColorTextEdit* name_ = nullptr;
+    nebbie::qt::MudColorTextEdit* short_descr_ = nullptr;
+    nebbie::qt::MudColorTextEdit* description_ = nullptr;
+    nebbie::qt::MudColorTextEdit* action_description_ = nullptr;
 
     QComboBox* type_flag_ = nullptr;
     QSpinBox* value0_ = nullptr;
@@ -61,7 +75,7 @@ private:
 
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;
-    QTextEdit* extra_desc_description_ = nullptr;
+    nebbie::qt::MudColorTextEdit* extra_desc_description_ = nullptr;
 
     QLineEdit* forbidden_char_ = nullptr;
     QLineEdit* forbidden_room_ = nullptr;

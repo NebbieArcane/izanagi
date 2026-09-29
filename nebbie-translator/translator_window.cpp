@@ -2,6 +2,7 @@
 
 #include "app_config.hpp"
 #include "app_i18n.hpp"
+#include "edit_menu.hpp"
 #include "mud_color_common.hpp"
 #include "mud_color_dialogs.hpp"
 #include "mud_color_list_delegate.hpp"
@@ -13,6 +14,7 @@
 
 #include "nebbie/edit.hpp"
 #include "nebbie/io.hpp"
+#include "nebbie/monolith_audit.hpp"
 #include "nebbie/validate.hpp"
 
 #include <QAction>
@@ -150,6 +152,8 @@ void TranslatorWindow::setupMenus() {
 
     file_menu->addSeparator();
     file_menu->addAction(appTr("menu.exit"), this, &QWidget::close);
+
+    nebbie::qt::addStandardEditMenu(menuBar());
 
     auto* tools_menu = menuBar()->addMenu(appTr("menu.tools"));
     auto* validate_action = tools_menu->addAction(appTr("menu.validate"));
@@ -489,7 +493,8 @@ void TranslatorWindow::validateLib() {
         return;
     }
 
-    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::append_monolith_validation(report, lib_path_);
     showValidation(report);
     if (report.ok()) {
         if (report.warning_count() > 0) {

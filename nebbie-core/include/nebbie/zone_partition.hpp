@@ -26,6 +26,10 @@ struct ZonePartitionOptions {
     bool write_overlay_dirs = true;
     bool include_shop_entities = true;
     bool include_special_procs = true;
+    /** Omit #$ / %% / #0 in per-zone myst.* (Aree deploy_aree.php concat). */
+    bool write_eof_markers = false;
+    /** Write src/<slug>/<slug>.{zon,wld,...} instead of zone-NNNN-name/myst.* */
+    bool aree_layout = false;
 };
 
 struct ZonePartitionReport {
@@ -42,6 +46,9 @@ ZoneEntitySet collect_zone_entities(const World& world,
                                     const ZonePartitionOptions& options = {});
 
 std::string zone_pack_directory_name(int zone_num, const std::string& zone_name);
+
+/** Filesystem slug for Aree src/<slug>/<slug>.* (no zone- prefix). */
+std::string aree_area_slug(int zone_num, const std::string& zone_name);
 
 ZonePartitionReport export_zone_pack(const World& world,
                                      const std::filesystem::path& output_root,

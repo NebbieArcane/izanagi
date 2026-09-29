@@ -28,6 +28,7 @@ const char* kExtraBits[] = {
 
 const char* kExtraBits2[] = {
     "QUEST-ITEM", "EDIT", "NO-LOCATE", "PERSONAL", "HAS-GEMS", "NO-PRINCE", "ONLY-PRINCE",
+    "PROCAREA-REWARD", "DUSTED", "PAID-MALUS",
 };
 
 const char* kApplyTypes[] = {

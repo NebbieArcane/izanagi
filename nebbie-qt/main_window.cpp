@@ -4,6 +4,7 @@
 #include "app_i18n.hpp"
 #include "application_log.hpp"
 #include "coordinator_client.hpp"
+#include "edit_menu.hpp"
 #include "mob_editor_widget.hpp"
 #include "mud_color_dialogs.hpp"
 #include "mud_color_common.hpp"
@@ -18,12 +19,16 @@
 #include "path_util.hpp"
 #include "validation_report_ui.hpp"
 #include "nebbie/edit.hpp"
+#include "nebbie/aree_workspace.hpp"
+#include "nebbie/constants.hpp"
 #include "nebbie/overlay_io.hpp"
 #include "nebbie/io.hpp"
+#include "nebbie/monolith_audit.hpp"
 #include "nebbie/validate.hpp"
 #include "nebbie/world_index.hpp"
 #include "nebbie/zone_graph.hpp"
 
+#include <QAbstractItemView>
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
@@ -32,6 +37,8 @@
 #include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QDockWidget>
+#include <QHeaderView>
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QTabWidget>
@@ -58,6 +65,8 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 #include <stdexcept>
 
@@ -144,6 +153,15 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
     return qobject_cast<nebbie::qt::MudColorListDelegate*>(list->itemDelegate());
 }
 
+std::optional<nebbie::AreeAreaInfo> selectedAreeArea(const QTableWidget* table,
+                                                     const std::vector<nebbie::AreeAreaInfo>& areas) {
+    const int row = table->currentRow();
+    if (row < 0 || row >= static_cast<int>(areas.size())) {
+        return std::nullopt;
+    }
+    return areas[static_cast<std::size_t>(row)];
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -154,10 +172,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     connect(update_checker_, &nebbie::qt::ReleaseUpdateChecker::checkFinished, this,
             &MainWindow::onUpdateCheckFinished);
     setupUi();
+    setupAreeDock();
     setupMenus();
     retranslateUi();
-    room_editor_->setMaxLineLength(app_config_.max_line_length);
-    room_editor_->setShowColorCodes(app_config_.show_color_codes);
+    applyTextEditorSettings();
     if (auto* delegate = roomListDelegate(room_list_)) {
         delegate->setShowColorCodes(app_config_.show_color_codes);
     }
@@ -278,7 +296,15 @@ void MainWindow::setupUi() {
     world_data_editor_ = new WorldDataEditorWidget;
     world_data_tab_ = world_data_editor_;
     tabs_->addTab(world_data_tab_, QString());
-    connect(world_data_editor_, &WorldDataEditorWidget::modified, this, &MainWindow::markDirty);
+    connect(world_data_editor_, &WorldDataEditorWidget::modified, this, [this]() {
+        if (!world_.special_procs.empty()) {
+            context_.has_spe = true;
+            if (context_.spe_path.empty()) {
+                context_.spe_path = nebbie::SPECIAL_FILE;
+            }
+        }
+        markDirty();
+    });
 
     map_tab_ = new QWidget;
     auto* map_layout = new QVBoxLayout(map_tab_);
@@ -489,13 +515,56 @@ void MainWindow::setupUi() {
     connect(autosave_timer_, &QTimer::timeout, this, &MainWindow::onAutosaveTick);
 }
 
+void MainWindow::setupAreeDock() {
+    aree_dock_ = new QDockWidget(this);
+    aree_dock_->setObjectName(QStringLiteral("areeWorkspaceDock"));
+    aree_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
+    auto* dock_widget = new QWidget;
+    auto* layout = new QVBoxLayout(dock_widget);
+
+    aree_table_ = new QTableWidget(0, 4);
+    aree_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    aree_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+    aree_table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    aree_table_->verticalHeader()->setVisible(false);
+    aree_table_->horizontalHeader()->setStretchLastSection(true);
+    aree_table_->setColumnWidth(0, 100);
+    aree_table_->setColumnWidth(1, 52);
+    aree_table_->setColumnWidth(2, 140);
+    layout->addWidget(aree_table_, 1);
+
+    auto* buttons = new QHBoxLayout;
+    aree_open_button_ = new QPushButton;
+    aree_restore_button_ = new QPushButton;
+    buttons->addWidget(aree_open_button_);
+    buttons->addWidget(aree_restore_button_);
+    layout->addLayout(buttons);
+
+    aree_dock_->setWidget(dock_widget);
+    addDockWidget(Qt::LeftDockWidgetArea, aree_dock_);
+    aree_dock_->hide();
+
+    connect(aree_open_button_, &QPushButton::clicked, this, &MainWindow::openAreeArea);
+    connect(aree_restore_button_, &QPushButton::clicked, this, &MainWindow::restoreAreeArchive);
+    connect(aree_table_, &QTableWidget::cellDoubleClicked, this, [this](int, int) { openAreeArea(); });
+    connect(aree_table_, &QTableWidget::itemSelectionChanged, this, &MainWindow::onAreeAreaActivated);
+    onAreeAreaActivated();
+}
+
 void MainWindow::setupMenus() {
     auto* file_menu = menuBar()->addMenu(appTr("menu.file"));
 
     auto* open_action = file_menu->addAction(appTr("menu.open_lib"));
     open_action->setShortcut(QKeySequence::Open);
+    open_action->setToolTip(appTr("menu.open_lib_tip"));
     connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
 
+    auto* open_aree_action = file_menu->addAction(appTr("menu.open_aree_workspace"));
+    open_aree_action->setToolTip(appTr("menu.open_aree_workspace_tip"));
+    connect(open_aree_action, &QAction::triggered, this, &MainWindow::openAreeWorkspace);
+
+    file_menu->addSeparator();
     auto* reload_action = file_menu->addAction(appTr("menu.reload_lib"));
     reload_action->setShortcut(QKeySequence::Refresh);
     reload_action->setToolTip(appTr("menu.reload_lib_tip"));
@@ -516,6 +585,8 @@ void MainWindow::setupMenus() {
 
     file_menu->addSeparator();
     file_menu->addAction(appTr("menu.exit"), this, &QWidget::close);
+
+    nebbie::qt::addStandardEditMenu(menuBar());
 
     auto* tools_menu = menuBar()->addMenu(appTr("menu.tools"));
     auto* validate_action = tools_menu->addAction(appTr("menu.validate_world"));
@@ -627,6 +698,14 @@ void MainWindow::retranslateUi() {
         map_tabs_->setTabText(0, appTr("tab.map_zone"));
         map_tabs_->setTabText(1, appTr("tab.map_world"));
     }
+    if (aree_dock_) {
+        aree_dock_->setWindowTitle(appTr("aree.dock_title"));
+        const QStringList headers = {appTr("aree.col_folder"), appTr("aree.col_zone"), appTr("aree.col_name"),
+                                     appTr("aree.col_top")};
+        aree_table_->setHorizontalHeaderLabels(headers);
+        aree_open_button_->setText(appTr("aree.open_area"));
+        aree_restore_button_->setText(appTr("aree.restore_archive"));
+    }
     if (lib_path_.empty() && statusBar()->currentMessage().isEmpty()) {
         statusBar()->showMessage(appTr("status.ready"));
     }
@@ -671,10 +750,23 @@ nebbie::ValidationOptions MainWindow::validationOptions() const {
     return options;
 }
 
+void MainWindow::applyTextEditorSettings() {
+    room_editor_->setMaxLineLength(app_config_.max_line_length);
+    room_editor_->setShowColorCodes(app_config_.show_color_codes);
+    mob_editor_->setMaxLineLength(app_config_.max_line_length);
+    mob_editor_->setShowColorCodes(app_config_.show_color_codes);
+    obj_editor_->setMaxLineLength(app_config_.max_line_length);
+    obj_editor_->setShowColorCodes(app_config_.show_color_codes);
+    zone_editor_->setMaxLineLength(app_config_.max_line_length);
+    zone_editor_->setShowColorCodes(app_config_.show_color_codes);
+    world_data_editor_->setMaxLineLength(app_config_.max_line_length);
+    world_data_editor_->setShowColorCodes(app_config_.show_color_codes);
+}
+
 void MainWindow::toggleExtendedColorView(bool enabled) {
     app_config_.show_color_codes = enabled;
     nebbie::qt::write_config(app_config_);
-    room_editor_->setShowColorCodes(enabled);
+    applyTextEditorSettings();
     if (auto* delegate = roomListDelegate(room_list_)) {
         delegate->setShowColorCodes(enabled);
         room_list_->viewport()->update();
@@ -696,10 +788,35 @@ void MainWindow::insertColorCode() {
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
-    if (auto* field = room_editor_->focusedMudField()) {
-        field->insertColorCode(dialog.selectedCode());
-        setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+    nebbie::qt::MudColorTextEdit* field = activeMudTextField();
+    if (!field) {
+        setStatus("Seleziona un campo di testo prima di inserire un colore.");
+        return;
     }
+    field->insertColorCode(dialog.selectedCode());
+    setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+}
+
+nebbie::qt::MudColorTextEdit* MainWindow::activeMudTextField() const {
+    const auto pick = [](nebbie::qt::MudColorTextEdit* field) -> nebbie::qt::MudColorTextEdit* {
+        return field && field->hasFocus() ? field : nullptr;
+    };
+    if (auto* field = pick(room_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(mob_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(obj_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(zone_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(world_data_editor_->focusedMudField())) {
+        return field;
+    }
+    return nullptr;
 }
 
 void MainWindow::scheduleStartupUpdateCheck() {
@@ -749,7 +866,8 @@ void MainWindow::editLineLengthLimit() {
     const int value = QInputDialog::getInt(
         this,
         "Limite caratteri per riga",
-        "Numero massimo di caratteri per riga nei testi stanza (Windows, Linux e macOS).\n"
+        "Numero massimo di caratteri per riga nei testi MUD "
+        "(stanze, mob, oggetti, zone e dati mondo).\n"
         "Imposta 0 per disattivare.\n\n"
         "Salvato in:\n" + nebbie::qt::default_config_path(),
         app_config_.max_line_length,
@@ -763,8 +881,7 @@ void MainWindow::editLineLengthLimit() {
 
     app_config_.max_line_length = value;
     nebbie::qt::write_config(app_config_);
-    room_editor_->setMaxLineLength(app_config_.max_line_length);
-    room_editor_->setShowColorCodes(app_config_.show_color_codes);
+    applyTextEditorSettings();
     if (app_config_.max_line_length > 0) {
         setStatus(QString("Limite righe impostato a %1 caratteri.").arg(app_config_.max_line_length));
     } else {
@@ -803,6 +920,31 @@ void MainWindow::openLibPath(const QString& path) {
                     .arg(nebbie::qt::qstring_from_path(resolved)));
             return;
         }
+        const nebbie::AreeLibOpenGuard guard = nebbie::classify_aree_lib_open_guard(resolved);
+        if (guard.reason != nebbie::AreeLibOpenBlockReason::none) {
+            const QString resolved_qs = nebbie::qt::qstring_from_path(resolved);
+            const QString workspace_qs = nebbie::qt::qstring_from_path(guard.suggested_workspace_root);
+            const QString body =
+                guard.reason == nebbie::AreeLibOpenBlockReason::area_directory
+                    ? appTr("aree.lib_open_block_area", resolved_qs, workspace_qs)
+                    : appTr("aree.lib_open_block_workspace", resolved_qs);
+            QMessageBox box(this);
+            box.setIcon(QMessageBox::Warning);
+            box.setWindowTitle(appTr("aree.lib_open_block_title"));
+            box.setText(body);
+            QPushButton* open_workspace =
+                box.addButton(appTr("aree.lib_open_use_workspace"), QMessageBox::AcceptRole);
+            box.addButton(QMessageBox::Cancel);
+            box.exec();
+            if (box.clickedButton() == open_workspace) {
+                const QString select_area =
+                    guard.reason == nebbie::AreeLibOpenBlockReason::area_directory
+                        ? QString::fromStdString(resolved.filename().string())
+                        : QString();
+                openAreeWorkspaceFromPath(workspace_qs, select_area);
+            }
+            return;
+        }
         loadLib(resolved);
         rememberLibPath(resolved);
         if (resolved != requested) {
@@ -835,7 +977,7 @@ void MainWindow::openLibPath(const QString& path) {
 
 void MainWindow::openLib() {
     const QString dir = QFileDialog::getExistingDirectory(
-        this, "Apri libreria Nebbie (mudroot o mudroot/lib)", QString(),
+        this, appTr("dialog.open_lib_title"), QString(),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (dir.isEmpty()) {
         return;
@@ -873,11 +1015,7 @@ void MainWindow::openStartupLib() {
         return;
     }
 
-    promptForLibPath(QString(
-        "Benvenuto in Nebbie Editor.\n\n"
-        "Seleziona la cartella della libreria di gioco (mudroot o mudroot/lib).\n"
-        "Il percorso verrà salvato in:\n%1")
-                         .arg(nebbie::qt::default_config_path()));
+    promptForLibPath(appTr("dialog.open_lib_startup", nebbie::qt::default_config_path()));
 }
 
 bool MainWindow::promptForLibPath(const QString& reason) {
@@ -888,11 +1026,11 @@ bool MainWindow::promptForLibPath(const QString& reason) {
     const QString initial = nebbie::qt::read_lib_path();
     const QString dir = QFileDialog::getExistingDirectory(
         this,
-        "Seleziona libreria Nebbie (mudroot o mudroot/lib)",
+        appTr("dialog.open_lib_title"),
         initial.isEmpty() ? QDir::homePath() : initial,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (dir.isEmpty()) {
-        setStatus("Nessuna libreria selezionata. Usa File → Apri libreria.");
+        setStatus(appTr("status.open_lib_cancelled"));
         return false;
     }
 
@@ -901,6 +1039,7 @@ bool MainWindow::promptForLibPath(const QString& reason) {
 }
 
 void MainWindow::loadLib(const std::filesystem::path& path) {
+    clearAreeMode();
     nebbie::World loaded_world;
     nebbie::LibContext loaded_context;
     nebbie::load_lib(loaded_world, path, loaded_context);
@@ -908,6 +1047,7 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     world_ = std::move(loaded_world);
     context_ = std::move(loaded_context);
     lib_path_ = path;
+    session_storage_path_ = path;
     room_filter_.clear();
     mob_filter_.clear();
     object_filter_.clear();
@@ -934,6 +1074,278 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     lib_label_->setText(label);
     last_version_time_ = std::chrono::system_clock::now();
     autosave_timer_->start();
+}
+
+std::filesystem::path MainWindow::sessionStorageRoot() const {
+    if (!session_storage_path_.empty()) {
+        return session_storage_path_;
+    }
+    return lib_path_;
+}
+
+void MainWindow::clearAreeMode() {
+    aree_workspace_.reset();
+    aree_area_folder_.reset();
+    aree_areas_.clear();
+    if (aree_table_) {
+        aree_table_->setRowCount(0);
+    }
+    if (aree_dock_) {
+        aree_dock_->hide();
+    }
+}
+
+void MainWindow::refreshAreeAreaList() {
+    if (!aree_workspace_) {
+        return;
+    }
+
+    aree_areas_ = nebbie::scan_aree_areas(*aree_workspace_);
+    aree_table_->setRowCount(static_cast<int>(aree_areas_.size()));
+    for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
+        const nebbie::AreeAreaInfo& area = aree_areas_[static_cast<std::size_t>(row)];
+        aree_table_->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(area.folder_name)));
+        aree_table_->setItem(row, 1, new QTableWidgetItem(QString::number(area.zone_num)));
+        aree_table_->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(area.zone_name)));
+        aree_table_->setItem(row, 3, new QTableWidgetItem(QString::number(area.top_vnum)));
+    }
+    aree_table_->resizeColumnsToContents();
+
+    lib_label_->setText(appTr("aree.status_workspace",
+                              nebbie::qt::qstring_from_path(aree_workspace_->root),
+                              QString::number(aree_areas_.size())));
+}
+
+void MainWindow::openAreeWorkspace() {
+    const QString initial = app_config_.aree_workspace_root.isEmpty() ? nebbie::qt::read_lib_path()
+                                                                      : app_config_.aree_workspace_root;
+    const QString dir = QFileDialog::getExistingDirectory(
+        this, appTr("menu.open_aree_workspace"), initial.isEmpty() ? QDir::homePath() : initial,
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (dir.isEmpty()) {
+        return;
+    }
+    openAreeWorkspaceFromPath(dir);
+}
+
+void MainWindow::openAreeWorkspaceFromPath(const QString& dir, const QString& select_area_folder) {
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    if (dirty_ && !confirmSaveIfDirty()) {
+        return;
+    }
+
+    const std::filesystem::path root = nebbie::qt::path_from_qstring(dir);
+    if (!nebbie::aree_workspace_has_areas(root)) {
+        QMessageBox::warning(this, appTr("menu.open_aree_workspace"),
+                             appTr("aree.no_workspace"));
+        return;
+    }
+
+    aree_workspace_ = nebbie::make_aree_workspace(root);
+    app_config_.aree_workspace_root = dir;
+    nebbie::qt::write_config(app_config_);
+
+    aree_dock_->show();
+    refreshAreeAreaList();
+    setStatus(appTr("aree.status_workspace", dir, QString::number(aree_areas_.size())));
+
+    QString area_to_select = select_area_folder;
+    if (area_to_select.isEmpty() && !app_config_.aree_last_area.isEmpty()) {
+        area_to_select = app_config_.aree_last_area;
+    }
+    if (!area_to_select.isEmpty()) {
+        for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
+            if (aree_table_->item(row, 0)->text() == area_to_select) {
+                aree_table_->selectRow(row);
+                break;
+            }
+        }
+    }
+}
+
+void MainWindow::onAreeAreaActivated() {
+    const bool has_selection = aree_table_->currentRow() >= 0;
+    aree_open_button_->setEnabled(has_selection);
+    aree_restore_button_->setEnabled(has_selection && aree_workspace_.has_value());
+}
+
+bool MainWindow::promptAreeSessionStart(const QString& area_name, bool& archive_first, QString& archive_label) {
+    QDialog dialog(this);
+    dialog.setWindowTitle(appTr("aree.session_title"));
+
+    auto* layout = new QVBoxLayout(&dialog);
+    layout->addWidget(new QLabel(appTr("aree.session_prompt", area_name)));
+
+    auto* archive_check = new QCheckBox(appTr("aree.archive_before"));
+    archive_check->setChecked(true);
+    layout->addWidget(archive_check);
+
+    auto* comment_edit = new QLineEdit;
+    comment_edit->setPlaceholderText(appTr("aree.archive_comment"));
+    layout->addWidget(comment_edit);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return false;
+    }
+
+    archive_first = archive_check->isChecked();
+    archive_label = comment_edit->text().trimmed();
+    return true;
+}
+
+void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first,
+                              const std::string& archive_label) {
+    if (!aree_workspace_) {
+        return;
+    }
+
+    if (archive_first) {
+        try {
+            nebbie::archive_aree_area(*aree_workspace_, area.folder_name, archive_label);
+        } catch (const std::exception& ex) {
+            QMessageBox::critical(this, appTr("aree.session_title"),
+                                  appTr("aree.archive_failed", QString::fromUtf8(ex.what())));
+            return;
+        }
+    }
+
+    if (dirty_ && !confirmSaveIfDirty()) {
+        return;
+    }
+
+    nebbie::World loaded_world;
+    nebbie::LibContext loaded_context;
+    loaded_context.write_eof_markers_on_save = false;
+    nebbie::load_lib(loaded_world, area.path, loaded_context);
+
+    world_ = std::move(loaded_world);
+    context_ = std::move(loaded_context);
+    context_.write_eof_markers_on_save = false;
+    lib_path_ = area.path;
+    session_storage_path_ = nebbie::aree_session_storage_root(*aree_workspace_, area.folder_name);
+    aree_area_folder_ = area.folder_name;
+
+    app_config_.aree_last_area = QString::fromStdString(area.folder_name);
+    nebbie::qt::write_config(app_config_);
+
+    room_filter_.clear();
+    mob_filter_.clear();
+    object_filter_.clear();
+    room_search_->clear();
+    mob_search_->clear();
+    obj_search_->clear();
+    markClean();
+    refreshRoomList();
+    refreshMobList();
+    refreshObjectList();
+    refreshZoneList();
+    refreshZoneMap();
+    refreshWorldZoneMap();
+    zone_editor_->setWorld(&world_);
+    world_data_editor_->setWorld(&world_);
+
+    const QString label = appTr("aree.status_loaded", nebbie::qt::qstring_from_path(area.path),
+                                QString::number(world_.zones.size()), QString::number(world_.rooms.size()));
+    lib_label_->setText(label);
+    last_version_time_ = std::chrono::system_clock::now();
+    autosave_timer_->start();
+    setStatus(label);
+}
+
+void MainWindow::openAreeArea() {
+    if (!aree_workspace_) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.no_workspace"));
+        return;
+    }
+
+    const auto selected = selectedAreeArea(aree_table_, aree_areas_);
+    if (!selected) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.select_area"));
+        return;
+    }
+
+    bool archive_first = true;
+    QString archive_label;
+    if (!promptAreeSessionStart(QString::fromStdString(selected->folder_name), archive_first, archive_label)) {
+        return;
+    }
+
+    loadAreeArea(*selected, archive_first, archive_label.toStdString());
+}
+
+void MainWindow::restoreAreeArchive() {
+    if (!aree_workspace_) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.no_workspace"));
+        return;
+    }
+
+    const auto selected = selectedAreeArea(aree_table_, aree_areas_);
+    if (!selected) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.select_area"));
+        return;
+    }
+
+    const auto archives = nebbie::list_aree_archives(*aree_workspace_, selected->folder_name);
+    if (archives.empty()) {
+        QMessageBox::information(this, appTr("aree.restore_title"), appTr("aree.no_archives"));
+        return;
+    }
+
+    QStringList labels;
+    labels.reserve(static_cast<int>(archives.size()));
+    for (const auto& archive : archives) {
+        QString label = QString::fromStdString(archive.id);
+        if (!archive.label.empty()) {
+            label += QStringLiteral(" — ") + QString::fromStdString(archive.label);
+        }
+        labels << label;
+    }
+
+    bool ok = false;
+    const QString choice = QInputDialog::getItem(this, appTr("aree.restore_title"),
+                                                 appTr("aree.restore_prompt", QString::fromStdString(selected->folder_name)),
+                                                 labels, 0, false, &ok);
+    if (!ok || choice.isEmpty()) {
+        return;
+    }
+
+    const int index = labels.indexOf(choice);
+    if (index < 0 || index >= static_cast<int>(archives.size())) {
+        return;
+    }
+
+    const auto& archive = archives[static_cast<std::size_t>(index)];
+    const auto answer = QMessageBox::question(
+        this, appTr("aree.restore_title"),
+        appTr("aree.restore_confirm", QString::fromStdString(selected->folder_name),
+              QString::fromStdString(archive.id)),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+
+    try {
+        nebbie::restore_aree_area_from_archive(*aree_workspace_, selected->folder_name, archive.path);
+    } catch (const std::exception& ex) {
+        QMessageBox::critical(this, appTr("aree.restore_title"),
+                              appTr("aree.restore_failed", QString::fromUtf8(ex.what())));
+        return;
+    }
+
+    if (aree_area_folder_ && *aree_area_folder_ == selected->folder_name && !lib_path_.empty()) {
+        reloadLib();
+    }
+
+    setStatus(appTr("aree.restore_ok"));
+    QMessageBox::information(this, appTr("aree.restore_title"), appTr("aree.restore_ok"));
 }
 
 void MainWindow::refreshRoomList() {
@@ -1294,7 +1706,7 @@ void MainWindow::selectZoneByNum(const int zone_num) {
     }
 }
 
-int MainWindow::preferredZoneNumForNewRoom() const {
+int MainWindow::preferredZoneNum() const {
     if (const int zone_num = currentZoneNum(); zone_num > 0) {
         return zone_num;
     }
@@ -1309,6 +1721,21 @@ int MainWindow::preferredZoneNumForNewRoom() const {
             return world_.zones[static_cast<std::size_t>(room->zone_index)].num;
         }
     }
+    if (const auto* mob_item = mob_list_->currentItem()) {
+        const long mob_vnum = mob_item->data(Qt::UserRole).toLongLong();
+        if (const nebbie::Zone* zone = world_.zone_for_vnum(mob_vnum)) {
+            return zone->num;
+        }
+    }
+    if (const auto* obj_item = obj_list_->currentItem()) {
+        const long obj_vnum = obj_item->data(Qt::UserRole).toLongLong();
+        if (const nebbie::Zone* zone = world_.zone_for_vnum(obj_vnum)) {
+            return zone->num;
+        }
+    }
+    if (world_.zones.size() == 1) {
+        return world_.zones.front().num;
+    }
     return 0;
 }
 
@@ -1322,56 +1749,68 @@ nebbie::WorldIndex MainWindow::worldIndexForValidation() const {
 }
 
 long MainWindow::suggestRoomVnum() const {
-    if (world_index_) {
-        const int zone_num = preferredZoneNumForNewRoom();
-        if (zone_num > 0) {
-            const auto suggested = nebbie::suggest_room_vnum_in_zone(*world_index_, zone_num);
-            if (suggested) {
-                return *suggested;
-            }
-        }
-        for (const auto& zone : world_index_->zones) {
-            const auto suggested = nebbie::suggest_room_vnum_in_zone(*world_index_, zone.zone_num);
-            if (suggested) {
-                return *suggested;
-            }
-        }
-    }
-    return nebbie::suggest_next_room_vnum(world_);
-}
-
-long MainWindow::suggestMobVnum() const {
-    if (world_index_) {
-        const auto suggested = nebbie::suggest_mob_vnum(*world_index_);
+    const nebbie::WorldIndex index = worldIndexForValidation();
+    const int zone_num = preferredZoneNum();
+    if (zone_num > 0) {
+        const auto suggested = nebbie::suggest_room_vnum_in_zone(index, zone_num);
         if (suggested) {
             return *suggested;
         }
+    }
+    for (const auto& zone : index.zones) {
+        if (zone.zone_num <= 0) {
+            continue;
+        }
+        const auto suggested = nebbie::suggest_room_vnum_in_zone(index, zone.zone_num);
+        if (suggested) {
+            return *suggested;
+        }
+    }
+    return std::max(1L, nebbie::suggest_next_room_vnum(world_));
+}
+
+long MainWindow::suggestMobVnum() const {
+    const nebbie::WorldIndex index = worldIndexForValidation();
+    const int zone_num = preferredZoneNum();
+    if (zone_num > 0) {
+        const auto suggested = nebbie::suggest_mob_vnum_in_zone(index, zone_num);
+        if (suggested) {
+            return *suggested;
+        }
+    }
+    const auto suggested = nebbie::suggest_mob_vnum(index);
+    if (suggested) {
+        return *suggested;
     }
     return nebbie::suggest_next_mob_vnum(world_);
 }
 
 long MainWindow::suggestObjectVnum() const {
-    if (world_index_) {
-        const auto suggested = nebbie::suggest_object_vnum(*world_index_);
+    const nebbie::WorldIndex index = worldIndexForValidation();
+    const int zone_num = preferredZoneNum();
+    if (zone_num > 0) {
+        const auto suggested = nebbie::suggest_object_vnum_in_zone(index, zone_num);
         if (suggested) {
             return *suggested;
         }
+    }
+    const auto suggested = nebbie::suggest_object_vnum(index);
+    if (suggested) {
+        return *suggested;
     }
     return nebbie::suggest_next_object_vnum(world_);
 }
 
 bool MainWindow::warnIfRemoteVnumConflict(const QString& kind, const long vnum) const {
-    if (!world_index_) {
-        return true;
-    }
+    const nebbie::WorldIndex index = worldIndexForValidation();
 
     bool taken = false;
     if (kind == QStringLiteral("room")) {
-        taken = nebbie::room_vnum_taken(*world_index_, vnum);
+        taken = nebbie::room_vnum_taken(index, vnum);
     } else if (kind == QStringLiteral("mob")) {
-        taken = nebbie::mob_vnum_taken(*world_index_, vnum);
+        taken = nebbie::mob_vnum_taken(index, vnum);
     } else if (kind == QStringLiteral("object")) {
-        taken = nebbie::object_vnum_taken(*world_index_, vnum);
+        taken = nebbie::object_vnum_taken(index, vnum);
     }
     if (!taken) {
         return true;
@@ -1625,7 +2064,7 @@ void MainWindow::reserveVnums() {
     form->addRow("end_vnum:", end_vnum);
     form->addRow("note:", note);
 
-    const int preferred_zone = preferredZoneNumForNewRoom();
+    const int preferred_zone = preferredZoneNum();
     if (preferred_zone > 0) {
         const int zone_index = zone_combo->findData(preferred_zone);
         if (zone_index >= 0) {
@@ -2151,6 +2590,7 @@ void MainWindow::applyMobChanges() {
 
     item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(mob->short_descr)));
     markDirty();
+    dirty_mobile_vnums_.insert(vnum);
     setStatus(QString("Mobile %1 aggiornato in memoria.").arg(vnum));
 }
 
@@ -2174,6 +2614,7 @@ void MainWindow::applyObjChanges() {
 
     item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(obj->short_descr)));
     markDirty();
+    dirty_object_vnums_.insert(vnum);
     setStatus(QString("Oggetto %1 aggiornato in memoria.").arg(vnum));
 }
 
@@ -2184,7 +2625,7 @@ void MainWindow::createRoom() {
     }
 
     bool ok = false;
-    const int suggested = static_cast<int>(suggestRoomVnum());
+    const int suggested = std::max(1, static_cast<int>(suggestRoomVnum()));
     const int vnum = QInputDialog::getInt(this, "Nuova stanza", "Vnum stanza:", suggested, 1, 999999, 1, &ok);
     if (!ok) {
         return;
@@ -2228,7 +2669,10 @@ void MainWindow::createMob() {
 
     refreshMobList();
     selectMobByVnum(vnum);
+    onMobSelected();
+    mob_editor_->focusPrimaryTextField();
     markDirty();
+    dirty_mobile_vnums_.insert(static_cast<long>(vnum));
     setStatus(QString("Creato mob #%1.").arg(vnum));
 }
 
@@ -2255,7 +2699,10 @@ void MainWindow::createObject() {
 
     refreshObjectList();
     selectObjectByVnum(vnum);
+    onObjSelected();
+    obj_editor_->focusPrimaryTextField();
     markDirty();
+    dirty_object_vnums_.insert(static_cast<long>(vnum));
     setStatus(QString("Creato oggetto #%1.").arg(vnum));
 }
 
@@ -2359,7 +2806,8 @@ void MainWindow::validateLib() {
         QMessageBox::information(this, "Valida", "Apri prima una libreria.");
         return;
     }
-    const nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
+    nebbie::append_monolith_validation(report, lib_path_);
     showValidation(report, QStringLiteral("Report validazione mondo intero (Nebbie Editor)"));
     if (report.ok()) {
         if (report.warning_count() > 0) {
@@ -2388,7 +2836,8 @@ void MainWindow::saveLib() {
     const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
     if (rooms_to_check.empty()) {
         try {
-            nebbie::save_lib_with_backup(world_, context_, lib_path_);
+            syncDirtyEntityVnumsToContext();
+            nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
             markClean();
             last_version_time_ = std::chrono::system_clock::now();
             setStatus("Libreria salvata (backup creato in .nebbie/versions).");
@@ -2436,7 +2885,8 @@ void MainWindow::saveLib() {
     }
 
     try {
-        nebbie::save_lib_with_backup(world_, context_, lib_path_);
+        syncDirtyEntityVnumsToContext();
+        nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();
         last_version_time_ = std::chrono::system_clock::now();
         setStatus("Libreria salvata (backup creato in .nebbie/versions).");
@@ -2452,7 +2902,8 @@ void MainWindow::saveLibForce() {
         return;
     }
     try {
-        nebbie::save_lib_with_backup(world_, context_, lib_path_);
+        syncDirtyEntityVnumsToContext();
+        nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();
         last_version_time_ = std::chrono::system_clock::now();
         setStatus("Libreria salvata (forzato, backup creato).");
@@ -2467,7 +2918,9 @@ void MainWindow::onAutosaveTick() {
     }
 
     try {
-        const auto result = nebbie::run_autosave(world_, context_, lib_path_, session_config_, last_version_time_);
+        syncDirtyEntityVnumsToContext();
+        const auto result =
+            nebbie::run_autosave(world_, context_, lib_path_, session_config_, last_version_time_, sessionStorageRoot());
         if (result.version_created) {
             last_version_time_ = std::chrono::system_clock::now();
         }
@@ -2490,7 +2943,7 @@ void MainWindow::restoreFromWorkspace() {
         return;
     }
 
-    const auto workspace = nebbie::workspace_dir(lib_path_);
+    const auto workspace = nebbie::workspace_dir(sessionStorageRoot());
     std::error_code ec;
     if (!std::filesystem::exists(workspace, ec)) {
         QMessageBox::information(this, "Cronologia", "Nessun autosalvataggio workspace trovato.");
@@ -2525,7 +2978,7 @@ void MainWindow::restoreVersion() {
         return;
     }
 
-    const auto versions = nebbie::list_versions(lib_path_);
+    const auto versions = nebbie::list_versions(sessionStorageRoot());
     if (versions.empty()) {
         QMessageBox::information(this, "Cronologia", "Nessuna versione salvata in .nebbie/versions.");
         return;
@@ -2557,7 +3010,7 @@ void MainWindow::restoreVersion() {
     }
 
     try {
-        const auto snapshot = nebbie::versions_dir(lib_path_) / versions[static_cast<std::size_t>(index)].id;
+        const auto snapshot = nebbie::versions_dir(sessionStorageRoot()) / versions[static_cast<std::size_t>(index)].id;
         nebbie::restore_snapshot(world_, context_, snapshot);
         markDirty();
         refreshRoomList();
@@ -2575,6 +3028,15 @@ void MainWindow::setStatus(const QString& message) {
     statusBar()->showMessage(message);
 }
 
+void MainWindow::syncDirtyEntityVnumsToContext() {
+    context_.dirty_room_vnums.clear();
+    context_.dirty_mobile_vnums.clear();
+    context_.dirty_object_vnums.clear();
+    context_.dirty_room_vnums.insert(dirty_room_vnums_.begin(), dirty_room_vnums_.end());
+    context_.dirty_mobile_vnums.insert(dirty_mobile_vnums_.begin(), dirty_mobile_vnums_.end());
+    context_.dirty_object_vnums.insert(dirty_object_vnums_.begin(), dirty_object_vnums_.end());
+}
+
 void MainWindow::markDirty() {
     dirty_ = true;
     updateBranding();
@@ -2583,6 +3045,8 @@ void MainWindow::markDirty() {
 void MainWindow::markClean() {
     dirty_ = false;
     dirty_room_vnums_.clear();
+    dirty_mobile_vnums_.clear();
+    dirty_object_vnums_.clear();
     updateBranding();
 }
 

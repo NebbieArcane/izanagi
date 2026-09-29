@@ -1,4 +1,5 @@
 #include "app_i18n.hpp"
+#include "version.hpp"
 
 #include <QHash>
 #include <QStringList>
@@ -17,7 +18,22 @@ struct TranslationEntry {
 
 constexpr TranslationEntry kTranslations[] = {
     {"menu.file", "&File", "&File"},
-    {"menu.open_lib", "&Apri libreria...", "&Open library..."},
+    {"menu.open_lib", "Apri lib &monolite (myst.* / mudroot/lib)...",
+     "Open &monolith lib (myst.* / mudroot/lib)..."},
+    {"menu.open_lib_tip",
+     "Apre una libreria Nebbie classica: file myst.zon, myst.wld, myst.mob, myst.obj nella stessa cartella "
+     "(mudroot o mudroot/lib). Non usare per le cartelle area del repo Aree.",
+     "Opens a classic Nebbie library: myst.zon, myst.wld, myst.mob, myst.obj in one folder "
+     "(mudroot or mudroot/lib). Do not use for Aree repo area folders."},
+    {"menu.open_aree_workspace", "Apri workspace &Aree (cartelle area)...",
+     "Open Aree &workspace (area folders)..."},
+    {"menu.open_aree_workspace_tip",
+     "Apre la root del repo Aree (o altra cartella con sottocartelle castelli/, myst/, …). "
+     "Scegli un'area dalla lista per modificarla senza riscrivere tutto il monolite.",
+     "Opens the Aree repo root (or another folder with castelli/, myst/, … subfolders). "
+     "Pick an area from the list to edit in place without rewriting the whole monolith."},
+    {"menu.aree_open_area", "Apri area selezionata", "Open selected area"},
+    {"menu.aree_restore_archive", "Ripristina area da archivio...", "Restore area from archive..."},
     {"menu.reload_lib", "A&ggiorna libreria", "R&eload library"},
     {"menu.reload_lib_tip",
      "Ricarica dal disco la cartella libreria attualmente aperta.",
@@ -28,6 +44,14 @@ constexpr TranslationEntry kTranslations[] = {
     {"menu.restore_autosave", "Ripristina ultimo autosalvataggio", "Restore last autosave"},
     {"menu.restore_version", "Ripristina versione...", "Restore version..."},
     {"menu.exit", "E&sci", "E&xit"},
+    {"menu.edit", "&Modifica", "&Edit"},
+    {"menu.undo", "&Annulla", "&Undo"},
+    {"menu.redo", "&Ripeti", "&Redo"},
+    {"menu.cut", "&Taglia", "Cu&t"},
+    {"menu.copy", "&Copia", "&Copy"},
+    {"menu.paste", "I&ncolla", "&Paste"},
+    {"menu.paste_plain", "Incolla senza formattazione", "Paste plain text"},
+    {"menu.select_all", "Seleziona &tutto", "Select &all"},
     {"menu.tools", "&Strumenti", "&Tools"},
     {"menu.validate_world", "Valida &mondo intero...", "Validate &entire world..."},
     {"menu.validate_world_tip",
@@ -116,6 +140,74 @@ constexpr TranslationEntry kTranslations[] = {
     {"tab.validation", "Validazione", "Validation"},
     {"tab.map_zone", "Zona", "Zone"},
     {"tab.map_world", "Mondo (zone)", "World (zones)"},
+    {"aree.dock_title", "Workspace Aree", "Aree workspace"},
+    {"aree.col_folder", "Cartella", "Folder"},
+    {"aree.col_zone", "Zona", "Zone"},
+    {"aree.col_name", "Nome", "Name"},
+    {"aree.col_top", "Top vnum", "Top vnum"},
+    {"aree.open_area", "Apri area", "Open area"},
+    {"aree.restore_archive", "Ripristina da archivio", "Restore from archive"},
+    {"aree.no_workspace", "Nessun workspace Aree aperto.", "No Aree workspace open."},
+    {"aree.select_area", "Seleziona un'area dalla lista.", "Select an area from the list."},
+    {"aree.session_title", "Inizia sessione area", "Start area session"},
+    {"aree.session_prompt",
+     "Stai per aprire l'area \"%1\" per la modifica in-place.\n"
+     "Si consiglia di archiviare la cartella prima di iniziare.",
+     "You are about to open area \"%1\" for in-place editing.\n"
+     "Archiving the folder before you start is recommended."},
+    {"aree.archive_before", "Archivia cartella area prima di aprire",
+     "Archive area folder before opening"},
+    {"aree.archive_comment", "Commento archivio (opzionale)", "Archive comment (optional)"},
+    {"aree.archive_failed", "Archivio area fallito:\n%1", "Area archive failed:\n%1"},
+    {"aree.restore_title", "Ripristina da archivio", "Restore from archive"},
+    {"aree.restore_prompt", "Scegli un archivio per l'area \"%1\":",
+     "Choose an archive for area \"%1\":"},
+    {"aree.no_archives", "Nessun archivio trovato per questa area.",
+     "No archives found for this area."},
+    {"aree.restore_confirm",
+     "Ripristinare l'area \"%1\" dall'archivio \"%2\"?\n"
+     "La cartella area corrente verrà sovrascritta.",
+     "Restore area \"%1\" from archive \"%2\"?\n"
+     "The current area folder will be overwritten."},
+    {"aree.restore_ok", "Area ripristinata da archivio.", "Area restored from archive."},
+    {"aree.restore_failed", "Ripristino fallito:\n%1", "Restore failed:\n%1"},
+    {"aree.status_loaded", "Area Aree: %1 — %2 zone, %3 stanze",
+     "Aree area: %1 — %2 zones, %3 rooms"},
+    {"aree.status_workspace", "Workspace Aree: %1 (%2 aree)",
+     "Aree workspace: %1 (%2 areas)"},
+    {"aree.lib_open_block_title", "Percorso Aree — usa workspace Aree",
+     "Aree path — use Aree workspace"},
+    {"aree.lib_open_block_area",
+     "La cartella selezionata è un'area Aree (es. myst/myst.zon), non una lib monolite.\n\n"
+     "Aprirla con «Apri lib monolite» riscriverebbe i file al salvataggio (marker EOF, formato bit).\n\n"
+     "Percorso: %1\n"
+     "Workspace consigliato: %2",
+     "The selected folder is an Aree area (e.g. myst/myst.zon), not a monolith library.\n\n"
+     "Opening it via «Open monolith lib» would rewrite files on save (EOF markers, bit format).\n\n"
+     "Path: %1\n"
+     "Suggested workspace: %2"},
+    {"aree.lib_open_block_workspace",
+     "La cartella selezionata è un workspace Aree (contiene cartelle area), non myst.* in un'unica cartella.\n\n"
+     "Usa «Apri workspace Aree» e poi seleziona l'area da modificare.\n\n"
+     "Percorso: %1",
+     "The selected folder is an Aree workspace (it contains area folders), not myst.* in one folder.\n\n"
+     "Use «Open Aree workspace» and then pick the area to edit.\n\n"
+     "Path: %1"},
+    {"aree.lib_open_use_workspace", "Apri workspace Aree", "Open Aree workspace"},
+    {"dialog.open_lib_title", "Apri lib monolite (myst.* / mudroot/lib)",
+     "Open monolith lib (myst.* / mudroot/lib)"},
+    {"dialog.open_lib_startup",
+     "Benvenuto in Nebbie Editor.\n\n"
+     "Per una libreria classica seleziona mudroot o mudroot/lib (file myst.*).\n"
+     "Per il repo Aree usa File → Apri workspace Aree.\n\n"
+     "Il percorso verrà salvato in:\n%1",
+     "Welcome to Nebbie Editor.\n\n"
+     "For a classic library pick mudroot or mudroot/lib (myst.* files).\n"
+     "For the Aree repo use File → Open Aree workspace.\n\n"
+     "The path will be saved to:\n%1"},
+    {"status.open_lib_cancelled",
+     "Nessuna libreria selezionata. Usa File → Apri lib monolite o Apri workspace Aree.",
+     "No library selected. Use File → Open monolith lib or Open Aree workspace."},
     {"update.title_error", "Aggiornamenti %1", "Updates %1"},
     {"update.check_failed", "Impossibile verificare gli aggiornamenti:\n%1",
      "Unable to check for updates:\n%1"},
@@ -239,6 +331,14 @@ QString cypherAboutText(const QString& version) {
 
 QString githubReleaseRepo() {
     return QStringLiteral("NebbieArcane/izanagi");
+}
+
+QString applicationVersionLabel() {
+    QString version = QStringLiteral(NEBBIE_VERSION);
+    if (QStringLiteral(NEBBIE_GIT_SHA) != QStringLiteral("dev")) {
+        version += QStringLiteral(" (") + QStringLiteral(NEBBIE_GIT_SHA) + QLatin1Char(')');
+    }
+    return version;
 }
 
 } // namespace nebbie::qt

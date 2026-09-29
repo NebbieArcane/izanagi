@@ -89,8 +89,8 @@ private:
     QWidget* moblim_panel_ = nullptr;
     QSpinBox* moblim_ = nullptr;
 
-    QLineEdit* bright_at_night_ = nullptr;
-    QLineEdit* bright_at_day_ = nullptr;
+    nebbie::qt::MudColorTextEdit* bright_at_night_ = nullptr;
+    nebbie::qt::MudColorTextEdit* bright_at_day_ = nullptr;
 
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;

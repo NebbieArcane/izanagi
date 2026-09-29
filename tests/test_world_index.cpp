@@ -1,5 +1,6 @@
 #include "nebbie/io.hpp"
 #include "nebbie/world_index.hpp"
+#include "nebbie/edit.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -33,6 +34,9 @@ int main(int argc, char** argv) {
         const auto suggested = nebbie::suggest_room_vnum_in_zone(built, built.zones.front().zone_num);
         if (!suggested) {
             throw std::runtime_error("expected a suggested room vnum");
+        }
+        if (*suggested < 1) {
+            throw std::runtime_error("suggested room vnum must not be limbo #0");
         }
         if (nebbie::room_vnum_taken(built, *suggested)) {
             throw std::runtime_error("suggested vnum should not be taken");
@@ -68,6 +72,32 @@ int main(int argc, char** argv) {
         nebbie::merge_reservations(with_reservations, *reservations);
         if (!nebbie::room_vnum_taken(with_reservations, 99995)) {
             throw std::runtime_error("reserved vnum should be taken");
+        }
+
+        nebbie::World limbo_world;
+        nebbie::Zone limbo_zone;
+        limbo_zone.num = 0;
+        limbo_zone.name = "Limbo";
+        limbo_zone.bottom = 0;
+        limbo_zone.top = 2999;
+        limbo_world.zones.push_back(limbo_zone);
+        nebbie::Zone myst_zone;
+        myst_zone.num = 30;
+        myst_zone.name = "myst";
+        myst_zone.top = 3099;
+        limbo_world.zones.push_back(myst_zone);
+        nebbie::recompute_zone_bottoms(limbo_world);
+        const nebbie::WorldIndex limbo_index = nebbie::build_world_index(limbo_world, "limbo-test");
+        const auto limbo_suggested = nebbie::suggest_room_vnum_in_zone(limbo_index, 0);
+        if (!limbo_suggested || *limbo_suggested < 1) {
+            throw std::runtime_error("zone 0 must not suggest limbo room #0");
+        }
+        const auto myst_suggested = nebbie::suggest_room_vnum_in_zone(limbo_index, 30);
+        if (!myst_suggested || *myst_suggested != 3000) {
+            throw std::runtime_error("zone 30 should suggest first free vnum 3000");
+        }
+        if (nebbie::suggest_next_room_vnum(limbo_world) < 1) {
+            throw std::runtime_error("suggest_next_room_vnum must not return limbo #0");
         }
 
         if (argc >= 3) {

@@ -81,7 +81,8 @@ bool persist_world(nebbie::World& world, const nebbie::LibContext& context, bool
         std::cerr << "Save aborted. Use --force to save anyway.\n";
         return false;
     }
-    nebbie::save_lib(world, context, [](const std::string& msg) {
+    nebbie::LibContext save_context = context;
+    nebbie::save_lib(world, save_context, [](const std::string& msg) {
         std::cout << msg << '\n';
     });
     std::cout << "Saved to " << context.root << '\n';

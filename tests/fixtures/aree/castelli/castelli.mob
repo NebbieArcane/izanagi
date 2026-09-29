@@ -1,0 +1,609 @@
+#34001
+sabrina governante monty~
+Sabrina, la governante~
+Sabrina e' unica!
+Se non ci fosse bisognerebbe inventarla...
+~
+Sabrina sorride sempre quando ti vede ...
+~
+2|4|2048|1048576|4194304 8|33554432|134217728 350 L 10
+50 2 -10 3000 100d20+20
+-1 0 0 77
+8 8 5 1|2|4|8|16|64|128|256|512 32|1024|2048|8192|16384|32768|65536|131072 0
+Via di qui! Ho tanto da fare...
+~
+Senti canticchiare...
+~
+#34002
+guardiano monty~
+il Guardiano del Castello~
+~
+~
+2|4|32768|262144|4194304 8|128|32768|16777216|33554432 -1000 A 3
+50 -5 -10 350 4d8+5
+-1 35000 0 77
+5 8 4 1|4|8|256|32768 32|1024|2048|8192 0
+#34003
+cigno monty~
+un cigno bianco~
+un magnifico cigno bianco nuota nell'acqua
+~
+~
+2|4|64 0 -1000 N
+10 17 10 10 1d8+6
+-1 0 0 16
+8 8 3 0 1|2|4|8|16|32|64|128|256|512|1024|2048|8192|16384|32768|65536|131072 0
+#34004
+anatroccolo anatra monty~
+un piccolo anatroccolo~
+un piccolo anatroccolo impara a nuotare
+~
+~
+2|4|64 0 350 L 1
+4 20 10 5 1d8+3
+-1 10 0 16
+8 8 3 0 1|2|4|8|16|32|64|128|256|512|1024|2048|4096|8192|16384|32768|65536|131072 0
+quack
+~
+senti dei rumori
+~
+#34005
+guardiano~
+Il guardiano~
+Un guardiano controlla che non ci siano intrusi
+~
+Il guardiano e' un guerriero dalla pelle scura e dagli
+occhi color brace.
+Sembra sapere il fatto suo.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34006
+cavallo~
+Un cavallo~
+Un cavallo bianco aspetta il suo cavaliere
+~
+E' uno splendido esemplare di stallone dal mantello bianco.
+~
+2|64 0 0 N
+20 0 0 60 3d8+1
+-1 0 0 46
+8 8 1
+#34007
+eunuco~
+Un grosso eunuco~
+Un possente eunuco controlla che non ci siano intrusi
+~
+Hai muscoli testi, pronti a scattare al minimo allarme.
+~
+2|64|4194304 8|128 -1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|65536 2048|4096 0
+#34008
+concubina ragazza~
+Una concubina~
+Una bella ragazza semi vestita e' distesa su di un tappeto.
+~
+E' un'umana molto bella, ha i capelli neri lunghi sino
+alle spalle e gli occhi color della brace accesa.
+~
+2 0 -350 N
+15 5 7 0 1d8+5
+-1 0 0 1
+5 5 2
+#34009
+guardiano~
+Il guardiano della torre~
+Un guardiano controlla che non entrino intrusi
+~
+Il guardiano e' un elfo cresciuto ed addestrato
+nella capitale dell'Impero.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 0 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 2
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34010
+guardiano~
+Il guardiano~
+Un guardiano controlla che non ci siano intrusi
+~
+Il guardiano e' un guerriero dalla pelle scura e dagli
+occhi color brace.
+Sembra sapere il fatto suo.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34011
+guardiano~
+Il guardiano~
+Un guardiano controlla che non ci siano intrusi
+~
+Il guardiano e' un guerriero dalla pelle scura e dagli
+occhi color brace.
+Sembra sapere il fatto suo.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34012
+guardiano~
+Il guardiano~
+Un guardiano controlla che non ci siano intrusi
+~
+Il guardiano e' un guerriero dalla pelle scura e dagli
+occhi color brace.
+Sembra sapere il fatto suo.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34013
+guardiano~
+Il guardiano~
+Un guardiano controlla che non ci siano intrusi
+~
+Il guardiano e' un guerriero dalla pelle scura e dagli
+occhi color brace.
+Sembra sapere il fatto suo.
+~
+64|4194304 8|128|16777216|33554432|134217728 1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34014
+eunuco~
+Un grosso eunuco~
+Un possente eunuco controlla che non ci siano intrusi
+~
+Hai muscoli testi, pronti a scattare al minimo allarme.
+~
+2|64|4194304 8|128 -1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|65536 2048|4096 0
+#34015
+eunuco~
+Un grosso eunuco~
+Un possente eunuco controlla che non ci siano intrusi
+~
+Hai muscoli testi, pronti a scattare al minimo allarme.
+~
+2|64|4194304 8|128 -1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|65536 2048|4096 0
+#34016
+eunuco~
+Un grosso eunuco~
+Un possente eunuco controlla che non ci siano intrusi
+~
+Hai muscoli testi, pronti a scattare al minimo allarme.
+~
+2|64|4194304 8|128 -1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|65536 2048|4096 0
+#34017
+eunuco~
+Un grosso eunuco~
+Un possente eunuco controlla che non ci siano intrusi
+~
+Hai muscoli testi, pronti a scattare al minimo allarme.
+~
+2|64|4194304 8|128 -1000 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 1
+8 8 4 1|2|4|8|16|32|64|128|65536 2048|4096 0
+#34018
+guardiano~
+Il guardiano della torre~
+Un guardiano controlla che non entrino intrusi
+~
+Il guardiano e' un elfo cresciuto ed addestrato
+nella capitale dell'Impero.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 0 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 2
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34019
+guardiano~
+Il guardiano della torre~
+Un guardiano controlla che non entrino intrusi
+~
+Il guardiano e' un elfo cresciuto ed addestrato
+nella capitale dell'Impero.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 0 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 2
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34020
+guardiano~
+Il guardiano della torre~
+Un guardiano controlla che non entrino intrusi
+~
+Il guardiano e' un elfo cresciuto ed addestrato
+nella capitale dell'Impero.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 0 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 2
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34021
+guardiano~
+Il guardiano della torre~
+Un guardiano controlla che non entrino intrusi
+~
+Il guardiano e' un elfo cresciuto ed addestrato
+nella capitale dell'Impero.
+~
+2|64|4194304 8|128|16777216|33554432|134217728 0 A 4
+50 -7 -10 250 2d8+20
+-1 1000 0 2
+8 8 4 1|2|4|8|16|32|64|128|131072 2048|4096 0
+#34101
+ragnarok ulan blacky~
+Ragnarok, l'Ulan del clan di BlackRock~
+Ragnarok, l'Ulan del clan di BlackRock, e' qui, a guardia della grotta.
+~
+E' un troll gigantesco, piu' grande di qualsiasi troll mai visto.
+Valuti che sarebbe in grado di spezzarti un braccio col la forza di un dito.
+Il tuo istinto di sopravvivenza ti dice che e' meglio non irritarlo.
+~
+2|64|262144|4194304|67108864 128|32768|524288|1048576|16777216|33554432 -1000 B 3
+52 0 0 400 3d8+1
+-1 0 0 31
+8 8 4 4|8|16|32|64|512|4096|65536 256|1024|2048|8192|16384|32768 0
+#34102
+chierico anziano~
+un anziano chierico~
+Un anziano chierico e' qui a pregare e compiere sacrifici.
+~
+Probabilmente era un umano, ma il vivere sotto terra, in mezzo all'odore di morte e al sangue, lo ha reso oramai un semi-pazzo.
+Non per questo pero' e' da sottovalutare.
+~
+2|64|128|1048576|8388608 16777216 -1000 N
+15 10 10 0 1d4+1
+-1 0 0 1
+6 6 1
+#34202
+lothar custode receptionist ogu~
+Lothar il Custode~
+
+~
+Alto e robusto, nel suo sguardo cogli la determinazione a proteggere il castello a costo della sua stessa vita e delle vistose cicatrici lasciano intendere il suo valore come combattente.
+~
+2|64|8192|262144|1048576|4194304 33554432 1000 B 3
+50 -5 -10 0 10d8+70
+-1 0 0 77
+8 8 1
+#34203
+commensale ogu~
+Commensale~
+~
+~
+2|16|128|1048576 0 1000 N
+1 20 10 0 1d3+1
+-1 0 0 1
+6 6 1
+#34206
+commensale ogu~
+Commensale~
+~
+~
+2|16|1048576 0 1000 N
+1 20 10 0 1d3+1
+-1 0 0 1
+6 6 2
+#34207
+servo ogu~
+Servo~
+~
+~
+64|1048576 0 1000 N
+1 20 10 0 1d3+1
+-1 0 0 1
+8 8 0
+#34208
+commensale ogu~
+Commensale~
+~
+~
+2|16|128|1048576 0 1000 N
+1 20 10 0 1d3+1
+-1 0 0 1
+6 6 1
+#34210
+commensale ogu~
+Commensale~
+~
+~
+2|16|1048576 0 1000 N
+1 20 10 0 1d3+1
+-1 0 0 1
+6 6 2
+#34211
+servo ogu~
+Servo~
+~
+~
+64|1048576 0 1000 N
+1 20 10 0 1d3+1
+-1 0 0 1
+8 8 0
+#34300
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34301
+gatto bianco gattone~
+Il Gattone bianco di Fouler~
+Il gattone bianco di Fouler gioca contento
+~
+Sta' bene anche se non ti sembra molto resistente,
+e' anche un po' troppo grasso 
+~
+2|4|64|2048|1048576 8|128|32768|16777216|33554432|134217728 1000 L 1
+1 20 -10 100 1d8+1
+-1 100 0 18
+8 8 4 0 16384|32768|65536|131072 0
+miaoooooo miaooooo 
+~
+miaoooooo miaoooo
+~
+#34302
+ape~
+Un ape svolazza indaffarata~
+$c0011Un ape $c0007svolazza di fiore in fiore
+~
+E' piccola ma aggressiva se viene disturbata
+
+~
+2|4|64|1048576 16777216 1000 L 1
+1 20 0 0 1d8+1
+-1 0 0 12
+8 8 2
+bzzzzzzzzz bzzzzzzzzz
+~
+bzzzzzzzzzz bzzzzzzzzzzz
+~
+#34303
+Azzurra~
+Azzurra~
+$c0012Azzurra $c0007e' qui che attende il ritorno del suo signore
+~
+E' ben fatta e molto potente
+~
+2|262144|8388608|268435456 8|128|2048|16777216|33554432|134217728 1000 L 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 0 1|8|128|1024|2048 0
+Andatevene devo rassettare
+~
+Qualcuno sta' ripulendo qualcosa qui intorno
+~
+#34304
+civetta~
+civetta~
+Una civetta bianca svolazza qui
+~
+Ha un piumaggio candido
+~
+2|1048576|4194304 128|2048|16777216 1000 L 1
+4 20 4 100 1d8+1
+-1 0 0 16
+8 8 2
+~
+~
+#34305
+Warka lupa~
+Warka~
+$c0001Warka $c0007si muove contenta
+~
+ Una simpatica lupa ti si avvicina festosa.
+~
+2|64|128|4194304 128|16777216|33554432|134217728 1000 L 1
+4 20 -10 50 1d8+1
+-1 0 0 18
+8 8 1
+auuuuuuuuu
+~
+auuuuuuuu
+~
+#34306
+formiche~
+Tante piccole formiche $c0010verdi~
+Tante piccole formiche $c0010verdi $c0007scorrazzano qui
+~
+Sono piccole sono tante sono $c0010 VERDI!!!!!
+~
+2|1048576|4194304 128 1000 L 1
+4 20 -4 0 1d8+1
+-1 0 0 1
+8 8 0
+tip-tap 
+squink
+~
+~
+#34307
+cassiere~
+Il cassiere del principe~
+Il cassiere del Principe sta contando delle monete d'oro
+~
+A prima vista pare un omuncolo insignificante,
+tuttavia e' bene non fidarsi.
+~
+64|1048576|33554432 8|128|16777216|33554432|134217728 0 A 5
+51 -10 -10 600 2d8+25
+-1 0 0 1
+8 8 4 1|4|32 1024|2048|4096|32768|65536 0
+#34308
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34309
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34310
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34311
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34312
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34313
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34314
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34315
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34316
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34317
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34318
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34319
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34320
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0
+#34321
+governante~
+La governante~
+$c0012La governante $c0007attende il ritorno del suo signore
+~
+E' molto carina, ma lo sguardo incute timore
+~
+2|262144|8388608|268435456 8|128|16777216|33554432|134217728 1000 A 6
+51 0 -10 1000 8d8+9
+-1 5000 0 1
+8 8 5 4096 1|8|128|1024|2048 0

@@ -35,8 +35,28 @@ add_executable(nebbie-wld-teleport-tests test_wld_teleport.cpp)
 target_link_libraries(nebbie-wld-teleport-tests PRIVATE nebbie-core)
 add_test(NAME wld-teleport-roundtrip COMMAND nebbie-wld-teleport-tests)
 
+add_executable(nebbie-wld-tunnel-moblim-tests test_wld_tunnel_moblim.cpp)
+target_link_libraries(nebbie-wld-tunnel-moblim-tests PRIVATE nebbie-core)
+add_test(NAME wld-tunnel-moblim-save COMMAND nebbie-wld-tunnel-moblim-tests)
+
+add_executable(nebbie-monolith-audit-tests test_monolith_audit.cpp)
+target_link_libraries(nebbie-monolith-audit-tests PRIVATE nebbie-core)
+add_test(NAME monolith-audit-tests COMMAND nebbie-monolith-audit-tests)
+
+add_executable(nebbie-aree-workspace-tests test_aree_workspace.cpp)
+target_link_libraries(nebbie-aree-workspace-tests PRIVATE nebbie-core)
+add_test(NAME aree-workspace-fixtures COMMAND nebbie-aree-workspace-tests)
+
+add_executable(nebbie-preserve-source-blocks-tests test_preserve_source_blocks.cpp)
+target_link_libraries(nebbie-preserve-source-blocks-tests PRIVATE nebbie-core)
+add_test(NAME preserve-source-blocks-tests COMMAND nebbie-preserve-source-blocks-tests)
+
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
+
+add_executable(nebbie-special-proc-validate-tests test_special_proc_validate.cpp)
+target_link_libraries(nebbie-special-proc-validate-tests PRIVATE nebbie-core)
+add_test(NAME special-proc-validate-tests COMMAND nebbie-special-proc-validate-tests)
 
 add_executable(nebbie-phase4-tests test_phase4.cpp)
 target_link_libraries(nebbie-phase4-tests PRIVATE nebbie-core)

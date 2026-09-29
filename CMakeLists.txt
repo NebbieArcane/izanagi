@@ -1,5 +1,28 @@
 cmake_minimum_required(VERSION 3.16)
-project(nebbie-editor VERSION 0.1.0 LANGUAGES CXX)
+
+if(NOT DEFINED NEBBIE_VERSION)
+    set(NEBBIE_VERSION "0.1.0")
+endif()
+
+project(nebbie-editor VERSION ${NEBBIE_VERSION} LANGUAGES CXX)
+
+if(NOT NEBBIE_GIT_SHA)
+    find_package(Git QUIET)
+    if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+            OUTPUT_VARIABLE NEBBIE_GIT_SHA
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+    endif()
+endif()
+if(NOT NEBBIE_GIT_SHA)
+    set(NEBBIE_GIT_SHA "dev")
+endif()
+
+string(TIMESTAMP NEBBIE_BUILD_TIMESTAMP UTC)
 
 configure_file(
     "${CMAKE_SOURCE_DIR}/cmake/version.hpp.in"

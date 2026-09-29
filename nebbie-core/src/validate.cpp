@@ -2,10 +2,13 @@
 
 #include "nebbie/edit.hpp"
 #include "nebbie/mud_text.hpp"
+#include "nebbie/special_proc_catalog.hpp"
 #include "nebbie/text_lines.hpp"
 
 #include <algorithm>
 #include <cctype>
+#include <map>
+#include <set>
 
 namespace nebbie {
 
@@ -136,6 +139,8 @@ void append_room_validation(const World& world,
 
             check_field(room.name, "name");
             check_field(room.description, "description");
+            check_field(room.bright_at_night, "bright_at_night");
+            check_field(room.bright_at_day, "bright_at_day");
             for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
                 const auto& extra = room.extra_descs[extra_index];
                 const TextLineLengthReport line_report =
@@ -407,20 +412,59 @@ void validate_guilds(const World& world, ValidationReport& report) {
 }
 
 void validate_special_procs(const World& world, ValidationReport& report) {
+    std::map<std::pair<char, long>, std::size_t> seen_entries;
+
     for (const auto& spe : world.special_procs) {
         const std::string where = std::string(1, spe.type) + " " + std::to_string(spe.vnum)
                                   + " (" + spe.procedure + ") ";
 
+        const auto key = std::make_pair(static_cast<char>(std::tolower(static_cast<unsigned char>(spe.type))),
+                                        spe.vnum);
+        const auto [it, inserted] = seen_entries.emplace(key, 1);
+        if (!inserted) {
+            ++it->second;
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "duplicate special proc assignment for vnum "
+                          + std::to_string(spe.vnum));
+        }
+
+        if (spe.procedure.empty()) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "procedure name is empty");
+        } else if (!is_known_special_proc(spe.type, spe.procedure)) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "unknown procedure name (not in server catalog)");
+        }
+
         switch (spe.type) {
         case 'm':
+        case 'M':
             if (!world.mobiles.empty() && !has_mobile(world, spe.vnum)) {
                 add_issue(report,
                           ValidationSeverity::error,
                           "special",
                           where + "mobile not found");
+            } else if (has_mobile(world, spe.vnum)) {
+                const auto& mob = world.mobiles.at(spe.vnum);
+                if ((mob.act & kMobActSpecFlag) == 0) {
+                    add_issue(report,
+                              ValidationSeverity::warning,
+                              "special",
+                              where + "mobile #" + std::to_string(spe.vnum)
+                                  + " has special proc but ACT_SPEC flag is not set",
+                              ValidationTarget::mob,
+                              spe.vnum);
+                }
             }
             break;
         case 'o':
+        case 'O':
             if (!world.objects.empty() && !has_object(world, spe.vnum)) {
                 add_issue(report,
                           ValidationSeverity::error,
@@ -429,6 +473,7 @@ void validate_special_procs(const World& world, ValidationReport& report) {
             }
             break;
         case 'r':
+        case 'R':
             if (!world.rooms.empty() && !has_room(world, spe.vnum)) {
                 add_issue(report,
                           ValidationSeverity::error,
@@ -437,7 +482,37 @@ void validate_special_procs(const World& world, ValidationReport& report) {
             }
             break;
         default:
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      where + "unsupported type (expected m, o, or r)");
             break;
+        }
+    }
+
+    if (world.mobiles.empty()) {
+        return;
+    }
+
+    std::set<long> mobile_proc_vnums;
+    for (const auto& spe : world.special_procs) {
+        if (std::tolower(static_cast<unsigned char>(spe.type)) == 'm') {
+            mobile_proc_vnums.insert(spe.vnum);
+        }
+    }
+
+    for (const auto& [vnum, mob] : world.mobiles) {
+        if ((mob.act & kMobActSpecFlag) == 0) {
+            continue;
+        }
+        if (mobile_proc_vnums.find(vnum) == mobile_proc_vnums.end()) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "special",
+                      "mobile #" + std::to_string(vnum) + " (" + mob.short_descr
+                          + ") has ACT_SPEC but no M entry in myst.spe",
+                      ValidationTarget::mob,
+                      vnum);
         }
     }
 }
@@ -490,9 +565,78 @@ ValidationReport validate_rooms(const World& world,
     return report;
 }
 
+void append_mob_text_validation(const World& world, ValidationReport& report, const ValidationOptions& options) {
+    if (options.max_line_length <= 0) {
+        return;
+    }
+
+    const auto check_field = [&](long vnum, const std::string& text, const std::string& field_label) {
+        const TextLineLengthReport line_report = check_text_line_lengths(text, options.max_line_length);
+        for (const auto& issue : line_report.overlong) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "mob_text",
+                      "mobile " + std::to_string(vnum) + " " + field_label + " line "
+                          + std::to_string(issue.line_number) + " has "
+                          + std::to_string(issue.length) + " characters (max "
+                          + std::to_string(options.max_line_length) + ")",
+                      ValidationTarget::mob,
+                      vnum);
+        }
+    };
+
+    for (const auto& [vnum, mob] : world.mobiles) {
+        check_field(vnum, mob.name, "name");
+        check_field(vnum, mob.short_descr, "short_descr");
+        check_field(vnum, mob.long_descr, "long_descr");
+        check_field(vnum, mob.description, "description");
+        check_field(vnum, mob.sounds, "sounds");
+        check_field(vnum, mob.distant_sounds, "distant_sounds");
+        for (std::size_t index = 0; index < mob.extra_sound_strings.size(); ++index) {
+            check_field(vnum, mob.extra_sound_strings[index], "extra_sound " + std::to_string(index));
+        }
+    }
+}
+
+void append_object_text_validation(const World& world,
+                                   ValidationReport& report,
+                                   const ValidationOptions& options) {
+    if (options.max_line_length <= 0) {
+        return;
+    }
+
+    const auto check_field = [&](long vnum, const std::string& text, const std::string& field_label) {
+        const TextLineLengthReport line_report = check_text_line_lengths(text, options.max_line_length);
+        for (const auto& issue : line_report.overlong) {
+            add_issue(report,
+                      ValidationSeverity::warning,
+                      "object_text",
+                      "object " + std::to_string(vnum) + " " + field_label + " line "
+                          + std::to_string(issue.line_number) + " has "
+                          + std::to_string(issue.length) + " characters (max "
+                          + std::to_string(options.max_line_length) + ")",
+                      ValidationTarget::object,
+                      vnum);
+        }
+    };
+
+    for (const auto& [vnum, obj] : world.objects) {
+        check_field(vnum, obj.name, "name");
+        check_field(vnum, obj.short_descr, "short_descr");
+        check_field(vnum, obj.description, "description");
+        check_field(vnum, obj.action_description, "action_description");
+        for (std::size_t index = 0; index < obj.extra_descs.size(); ++index) {
+            check_field(vnum, obj.extra_descs[index].description,
+                         "extra desc " + std::to_string(index));
+        }
+    }
+}
+
 ValidationReport validate_world(const World& world, const ValidationOptions& options) {
     ValidationReport report;
     append_room_validation(world, report, options, nullptr);
+    append_mob_text_validation(world, report, options);
+    append_object_text_validation(world, report, options);
     validate_resets(world, report);
     validate_shops(world, report);
     validate_guilds(world, report);
@@ -526,6 +670,8 @@ ValidationReport validate_translatable_rooms(const World& world,
 
             check_field(room.name, "name");
             check_field(room.description, "description");
+            check_field(room.bright_at_night, "bright_at_night");
+            check_field(room.bright_at_day, "bright_at_day");
             for (std::size_t extra_index = 0; extra_index < room.extra_descs.size(); ++extra_index) {
                 check_field(room.extra_descs[extra_index].description,
                             "extra desc " + std::to_string(extra_index));

@@ -9,11 +9,7 @@ $Root = Split-Path -Parent $PSScriptRoot
 $Dist = Join-Path $Root "dist"
 $Iss = Join-Path $Root "installer\windows\nebbie-editor.iss"
 
-function Get-ProjectVersion {
-    $line = Select-String -Path (Join-Path $Root "CMakeLists.txt") -Pattern 'project\(nebbie-editor VERSION ' | Select-Object -First 1
-    if ($line -match 'VERSION ([0-9.]+)') { return $Matches[1] }
-    return "0.0.0"
-}
+. (Join-Path $PSScriptRoot "nebbie-version.ps1")
 
 function Find-InnoSetupCompiler {
     $candidates = @(
