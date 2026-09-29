@@ -126,19 +126,21 @@ std::string format_room_block(const Room& room, const World& world) {
     append_string_field(out, room.name);
     append_string_field(out, room.description);
 
-    const int zone_num = room.zone_index >= 0 && room.zone_index < static_cast<int>(world.zones.size())
-                             ? world.zones[static_cast<std::size_t>(room.zone_index)].num
-                             : 0;
+    const long zone_field = room.zone_line_primary.has_value()
+                                ? *room.zone_line_primary
+                                : (room.zone_index >= 0 && room.zone_index < static_cast<int>(world.zones.size())
+                                       ? static_cast<long>(world.zones[static_cast<std::size_t>(room.zone_index)].num)
+                                       : 0L);
 
     if (room.tele_time || room.tele_targ || room.tele_mask) {
-        out << zone_num << ' ' << format_nebbie_bit_mask(room.room_flags) << " -1 " << room.tele_time << ' '
+        out << zone_field << ' ' << format_nebbie_bit_mask(room.room_flags) << " -1 " << room.tele_time << ' '
             << room.tele_targ << ' ' << room.tele_mask;
         if (room.tele_mask & TELE_COUNT) {
             out << ' ' << room.tele_cnt;
         }
         out << ' ' << room.sector_type << '\n';
     } else {
-        out << zone_num << ' ' << format_nebbie_bit_mask(room.room_flags) << ' ' << room.sector_type << '\n';
+        out << zone_field << ' ' << format_nebbie_bit_mask(room.room_flags) << ' ' << room.sector_type << '\n';
     }
 
     if (room.sector_type == SECT_WATER_NOSWIM || room.sector_type == SECT_UNDERWATER) {
@@ -151,7 +153,8 @@ std::string format_room_block(const Room& room, const World& world) {
         out << 'D' << exit.direction << '\n';
         append_string_field(out, exit.description);
         append_string_field(out, exit.keyword);
-        out << exit.exit_info << ' ' << exit.key << ' ' << exit.to_room << ' ' << exit.open_cmd << '\n';
+        out << format_nebbie_bit_mask(exit.exit_info) << ' ' << exit.key << ' ' << exit.to_room << ' '
+            << exit.open_cmd << '\n';
     }
 
     for (const auto& extra : room.extra_descs) {

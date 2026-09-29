@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,8 @@ struct Exit {
 struct Room {
     long vnum = 0;
     int zone_index = 0;
+    /** First numeric field on the zone/flags line as stored in the world file (often -1 in Aree). */
+    std::optional<long> zone_line_primary;
     std::string name;
     std::string description;
     long room_flags = 0;

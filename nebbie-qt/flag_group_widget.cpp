@@ -25,6 +25,12 @@ FlagGroupWidget::FlagGroupWidget(const std::vector<nebbie::MobFlagDef>& defs, QW
 }
 
 void FlagGroupWidget::setValue(const long flags) {
+    long known_mask = 0;
+    for (const nebbie::MobFlagDef& def : defs_) {
+        known_mask |= def.value;
+    }
+    preserved_bits_ = flags & ~known_mask;
+
     const auto selected = nebbie::flags_selection_from_value(defs_, flags);
     for (std::size_t i = 0; i < boxes_.size() && i < selected.size(); ++i) {
         boxes_[i]->setChecked(selected[i]);
@@ -37,5 +43,5 @@ long FlagGroupWidget::value() const {
     for (const auto* box : boxes_) {
         selected.push_back(box->isChecked());
     }
-    return nebbie::flags_value_from_selection(defs_, selected);
+    return preserved_bits_ | nebbie::flags_value_from_selection(defs_, selected);
 }

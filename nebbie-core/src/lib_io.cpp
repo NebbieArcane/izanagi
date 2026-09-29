@@ -264,7 +264,9 @@ PreserveEntitySaveOptions preserve_options_for(const LibContext& context,
                                                const FileSourceBlocks* sources,
                                                const std::unordered_set<long>* dirty) {
     PreserveEntitySaveOptions options;
-    if (context.write_eof_markers_on_save || sources == nullptr) {
+    (void)context;
+    (void)filename;
+    if (sources == nullptr) {
         return options;
     }
     options.enabled = true;

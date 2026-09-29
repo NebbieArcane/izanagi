@@ -1,4 +1,5 @@
 #include "nebbie/io.hpp"
+#include "nebbie/legacy_format.hpp"
 #include "nebbie/overlay_io.hpp"
 
 #include "nebbie/fread.hpp"
@@ -63,7 +64,7 @@ void read_room_zone_line(FILE* fp, Room& room) {
         throw ParseError("Room " + std::to_string(room.vnum) + ": expected zone, flags, and sector");
     }
 
-    (void)nums[0];
+    room.zone_line_primary = nums[0];
     room.room_flags = nums[1];
     const long sector_field = nums[2];
 
@@ -174,23 +175,32 @@ void read_room_body(FILE* fp, Room& room, World& world) {
     throw ParseError("Room " + std::to_string(room.vnum) + " missing terminating S");
 }
 
+long room_zone_line_primary_field(const Room& room, const World& world) {
+    if (room.zone_line_primary.has_value()) {
+        return *room.zone_line_primary;
+    }
+    if (room.zone_index >= 0 && room.zone_index < static_cast<int>(world.zones.size())) {
+        return world.zones[static_cast<std::size_t>(room.zone_index)].num;
+    }
+    return 0;
+}
+
 void write_room_body(FILE* fp, const Room& room, const World& world) {
     std::fprintf(fp, "%s~\n", room.name.c_str());
     std::fprintf(fp, "%s~\n", room.description.c_str());
 
-    const int zone_num = room.zone_index >= 0 && room.zone_index < static_cast<int>(world.zones.size())
-        ? world.zones[room.zone_index].num
-        : 0;
+    const long zone_field = room_zone_line_primary_field(room, world);
+    const std::string room_flags = format_nebbie_bit_mask(room.room_flags);
 
     if (room.tele_time || room.tele_targ || room.tele_mask) {
-        std::fprintf(fp, "%d %ld -1 %ld %ld %ld", zone_num, room.room_flags, room.tele_time, room.tele_targ,
+        std::fprintf(fp, "%ld %s -1 %ld %ld %ld", zone_field, room_flags.c_str(), room.tele_time, room.tele_targ,
                      room.tele_mask);
         if (room.tele_mask & TELE_COUNT) {
             std::fprintf(fp, " %ld", room.tele_cnt);
         }
         std::fprintf(fp, " %ld\n", room.sector_type);
     } else {
-        std::fprintf(fp, "%d %ld %ld\n", zone_num, room.room_flags, room.sector_type);
+        std::fprintf(fp, "%ld %s %ld\n", zone_field, room_flags.c_str(), room.sector_type);
     }
 
     if (room.sector_type == SECT_WATER_NOSWIM || room.sector_type == SECT_UNDERWATER) {
@@ -206,8 +216,9 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
         std::fprintf(fp, "D%d\n", exit.direction);
         std::fprintf(fp, "%s~\n", exit.description.c_str());
         std::fprintf(fp, "%s~\n", exit.keyword.c_str());
-        std::fprintf(fp, "%ld %ld %ld %ld\n",
-                     exit.exit_info,
+        const std::string exit_flags = format_nebbie_bit_mask(exit.exit_info);
+        std::fprintf(fp, "%s %ld %ld %ld\n",
+                     exit_flags.c_str(),
                      exit.key,
                      exit.to_room,
                      exit.open_cmd);

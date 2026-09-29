@@ -22,4 +22,6 @@ signals:
 private:
     std::vector<nebbie::MobFlagDef> defs_;
     std::vector<QCheckBox*> boxes_;
+    /** Bits set in file but not represented in {@link defs_} (must survive editor round-trip). */
+    long preserved_bits_ = 0;
 };
