@@ -33,6 +33,7 @@ add_library(nebbie-core
     src/monolith_audit.cpp
     src/aree_workspace.cpp
     src/legacy_format.cpp
+    src/wld_room_lines.cpp
     src/source_blocks.cpp
 )
 

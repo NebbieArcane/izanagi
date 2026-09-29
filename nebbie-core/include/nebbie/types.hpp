@@ -20,6 +20,8 @@ struct Exit {
     long key = 0;
     long to_room = 0;
     long open_cmd = -1;
+    /** Exact flags/key/to_room/open_cmd line from myst.wld when loaded (preserve formatting on save). */
+    std::optional<std::string> data_line_raw;
 };
 
 struct Room {
@@ -27,6 +29,8 @@ struct Room {
     int zone_index = 0;
     /** First numeric field on the zone/flags line as stored in the world file (often -1 in Aree). */
     std::optional<long> zone_line_primary;
+    /** Exact zone/flags/sector (and tele) line from myst.wld when loaded. */
+    std::optional<std::string> zone_data_line_raw;
     std::string name;
     std::string description;
     long room_flags = 0;

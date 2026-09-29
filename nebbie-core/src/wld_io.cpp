@@ -1,12 +1,14 @@
 #include "nebbie/io.hpp"
 #include "nebbie/legacy_format.hpp"
 #include "nebbie/overlay_io.hpp"
+#include "nebbie/wld_room_lines.hpp"
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
 
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
 
 namespace nebbie {
 
@@ -37,29 +39,60 @@ std::string read_data_line(FILE* fp) {
     }
 }
 
+bool looks_like_exit_data_line(const std::string& line) {
+    if (line.empty() || line == "~") {
+        return false;
+    }
+    switch (line[0]) {
+    case 'D':
+    case 'E':
+    case 'L':
+    case 'S':
+    case 'C':
+        return false;
+    default:
+        return true;
+    }
+}
+
+std::string read_exit_data_line(FILE* fp) {
+    while (true) {
+        const std::string line = trim_line(fread_line(fp));
+        if (looks_like_exit_data_line(line)) {
+            return line;
+        }
+        if (line.empty()) {
+            continue;
+        }
+        throw ParseError("Unexpected line in exit record (found '" + line + "')");
+    }
+}
+
 void read_exit(FILE* fp, Room& room, int direction) {
     Exit exit;
     exit.direction = direction;
     exit.description = fread_string(fp);
     exit.keyword = fread_string(fp);
-    exit.exit_info = fread_number(fp);
-    exit.key = fread_number(fp);
-    exit.to_room = fread_number(fp);
 
-    int c = std::fgetc(fp);
-    if (c != EOF && (c == '-' || std::isdigit(c))) {
-        std::ungetc(c, fp);
-        exit.open_cmd = fread_number(fp);
-    } else if (c != EOF) {
-        std::ungetc(c, fp);
-        exit.open_cmd = -1;
+    const std::string data_line = read_exit_data_line(fp);
+    exit.data_line_raw = data_line;
+    const auto nums = parse_numbers(data_line);
+    if (nums.size() < 3) {
+        throw ParseError("Room " + std::to_string(room.vnum) + " exit D" + std::to_string(direction)
+                         + ": expected flags, key, and to_room");
     }
+    exit.exit_info = nums[0];
+    exit.key = nums[1];
+    exit.to_room = nums[2];
+    exit.open_cmd = nums.size() >= 4 ? nums[3] : -1;
 
     room.exits.push_back(exit);
 }
 
 void read_room_zone_line(FILE* fp, Room& room) {
-    const auto nums = parse_numbers(read_data_line(fp));
+    const std::string raw = read_data_line(fp);
+    room.zone_data_line_raw = raw;
+    const auto nums = parse_numbers(raw);
     if (nums.size() < 3) {
         throw ParseError("Room " + std::to_string(room.vnum) + ": expected zone, flags, and sector");
     }
@@ -175,32 +208,14 @@ void read_room_body(FILE* fp, Room& room, World& world) {
     throw ParseError("Room " + std::to_string(room.vnum) + " missing terminating S");
 }
 
-long room_zone_line_primary_field(const Room& room, const World& world) {
-    if (room.zone_line_primary.has_value()) {
-        return *room.zone_line_primary;
-    }
-    if (room.zone_index >= 0 && room.zone_index < static_cast<int>(world.zones.size())) {
-        return world.zones[static_cast<std::size_t>(room.zone_index)].num;
-    }
-    return 0;
-}
-
 void write_room_body(FILE* fp, const Room& room, const World& world) {
     std::fprintf(fp, "%s~\n", room.name.c_str());
     std::fprintf(fp, "%s~\n", room.description.c_str());
 
-    const long zone_field = room_zone_line_primary_field(room, world);
-    const std::string room_flags = format_nebbie_bit_mask(room.room_flags);
-
-    if (room.tele_time || room.tele_targ || room.tele_mask) {
-        std::fprintf(fp, "%ld %s -1 %ld %ld %ld", zone_field, room_flags.c_str(), room.tele_time, room.tele_targ,
-                     room.tele_mask);
-        if (room.tele_mask & TELE_COUNT) {
-            std::fprintf(fp, " %ld", room.tele_cnt);
-        }
-        std::fprintf(fp, " %ld\n", room.sector_type);
-    } else {
-        std::fprintf(fp, "%ld %s %ld\n", zone_field, room_flags.c_str(), room.sector_type);
+    {
+        std::ostringstream zone_line;
+        write_zone_data_line(zone_line, room, world);
+        std::fputs(zone_line.str().c_str(), fp);
     }
 
     if (room.sector_type == SECT_WATER_NOSWIM || room.sector_type == SECT_UNDERWATER) {
@@ -216,12 +231,9 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
         std::fprintf(fp, "D%d\n", exit.direction);
         std::fprintf(fp, "%s~\n", exit.description.c_str());
         std::fprintf(fp, "%s~\n", exit.keyword.c_str());
-        const std::string exit_flags = format_nebbie_bit_mask(exit.exit_info);
-        std::fprintf(fp, "%s %ld %ld %ld\n",
-                     exit_flags.c_str(),
-                     exit.key,
-                     exit.to_room,
-                     exit.open_cmd);
+        std::ostringstream exit_line;
+        write_exit_data_line(exit_line, exit);
+        std::fputs(exit_line.str().c_str(), fp);
     }
 
     for (const auto& extra : room.extra_descs) {

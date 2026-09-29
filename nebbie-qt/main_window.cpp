@@ -2343,6 +2343,9 @@ void MainWindow::applyRoomChanges() {
     const std::string old_name = room->name;
     nebbie::Room updated = *room;
     room_editor_->saveToRoom(updated);
+    if (room_editor_snapshot_matches(*room, updated)) {
+        return;
+    }
     const bool name_changed = old_name != updated.name;
     nebbie::assign_room_fields(*room, updated);
 
