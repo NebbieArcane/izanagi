@@ -5,6 +5,7 @@
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
+#include "nebbie/nebbie_string_field.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -217,8 +218,8 @@ void read_room_body(FILE* fp, Room& room, World& world) {
 }
 
 void write_room_body(FILE* fp, const Room& room, const World& world) {
-    std::fprintf(fp, "%s~\n", room.name.c_str());
-    std::fprintf(fp, "%s~\n", room.description.c_str());
+    fwrite_nebbie_string_field(fp, room.name, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, room.description, nebbie_paragraph_tilde_style(room.description));
 
     {
         std::ostringstream zone_line;
@@ -237,8 +238,8 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
 
     for (const auto& exit : room.exits) {
         std::fprintf(fp, "D%d\n", exit.direction);
-        std::fprintf(fp, "%s~\n", exit.description.c_str());
-        std::fprintf(fp, "%s~\n", exit.keyword.c_str());
+        fwrite_nebbie_string_field(fp, exit.description, NebbieTildeStyle::OnOwnLine);
+        fwrite_nebbie_string_field(fp, exit.keyword, NebbieTildeStyle::Inline);
         std::ostringstream exit_line;
         write_exit_data_line(exit_line, room, world, exit);
         std::fputs(exit_line.str().c_str(), fp);
@@ -246,14 +247,14 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
 
     for (const auto& extra : room.extra_descs) {
         std::fprintf(fp, "E\n");
-        std::fprintf(fp, "%s~\n", extra.keyword.c_str());
-        std::fprintf(fp, "%s~\n", extra.description.c_str());
+        fwrite_nebbie_string_field(fp, extra.keyword, NebbieTildeStyle::Inline);
+        fwrite_nebbie_string_field(fp, extra.description, nebbie_paragraph_tilde_style(extra.description));
     }
 
     if (!room.bright_at_night.empty() || !room.bright_at_day.empty()) {
         std::fprintf(fp, "L\n");
-        std::fprintf(fp, "%s~\n", room.bright_at_night.c_str());
-        std::fprintf(fp, "%s~\n", room.bright_at_day.c_str());
+        fwrite_nebbie_string_field(fp, room.bright_at_night, nebbie_paragraph_tilde_style(room.bright_at_night));
+        fwrite_nebbie_string_field(fp, room.bright_at_day, nebbie_paragraph_tilde_style(room.bright_at_day));
     }
 
     std::fprintf(fp, "S\n");

@@ -35,6 +35,7 @@ add_library(nebbie-core
     src/legacy_format.cpp
     src/wld_room_lines.cpp
     src/mob_trailing_sound.cpp
+    src/nebbie_string_field.cpp
     src/source_blocks.cpp
 )
 

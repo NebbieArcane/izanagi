@@ -2,6 +2,7 @@
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
+#include "nebbie/nebbie_string_field.hpp"
 
 #include <cstdio>
 
@@ -10,7 +11,7 @@ namespace nebbie {
 namespace {
 
 void fwrite_string(FILE* fp, const std::string& value) {
-    std::fprintf(fp, "%s~\n", value.c_str());
+    fwrite_nebbie_string_field(fp, value, NebbieTildeStyle::Inline);
 }
 
 void read_combat_message(FILE* fp, CombatMessage& msg) {

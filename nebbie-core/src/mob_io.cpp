@@ -3,6 +3,7 @@
 
 #include "nebbie/fread.hpp"
 #include "nebbie/mob_trailing_sound.hpp"
+#include "nebbie/nebbie_string_field.hpp"
 
 #include "nebbie/file_io.hpp"
 
@@ -285,7 +286,7 @@ void read_mobile_entry(FILE* fp, Mobile& mob) {
 }
 
 void fwrite_string(FILE* fp, const std::string& value) {
-    std::fprintf(fp, "%s~\n", value.c_str());
+    fwrite_nebbie_string_field(fp, value, NebbieTildeStyle::Inline);
 }
 
 void write_mob_trailing_sound_line_to_file(FILE* fp, const std::string& value) {
@@ -333,10 +334,10 @@ void write_new_mob_stats(FILE* fp, const Mobile& mob) {
 }
 
 void write_mobile_body(FILE* fp, const Mobile& mob) {
-    fwrite_string(fp, mob.name);
-    fwrite_string(fp, mob.short_descr);
-    fwrite_string(fp, mob.long_descr);
-    fwrite_string(fp, mob.description);
+    fwrite_nebbie_string_field(fp, mob.name, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, mob.short_descr, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, mob.long_descr, NebbieTildeStyle::OnOwnLine);
+    fwrite_nebbie_string_field(fp, mob.description, nebbie_paragraph_tilde_style(mob.description));
 
     if (mob.mobtype == 'A' || mob.mobtype == 'B' || mob.mobtype == 'L') {
         std::fprintf(fp, "%ld %ld %ld %c %d\n",

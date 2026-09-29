@@ -47,6 +47,10 @@ add_executable(nebbie-mob-sound-tilde-tests test_mob_sound_tilde.cpp)
 target_link_libraries(nebbie-mob-sound-tilde-tests PRIVATE nebbie-core)
 add_test(NAME mob-sound-tilde-format COMMAND nebbie-mob-sound-tilde-tests)
 
+add_executable(nebbie-nebbie-tilde-fields-tests test_nebbie_tilde_fields.cpp)
+target_link_libraries(nebbie-nebbie-tilde-fields-tests PRIVATE nebbie-core)
+add_test(NAME nebbie-tilde-fields COMMAND nebbie-nebbie-tilde-fields-tests)
+
 add_executable(nebbie-monolith-audit-tests test_monolith_audit.cpp)
 target_link_libraries(nebbie-monolith-audit-tests PRIVATE nebbie-core)
 add_test(NAME monolith-audit-tests COMMAND nebbie-monolith-audit-tests)

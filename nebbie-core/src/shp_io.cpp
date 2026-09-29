@@ -2,6 +2,7 @@
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
+#include "nebbie/nebbie_string_field.hpp"
 
 #include <cstdio>
 #include <string>
@@ -11,7 +12,7 @@ namespace nebbie {
 namespace {
 
 void fwrite_string(FILE* fp, const std::string& value) {
-    std::fprintf(fp, "%s~\n", value.c_str());
+    fwrite_nebbie_string_field(fp, value, NebbieTildeStyle::Inline);
 }
 
 long parse_shop_vnum(const std::string& header) {
