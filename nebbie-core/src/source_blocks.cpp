@@ -3,6 +3,7 @@
 #include "nebbie/constants.hpp"
 #include "nebbie/file_io.hpp"
 #include "nebbie/legacy_format.hpp"
+#include "nebbie/mob_trailing_sound.hpp"
 #include "nebbie/types.hpp"
 #include "nebbie/wld_room_lines.hpp"
 #include "nebbie/world.hpp"
@@ -111,10 +112,10 @@ std::string format_mobile_block(const Mobile& mob) {
     const bool write_sounds = mob.mobtype == 'L' || !mob.sounds.empty() || !mob.distant_sounds.empty()
                               || !mob.extra_sound_strings.empty();
     if (write_sounds) {
-        append_string_field(out, mob.sounds);
-        append_string_field(out, mob.distant_sounds);
+        write_mob_trailing_sound_line(out, mob.sounds);
+        write_mob_trailing_sound_line(out, mob.distant_sounds);
         for (const auto& extra : mob.extra_sound_strings) {
-            append_string_field(out, extra);
+            write_mob_trailing_sound_line(out, extra);
         }
     }
 

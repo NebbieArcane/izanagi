@@ -43,6 +43,10 @@ add_executable(nebbie-wld-zone-as-exit-tests test_wld_zone_line_as_exit.cpp)
 target_link_libraries(nebbie-wld-zone-as-exit-tests PRIVATE nebbie-core)
 add_test(NAME wld-zone-line-as-exit COMMAND nebbie-wld-zone-as-exit-tests)
 
+add_executable(nebbie-mob-sound-tilde-tests test_mob_sound_tilde.cpp)
+target_link_libraries(nebbie-mob-sound-tilde-tests PRIVATE nebbie-core)
+add_test(NAME mob-sound-tilde-format COMMAND nebbie-mob-sound-tilde-tests)
+
 add_executable(nebbie-monolith-audit-tests test_monolith_audit.cpp)
 target_link_libraries(nebbie-monolith-audit-tests PRIVATE nebbie-core)
 add_test(NAME monolith-audit-tests COMMAND nebbie-monolith-audit-tests)

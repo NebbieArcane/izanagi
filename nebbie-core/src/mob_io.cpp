@@ -2,6 +2,8 @@
 #include "nebbie/overlay_io.hpp"
 
 #include "nebbie/fread.hpp"
+#include "nebbie/mob_trailing_sound.hpp"
+
 #include "nebbie/file_io.hpp"
 
 #include <cctype>
@@ -286,6 +288,12 @@ void fwrite_string(FILE* fp, const std::string& value) {
     std::fprintf(fp, "%s~\n", value.c_str());
 }
 
+void write_mob_trailing_sound_line_to_file(FILE* fp, const std::string& value) {
+    std::ostringstream buffer;
+    write_mob_trailing_sound_line(buffer, value);
+    std::fputs(buffer.str().c_str(), fp);
+}
+
 void write_new_mob_stats(FILE* fp, const Mobile& mob) {
     if (mob_uses_hit_dice(mob.mobtype)) {
         std::fprintf(fp, "%d %d %d %s %s\n",
@@ -316,10 +324,10 @@ void write_new_mob_stats(FILE* fp, const Mobile& mob) {
     }
 
     if (mob.mobtype == 'L' || mob_has_trailing_sounds(mob)) {
-        fwrite_string(fp, mob.sounds);
-        fwrite_string(fp, mob.distant_sounds);
+        write_mob_trailing_sound_line_to_file(fp, mob.sounds);
+        write_mob_trailing_sound_line_to_file(fp, mob.distant_sounds);
         for (const auto& extra : mob.extra_sound_strings) {
-            fwrite_string(fp, extra);
+            write_mob_trailing_sound_line_to_file(fp, extra);
         }
     }
 }
