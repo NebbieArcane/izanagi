@@ -59,7 +59,9 @@ void load_lib(World& world, const std::filesystem::path& lib_root, LibContext& c
               ProgressCallback progress = {});
 std::filesystem::path resolve_lib_directory(const std::filesystem::path& path);
 bool directory_has_lib_files(const std::filesystem::path& dir);
-void save_lib(const World& world, const LibContext& context, ProgressCallback progress = {});
+void save_lib(const World& world, LibContext& context, ProgressCallback progress = {});
+
+void refresh_captured_source_blocks(LibContext& context);
 
 void save_myst_zon(const World& world,
                    const std::filesystem::path& path,

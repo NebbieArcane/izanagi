@@ -32,6 +32,8 @@ add_library(nebbie-core
     src/zone_partition.cpp
     src/monolith_audit.cpp
     src/aree_workspace.cpp
+    src/legacy_format.cpp
+    src/source_blocks.cpp
 )
 
 target_include_directories(nebbie-core PUBLIC include)

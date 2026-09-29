@@ -2550,6 +2550,7 @@ void MainWindow::applyMobChanges() {
 
     item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(mob->short_descr)));
     markDirty();
+    dirty_mobile_vnums_.insert(vnum);
     setStatus(QString("Mobile %1 aggiornato in memoria.").arg(vnum));
 }
 
@@ -2573,6 +2574,7 @@ void MainWindow::applyObjChanges() {
 
     item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(obj->short_descr)));
     markDirty();
+    dirty_object_vnums_.insert(vnum);
     setStatus(QString("Oggetto %1 aggiornato in memoria.").arg(vnum));
 }
 
@@ -2630,6 +2632,7 @@ void MainWindow::createMob() {
     onMobSelected();
     mob_editor_->focusPrimaryTextField();
     markDirty();
+    dirty_mobile_vnums_.insert(static_cast<long>(vnum));
     setStatus(QString("Creato mob #%1.").arg(vnum));
 }
 
@@ -2659,6 +2662,7 @@ void MainWindow::createObject() {
     onObjSelected();
     obj_editor_->focusPrimaryTextField();
     markDirty();
+    dirty_object_vnums_.insert(static_cast<long>(vnum));
     setStatus(QString("Creato oggetto #%1.").arg(vnum));
 }
 
@@ -2792,6 +2796,7 @@ void MainWindow::saveLib() {
     const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
     if (rooms_to_check.empty()) {
         try {
+            syncDirtyEntityVnumsToContext();
             nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
             markClean();
             last_version_time_ = std::chrono::system_clock::now();
@@ -2840,6 +2845,7 @@ void MainWindow::saveLib() {
     }
 
     try {
+        syncDirtyEntityVnumsToContext();
         nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();
         last_version_time_ = std::chrono::system_clock::now();
@@ -2856,6 +2862,7 @@ void MainWindow::saveLibForce() {
         return;
     }
     try {
+        syncDirtyEntityVnumsToContext();
         nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();
         last_version_time_ = std::chrono::system_clock::now();
@@ -2871,6 +2878,7 @@ void MainWindow::onAutosaveTick() {
     }
 
     try {
+        syncDirtyEntityVnumsToContext();
         const auto result =
             nebbie::run_autosave(world_, context_, lib_path_, session_config_, last_version_time_, sessionStorageRoot());
         if (result.version_created) {
@@ -2980,6 +2988,15 @@ void MainWindow::setStatus(const QString& message) {
     statusBar()->showMessage(message);
 }
 
+void MainWindow::syncDirtyEntityVnumsToContext() {
+    context_.dirty_room_vnums.clear();
+    context_.dirty_mobile_vnums.clear();
+    context_.dirty_object_vnums.clear();
+    context_.dirty_room_vnums.insert(dirty_room_vnums_.begin(), dirty_room_vnums_.end());
+    context_.dirty_mobile_vnums.insert(dirty_mobile_vnums_.begin(), dirty_mobile_vnums_.end());
+    context_.dirty_object_vnums.insert(dirty_object_vnums_.begin(), dirty_object_vnums_.end());
+}
+
 void MainWindow::markDirty() {
     dirty_ = true;
     updateBranding();
@@ -2988,6 +3005,8 @@ void MainWindow::markDirty() {
 void MainWindow::markClean() {
     dirty_ = false;
     dirty_room_vnums_.clear();
+    dirty_mobile_vnums_.clear();
+    dirty_object_vnums_.clear();
     updateBranding();
 }
 

@@ -63,7 +63,7 @@ AutosaveResult run_autosave(const World& world,
                             const std::filesystem::path& session_root = {});
 
 void save_lib_with_backup(const World& world,
-                          const LibContext& context,
+                          LibContext& context,
                           const std::filesystem::path& lib_root,
                           ProgressCallback progress = {},
                           const std::filesystem::path& session_root = {});

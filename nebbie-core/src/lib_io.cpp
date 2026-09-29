@@ -4,6 +4,7 @@
 #include "nebbie/constants.hpp"
 #include "nebbie/file_io.hpp"
 #include "nebbie/fread.hpp"
+#include "nebbie/source_blocks.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -258,6 +259,56 @@ std::map<std::filesystem::path, std::vector<Key>> group_by_source_path(
     return grouped;
 }
 
+PreserveEntitySaveOptions preserve_options_for(const LibContext& context,
+                                               const std::filesystem::path& filename,
+                                               const FileSourceBlocks* sources,
+                                               const std::unordered_set<long>* dirty) {
+    PreserveEntitySaveOptions options;
+    if (context.write_eof_markers_on_save || sources == nullptr) {
+        return options;
+    }
+    options.enabled = true;
+    options.sources = sources;
+    options.dirty_vnums = dirty;
+    return options;
+}
+
+const FileSourceBlocks* mob_sources_for(const LibContext& context, const std::filesystem::path& filename) {
+    const std::string leaf = filename.filename().string();
+    if (!leaf.empty()) {
+        const auto leaf_it = context.mob_source_blocks_by_file.find(leaf);
+        if (leaf_it != context.mob_source_blocks_by_file.end()) {
+            return &leaf_it->second;
+        }
+    }
+    const auto it = context.mob_source_blocks_by_file.find(filename.string());
+    return it == context.mob_source_blocks_by_file.end() ? nullptr : &it->second;
+}
+
+const FileSourceBlocks* wld_sources_for(const LibContext& context, const std::filesystem::path& filename) {
+    const std::string leaf = filename.filename().string();
+    if (!leaf.empty()) {
+        const auto leaf_it = context.wld_source_blocks_by_file.find(leaf);
+        if (leaf_it != context.wld_source_blocks_by_file.end()) {
+            return &leaf_it->second;
+        }
+    }
+    const auto it = context.wld_source_blocks_by_file.find(filename.string());
+    return it == context.wld_source_blocks_by_file.end() ? nullptr : &it->second;
+}
+
+const FileSourceBlocks* obj_sources_for(const LibContext& context, const std::filesystem::path& filename) {
+    const std::string leaf = filename.filename().string();
+    if (!leaf.empty()) {
+        const auto leaf_it = context.obj_source_blocks_by_file.find(leaf);
+        if (leaf_it != context.obj_source_blocks_by_file.end()) {
+            return &leaf_it->second;
+        }
+    }
+    const auto it = context.obj_source_blocks_by_file.find(filename.string());
+    return it == context.obj_source_blocks_by_file.end() ? nullptr : &it->second;
+}
+
 void save_tracked_rooms(const World& world,
                         const LibContext& context,
                         ProgressCallback progress) {
@@ -266,8 +317,22 @@ void save_tracked_rooms(const World& world,
     const std::filesystem::path primary = context.wld_path.empty()
                                               ? std::filesystem::path(WORLD_FILE)
                                               : context.wld_path;
+    if (!context.write_eof_markers_on_save) {
+        const auto* sources = wld_sources_for(context, primary);
+        const auto preserve = preserve_options_for(context, primary, sources, &context.dirty_room_vnums);
+        if (preserve.enabled) {
+            save_myst_wld_preserve(world, context.root / primary, progress, save_options, preserve);
+            return;
+        }
+    }
     if (context.room_sources.empty()) {
-        save_myst_wld(world, context.root / primary, progress, save_options);
+        const auto* sources = wld_sources_for(context, primary);
+        const auto preserve = preserve_options_for(context, primary, sources, &context.dirty_room_vnums);
+        if (preserve.enabled) {
+            save_myst_wld_preserve(world, context.root / primary, progress, save_options, preserve);
+        } else {
+            save_myst_wld(world, context.root / primary, progress, save_options);
+        }
         return;
     }
 
@@ -279,7 +344,14 @@ void save_tracked_rooms(const World& world,
         }
     }
     for (const auto& [filename, vnums] : grouped) {
-        save_myst_wld(make_room_subset(world, vnums), context.root / filename, progress, save_options);
+        const auto* sources = wld_sources_for(context, filename);
+        const auto preserve = preserve_options_for(context, filename, sources, &context.dirty_room_vnums);
+        if (preserve.enabled) {
+            save_myst_wld_preserve(make_room_subset(world, vnums), context.root / filename, progress,
+                                   save_options, preserve);
+        } else {
+            save_myst_wld(make_room_subset(world, vnums), context.root / filename, progress, save_options);
+        }
     }
 }
 
@@ -308,8 +380,22 @@ void save_tracked_mobiles(const World& world,
     save_options.write_eof_markers = context.write_eof_markers_on_save;
     const std::filesystem::path primary = context.mob_path.empty() ? std::filesystem::path(MOB_FILE)
                                                                    : context.mob_path;
+    if (!context.write_eof_markers_on_save) {
+        const auto* sources = mob_sources_for(context, primary);
+        const auto preserve = preserve_options_for(context, primary, sources, &context.dirty_mobile_vnums);
+        if (preserve.enabled) {
+            save_myst_mob_preserve(world, context.root / primary, progress, save_options, preserve);
+            return;
+        }
+    }
     if (context.mobile_sources.empty()) {
-        save_myst_mob(world, context.root / primary, progress, save_options);
+        const auto* sources = mob_sources_for(context, primary);
+        const auto preserve = preserve_options_for(context, primary, sources, &context.dirty_mobile_vnums);
+        if (preserve.enabled) {
+            save_myst_mob_preserve(world, context.root / primary, progress, save_options, preserve);
+        } else {
+            save_myst_mob(world, context.root / primary, progress, save_options);
+        }
         return;
     }
 
@@ -321,7 +407,14 @@ void save_tracked_mobiles(const World& world,
         }
     }
     for (const auto& [filename, vnums] : grouped) {
-        save_myst_mob(make_mobile_subset(world, vnums), context.root / filename, progress, save_options);
+        const auto* sources = mob_sources_for(context, filename);
+        const auto preserve = preserve_options_for(context, filename, sources, &context.dirty_mobile_vnums);
+        if (preserve.enabled) {
+            save_myst_mob_preserve(make_mobile_subset(world, vnums), context.root / filename, progress,
+                                   save_options, preserve);
+        } else {
+            save_myst_mob(make_mobile_subset(world, vnums), context.root / filename, progress, save_options);
+        }
     }
 }
 
@@ -332,8 +425,22 @@ void save_tracked_objects(const World& world,
     save_options.write_eof_markers = context.write_eof_markers_on_save;
     const std::filesystem::path primary = context.obj_path.empty() ? std::filesystem::path(OBJ_FILE)
                                                                    : context.obj_path;
+    if (!context.write_eof_markers_on_save) {
+        const auto* sources = obj_sources_for(context, primary);
+        const auto preserve = preserve_options_for(context, primary, sources, &context.dirty_object_vnums);
+        if (preserve.enabled) {
+            save_myst_obj_preserve(world, context.root / primary, progress, save_options, preserve);
+            return;
+        }
+    }
     if (context.object_sources.empty()) {
-        save_myst_obj(world, context.root / primary, progress, save_options);
+        const auto* sources = obj_sources_for(context, primary);
+        const auto preserve = preserve_options_for(context, primary, sources, &context.dirty_object_vnums);
+        if (preserve.enabled) {
+            save_myst_obj_preserve(world, context.root / primary, progress, save_options, preserve);
+        } else {
+            save_myst_obj(world, context.root / primary, progress, save_options);
+        }
         return;
     }
 
@@ -345,7 +452,14 @@ void save_tracked_objects(const World& world,
         }
     }
     for (const auto& [filename, vnums] : grouped) {
-        save_myst_obj(make_object_subset(world, vnums), context.root / filename, progress, save_options);
+        const auto* sources = obj_sources_for(context, filename);
+        const auto preserve = preserve_options_for(context, filename, sources, &context.dirty_object_vnums);
+        if (preserve.enabled) {
+            save_myst_obj_preserve(make_object_subset(world, vnums), context.root / filename, progress,
+                                   save_options, preserve);
+        } else {
+            save_myst_obj(make_object_subset(world, vnums), context.root / filename, progress, save_options);
+        }
     }
 }
 
@@ -391,8 +505,10 @@ void load_lib(World& world,
               const std::filesystem::path& lib_root,
               LibContext& context,
               ProgressCallback progress) {
+    const bool write_eof_markers_on_save = context.write_eof_markers_on_save;
     world.clear();
     context = {};
+    context.write_eof_markers_on_save = write_eof_markers_on_save;
 
     const std::filesystem::path resolved = resolve_lib_directory(lib_root);
     context.root = resolved;
@@ -419,6 +535,9 @@ void load_lib(World& world,
             const std::vector<long> vnums = scan_hash_vnums(path);
             load_myst_wld(world, path, progress);
             track_room_sources(context, path.filename(), vnums);
+            if (const auto blocks = capture_vnum_hash_file(path)) {
+                context.wld_source_blocks_by_file[path.filename().string()] = *blocks;
+            }
         });
 
     load_discovered_files(
@@ -431,6 +550,9 @@ void load_lib(World& world,
             const std::vector<long> vnums = scan_hash_vnums(path);
             load_myst_mob(world, path, progress, clear_existing);
             track_mobile_sources(context, path.filename(), vnums);
+            if (const auto blocks = capture_vnum_hash_file(path)) {
+                context.mob_source_blocks_by_file[path.filename().string()] = *blocks;
+            }
         });
 
     load_discovered_files(
@@ -443,6 +565,9 @@ void load_lib(World& world,
             const std::vector<long> vnums = scan_hash_vnums(path);
             load_myst_obj(world, path, progress, clear_existing);
             track_object_sources(context, path.filename(), vnums);
+            if (const auto blocks = capture_vnum_hash_file(path)) {
+                context.obj_source_blocks_by_file[path.filename().string()] = *blocks;
+            }
         });
 
     load_discovered_files(
@@ -539,7 +664,7 @@ void load_lib(World& world,
     }
 }
 
-void save_lib(const World& world, const LibContext& context, ProgressCallback progress) {
+void save_lib(const World& world, LibContext& context, ProgressCallback progress) {
     if (context.has_zon) {
         save_tracked_zones(world, context, progress);
     }
@@ -569,6 +694,35 @@ void save_lib(const World& world, const LibContext& context, ProgressCallback pr
     }
     if (context.has_gui) {
         save_myst_gui(world, save_path_for(context, context.gui_path, GUILD_FILE), progress);
+    }
+
+    if (!context.write_eof_markers_on_save) {
+        refresh_captured_source_blocks(context);
+        context.dirty_room_vnums.clear();
+        context.dirty_mobile_vnums.clear();
+        context.dirty_object_vnums.clear();
+    }
+}
+
+void refresh_captured_source_blocks(LibContext& context) {
+    const auto refresh = [&](const std::filesystem::path& relative, auto& map) {
+        const std::filesystem::path path = context.root / relative;
+        if (const auto blocks = capture_vnum_hash_file(path)) {
+            map[relative.string()] = *blocks;
+        }
+    };
+
+    if (context.has_wld) {
+        refresh(context.wld_path.empty() ? std::filesystem::path(WORLD_FILE) : context.wld_path,
+                context.wld_source_blocks_by_file);
+    }
+    if (context.has_mob) {
+        refresh(context.mob_path.empty() ? std::filesystem::path(MOB_FILE) : context.mob_path,
+                context.mob_source_blocks_by_file);
+    }
+    if (context.has_obj) {
+        refresh(context.obj_path.empty() ? std::filesystem::path(OBJ_FILE) : context.obj_path,
+                context.obj_source_blocks_by_file);
     }
 }
 

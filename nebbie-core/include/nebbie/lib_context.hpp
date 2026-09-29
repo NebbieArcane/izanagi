@@ -1,8 +1,11 @@
 #pragma once
 
+#include "file_source_blocks.hpp"
+
 #include <filesystem>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace nebbie {
@@ -35,6 +38,15 @@ struct LibContext {
     std::unordered_map<long, std::filesystem::path> room_sources;
     std::unordered_map<long, std::filesystem::path> mobile_sources;
     std::unordered_map<long, std::filesystem::path> object_sources;
+
+    /** Original #vnum blocks captured at load (key = filename e.g. myst.mob). */
+    std::unordered_map<std::string, FileSourceBlocks> mob_source_blocks_by_file;
+    std::unordered_map<std::string, FileSourceBlocks> wld_source_blocks_by_file;
+    std::unordered_map<std::string, FileSourceBlocks> obj_source_blocks_by_file;
+
+    std::unordered_set<long> dirty_room_vnums;
+    std::unordered_set<long> dirty_mobile_vnums;
+    std::unordered_set<long> dirty_object_vnums;
 
     std::vector<std::string> load_warnings;
 

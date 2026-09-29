@@ -159,6 +159,7 @@ private:
     bool confirmSaveIfDirty();
     void markDirty();
     void markClean();
+    void syncDirtyEntityVnumsToContext();
     std::vector<long> roomsPendingSaveValidation() const;
     int preferredZoneNum() const;
     nebbie::qt::MudColorTextEdit* activeMudTextField() const;
@@ -178,6 +179,8 @@ private:
     std::optional<std::string> aree_area_folder_;
     bool dirty_ = false;
     std::set<long> dirty_room_vnums_;
+    std::set<long> dirty_mobile_vnums_;
+    std::set<long> dirty_object_vnums_;
     nebbie::qt::AppConfig app_config_;
     std::optional<nebbie::WorldIndex> world_index_;
     QNetworkAccessManager* network_ = nullptr;
