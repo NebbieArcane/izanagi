@@ -557,9 +557,11 @@ void MainWindow::setupMenus() {
 
     auto* open_action = file_menu->addAction(appTr("menu.open_lib"));
     open_action->setShortcut(QKeySequence::Open);
+    open_action->setToolTip(appTr("menu.open_lib_tip"));
     connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
 
     auto* open_aree_action = file_menu->addAction(appTr("menu.open_aree_workspace"));
+    open_aree_action->setToolTip(appTr("menu.open_aree_workspace_tip"));
     connect(open_aree_action, &QAction::triggered, this, &MainWindow::openAreeWorkspace);
 
     file_menu->addSeparator();
@@ -918,6 +920,31 @@ void MainWindow::openLibPath(const QString& path) {
                     .arg(nebbie::qt::qstring_from_path(resolved)));
             return;
         }
+        const nebbie::AreeLibOpenGuard guard = nebbie::classify_aree_lib_open_guard(resolved);
+        if (guard.reason != nebbie::AreeLibOpenBlockReason::none) {
+            const QString resolved_qs = nebbie::qt::qstring_from_path(resolved);
+            const QString workspace_qs = nebbie::qt::qstring_from_path(guard.suggested_workspace_root);
+            const QString body =
+                guard.reason == nebbie::AreeLibOpenBlockReason::area_directory
+                    ? appTr("aree.lib_open_block_area", resolved_qs, workspace_qs)
+                    : appTr("aree.lib_open_block_workspace", resolved_qs);
+            QMessageBox box(this);
+            box.setIcon(QMessageBox::Warning);
+            box.setWindowTitle(appTr("aree.lib_open_block_title"));
+            box.setText(body);
+            QPushButton* open_workspace =
+                box.addButton(appTr("aree.lib_open_use_workspace"), QMessageBox::AcceptRole);
+            box.addButton(QMessageBox::Cancel);
+            box.exec();
+            if (box.clickedButton() == open_workspace) {
+                const QString select_area =
+                    guard.reason == nebbie::AreeLibOpenBlockReason::area_directory
+                        ? QString::fromStdString(resolved.filename().string())
+                        : QString();
+                openAreeWorkspaceFromPath(workspace_qs, select_area);
+            }
+            return;
+        }
         loadLib(resolved);
         rememberLibPath(resolved);
         if (resolved != requested) {
@@ -950,7 +977,7 @@ void MainWindow::openLibPath(const QString& path) {
 
 void MainWindow::openLib() {
     const QString dir = QFileDialog::getExistingDirectory(
-        this, "Apri libreria Nebbie (mudroot o mudroot/lib)", QString(),
+        this, appTr("dialog.open_lib_title"), QString(),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (dir.isEmpty()) {
         return;
@@ -988,11 +1015,7 @@ void MainWindow::openStartupLib() {
         return;
     }
 
-    promptForLibPath(QString(
-        "Benvenuto in Nebbie Editor.\n\n"
-        "Seleziona la cartella della libreria di gioco (mudroot o mudroot/lib).\n"
-        "Il percorso verrà salvato in:\n%1")
-                         .arg(nebbie::qt::default_config_path()));
+    promptForLibPath(appTr("dialog.open_lib_startup", nebbie::qt::default_config_path()));
 }
 
 bool MainWindow::promptForLibPath(const QString& reason) {
@@ -1003,11 +1026,11 @@ bool MainWindow::promptForLibPath(const QString& reason) {
     const QString initial = nebbie::qt::read_lib_path();
     const QString dir = QFileDialog::getExistingDirectory(
         this,
-        "Seleziona libreria Nebbie (mudroot o mudroot/lib)",
+        appTr("dialog.open_lib_title"),
         initial.isEmpty() ? QDir::homePath() : initial,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (dir.isEmpty()) {
-        setStatus("Nessuna libreria selezionata. Usa File → Apri libreria.");
+        setStatus(appTr("status.open_lib_cancelled"));
         return false;
     }
 
@@ -1102,12 +1125,25 @@ void MainWindow::openAreeWorkspace() {
     if (dir.isEmpty()) {
         return;
     }
+    openAreeWorkspaceFromPath(dir);
+}
+
+void MainWindow::openAreeWorkspaceFromPath(const QString& dir, const QString& select_area_folder) {
+    if (dir.isEmpty()) {
+        return;
+    }
 
     if (dirty_ && !confirmSaveIfDirty()) {
         return;
     }
 
     const std::filesystem::path root = nebbie::qt::path_from_qstring(dir);
+    if (!nebbie::aree_workspace_has_areas(root)) {
+        QMessageBox::warning(this, appTr("menu.open_aree_workspace"),
+                             appTr("aree.no_workspace"));
+        return;
+    }
+
     aree_workspace_ = nebbie::make_aree_workspace(root);
     app_config_.aree_workspace_root = dir;
     nebbie::qt::write_config(app_config_);
@@ -1116,9 +1152,13 @@ void MainWindow::openAreeWorkspace() {
     refreshAreeAreaList();
     setStatus(appTr("aree.status_workspace", dir, QString::number(aree_areas_.size())));
 
-    if (!app_config_.aree_last_area.isEmpty()) {
+    QString area_to_select = select_area_folder;
+    if (area_to_select.isEmpty() && !app_config_.aree_last_area.isEmpty()) {
+        area_to_select = app_config_.aree_last_area;
+    }
+    if (!area_to_select.isEmpty()) {
         for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
-            if (aree_table_->item(row, 0)->text() == app_config_.aree_last_area) {
+            if (aree_table_->item(row, 0)->text() == area_to_select) {
                 aree_table_->selectRow(row);
                 break;
             }

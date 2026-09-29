@@ -97,6 +97,79 @@ bool is_aree_area_directory(const std::filesystem::path& area_dir) {
     return std::filesystem::is_regular_file(area_dir / (name + ZONE_EXT), ec);
 }
 
+namespace {
+
+bool directory_contains_aree_area(const std::filesystem::path& dir) {
+    std::error_code ec;
+    if (!std::filesystem::is_directory(dir, ec)) {
+        return false;
+    }
+    for (const auto& entry : std::filesystem::directory_iterator(dir, ec)) {
+        if (ec) {
+            break;
+        }
+        if (entry.is_directory() && is_aree_area_directory(entry.path())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::filesystem::path guess_aree_workspace_root_from_area(const std::filesystem::path& area_dir) {
+    const std::filesystem::path parent = area_dir.parent_path();
+    if (parent.filename().string() == "src") {
+        return parent.parent_path();
+    }
+    return parent;
+}
+
+} // namespace
+
+std::filesystem::path aree_areas_container(const std::filesystem::path& workspace_root) {
+    if (directory_contains_aree_area(workspace_root)) {
+        return workspace_root;
+    }
+    const std::filesystem::path src = workspace_root / "src";
+    if (directory_contains_aree_area(src)) {
+        return src;
+    }
+    return workspace_root;
+}
+
+bool aree_workspace_has_areas(const std::filesystem::path& workspace_root) {
+    return !scan_aree_areas(make_aree_workspace(workspace_root)).empty();
+}
+
+std::filesystem::path aree_area_path(const AreeWorkspace& workspace, const std::string& area_folder) {
+    for (const AreeAreaInfo& area : scan_aree_areas(workspace)) {
+        if (area.folder_name == area_folder) {
+            return area.path;
+        }
+    }
+    return workspace.root / area_folder;
+}
+
+AreeLibOpenGuard classify_aree_lib_open_guard(const std::filesystem::path& resolved_lib_directory) {
+    AreeLibOpenGuard guard;
+    if (is_aree_area_directory(resolved_lib_directory)) {
+        guard.reason = AreeLibOpenBlockReason::area_directory;
+        guard.suggested_workspace_root = guess_aree_workspace_root_from_area(resolved_lib_directory);
+        return guard;
+    }
+    if (aree_workspace_has_areas(resolved_lib_directory)) {
+        guard.reason = AreeLibOpenBlockReason::workspace_root;
+        guard.suggested_workspace_root = resolved_lib_directory;
+        return guard;
+    }
+    const std::filesystem::path parent = resolved_lib_directory.parent_path();
+    if (parent.filename().string() == "src" && aree_workspace_has_areas(parent.parent_path())) {
+        guard.reason = AreeLibOpenBlockReason::workspace_root;
+        guard.suggested_workspace_root = parent.parent_path();
+        return guard;
+    }
+    return guard;
+}
+
 AreeWorkspace make_aree_workspace(const std::filesystem::path& root) {
     AreeWorkspace workspace;
     workspace.root = root;
@@ -157,7 +230,8 @@ std::vector<AreeAreaInfo> scan_aree_areas(const AreeWorkspace& workspace) {
         return areas;
     }
 
-    for (const auto& entry : std::filesystem::directory_iterator(workspace.root, ec)) {
+    const std::filesystem::path container = aree_areas_container(workspace.root);
+    for (const auto& entry : std::filesystem::directory_iterator(container, ec)) {
         if (!entry.is_directory()) {
             continue;
         }
@@ -188,7 +262,7 @@ std::filesystem::path aree_archive_destination(const AreeWorkspace& workspace, c
 
 std::filesystem::path archive_aree_area(const AreeWorkspace& workspace, const std::string& area_folder,
                                         const std::string& label, ProgressCallback progress) {
-    const std::filesystem::path source = workspace.root / area_folder;
+    const std::filesystem::path source = aree_area_path(workspace, area_folder);
     if (!is_aree_area_directory(source)) {
         throw std::runtime_error("not an area directory: " + source.string());
     }
@@ -203,7 +277,7 @@ std::filesystem::path archive_aree_area(const AreeWorkspace& workspace, const st
 
 void restore_aree_area_from_archive(const AreeWorkspace& workspace, const std::string& area_folder,
                                     const std::filesystem::path& archive_path, ProgressCallback progress) {
-    const std::filesystem::path target = workspace.root / area_folder;
+    const std::filesystem::path target = aree_area_path(workspace, area_folder);
     if (!std::filesystem::is_directory(archive_path)) {
         throw std::runtime_error("archive not found: " + archive_path.string());
     }

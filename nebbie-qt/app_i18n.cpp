@@ -18,8 +18,20 @@ struct TranslationEntry {
 
 constexpr TranslationEntry kTranslations[] = {
     {"menu.file", "&File", "&File"},
-    {"menu.open_lib", "&Apri libreria...", "&Open library..."},
-    {"menu.open_aree_workspace", "Apri workspace &Aree...", "Open Aree &workspace..."},
+    {"menu.open_lib", "Apri lib &monolite (myst.* / mudroot/lib)...",
+     "Open &monolith lib (myst.* / mudroot/lib)..."},
+    {"menu.open_lib_tip",
+     "Apre una libreria Nebbie classica: file myst.zon, myst.wld, myst.mob, myst.obj nella stessa cartella "
+     "(mudroot o mudroot/lib). Non usare per le cartelle area del repo Aree.",
+     "Opens a classic Nebbie library: myst.zon, myst.wld, myst.mob, myst.obj in one folder "
+     "(mudroot or mudroot/lib). Do not use for Aree repo area folders."},
+    {"menu.open_aree_workspace", "Apri workspace &Aree (cartelle area)...",
+     "Open Aree &workspace (area folders)..."},
+    {"menu.open_aree_workspace_tip",
+     "Apre la root del repo Aree (o altra cartella con sottocartelle castelli/, myst/, …). "
+     "Scegli un'area dalla lista per modificarla senza riscrivere tutto il monolite.",
+     "Opens the Aree repo root (or another folder with castelli/, myst/, … subfolders). "
+     "Pick an area from the list to edit in place without rewriting the whole monolith."},
     {"menu.aree_open_area", "Apri area selezionata", "Open selected area"},
     {"menu.aree_restore_archive", "Ripristina area da archivio...", "Restore area from archive..."},
     {"menu.reload_lib", "A&ggiorna libreria", "R&eload library"},
@@ -163,6 +175,39 @@ constexpr TranslationEntry kTranslations[] = {
      "Aree area: %1 — %2 zones, %3 rooms"},
     {"aree.status_workspace", "Workspace Aree: %1 (%2 aree)",
      "Aree workspace: %1 (%2 areas)"},
+    {"aree.lib_open_block_title", "Percorso Aree — usa workspace Aree",
+     "Aree path — use Aree workspace"},
+    {"aree.lib_open_block_area",
+     "La cartella selezionata è un'area Aree (es. myst/myst.zon), non una lib monolite.\n\n"
+     "Aprirla con «Apri lib monolite» riscriverebbe i file al salvataggio (marker EOF, formato bit).\n\n"
+     "Percorso: %1\n"
+     "Workspace consigliato: %2",
+     "The selected folder is an Aree area (e.g. myst/myst.zon), not a monolith library.\n\n"
+     "Opening it via «Open monolith lib» would rewrite files on save (EOF markers, bit format).\n\n"
+     "Path: %1\n"
+     "Suggested workspace: %2"},
+    {"aree.lib_open_block_workspace",
+     "La cartella selezionata è un workspace Aree (contiene cartelle area), non myst.* in un'unica cartella.\n\n"
+     "Usa «Apri workspace Aree» e poi seleziona l'area da modificare.\n\n"
+     "Percorso: %1",
+     "The selected folder is an Aree workspace (it contains area folders), not myst.* in one folder.\n\n"
+     "Use «Open Aree workspace» and then pick the area to edit.\n\n"
+     "Path: %1"},
+    {"aree.lib_open_use_workspace", "Apri workspace Aree", "Open Aree workspace"},
+    {"dialog.open_lib_title", "Apri lib monolite (myst.* / mudroot/lib)",
+     "Open monolith lib (myst.* / mudroot/lib)"},
+    {"dialog.open_lib_startup",
+     "Benvenuto in Nebbie Editor.\n\n"
+     "Per una libreria classica seleziona mudroot o mudroot/lib (file myst.*).\n"
+     "Per il repo Aree usa File → Apri workspace Aree.\n\n"
+     "Il percorso verrà salvato in:\n%1",
+     "Welcome to Nebbie Editor.\n\n"
+     "For a classic library pick mudroot or mudroot/lib (myst.* files).\n"
+     "For the Aree repo use File → Open Aree workspace.\n\n"
+     "The path will be saved to:\n%1"},
+    {"status.open_lib_cancelled",
+     "Nessuna libreria selezionata. Usa File → Apri lib monolite o Apri workspace Aree.",
+     "No library selected. Use File → Open monolith lib or Open Aree workspace."},
     {"update.title_error", "Aggiornamenti %1", "Updates %1"},
     {"update.check_failed", "Impossibile verificare gli aggiornamenti:\n%1",
      "Unable to check for updates:\n%1"},

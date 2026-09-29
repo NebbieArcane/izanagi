@@ -128,6 +128,7 @@ private:
     void loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first, const std::string& archive_label);
     void clearAreeMode();
     void refreshAreeAreaList();
+    void openAreeWorkspaceFromPath(const QString& dir, const QString& select_area_folder = {});
     std::filesystem::path sessionStorageRoot() const;
     bool promptAreeSessionStart(const QString& area_name, bool& archive_first, QString& archive_label);
     void rememberLibPath(const std::filesystem::path& path);

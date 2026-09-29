@@ -81,6 +81,18 @@ int main() {
         }
         expect(found_castelli && found_myst, "missing expected fixtures");
 
+        expect(nebbie::aree_areas_container(work) == work, "fixture areas at workspace root");
+        const nebbie::AreeLibOpenGuard block_root = nebbie::classify_aree_lib_open_guard(work);
+        expect(block_root.reason == nebbie::AreeLibOpenBlockReason::workspace_root,
+               "workspace root must not open as monolith lib");
+        expect(block_root.suggested_workspace_root == work, "suggested workspace root");
+
+        const std::filesystem::path myst_area = work / "myst";
+        const nebbie::AreeLibOpenGuard block_area = nebbie::classify_aree_lib_open_guard(myst_area);
+        expect(block_area.reason == nebbie::AreeLibOpenBlockReason::area_directory,
+               "area folder must not open as monolith lib");
+        expect(block_area.suggested_workspace_root == work, "area suggests workspace root");
+
         const auto archive =
             nebbie::archive_aree_area(workspace, "myst", "test-roundtrip", [](const std::string& msg) {
                 std::cout << msg << '\n';
