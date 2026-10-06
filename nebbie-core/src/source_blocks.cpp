@@ -3,7 +3,10 @@
 #include "nebbie/constants.hpp"
 #include "nebbie/file_io.hpp"
 #include "nebbie/legacy_format.hpp"
+#include "nebbie/mob_trailing_sound.hpp"
+#include "nebbie/nebbie_string_field.hpp"
 #include "nebbie/types.hpp"
+#include "nebbie/wld_room_lines.hpp"
 #include "nebbie/world.hpp"
 
 #include <algorithm>
@@ -57,8 +60,8 @@ std::string ensure_trailing_newline_lf(std::string text) {
     return text;
 }
 
-void append_string_field(std::ostringstream& out, const std::string& value) {
-    out << value << "~\n";
+void append_string_field(std::ostringstream& out, const std::string& value, NebbieTildeStyle style) {
+    write_nebbie_string_field(out, value, style);
 }
 
 bool mob_uses_hit_dice(char mobtype) {
@@ -68,10 +71,10 @@ bool mob_uses_hit_dice(char mobtype) {
 std::string format_mobile_block(const Mobile& mob) {
     std::ostringstream out;
     out << '#' << mob.vnum << '\n';
-    append_string_field(out, mob.name);
-    append_string_field(out, mob.short_descr);
-    append_string_field(out, mob.long_descr);
-    append_string_field(out, mob.description);
+    append_string_field(out, mob.name, NebbieTildeStyle::Inline);
+    append_string_field(out, mob.short_descr, NebbieTildeStyle::Inline);
+    append_string_field(out, mob.long_descr, NebbieTildeStyle::OnOwnLine);
+    append_string_field(out, mob.description, nebbie_paragraph_tilde_style(mob.description));
 
     if (mob.mobtype == 'A' || mob.mobtype == 'B' || mob.mobtype == 'L') {
         out << format_nebbie_bit_mask(mob.act) << ' ' << format_nebbie_bit_mask(mob.affected_by) << ' '
@@ -110,10 +113,10 @@ std::string format_mobile_block(const Mobile& mob) {
     const bool write_sounds = mob.mobtype == 'L' || !mob.sounds.empty() || !mob.distant_sounds.empty()
                               || !mob.extra_sound_strings.empty();
     if (write_sounds) {
-        append_string_field(out, mob.sounds);
-        append_string_field(out, mob.distant_sounds);
+        write_mob_trailing_sound_line(out, mob.sounds);
+        write_mob_trailing_sound_line(out, mob.distant_sounds);
         for (const auto& extra : mob.extra_sound_strings) {
-            append_string_field(out, extra);
+            write_mob_trailing_sound_line(out, extra);
         }
     }
 
@@ -123,23 +126,10 @@ std::string format_mobile_block(const Mobile& mob) {
 std::string format_room_block(const Room& room, const World& world) {
     std::ostringstream out;
     out << '#' << room.vnum << '\n';
-    append_string_field(out, room.name);
-    append_string_field(out, room.description);
+    append_string_field(out, room.name, NebbieTildeStyle::Inline);
+    append_string_field(out, room.description, nebbie_paragraph_tilde_style(room.description));
 
-    const int zone_num = room.zone_index >= 0 && room.zone_index < static_cast<int>(world.zones.size())
-                             ? world.zones[static_cast<std::size_t>(room.zone_index)].num
-                             : 0;
-
-    if (room.tele_time || room.tele_targ || room.tele_mask) {
-        out << zone_num << ' ' << format_nebbie_bit_mask(room.room_flags) << " -1 " << room.tele_time << ' '
-            << room.tele_targ << ' ' << room.tele_mask;
-        if (room.tele_mask & TELE_COUNT) {
-            out << ' ' << room.tele_cnt;
-        }
-        out << ' ' << room.sector_type << '\n';
-    } else {
-        out << zone_num << ' ' << format_nebbie_bit_mask(room.room_flags) << ' ' << room.sector_type << '\n';
-    }
+    write_zone_data_line(out, room, world);
 
     if (room.sector_type == SECT_WATER_NOSWIM || room.sector_type == SECT_UNDERWATER) {
         if (room.river_speed || room.river_dir) {
@@ -149,21 +139,21 @@ std::string format_room_block(const Room& room, const World& world) {
 
     for (const auto& exit : room.exits) {
         out << 'D' << exit.direction << '\n';
-        append_string_field(out, exit.description);
-        append_string_field(out, exit.keyword);
-        out << exit.exit_info << ' ' << exit.key << ' ' << exit.to_room << ' ' << exit.open_cmd << '\n';
+        append_string_field(out, exit.description, NebbieTildeStyle::OnOwnLine);
+        append_string_field(out, exit.keyword, NebbieTildeStyle::Inline);
+        write_exit_data_line(out, room, world, exit);
     }
 
     for (const auto& extra : room.extra_descs) {
         out << "E\n";
-        append_string_field(out, extra.keyword);
-        append_string_field(out, extra.description);
+        append_string_field(out, extra.keyword, NebbieTildeStyle::Inline);
+        append_string_field(out, extra.description, nebbie_paragraph_tilde_style(extra.description));
     }
 
     if (!room.bright_at_night.empty() || !room.bright_at_day.empty()) {
         out << "L\n";
-        append_string_field(out, room.bright_at_night);
-        append_string_field(out, room.bright_at_day);
+        append_string_field(out, room.bright_at_night, nebbie_paragraph_tilde_style(room.bright_at_night));
+        append_string_field(out, room.bright_at_day, nebbie_paragraph_tilde_style(room.bright_at_day));
     }
 
     out << "S\n";
@@ -173,10 +163,10 @@ std::string format_room_block(const Room& room, const World& world) {
 std::string format_object_block(const GameObject& obj) {
     std::ostringstream out;
     out << '#' << obj.vnum << '\n';
-    append_string_field(out, obj.name);
-    append_string_field(out, obj.short_descr);
-    append_string_field(out, obj.description);
-    append_string_field(out, obj.action_description);
+    append_string_field(out, obj.name, NebbieTildeStyle::Inline);
+    append_string_field(out, obj.short_descr, NebbieTildeStyle::Inline);
+    append_string_field(out, obj.description, NebbieTildeStyle::Inline);
+    append_string_field(out, obj.action_description, NebbieTildeStyle::Inline);
 
     out << obj.type_flag << ' ' << format_nebbie_bit_mask(obj.extra_flags) << ' '
         << format_nebbie_bit_mask(obj.wear_flags) << '\n';
@@ -185,8 +175,8 @@ std::string format_object_block(const GameObject& obj) {
 
     for (const auto& extra : obj.extra_descs) {
         out << "E\n";
-        append_string_field(out, extra.keyword);
-        append_string_field(out, extra.description);
+        append_string_field(out, extra.keyword, NebbieTildeStyle::Inline);
+        append_string_field(out, extra.description, nebbie_paragraph_tilde_style(extra.description));
     }
 
     for (const auto& affect : obj.affects) {
@@ -199,8 +189,8 @@ std::string format_object_block(const GameObject& obj) {
 
     if (!obj.forbidden_char.empty() || !obj.forbidden_room.empty()) {
         out << "P\n";
-        append_string_field(out, obj.forbidden_char);
-        append_string_field(out, obj.forbidden_room);
+        append_string_field(out, obj.forbidden_char, NebbieTildeStyle::Inline);
+        append_string_field(out, obj.forbidden_room, NebbieTildeStyle::Inline);
     }
 
     return ensure_trailing_newline_lf(out.str());

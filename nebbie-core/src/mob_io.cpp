@@ -2,6 +2,9 @@
 #include "nebbie/overlay_io.hpp"
 
 #include "nebbie/fread.hpp"
+#include "nebbie/mob_trailing_sound.hpp"
+#include "nebbie/nebbie_string_field.hpp"
+
 #include "nebbie/file_io.hpp"
 
 #include <cctype>
@@ -284,7 +287,13 @@ void read_mobile_entry(FILE* fp, Mobile& mob) {
 }
 
 void fwrite_string(FILE* fp, const std::string& value) {
-    std::fprintf(fp, "%s~\n", value.c_str());
+    fwrite_nebbie_string_field(fp, value, NebbieTildeStyle::Inline);
+}
+
+void write_mob_trailing_sound_line_to_file(FILE* fp, const std::string& value) {
+    std::ostringstream buffer;
+    write_mob_trailing_sound_line(buffer, value);
+    std::fputs(buffer.str().c_str(), fp);
 }
 
 void write_new_mob_stats(FILE* fp, const Mobile& mob) {
@@ -317,19 +326,19 @@ void write_new_mob_stats(FILE* fp, const Mobile& mob) {
     }
 
     if (mob.mobtype == 'L' || mob_has_trailing_sounds(mob)) {
-        fwrite_string(fp, mob.sounds);
-        fwrite_string(fp, mob.distant_sounds);
+        write_mob_trailing_sound_line_to_file(fp, mob.sounds);
+        write_mob_trailing_sound_line_to_file(fp, mob.distant_sounds);
         for (const auto& extra : mob.extra_sound_strings) {
-            fwrite_string(fp, extra);
+            write_mob_trailing_sound_line_to_file(fp, extra);
         }
     }
 }
 
 void write_mobile_body(FILE* fp, const Mobile& mob) {
-    fwrite_string(fp, mob.name);
-    fwrite_string(fp, mob.short_descr);
-    fwrite_string(fp, mob.long_descr);
-    fwrite_string(fp, mob.description);
+    fwrite_nebbie_string_field(fp, mob.name, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, mob.short_descr, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, mob.long_descr, NebbieTildeStyle::OnOwnLine);
+    fwrite_nebbie_string_field(fp, mob.description, nebbie_paragraph_tilde_style(mob.description));
 
     if (mob.mobtype == 'A' || mob.mobtype == 'B' || mob.mobtype == 'L') {
         std::fprintf(fp, "%ld %ld %ld %c %d\n",

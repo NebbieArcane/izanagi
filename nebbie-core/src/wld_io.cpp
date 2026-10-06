@@ -1,11 +1,15 @@
 #include "nebbie/io.hpp"
+#include "nebbie/legacy_format.hpp"
 #include "nebbie/overlay_io.hpp"
+#include "nebbie/wld_room_lines.hpp"
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
+#include "nebbie/nebbie_string_field.hpp"
 
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
 
 namespace nebbie {
 
@@ -36,21 +40,58 @@ std::string read_data_line(FILE* fp) {
     }
 }
 
-void read_exit(FILE* fp, Room& room, int direction) {
+bool looks_like_exit_data_line(const std::string& line) {
+    if (line.empty() || line == "~") {
+        return false;
+    }
+    switch (line[0]) {
+    case 'D':
+    case 'E':
+    case 'L':
+    case 'S':
+    case 'C':
+        return false;
+    default:
+        return true;
+    }
+}
+
+std::string read_exit_data_line(FILE* fp) {
+    while (true) {
+        const std::string line = trim_line(fread_line(fp));
+        if (looks_like_exit_data_line(line)) {
+            return line;
+        }
+        if (line.empty()) {
+            continue;
+        }
+        throw ParseError("Unexpected line in exit record (found '" + line + "')");
+    }
+}
+
+void read_exit(FILE* fp, Room& room, int direction, const World& world) {
     Exit exit;
     exit.direction = direction;
     exit.description = fread_string(fp);
     exit.keyword = fread_string(fp);
-    exit.exit_info = fread_number(fp);
-    exit.key = fread_number(fp);
-    exit.to_room = fread_number(fp);
 
-    int c = std::fgetc(fp);
-    if (c != EOF && (c == '-' || std::isdigit(c))) {
-        std::ungetc(c, fp);
-        exit.open_cmd = fread_number(fp);
-    } else if (c != EOF) {
-        std::ungetc(c, fp);
+    const std::string data_line = read_exit_data_line(fp);
+    exit.data_line_raw = data_line;
+    const auto nums = parse_numbers(data_line);
+    if (nums.size() < 3) {
+        throw ParseError("Room " + std::to_string(room.vnum) + " exit D" + std::to_string(direction)
+                         + ": expected flags, key, and to_room");
+    }
+    exit.exit_info = nums[0];
+    exit.key = nums[1];
+    exit.to_room = nums[2];
+    exit.open_cmd = nums.size() >= 4 ? nums[3] : -1;
+
+    if (exit_data_line_looks_like_zone_line(room, data_line, world)) {
+        exit.data_line_raw.reset();
+        exit.exit_info = 0;
+        exit.key = 0;
+        exit.to_room = 0;
         exit.open_cmd = -1;
     }
 
@@ -58,12 +99,14 @@ void read_exit(FILE* fp, Room& room, int direction) {
 }
 
 void read_room_zone_line(FILE* fp, Room& room) {
-    const auto nums = parse_numbers(read_data_line(fp));
+    const std::string raw = read_data_line(fp);
+    room.zone_data_line_raw = raw;
+    const auto nums = parse_numbers(raw);
     if (nums.size() < 3) {
         throw ParseError("Room " + std::to_string(room.vnum) + ": expected zone, flags, and sector");
     }
 
-    (void)nums[0];
+    room.zone_line_primary = nums[0];
     room.room_flags = nums[1];
     const long sector_field = nums[2];
 
@@ -147,7 +190,7 @@ void read_room_body(FILE* fp, Room& room, World& world) {
     while (std::fscanf(fp, " %160s", token) == 1) {
         switch (token[0]) {
         case 'D':
-            read_exit(fp, room, std::atoi(token + 1));
+            read_exit(fp, room, std::atoi(token + 1), world);
             break;
         case 'E': {
             ExtraDesc extra;
@@ -175,22 +218,13 @@ void read_room_body(FILE* fp, Room& room, World& world) {
 }
 
 void write_room_body(FILE* fp, const Room& room, const World& world) {
-    std::fprintf(fp, "%s~\n", room.name.c_str());
-    std::fprintf(fp, "%s~\n", room.description.c_str());
+    fwrite_nebbie_string_field(fp, room.name, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, room.description, nebbie_paragraph_tilde_style(room.description));
 
-    const int zone_num = room.zone_index >= 0 && room.zone_index < static_cast<int>(world.zones.size())
-        ? world.zones[room.zone_index].num
-        : 0;
-
-    if (room.tele_time || room.tele_targ || room.tele_mask) {
-        std::fprintf(fp, "%d %ld -1 %ld %ld %ld", zone_num, room.room_flags, room.tele_time, room.tele_targ,
-                     room.tele_mask);
-        if (room.tele_mask & TELE_COUNT) {
-            std::fprintf(fp, " %ld", room.tele_cnt);
-        }
-        std::fprintf(fp, " %ld\n", room.sector_type);
-    } else {
-        std::fprintf(fp, "%d %ld %ld\n", zone_num, room.room_flags, room.sector_type);
+    {
+        std::ostringstream zone_line;
+        write_zone_data_line(zone_line, room, world);
+        std::fputs(zone_line.str().c_str(), fp);
     }
 
     if (room.sector_type == SECT_WATER_NOSWIM || room.sector_type == SECT_UNDERWATER) {
@@ -204,25 +238,23 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
 
     for (const auto& exit : room.exits) {
         std::fprintf(fp, "D%d\n", exit.direction);
-        std::fprintf(fp, "%s~\n", exit.description.c_str());
-        std::fprintf(fp, "%s~\n", exit.keyword.c_str());
-        std::fprintf(fp, "%ld %ld %ld %ld\n",
-                     exit.exit_info,
-                     exit.key,
-                     exit.to_room,
-                     exit.open_cmd);
+        fwrite_nebbie_string_field(fp, exit.description, NebbieTildeStyle::OnOwnLine);
+        fwrite_nebbie_string_field(fp, exit.keyword, NebbieTildeStyle::Inline);
+        std::ostringstream exit_line;
+        write_exit_data_line(exit_line, room, world, exit);
+        std::fputs(exit_line.str().c_str(), fp);
     }
 
     for (const auto& extra : room.extra_descs) {
         std::fprintf(fp, "E\n");
-        std::fprintf(fp, "%s~\n", extra.keyword.c_str());
-        std::fprintf(fp, "%s~\n", extra.description.c_str());
+        fwrite_nebbie_string_field(fp, extra.keyword, NebbieTildeStyle::Inline);
+        fwrite_nebbie_string_field(fp, extra.description, nebbie_paragraph_tilde_style(extra.description));
     }
 
     if (!room.bright_at_night.empty() || !room.bright_at_day.empty()) {
         std::fprintf(fp, "L\n");
-        std::fprintf(fp, "%s~\n", room.bright_at_night.c_str());
-        std::fprintf(fp, "%s~\n", room.bright_at_day.c_str());
+        fwrite_nebbie_string_field(fp, room.bright_at_night, nebbie_paragraph_tilde_style(room.bright_at_night));
+        fwrite_nebbie_string_field(fp, room.bright_at_day, nebbie_paragraph_tilde_style(room.bright_at_day));
     }
 
     std::fprintf(fp, "S\n");

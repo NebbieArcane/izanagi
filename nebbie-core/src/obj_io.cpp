@@ -3,6 +3,7 @@
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
+#include "nebbie/nebbie_string_field.hpp"
 
 #include <cstdio>
 #include <cstring>
@@ -229,14 +230,14 @@ void read_object_entry(FILE* fp, GameObject& obj) {
 }
 
 void fwrite_string(FILE* fp, const std::string& value) {
-    std::fprintf(fp, "%s~\n", value.c_str());
+    fwrite_nebbie_string_field(fp, value, NebbieTildeStyle::Inline);
 }
 
 void write_object_body(FILE* fp, const GameObject& obj) {
-    fwrite_string(fp, obj.name);
-    fwrite_string(fp, obj.short_descr);
-    fwrite_string(fp, obj.description);
-    fwrite_string(fp, obj.action_description);
+    fwrite_nebbie_string_field(fp, obj.name, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, obj.short_descr, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, obj.description, NebbieTildeStyle::Inline);
+    fwrite_nebbie_string_field(fp, obj.action_description, NebbieTildeStyle::Inline);
 
     std::fprintf(fp, "%d %ld %ld\n",
                  obj.type_flag, obj.extra_flags, obj.wear_flags);
@@ -247,8 +248,8 @@ void write_object_body(FILE* fp, const GameObject& obj) {
 
     for (const auto& extra : obj.extra_descs) {
         std::fprintf(fp, "E\n");
-        fwrite_string(fp, extra.keyword);
-        fwrite_string(fp, extra.description);
+        fwrite_nebbie_string_field(fp, extra.keyword, NebbieTildeStyle::Inline);
+        fwrite_nebbie_string_field(fp, extra.description, nebbie_paragraph_tilde_style(extra.description));
     }
 
     for (const auto& affect : obj.affects) {
@@ -261,8 +262,8 @@ void write_object_body(FILE* fp, const GameObject& obj) {
 
     if (!obj.forbidden_char.empty() || !obj.forbidden_room.empty()) {
         std::fprintf(fp, "P\n");
-        fwrite_string(fp, obj.forbidden_char);
-        fwrite_string(fp, obj.forbidden_room);
+        fwrite_nebbie_string_field(fp, obj.forbidden_char, NebbieTildeStyle::Inline);
+        fwrite_nebbie_string_field(fp, obj.forbidden_room, NebbieTildeStyle::Inline);
     }
 }
 

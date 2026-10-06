@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstring>
 #include <stdexcept>
+#include <unordered_map>
 
 namespace nebbie {
 
@@ -352,8 +353,15 @@ void apply_room_edit(Room& room, const RoomEdit& edit) {
 }
 
 void assign_room_fields(Room& room, const Room& values) {
+    std::unordered_map<int, std::optional<std::string>> exit_raw_by_direction;
+    for (const auto& exit : room.exits) {
+        exit_raw_by_direction[exit.direction] = exit.data_line_raw;
+    }
+
     room.name = values.name;
     room.description = values.description;
+    room.zone_line_primary = values.zone_line_primary;
+    room.zone_data_line_raw = values.zone_data_line_raw;
     room.room_flags = values.room_flags;
     room.sector_type = values.sector_type;
     room.tele_time = values.tele_time;
@@ -367,6 +375,12 @@ void assign_room_fields(Room& room, const Room& values) {
     room.bright_at_day = values.bright_at_day;
     room.extra_descs = values.extra_descs;
     room.exits = values.exits;
+    for (auto& exit : room.exits) {
+        const auto raw_it = exit_raw_by_direction.find(exit.direction);
+        if (raw_it != exit_raw_by_direction.end()) {
+            exit.data_line_raw = raw_it->second;
+        }
+    }
 }
 
 void assign_zone_fields(Zone& zone, const Zone& values) {
@@ -896,6 +910,24 @@ std::string reset_command_summary(const ResetCommand& cmd) {
     summary += " a2=" + std::to_string(cmd.arg2);
     summary += " a3=" + std::to_string(cmd.arg3);
     summary += " a4=" + std::to_string(cmd.arg4);
+
+    if (!cmd.raw_line.empty()) {
+        std::string trimmed = cmd.raw_line;
+        while (!trimmed.empty() && (trimmed.back() == '\n' || trimmed.back() == '\r')) {
+            trimmed.pop_back();
+        }
+        const std::size_t bang = trimmed.find("*!");
+        if (bang != std::string::npos) {
+            std::string note = trimmed.substr(bang + 2);
+            while (!note.empty() && (note.front() == ' ' || note.front() == '\t')) {
+                note.erase(note.begin());
+            }
+            if (!note.empty()) {
+                summary += " — ";
+                summary += note;
+            }
+        }
+    }
 
     switch (cmd.command) {
     case 'M':
