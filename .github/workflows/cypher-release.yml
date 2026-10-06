@@ -14,7 +14,7 @@ env:
 
 jobs:
   linux-deb:
-    if: github.repository == 'NebbieArcane/izanagi'
+    if: github.repository == 'NebbieArcane/izanagi' || github.repository == 'wizardmorgan/nebbie-arcane-editing-tools'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -41,7 +41,7 @@ jobs:
           if-no-files-found: error
 
   macos-dmg:
-    if: github.repository == 'NebbieArcane/izanagi'
+    if: github.repository == 'NebbieArcane/izanagi' || github.repository == 'wizardmorgan/nebbie-arcane-editing-tools'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -120,7 +120,7 @@ jobs:
           if-no-files-found: error
 
   windows-portable:
-    if: github.repository == 'NebbieArcane/izanagi'
+    if: github.repository == 'NebbieArcane/izanagi' || github.repository == 'wizardmorgan/nebbie-arcane-editing-tools'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -162,7 +162,7 @@ jobs:
           if-no-files-found: error
 
   publish-release:
-    if: github.repository == 'NebbieArcane/izanagi'
+    if: github.repository == 'NebbieArcane/izanagi' || github.repository == 'wizardmorgan/nebbie-arcane-editing-tools'
     needs: [linux-deb, macos-dmg, windows-portable]
     runs-on: ubuntu-latest
     steps:
