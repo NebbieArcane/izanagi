@@ -36,6 +36,12 @@ bool mob_uses_hit_dice(char mobtype);
 bool mob_type_uses_mult_att(char mobtype);
 bool mob_type_uses_sounds(char mobtype);
 
+/** Types A/N/B/L: gold-line third field is XPBONUS for DetermineExp (≥0) or fixed XP if negative. */
+bool mob_gold_line_uses_xp_bonus(char mobtype);
+
+/** NebbieArcane logs an error when XPBONUS > 400; larger values overflow 32-bit GET_EXP. */
+bool mob_xp_bonus_value_is_risky(long third_field, char mobtype);
+
 DiceValues parse_dice(const std::string& text);
 std::string format_dice(const DiceValues& dice);
 

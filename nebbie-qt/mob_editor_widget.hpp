@@ -22,6 +22,7 @@ public:
 
 private:
     void updateTypeDependentFields();
+    void updateEconomyFieldLabels();
 
     QLineEdit* name_ = nullptr;
     QTextEdit* short_descr_ = nullptr;
@@ -46,6 +47,9 @@ private:
     QSpinBox* alignment_ = nullptr;
     QSpinBox* gold_ = nullptr;
     QSpinBox* exp_ = nullptr;
+    QLabel* exp_label_ = nullptr;
+    QLabel* economy_legend_ = nullptr;
+    QLabel* exp_warning_ = nullptr;
     QCheckBox* extended_gold_ = nullptr;
     QComboBox* race_ = nullptr;
     QWidget* race_row_ = nullptr;

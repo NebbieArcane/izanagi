@@ -181,9 +181,13 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* economy_tab = new QWidget;
     auto* economy_layout = new QVBoxLayout(economy_tab);
-    economy_layout->addWidget(makeLegend(
-        "Alignment from -1000 (evil) through 0 (neutral) to +1000 (good).",
-        economy_tab));
+    economy_legend_ = makeLegend(
+        "Alignment from -1000 (evil) through 0 (neutral) to +1000 (good). "
+        "For mob types A/N/B/L the gold-line third number is an XP bonus for the server formula "
+        "(typical values 1–4), not raw experience; use a negative value for fixed XP. "
+        "Type S stores literal experience points.",
+        economy_tab);
+    economy_layout->addWidget(economy_legend_);
     auto* economy_form = new QFormLayout;
     alignment_ = new QSpinBox;
     alignment_->setRange(-1000, 1000);
@@ -191,7 +195,8 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     gold_ = new QSpinBox;
     gold_->setRange(0, 2000000000);
     exp_ = new QSpinBox;
-    exp_->setRange(0, 2000000000);
+    exp_->setRange(-2000000000, 2000000000);
+    exp_label_ = new QLabel("Exp:");
     extended_gold_ = new QCheckBox("Extended gold line (-1 gold exp race)");
     race_ = new QComboBox;
     fillCombo(race_, nebbie::mob_race_choices());
@@ -202,10 +207,15 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     race_layout->addStretch();
     economy_form->addRow("Alignment:", alignment_);
     economy_form->addRow("Gold:", gold_);
-    economy_form->addRow("Exp:", exp_);
+    economy_form->addRow(exp_label_, exp_);
     economy_form->addRow(extended_gold_);
     economy_form->addRow("Race:", race_row_);
+    exp_warning_ = new QLabel(economy_tab);
+    exp_warning_->setWordWrap(true);
+    exp_warning_->setStyleSheet("color: #c0392b; font-weight: bold;");
+    exp_warning_->hide();
     economy_layout->addLayout(economy_form);
+    economy_layout->addWidget(exp_warning_);
     tabs->addTab(economy_tab, "Economy");
 
     auto* behavior_tab = new QWidget;
@@ -278,11 +288,39 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(mobtype_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int) { updateTypeDependentFields(); });
     connect(extended_gold_, &QCheckBox::toggled, race_row_, &QWidget::setVisible);
+    connect(extended_gold_, &QCheckBox::toggled, this, [this](bool) { updateEconomyFieldLabels(); });
+    connect(exp_, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            [this](int) { updateEconomyFieldLabels(); });
     connect(extended_sex_, &QCheckBox::toggled, immunity_panel_, &QWidget::setVisible);
 
     race_row_->setVisible(false);
     immunity_panel_->setVisible(false);
     updateTypeDependentFields();
+}
+
+void MobEditorWidget::updateEconomyFieldLabels() {
+    const char mobtype = comboTypeValue(mobtype_);
+    const bool xp_bonus = nebbie::mob_gold_line_uses_xp_bonus(mobtype);
+    if (xp_bonus) {
+        exp_label_->setText("XP bonus (DetermineExp):");
+        exp_->setToolTip(
+            "NebbieArcane server: if ≥0, third gold-line field is XPBONUS (typical 1–4), not raw XP. "
+            "If negative, server uses fixed XP = -value. Values >400 overflow GET_EXP.");
+        extended_gold_->setText("Extended gold line (-1 gold xp_bonus race)");
+    } else {
+        exp_label_->setText("Exp:");
+        exp_->setToolTip("Experience points stored on the gold line (literal for type S).");
+        extended_gold_->setText("Extended gold line (-1 gold exp race)");
+    }
+
+    if (nebbie::mob_xp_bonus_value_is_risky(exp_->value(), mobtype)) {
+        exp_warning_->setText(
+            "Warning: this XP bonus is far above 400. The server will overflow experience "
+            "(negative or nonsense stat). Use a small bonus (e.g. 1–4) or a negative value for fixed XP.");
+        exp_warning_->show();
+    } else {
+        exp_warning_->hide();
+    }
 }
 
 void MobEditorWidget::updateTypeDependentFields() {
@@ -293,6 +331,7 @@ void MobEditorWidget::updateTypeDependentFields() {
     mult_att_->setEnabled(nebbie::mob_type_uses_mult_att(mobtype));
     sounds_panel_->setEnabled(nebbie::mob_type_uses_sounds(mobtype) || !sounds_->text().isEmpty()
                               || !distant_sounds_->text().isEmpty());
+    updateEconomyFieldLabels();
 }
 
 void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {

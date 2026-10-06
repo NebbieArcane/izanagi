@@ -226,6 +226,17 @@ bool mob_type_uses_sounds(const char mobtype) {
     return mobtype == 'L';
 }
 
+bool mob_gold_line_uses_xp_bonus(const char mobtype) {
+    return mobtype == 'A' || mobtype == 'N' || mobtype == 'B' || mobtype == 'L';
+}
+
+bool mob_xp_bonus_value_is_risky(const long third_field, const char mobtype) {
+    if (!mob_gold_line_uses_xp_bonus(mobtype)) {
+        return false;
+    }
+    return third_field >= 0 && third_field > 400;
+}
+
 DiceValues parse_dice(const std::string& text) {
     DiceValues dice;
     std::size_t pos = 0;
