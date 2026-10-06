@@ -9,6 +9,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QLabel;
 class QSpinBox;
 class FlagGroupWidget;
 
@@ -32,6 +33,7 @@ public:
 
 private:
     void updateTypeDependentFields();
+    void updateEconomyFieldLabels();
     void applyMudFieldSettings();
     nebbie::qt::MudFieldList mudFields() const;
 
@@ -61,6 +63,9 @@ private:
     QSpinBox* alignment_ = nullptr;
     QSpinBox* gold_ = nullptr;
     QSpinBox* exp_ = nullptr;
+    QLabel* exp_label_ = nullptr;
+    QLabel* economy_legend_ = nullptr;
+    QLabel* exp_warning_ = nullptr;
     QCheckBox* extended_gold_ = nullptr;
     QComboBox* race_ = nullptr;
     QWidget* race_row_ = nullptr;

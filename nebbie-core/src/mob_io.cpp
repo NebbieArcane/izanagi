@@ -143,6 +143,7 @@ void read_new_mob_stats(FILE* fp, Mobile& mob) {
     if (gold_line[0] == -1) {
         mob.extended_gold = true;
         mob.gold = gold_line.size() > 1 ? gold_line[1] : 0;
+        // Third field: literal exp for type S; XPBONUS (or negative fixed XP) for A/N/B/L on NebbieArcane.
         mob.exp = gold_line.size() > 2 ? gold_line[2] : 0;
         mob.race = gold_line.size() > 3 ? gold_line[3] : 0;
     } else {

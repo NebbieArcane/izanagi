@@ -85,6 +85,7 @@ struct Mobile {
     std::string dam_dice;
     bool extended_gold = false;
     long gold = 0;
+    /** On disk: literal exp for type S; XPBONUS (or negative fixed XP) for A/N/B/L — see mob_gold_line_uses_xp_bonus(). */
     long exp = 0;
     long race = 0;
     int position = 0;
