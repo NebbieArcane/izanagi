@@ -17,7 +17,7 @@ jobs:
     if: github.repository == 'NebbieArcane/izanagi'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         run: ./scripts/fetch-test-data.sh
@@ -34,7 +34,7 @@ jobs:
           dpkg-deb --contents dist/izanagi_*.deb | grep -E 'bin/izanagi|share/nebbie-editor|icons/hicolor.*izanagi'
 
       - name: Upload .deb artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-editor-linux-deb
           path: dist/izanagi_*.deb
@@ -44,7 +44,7 @@ jobs:
     if: github.repository == 'NebbieArcane/izanagi'
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         run: ./scripts/fetch-test-data.sh
@@ -118,7 +118,7 @@ jobs:
           fi
 
       - name: Upload .dmg artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-editor-macos-dmg
           path: dist/izanagi_*_macos.dmg
@@ -128,7 +128,7 @@ jobs:
     if: github.repository == 'NebbieArcane/izanagi'
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         shell: pwsh
@@ -174,7 +174,7 @@ jobs:
           }
 
       - name: Upload zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-editor-windows-zip
           path: dist/izanagi_*_windows_portable.zip
@@ -185,10 +185,10 @@ jobs:
     needs: [linux-deb, macos-dmg, windows-portable]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download all package artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: release-assets
           pattern: nebbie-editor-*

@@ -13,7 +13,7 @@ jobs:
   package-linux-deb:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         run: ./scripts/fetch-test-data.sh
@@ -30,7 +30,7 @@ jobs:
           dpkg-deb --contents dist/*.deb | head -20
 
       - name: Upload .deb artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-editor-deb-linux-amd64
           path: dist/*.deb
@@ -39,7 +39,7 @@ jobs:
   package-macos-dmg:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         run: ./scripts/fetch-test-data.sh
@@ -62,7 +62,7 @@ jobs:
           ./scripts/package-dmg.sh
 
       - name: Upload .dmg artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-editor-dmg-macos
           path: dist/*.dmg
@@ -71,7 +71,7 @@ jobs:
   package-windows-zip:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         shell: pwsh
@@ -103,14 +103,14 @@ jobs:
         run: ./scripts/package-windows.ps1
 
       - name: Upload zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-editor-zip-windows
           path: dist/*.zip
           if-no-files-found: error
 
       - name: Upload installer artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-editor-installer-windows
           path: dist/*_windows_setup.exe

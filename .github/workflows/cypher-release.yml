@@ -17,7 +17,7 @@ jobs:
     if: github.repository == 'NebbieArcane/izanagi'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         run: ./scripts/fetch-test-data.sh
@@ -34,7 +34,7 @@ jobs:
           dpkg-deb --contents dist/cypher_*.deb | grep -E 'bin/cypher|share/nebbie-translate|icons/hicolor.*cypher'
 
       - name: Upload .deb artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-translate-linux-deb
           path: dist/cypher_*.deb
@@ -44,7 +44,7 @@ jobs:
     if: github.repository == 'NebbieArcane/izanagi'
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         run: ./scripts/fetch-test-data.sh
@@ -113,7 +113,7 @@ jobs:
           fi
 
       - name: Upload .dmg artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-translate-macos-dmg
           path: dist/cypher_*_macos.dmg
@@ -123,7 +123,7 @@ jobs:
     if: github.repository == 'NebbieArcane/izanagi'
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch nebbietest data
         shell: pwsh
@@ -155,7 +155,7 @@ jobs:
           }
 
       - name: Upload zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nebbie-translate-windows-zip
           path: dist/cypher_*_windows_portable.zip
@@ -166,10 +166,10 @@ jobs:
     needs: [linux-deb, macos-dmg, windows-portable]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download all package artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: release-assets
           pattern: nebbie-translate-*
