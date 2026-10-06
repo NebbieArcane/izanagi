@@ -287,6 +287,27 @@ std::string format_dice(const DiceValues& dice) {
     return oss.str();
 }
 
+long mob_server_hit_estimate(const char mobtype, const int level, const int hit_bonus,
+                             const std::string& hit_dice) {
+    if (mob_uses_hit_dice(mobtype)) {
+        try {
+            const DiceValues dice = parse_dice(hit_dice);
+            return static_cast<long>(dice.number) * dice.size + dice.plus;
+        } catch (const std::exception&) {
+            return 0;
+        }
+    }
+    const int safe_level = level < 0 ? 0 : level;
+    return static_cast<long>(safe_level) * 8 + hit_bonus;
+}
+
+int mob_default_hit_bonus_for_level(const int level) {
+    if (level <= 1) {
+        return 6;
+    }
+    return level * 6;
+}
+
 long flags_value_from_selection(const std::vector<MobFlagDef>& defs, const std::vector<bool>& selected) {
     long value = 0;
     for (std::size_t i = 0; i < defs.size() && i < selected.size(); ++i) {

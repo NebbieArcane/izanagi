@@ -2570,6 +2570,18 @@ void MainWindow::refreshRoomEditorIfInboundExitsChanged(long target_vnum) {
     }
 }
 
+void MainWindow::flushPendingEditorChanges() {
+    if (room_list_->currentItem()) {
+        applyRoomChanges();
+    }
+    if (mob_list_->currentItem()) {
+        applyMobChanges();
+    }
+    if (obj_list_->currentItem()) {
+        applyObjChanges();
+    }
+}
+
 void MainWindow::applyMobChanges() {
     auto* item = mob_list_->currentItem();
     if (!item) {
@@ -2836,6 +2848,7 @@ void MainWindow::saveLib() {
     const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
     if (rooms_to_check.empty()) {
         try {
+            flushPendingEditorChanges();
             syncDirtyEntityVnumsToContext();
             nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
             markClean();
@@ -2885,6 +2898,7 @@ void MainWindow::saveLib() {
     }
 
     try {
+        flushPendingEditorChanges();
         syncDirtyEntityVnumsToContext();
         nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();
@@ -2902,6 +2916,7 @@ void MainWindow::saveLibForce() {
         return;
     }
     try {
+        flushPendingEditorChanges();
         syncDirtyEntityVnumsToContext();
         nebbie::save_lib_with_backup(world_, context_, lib_path_, {}, sessionStorageRoot());
         markClean();

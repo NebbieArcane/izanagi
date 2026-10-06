@@ -343,8 +343,39 @@ void MobEditorWidget::updateEconomyFieldLabels() {
     }
 }
 
+void MobEditorWidget::migrateCombatFieldsForTypeChange(const char from_type, const char to_type) {
+    const bool from_dice = nebbie::mob_uses_hit_dice(from_type);
+    const bool to_dice = nebbie::mob_uses_hit_dice(to_type);
+    if (from_dice == to_dice) {
+        return;
+    }
+
+    const int level = level_->value();
+    if (from_dice && !to_dice) {
+        int bonus = hit_bonus_->value();
+        if (bonus <= 0) {
+            const nebbie::DiceValues dice = nebbie::parse_dice(saveDice(hit_num_, hit_size_, hit_plus_));
+            bonus = dice.number * dice.size / 2 + dice.plus;
+        }
+        if (bonus < nebbie::mob_default_hit_bonus_for_level(level) / 2) {
+            bonus = nebbie::mob_default_hit_bonus_for_level(level);
+        }
+        hit_bonus_->setValue(bonus);
+    } else if (!from_dice && to_dice) {
+        const int bonus = hit_bonus_->value();
+        hit_num_->setValue(std::max(1, level));
+        hit_size_->setValue(8);
+        const int plus = bonus - level * 4;
+        hit_plus_->setValue(plus > 0 ? plus : 0);
+    }
+}
+
 void MobEditorWidget::updateTypeDependentFields() {
     const char mobtype = comboTypeValue(mobtype_);
+    if (mobtype != last_mobtype_) {
+        migrateCombatFieldsForTypeChange(last_mobtype_, mobtype);
+        last_mobtype_ = mobtype;
+    }
     const bool uses_hit_dice = nebbie::mob_uses_hit_dice(mobtype);
     hit_dice_row_->setVisible(uses_hit_dice);
     hit_bonus_row_->setVisible(!uses_hit_dice);
@@ -361,6 +392,7 @@ void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {
     description_->setStorageText(QString::fromStdString(mob.description));
 
     setComboTypeValue(mobtype_, mob.mobtype);
+    last_mobtype_ = mob.mobtype;
     mult_att_->setValue(mob.mult_att);
     level_->setValue(mob.level);
     hitroll_->setValue(mob.hitroll);

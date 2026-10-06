@@ -1,6 +1,7 @@
 #include "nebbie/validate.hpp"
 
 #include "nebbie/edit.hpp"
+#include "nebbie/mob_catalog.hpp"
 #include "nebbie/mud_text.hpp"
 #include "nebbie/special_proc_catalog.hpp"
 #include "nebbie/text_lines.hpp"
@@ -565,6 +566,56 @@ ValidationReport validate_rooms(const World& world,
     return report;
 }
 
+void append_mob_combat_validation(const World& world, ValidationReport& report) {
+    for (const auto& [vnum, mob] : world.mobiles) {
+        const long hit_est =
+            mob_server_hit_estimate(mob.mobtype, mob.level, mob.hit_bonus, mob.hit_dice);
+        if (hit_est < 1) {
+            add_issue(report,
+                      ValidationSeverity::error,
+                      "mob_combat",
+                      "mobile #" + std::to_string(vnum) + " (" + mob.short_descr
+                          + "): estimated max hit " + std::to_string(hit_est)
+                          + " on NebbieArcane (type " + std::string(1, mob.mobtype)
+                          + (mob_uses_hit_dice(mob.mobtype)
+                                 ? ", hit dice " + mob.hit_dice + " — HP does not use level field)"
+                                 : ", hit bonus " + std::to_string(mob.hit_bonus)
+                                       + " — use hit bonus ~level*6, not hit dice)"),
+                      ValidationTarget::mob,
+                      vnum);
+        } else if (mob_uses_hit_dice(mob.mobtype) && mob.level >= 10) {
+            try {
+                const DiceValues dice = parse_dice(mob.hit_dice);
+                if (dice.number <= 1 && dice.size <= 1 && dice.plus <= 0) {
+                    add_issue(report,
+                              ValidationSeverity::warning,
+                              "mob_combat",
+                              "mobile #" + std::to_string(vnum)
+                                  + ": type S uses hit dice for HP, not level; for level "
+                                  + std::to_string(mob.level)
+                                  + " prefer type A/N/B/L with hit bonus (~"
+                                  + std::to_string(mob_default_hit_bonus_for_level(mob.level)) + ")",
+                              ValidationTarget::mob,
+                              vnum);
+                }
+            } catch (const std::exception&) {
+                // parse_dice error handled elsewhere on save
+            }
+        }
+        if (mob_gold_line_uses_xp_bonus(mob.mobtype)
+            && mob_xp_bonus_value_is_risky(mob.exp, mob.mobtype)) {
+            add_issue(report,
+                      ValidationSeverity::error,
+                      "mob_economy",
+                      "mobile #" + std::to_string(vnum)
+                          + ": XP bonus field " + std::to_string(mob.exp)
+                          + " overflows server GET_EXP (use 1–4 or negative fixed XP)",
+                      ValidationTarget::mob,
+                      vnum);
+        }
+    }
+}
+
 void append_mob_text_validation(const World& world, ValidationReport& report, const ValidationOptions& options) {
     if (options.max_line_length <= 0) {
         return;
@@ -635,6 +686,7 @@ void append_object_text_validation(const World& world,
 ValidationReport validate_world(const World& world, const ValidationOptions& options) {
     ValidationReport report;
     append_room_validation(world, report, options, nullptr);
+    append_mob_combat_validation(world, report);
     append_mob_text_validation(world, report, options);
     append_object_text_validation(world, report, options);
     validate_resets(world, report);

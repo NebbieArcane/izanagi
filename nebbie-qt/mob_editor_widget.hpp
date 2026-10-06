@@ -34,6 +34,9 @@ public:
 private:
     void updateTypeDependentFields();
     void updateEconomyFieldLabels();
+    void migrateCombatFieldsForTypeChange(char from_type, char to_type);
+
+    char last_mobtype_ = 'A';
     void applyMudFieldSettings();
     nebbie::qt::MudFieldList mudFields() const;
 

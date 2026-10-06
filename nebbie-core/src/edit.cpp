@@ -1,5 +1,7 @@
 #include "nebbie/edit.hpp"
 
+#include "nebbie/mob_catalog.hpp"
+
 #include <algorithm>
 #include <cctype>
 #include <cstring>
@@ -123,13 +125,15 @@ Mobile make_default_mobile(long vnum, const MobEdit& edit) {
     mob.act = 1;
     mob.affected_by = 0;
     mob.alignment = edit.alignment > -999999 ? edit.alignment : 0;
-    mob.mobtype = 'S';
-    mob.mult_att = 1;
+    mob.mobtype = edit.mobtype != '\0' ? edit.mobtype : 'A';
+    mob.mult_att = edit.mult_att >= 0 ? edit.mult_att : 1;
     mob.level = edit.level >= 0 ? edit.level : 1;
-    mob.hitroll = 0;
-    mob.ac = 10;
-    mob.hit_dice = "1d1+0";
-    mob.dam_dice = "1d4+0";
+    mob.hitroll = edit.hitroll > -999999 ? edit.hitroll : 0;
+    mob.ac = edit.ac > -999999 ? edit.ac : -10;
+    mob.hit_bonus = edit.hit_bonus > -999999 ? edit.hit_bonus
+                                              : mob_default_hit_bonus_for_level(mob.level);
+    mob.hit_dice.clear();
+    mob.dam_dice = edit.dam_dice.empty() ? "1d4+0" : edit.dam_dice;
     mob.gold = 0;
     mob.exp = 0;
     mob.position = 8;

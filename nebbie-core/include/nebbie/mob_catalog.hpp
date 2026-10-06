@@ -45,6 +45,12 @@ bool mob_xp_bonus_value_is_risky(long third_field, char mobtype);
 DiceValues parse_dice(const std::string& text);
 std::string format_dice(const DiceValues& dice);
 
+/** NebbieArcane: type S uses hit dice only; A/N/B/L use leveld8 + hit_bonus on load. */
+long mob_server_hit_estimate(char mobtype, int level, int hit_bonus, const std::string& hit_dice);
+
+/** Typical NPC hit_bonus when none is set (~level*6, e.g. 300 at level 51). */
+int mob_default_hit_bonus_for_level(int level);
+
 long flags_value_from_selection(const std::vector<MobFlagDef>& defs, const std::vector<bool>& selected);
 std::vector<bool> flags_selection_from_value(const std::vector<MobFlagDef>& defs, long value);
 

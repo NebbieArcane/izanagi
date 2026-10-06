@@ -87,6 +87,7 @@ private slots:
     void alignCurrentExitLabel();
     void alignAllInboundExitDescriptions();
     void applyMobChanges();
+    void flushPendingEditorChanges();
     void applyObjChanges();
     void applyZoneChanges();
     void createRoom();
