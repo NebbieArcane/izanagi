@@ -226,10 +226,15 @@ void write_preserved_hash_file(const World& world,
     const std::unordered_set<long> empty_dirty;
     const auto& dirty = preserve.dirty_vnums != nullptr ? *preserve.dirty_vnums : empty_dirty;
 
-    std::ostringstream body;
-    std::unordered_set<long> written;
+    std::vector<long> ordered_vnums;
+    ordered_vnums.reserve(entities.size());
+    for (const auto& [vnum, _] : entities) {
+        ordered_vnums.push_back(vnum);
+    }
+    std::sort(ordered_vnums.begin(), ordered_vnums.end());
 
-    for (const long vnum : sources.order) {
+    std::ostringstream body;
+    for (const long vnum : ordered_vnums) {
         const auto entity_it = entities.find(vnum);
         if (entity_it == entities.end()) {
             continue;
@@ -239,25 +244,9 @@ void write_preserved_hash_file(const World& world,
         const auto block_it = sources.blocks.find(vnum);
         if (!is_dirty && block_it != sources.blocks.end()) {
             body << block_it->second;
-            written.insert(vnum);
             continue;
         }
         body << formatter(entity_it->second);
-        written.insert(vnum);
-    }
-
-    std::vector<long> appended;
-    for (const auto& [vnum, _] : entities) {
-        if (written.find(vnum) == written.end()) {
-            appended.push_back(vnum);
-        }
-    }
-    std::sort(appended.begin(), appended.end());
-    for (const long vnum : appended) {
-        const auto entity_it = entities.find(vnum);
-        if (entity_it != entities.end()) {
-            body << formatter(entity_it->second);
-        }
     }
 
     FILE* fp = open_file_write(path, "hash file");

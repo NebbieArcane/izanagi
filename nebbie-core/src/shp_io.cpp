@@ -3,6 +3,7 @@
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <string>
 
@@ -141,8 +142,16 @@ void save_myst_shp(const World& world, const std::filesystem::path& path, Progre
         progress("Writing " + path.string());
     }
 
+    std::vector<const Shop*> shops;
+    shops.reserve(world.shops.size());
     for (const auto& shop : world.shops) {
-        write_shop_entry(fp, shop);
+        shops.push_back(&shop);
+    }
+    std::sort(shops.begin(), shops.end(),
+              [](const Shop* a, const Shop* b) { return a->vnum < b->vnum; });
+
+    for (const Shop* shop : shops) {
+        write_shop_entry(fp, *shop);
     }
 
     std::fprintf(fp, "$~\n");

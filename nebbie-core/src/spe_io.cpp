@@ -3,6 +3,7 @@
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <sstream>
@@ -110,13 +111,25 @@ void save_myst_spe(const World& world, const std::filesystem::path& path, Progre
         progress("Writing " + path.string());
     }
 
+    std::vector<const SpecialProc*> entries;
+    entries.reserve(world.special_procs.size());
     for (const auto& entry : world.special_procs) {
-        const char type = static_cast<char>(std::toupper(static_cast<unsigned char>(entry.type)));
-        if (entry.params.empty()) {
-            std::fprintf(fp, "%c %ld %s\n", type, entry.vnum, entry.procedure.c_str());
+        entries.push_back(&entry);
+    }
+    std::sort(entries.begin(), entries.end(), [](const SpecialProc* a, const SpecialProc* b) {
+        if (a->vnum != b->vnum) {
+            return a->vnum < b->vnum;
+        }
+        return a->procedure < b->procedure;
+    });
+
+    for (const SpecialProc* entry : entries) {
+        const char type = static_cast<char>(std::toupper(static_cast<unsigned char>(entry->type)));
+        if (entry->params.empty()) {
+            std::fprintf(fp, "%c %ld %s\n", type, entry->vnum, entry->procedure.c_str());
         } else {
             std::fprintf(fp, "%c %ld %s %s\n",
-                         type, entry.vnum, entry.procedure.c_str(), entry.params.c_str());
+                         type, entry->vnum, entry->procedure.c_str(), entry->params.c_str());
         }
     }
 

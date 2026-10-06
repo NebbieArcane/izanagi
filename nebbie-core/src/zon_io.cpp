@@ -5,6 +5,7 @@
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -158,11 +159,18 @@ void save_myst_zon(const World& world, const std::filesystem::path& path, Progre
     }
 
     FILE* fp = open_file_write(path, "zone file");
+    std::vector<const Zone*> zones;
+    zones.reserve(world.zones.size());
     for (const auto& zone : world.zones) {
-        std::fprintf(fp, "#%d\n", zone.num);
-        std::fprintf(fp, "%s~\n", zone.name.c_str());
-        std::fprintf(fp, "%d %d %d\n", zone.top, zone.lifespan, zone.reset_mode);
-        write_zone_reset_commands(fp, zone);
+        zones.push_back(&zone);
+    }
+    std::sort(zones.begin(), zones.end(),
+              [](const Zone* a, const Zone* b) { return a->num < b->num; });
+    for (const Zone* zone : zones) {
+        std::fprintf(fp, "#%d\n", zone->num);
+        std::fprintf(fp, "%s~\n", zone->name.c_str());
+        std::fprintf(fp, "%d %d %d\n", zone->top, zone->lifespan, zone->reset_mode);
+        write_zone_reset_commands(fp, *zone);
     }
     if (options.write_eof_markers) {
         std::fprintf(fp, "#$\n");
