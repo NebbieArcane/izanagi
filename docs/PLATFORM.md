@@ -100,12 +100,14 @@ GitHub Actions:
 
 ## Pacchetti
 
+Guide passo-passo (anche **DMG/Windows via CI** senza sorgente sul Mac/PC): **[GUIDA_PACCHETTI.md](GUIDA_PACCHETTI.md)** · [Linux](GUIDA_PACCHETTI_LINUX.md) · [macOS](GUIDA_PACCHETTI_MACOS.md) · [Windows](GUIDA_PACCHETTI_WINDOWS.md).
+
 | Piattaforma | Script | Output |
 |-------------|--------|--------|
-| Linux (Debian/Ubuntu) | `./scripts/package-deb.sh` | `dist/nebbie-editor_<version>_<arch>.deb` |
-| macOS | `./scripts/package-dmg.sh` | `dist/nebbie-editor_<version>_macos.dmg` |
-| Windows | `.\scripts\package-windows.ps1` | `dist/nebbie-editor_<version>_windows.zip` + `*_windows_setup.exe` |
-| Windows (solo installer) | `.\scripts\package-windows-installer.ps1` | `dist/nebbie-editor_<version>_windows_setup.exe` |
+| Linux (Debian/Ubuntu) | `./scripts/package-deb.sh` | `dist/izanagi_<version>_<arch>.deb` |
+| macOS | `./scripts/package-dmg.sh` | `dist/izanagi_<version>_macos.dmg` |
+| Windows | `.\scripts\package-windows.ps1` | `dist/izanagi_<version>_windows_portable.zip` + `*_windows_setup.exe` |
+| Windows (solo installer) | `.\scripts\package-windows-installer.ps1` | `dist/izanagi_<version>_windows_setup.exe` |
 | Auto (Linux/macOS) | `./scripts/package.sh` | `.deb` o `.dmg` |
 | Libreria di prova | `./scripts/prepare-sample-lib.sh` | `dist/sample-mudroot/` (inclusa nei tre pacchetti) |
 | Mondo produzione → staging | `./scripts/export-production-world.sh sync` | `dist/production-world/` → `nebbie.wizmorgan.it` |

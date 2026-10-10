@@ -158,12 +158,14 @@ Pacchetti Windows portatili:
 .\scripts\package-windows.ps1                    # zip + installer Inno Setup (Izanagi)
 ```
 
-### Pacchetti Linux / macOS
+### Pacchetti Linux / macOS / Windows
+
+Guide dettagliate (build locale e **CI senza sorgente sul Mac**): [docs/GUIDA_PACCHETTI.md](docs/GUIDA_PACCHETTI.md).
 
 ```bash
-./scripts/package-deb.sh                 # Izanagi .deb
+./scripts/package-deb.sh                 # Izanagi .deb (NUC / Linux)
 ./scripts/package-deb-translate.sh     # Cypher .deb
-./scripts/package-dmg.sh               # Izanagi .dmg (macOS)
+./scripts/package-dmg.sh               # Izanagi .dmg (solo macOS)
 ./scripts/package-dmg-translate.sh     # Cypher .dmg (macOS)
 ```
 
