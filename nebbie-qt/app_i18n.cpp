@@ -94,8 +94,9 @@ constexpr TranslationEntry kTranslations[] = {
     {"menu.about_izanagi", "Informazioni su Izanagi...", "About Izanagi..."},
     {"menu.about_cypher", "Informazioni su Cypher...", "About Cypher..."},
     {"status.no_lib", "Nessuna libreria aperta", "No library open"},
-    {"status.open_lib_to_start", "Apri una libreria (mudroot/lib) per iniziare.",
-     "Open a library (mudroot/lib) to get started."},
+    {"status.open_lib_to_start",
+     "Apri un workspace Aree (File → Apri workspace Aree) o un'area dalla lista.",
+     "Open an Aree workspace (File → Open Aree workspace) or pick an area from the list."},
     {"status.open_lib_translate",
      "Apri una libreria (mudroot/lib) per tradurre le descrizioni delle stanze.",
      "Open a library (mudroot/lib) to translate room descriptions."},
@@ -196,15 +197,21 @@ constexpr TranslationEntry kTranslations[] = {
     {"aree.lib_open_use_workspace", "Apri workspace Aree", "Open Aree workspace"},
     {"dialog.open_lib_title", "Apri lib monolite (myst.* / mudroot/lib)",
      "Open monolith lib (myst.* / mudroot/lib)"},
-    {"dialog.open_lib_startup",
-     "Benvenuto in Nebbie Editor.\n\n"
-     "Per una libreria classica seleziona mudroot o mudroot/lib (file myst.*).\n"
-     "Per il repo Aree usa File → Apri workspace Aree.\n\n"
-     "Il percorso verrà salvato in:\n%1",
-     "Welcome to Nebbie Editor.\n\n"
-     "For a classic library pick mudroot or mudroot/lib (myst.* files).\n"
-     "For the Aree repo use File → Open Aree workspace.\n\n"
-     "The path will be saved to:\n%1"},
+    {"dialog.startup_title", "Benvenuto in Izanagi", "Welcome to Izanagi"},
+    {"dialog.open_startup_aree_first",
+     "Izanagi è pensato per lavorare sulle cartelle area del repo Aree "
+     "(es. castelli/castelli.zon, castelli.wld, …).\n\n"
+     "Scegli «Apri workspace Aree» per la root del repo (o altra cartella con sotto-cartelle area).\n"
+     "La libreria monolite mudroot/lib (myst.*) resta disponibile solo se la scegli esplicitamente.\n\n"
+     "Config: %1",
+     "Izanagi is designed for Aree-style area folders "
+     "(e.g. castelli/castelli.zon, castelli.wld, …).\n\n"
+     "Choose «Open Aree workspace» for the repo root (or any folder with area subfolders).\n"
+     "The mudroot/lib monolith (myst.*) is only opened when you choose it explicitly.\n\n"
+     "Config: %1"},
+    {"dialog.startup_open_aree", "Apri workspace Aree…", "Open Aree workspace…"},
+    {"dialog.startup_open_monolith", "Apri lib monolite (mudroot/lib)…",
+     "Open monolith lib (mudroot/lib)…"},
     {"status.open_lib_cancelled",
      "Nessuna libreria selezionata. Usa File → Apri lib monolite o Apri workspace Aree.",
      "No library selected. Use File → Open monolith lib or Open Aree workspace."},

@@ -32,6 +32,14 @@ std::vector<std::filesystem::path> discover_files_by_extension(
     const char* extension,
     const char* canonical_name) {
     std::error_code ec;
+    const std::string folder_name = dir.filename().string();
+    if (!folder_name.empty() && folder_name != "." && folder_name != "..") {
+        const std::filesystem::path area_named = dir / (folder_name + extension);
+        if (std::filesystem::exists(area_named, ec)) {
+            return {area_named};
+        }
+    }
+
     const std::filesystem::path canonical = dir / canonical_name;
     if (std::filesystem::exists(canonical, ec)) {
         return {canonical};

@@ -38,6 +38,12 @@ int main(int argc, char** argv) {
         if (!nebbie::create_object(world, 99)) {
             throw std::runtime_error("create_object failed");
         }
+        if (!nebbie::create_shop(world, 501)) {
+            throw std::runtime_error("create_shop failed");
+        }
+        if (nebbie::create_shop(world, 501)) {
+            throw std::runtime_error("create_shop duplicate should fail");
+        }
 
         nebbie::ExitEdit exit;
         exit.direction = 1;
@@ -62,6 +68,16 @@ int main(int argc, char** argv) {
         }
         if (!reloaded.find_object(99)) {
             throw std::runtime_error("created object not persisted");
+        }
+        bool shop_found = false;
+        for (const auto& shop : reloaded.shops) {
+            if (shop.vnum == 501) {
+                shop_found = true;
+                break;
+            }
+        }
+        if (!shop_found) {
+            throw std::runtime_error("created shop not persisted");
         }
         const nebbie::Room* room = reloaded.find_room(3001);
         if (!room || !nebbie::find_room_exit(*room, 1)) {
