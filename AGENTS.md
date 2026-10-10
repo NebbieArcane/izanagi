@@ -24,9 +24,18 @@ Il parser del server Nebbie Arcane (`NebbieArcane/Server`, `src/db.cpp`) è la s
 
 ## Git e push (regola critica)
 
-- **Non eseguire `git push`** verso GitHub (né `origin`, né `izanagi`, né fork) **salvo richiesta esplicita dell'utente** in quel turno di conversazione.
-- Commit locali sul NUC sono ok quando servono al lavoro in corso.
-- Niente `git push --force` né amend di commit già pushati, salvo richiesta esplicita.
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -24,6 +24,12 @@ Il parser del server Nebbie Arcane (`NebbieArcane/Server`, `src/db.cpp`) è la s
+ 
+ ## Git e push (regola critica)
+ 
++- **Un solo messaggio vale:** il permesso di push vale **solo** se l’utente lo scrive **in quel turno** (es. «autorizzo push»). Un’autorizzazione di un turno o chat **precedente non vale**.
++- **Non implicare il push:** richieste come «scrivi sul NUC», «aggiorna AGENTS.md», «committa in locale» **non** autorizzano il push. In dubbio, **chiedere** o dire all’utente di fare `git push` / `git pull` lui.
++- **Cloud Agent → NUC:** se il remoto va aggiornato, chiedere prima; l’utente può `git pull origin main` sul NUC senza che l’agente pushi da solo.
+ - **Non eseguire `git push`** verso GitHub (né `origin`, né `izanagi`, né fork) **salvo richiesta esplicita dell'utente** in quel turno di conversazione.
+ - Commit locali sul NUC sono ok quando servono al lavoro in corso.
+ - Niente `git push --force` né amend di commit già pushati, salvo richiesta esplicita.
 - Su Cloud Agent, se l'utente autorizza il push su `NebbieArcane/izanagi` e HTTPS fallisce (token bot), usare deploy key SSH:
   ```bash
   source ./scripts/setup-izanagi-deploy-key.sh
