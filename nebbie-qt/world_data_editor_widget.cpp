@@ -9,6 +9,7 @@
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -219,10 +220,19 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
     form->addRow("Do not buy:", shop_no_buy_);
     form->addRow("Missing cash 1:", shop_no_cash1_);
     form->addRow("Missing cash 2:", shop_no_cash2_);
+    auto* buttons = new QHBoxLayout;
+    auto* add = new QPushButton("Nuovo negozio");
     auto* apply = new QPushButton("Applica negozio");
+    auto* remove = new QPushButton("Rimuovi negozio");
+    buttons->addWidget(add);
+    buttons->addWidget(apply);
+    buttons->addWidget(remove);
+    buttons->addStretch();
+    connect(add, &QPushButton::clicked, this, &WorldDataEditorWidget::addShop);
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applyShop);
+    connect(remove, &QPushButton::clicked, this, &WorldDataEditorWidget::removeShop);
     layout->addLayout(makeListEditorRow(shop_list_, wrapScroll(form_host)));
-    layout->addWidget(apply);
+    layout->addLayout(buttons);
     connect(shop_list_, &QListWidget::currentRowChanged, this, [this](int) { onShopSelected(); });
     static_cast<QTabWidget*>(parent)->addTab(page, "Negozi");
 }
@@ -520,6 +530,55 @@ void WorldDataEditorWidget::onShopSelected() {
     shop_no_cash2_->setStorageText(QString::fromStdString(shop->missing_cash2));
 }
 
+void WorldDataEditorWidget::addShop() {
+    if (!world_) {
+        QMessageBox::information(this, "Negozi", "Apri prima una libreria.");
+        return;
+    }
+
+    bool ok = false;
+    const int suggested = static_cast<int>(nebbie::suggest_next_shop_vnum(*world_));
+    const int vnum =
+        QInputDialog::getInt(this, "Nuovo negozio", "Vnum negozio:", suggested, 1, 999999, 1, &ok);
+    if (!ok) {
+        return;
+    }
+
+    if (!nebbie::create_shop(*world_, vnum)) {
+        QMessageBox::warning(this, "Negozi",
+                             QString("Impossibile creare il negozio #%1 (vnum duplicato?).").arg(vnum));
+        return;
+    }
+
+    refresh();
+    selectShop(vnum);
+    emit modified();
+}
+
+void WorldDataEditorWidget::removeShop() {
+    if (!world_) {
+        return;
+    }
+    auto* item = shop_list_->currentItem();
+    if (!item) {
+        QMessageBox::information(this, "Negozi", "Seleziona un negozio da rimuovere.");
+        return;
+    }
+    const long vnum = item->data(Qt::UserRole).toLongLong();
+    const auto answer = QMessageBox::question(
+        this, "Rimuovi negozio", QString("Rimuovere il negozio #%1?").arg(vnum), QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+    if (!nebbie::remove_shop(*world_, vnum)) {
+        QMessageBox::warning(this, "Negozi", "Impossibile rimuovere il negozio selezionato.");
+        return;
+    }
+    refresh();
+    emit modified();
+}
+
 void WorldDataEditorWidget::applyShop() {
     if (!world_) {
         return;
@@ -528,11 +587,22 @@ void WorldDataEditorWidget::applyShop() {
     if (!item) {
         return;
     }
-    nebbie::Shop* shop = findShop(item->data(Qt::UserRole).toLongLong());
+    const long previous_vnum = item->data(Qt::UserRole).toLongLong();
+    nebbie::Shop* shop = findShop(previous_vnum);
     if (!shop) {
         return;
     }
-    shop->vnum = shop_vnum_->value();
+    const long new_vnum = shop_vnum_->value();
+    if (new_vnum != previous_vnum) {
+        for (const auto& other : world_->shops) {
+            if (other.vnum == new_vnum) {
+                QMessageBox::warning(this, "Negozi",
+                                     QString("Il vnum negozio #%1 è già in uso.").arg(new_vnum));
+                return;
+            }
+        }
+    }
+    shop->vnum = new_vnum;
     shop->keeper = shop_keeper_->value();
     shop->in_room = shop_room_->value();
     shop->with_who = shop_with_who_->value();

@@ -1,6 +1,7 @@
 #include "nebbie/edit.hpp"
 
 #include "nebbie/mob_catalog.hpp"
+#include "nebbie/world_index.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -295,6 +296,15 @@ bool entity_matches(long vnum, const std::string& name, const std::string& query
 }
 
 long suggest_next_room_vnum(const World& world) {
+    World normalized = world;
+    recompute_zone_bottoms(normalized);
+    const WorldIndex index = build_world_index(normalized, "suggest");
+    for (const auto& zone : index.zones) {
+        const auto suggested = suggest_room_vnum_in_zone(index, zone.zone_num);
+        if (suggested) {
+            return *suggested;
+        }
+    }
     const long max_vnum = max_vnum_in_map(world.rooms);
     if (max_vnum > 0) {
         return max_vnum + 1;
@@ -303,12 +313,55 @@ long suggest_next_room_vnum(const World& world) {
 }
 
 long suggest_next_mob_vnum(const World& world) {
+    World normalized = world;
+    recompute_zone_bottoms(normalized);
+    const WorldIndex index = build_world_index(normalized, "suggest");
+    for (const auto& zone : index.zones) {
+        const auto suggested = suggest_mob_vnum_in_zone(index, zone.zone_num);
+        if (suggested) {
+            return *suggested;
+        }
+    }
     const long max_vnum = max_vnum_in_map(world.mobiles);
     return max_vnum > 0 ? max_vnum + 1 : 1;
 }
 
 long suggest_next_object_vnum(const World& world) {
+    World normalized = world;
+    recompute_zone_bottoms(normalized);
+    const WorldIndex index = build_world_index(normalized, "suggest");
+    for (const auto& zone : index.zones) {
+        const auto suggested = suggest_object_vnum_in_zone(index, zone.zone_num);
+        if (suggested) {
+            return *suggested;
+        }
+    }
     const long max_vnum = max_vnum_in_map(world.objects);
+    return max_vnum > 0 ? max_vnum + 1 : 1;
+}
+
+long suggest_next_shop_vnum(const World& world) {
+    World normalized = world;
+    recompute_zone_bottoms(normalized);
+    const WorldIndex index = build_world_index(normalized, "suggest");
+    for (const auto& zone : index.zones) {
+        for (long vnum = zone.bottom; vnum <= zone.top; ++vnum) {
+            bool taken = false;
+            for (const auto& shop : world.shops) {
+                if (shop.vnum == vnum) {
+                    taken = true;
+                    break;
+                }
+            }
+            if (!taken) {
+                return vnum;
+            }
+        }
+    }
+    long max_vnum = 0;
+    for (const auto& shop : world.shops) {
+        max_vnum = std::max(max_vnum, shop.vnum);
+    }
     return max_vnum > 0 ? max_vnum + 1 : 1;
 }
 
@@ -709,6 +762,36 @@ bool create_object(World& world, long vnum, const ObjEdit& edit) {
     }
     world.objects.emplace(vnum, make_default_object(vnum, edit));
     return true;
+}
+
+bool create_shop(World& world, const long vnum) {
+    if (vnum <= 0) {
+        return false;
+    }
+    for (const auto& shop : world.shops) {
+        if (shop.vnum == vnum) {
+            return false;
+        }
+    }
+
+    Shop shop;
+    shop.vnum = vnum;
+    shop.profit_buy = 1.2f;
+    shop.profit_sell = 0.8f;
+    shop.open1 = 8;
+    shop.close1 = 20;
+    world.shops.push_back(std::move(shop));
+    return true;
+}
+
+bool remove_shop(World& world, const long vnum) {
+    for (std::size_t i = 0; i < world.shops.size(); ++i) {
+        if (world.shops[i].vnum == vnum) {
+            world.shops.erase(world.shops.begin() + static_cast<std::ptrdiff_t>(i));
+            return true;
+        }
+    }
+    return false;
 }
 
 const Exit* find_room_exit(const Room& room, int direction) {

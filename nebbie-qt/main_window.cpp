@@ -561,14 +561,14 @@ void MainWindow::setupAreeDock() {
 void MainWindow::setupMenus() {
     auto* file_menu = menuBar()->addMenu(appTr("menu.file"));
 
-    auto* open_action = file_menu->addAction(appTr("menu.open_lib"));
-    open_action->setShortcut(QKeySequence::Open);
-    open_action->setToolTip(appTr("menu.open_lib_tip"));
-    connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
-
     auto* open_aree_action = file_menu->addAction(appTr("menu.open_aree_workspace"));
+    open_aree_action->setShortcut(QKeySequence::Open);
     open_aree_action->setToolTip(appTr("menu.open_aree_workspace_tip"));
     connect(open_aree_action, &QAction::triggered, this, &MainWindow::openAreeWorkspace);
+
+    auto* open_action = file_menu->addAction(appTr("menu.open_lib"));
+    open_action->setToolTip(appTr("menu.open_lib_tip"));
+    connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
 
     file_menu->addSeparator();
     auto* reload_action = file_menu->addAction(appTr("menu.reload_lib"));
@@ -982,8 +982,13 @@ void MainWindow::openLibPath(const QString& path) {
 }
 
 void MainWindow::openLib() {
+    if (!confirmSaveIfDirty()) {
+        return;
+    }
+
+    const QString initial = nebbie::qt::read_lib_path();
     const QString dir = QFileDialog::getExistingDirectory(
-        this, appTr("dialog.open_lib_title"), QString(),
+        this, appTr("dialog.open_lib_title"), initial.isEmpty() ? QDir::homePath() : initial,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (dir.isEmpty()) {
         return;
@@ -1010,37 +1015,91 @@ void MainWindow::reloadLib() {
 }
 
 void MainWindow::openStartupLib() {
+    if (tryRestoreAreeSessionOnStartup()) {
+        return;
+    }
+
     const QString saved = nebbie::qt::read_lib_path();
-    if (nebbie::qt::lib_path_exists(saved)) {
-        openLibPath(saved);
-        return;
-    }
-
     if (!saved.isEmpty()) {
-        promptForLibPath(QString("Il percorso salvato non è più valido:\n%1").arg(saved));
+        const std::filesystem::path path = nebbie::qt::path_from_qstring(saved);
+        const std::filesystem::path resolved = nebbie::resolve_lib_directory(path);
+        if (nebbie::aree_workspace_has_areas(resolved)) {
+            openAreeWorkspaceFromPath(nebbie::qt::qstring_from_path(resolved), app_config_.aree_last_area);
+            tryLoadLastAreeAreaWithoutArchive();
+            return;
+        }
+        const nebbie::AreeLibOpenGuard guard = nebbie::classify_aree_lib_open_guard(resolved);
+        if (guard.reason == nebbie::AreeLibOpenBlockReason::workspace_root) {
+            openAreeWorkspaceFromPath(nebbie::qt::qstring_from_path(resolved), app_config_.aree_last_area);
+            tryLoadLastAreeAreaWithoutArchive();
+            return;
+        }
+        if (guard.reason == nebbie::AreeLibOpenBlockReason::area_directory) {
+            openAreeWorkspaceFromPath(nebbie::qt::qstring_from_path(guard.suggested_workspace_root),
+                                      QString::fromStdString(resolved.filename().string()));
+            tryLoadLastAreeAreaWithoutArchive();
+            return;
+        }
+    }
+
+    promptStartupLibrary();
+}
+
+bool MainWindow::tryRestoreAreeSessionOnStartup() {
+    if (app_config_.aree_workspace_root.isEmpty()) {
+        return false;
+    }
+
+    const std::filesystem::path root = nebbie::qt::path_from_qstring(app_config_.aree_workspace_root);
+    if (!nebbie::aree_workspace_has_areas(root)) {
+        return false;
+    }
+
+    openAreeWorkspaceFromPath(app_config_.aree_workspace_root, app_config_.aree_last_area);
+    tryLoadLastAreeAreaWithoutArchive();
+    return true;
+}
+
+void MainWindow::tryLoadLastAreeAreaWithoutArchive() {
+    if (!aree_workspace_ || app_config_.aree_last_area.isEmpty()) {
         return;
     }
 
-    promptForLibPath(appTr("dialog.open_lib_startup", nebbie::qt::default_config_path()));
+    const std::string target = app_config_.aree_last_area.toStdString();
+    for (const nebbie::AreeAreaInfo& area : aree_areas_) {
+        if (area.folder_name == target) {
+            loadAreeArea(area, false, {});
+            return;
+        }
+    }
+}
+
+void MainWindow::promptStartupLibrary() {
+    QMessageBox box(this);
+    box.setIcon(QMessageBox::Information);
+    box.setWindowTitle(appTr("dialog.startup_title"));
+    box.setText(appTr("dialog.open_startup_aree_first", nebbie::qt::default_config_path()));
+
+    auto* aree_button = box.addButton(appTr("dialog.startup_open_aree"), QMessageBox::AcceptRole);
+    auto* monolith_button = box.addButton(appTr("dialog.startup_open_monolith"), QMessageBox::ActionRole);
+    box.addButton(QMessageBox::Cancel);
+    box.setDefaultButton(aree_button);
+
+    box.exec();
+    if (box.clickedButton() == aree_button) {
+        openAreeWorkspace();
+    } else if (box.clickedButton() == monolith_button) {
+        openLib();
+    } else {
+        setStatus(appTr("status.open_lib_cancelled"));
+    }
 }
 
 bool MainWindow::promptForLibPath(const QString& reason) {
     if (!reason.isEmpty()) {
         QMessageBox::information(this, "Libreria Nebbie", reason);
     }
-
-    const QString initial = nebbie::qt::read_lib_path();
-    const QString dir = QFileDialog::getExistingDirectory(
-        this,
-        appTr("dialog.open_lib_title"),
-        initial.isEmpty() ? QDir::homePath() : initial,
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    if (dir.isEmpty()) {
-        setStatus(appTr("status.open_lib_cancelled"));
-        return false;
-    }
-
-    openLibPath(dir);
+    openLib();
     return !lib_path_.empty();
 }
 

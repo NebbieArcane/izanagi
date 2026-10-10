@@ -42,6 +42,8 @@ private slots:
     void onPoseSelected();
     void onGuildSelected();
     void applyShop();
+    void addShop();
+    void removeShop();
     void applySpecial();
     void addSpecial();
     void removeSpecial();

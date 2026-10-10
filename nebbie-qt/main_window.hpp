@@ -130,6 +130,9 @@ private:
     void clearAreeMode();
     void refreshAreeAreaList();
     void openAreeWorkspaceFromPath(const QString& dir, const QString& select_area_folder = {});
+    bool tryRestoreAreeSessionOnStartup();
+    void tryLoadLastAreeAreaWithoutArchive();
+    void promptStartupLibrary();
     std::filesystem::path sessionStorageRoot() const;
     bool promptAreeSessionStart(const QString& area_name, bool& archive_first, QString& archive_label);
     void rememberLibPath(const std::filesystem::path& path);

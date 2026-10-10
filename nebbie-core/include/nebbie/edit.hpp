@@ -119,6 +119,7 @@ bool entity_matches(long vnum, const std::string& name, const std::string& query
 long suggest_next_room_vnum(const World& world);
 long suggest_next_mob_vnum(const World& world);
 long suggest_next_object_vnum(const World& world);
+long suggest_next_shop_vnum(const World& world);
 
 void apply_room_edit(Room& room, const RoomEdit& edit);
 void apply_mob_edit(Mobile& mob, const MobEdit& edit);
@@ -131,6 +132,8 @@ bool edit_object(World& world, long vnum, const ObjEdit& edit);
 bool create_room(World& world, long vnum, const RoomEdit& edit = {});
 bool create_mob(World& world, long vnum, const MobEdit& edit = {});
 bool create_object(World& world, long vnum, const ObjEdit& edit = {});
+bool create_shop(World& world, long vnum);
+bool remove_shop(World& world, long vnum);
 
 bool set_room_exit(World& world, long room_vnum, const ExitEdit& edit);
 bool remove_room_exit(World& world, long room_vnum, int direction);
