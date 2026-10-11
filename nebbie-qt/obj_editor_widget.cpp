@@ -4,9 +4,11 @@
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
 #include "nebbie/obj_catalog.hpp"
+#include "nebbie/obj_value_catalog.hpp"
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QSignalBlocker>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -88,27 +90,44 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* type_tab = new QWidget;
     auto* type_layout = new QVBoxLayout(type_tab);
-    type_layout->addWidget(makeLegend(
-        "Object values (value[0..3]) depend on type_flag; meaning varies by item type "
-        "(weapon, armor, potion, container, etc.).",
-        type_tab));
+    value_legend_ = makeLegend(
+        "I quattro valori (value[0..3]) dipendono dal tipo oggetto. Legenda allineata a "
+        "NebbieArcane/Server (create.obj / stat). Il prezzo negozio è nel tab Economy (cost).",
+        type_tab);
+    type_layout->addWidget(value_legend_);
     auto* type_form = new QFormLayout;
     type_flag_ = new QComboBox;
     fillCombo(type_flag_, nebbie::obj_type_choices());
-    value0_ = new QSpinBox;
-    value1_ = new QSpinBox;
-    value2_ = new QSpinBox;
-    value3_ = new QSpinBox;
-    for (QSpinBox* spin : {value0_, value1_, value2_, value3_}) {
+    type_form->addRow("Tipo oggetto:", type_flag_);
+
+    auto make_value_row = [&](int index, QSpinBox*& spin, QComboBox*& combo, QLabel*& hint, QLabel*& row_label) {
+        row_label = new QLabel(QString("value[%1]:").arg(index), type_tab);
+        auto* row = new QWidget(type_tab);
+        auto* row_layout = new QVBoxLayout(row);
+        row_layout->setContentsMargins(0, 0, 0, 0);
+        auto* editors = new QHBoxLayout;
+        spin = new QSpinBox(row);
         spin->setRange(-2000000000, 2000000000);
-    }
-    type_form->addRow("Type:", type_flag_);
-    type_form->addRow("Value 1:", value0_);
-    type_form->addRow("Value 2:", value1_);
-    type_form->addRow("Value 3:", value2_);
-    type_form->addRow("Value 4:", value3_);
+        combo = new QComboBox(row);
+        combo->setMinimumWidth(280);
+        combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        editors->addWidget(spin);
+        editors->addWidget(combo, 1);
+        row_layout->addLayout(editors);
+        hint = new QLabel(type_tab);
+        hint->setWordWrap(true);
+        hint->setStyleSheet("color: palette(mid);");
+        row_layout->addWidget(hint);
+        type_form->addRow(row_label, row);
+    };
+
+    make_value_row(0, value0_, value_combo0_, value_hint0_, value_label0_);
+    make_value_row(1, value1_, value_combo1_, value_hint1_, value_label1_);
+    make_value_row(2, value2_, value_combo2_, value_hint2_, value_label2_);
+    make_value_row(3, value3_, value_combo3_, value_hint3_, value_label3_);
+
     type_layout->addLayout(type_form);
-    tabs->addTab(type_tab, "Type / Values");
+    tabs->addTab(type_tab, "Tipo / Valori");
 
     auto* flags_tab = new QWidget;
     auto* flags_layout = new QVBoxLayout(flags_tab);
@@ -213,7 +232,26 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(affect_add, &QPushButton::clicked, this, &ObjEditorWidget::addAffect);
     connect(affect_remove, &QPushButton::clicked, this, &ObjEditorWidget::removeAffect);
 
+    connect(type_flag_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [this](int) { updateObjectValueFields(); });
+
+    const auto connect_value_slot = [this](int slot, QSpinBox* spin, QComboBox* combo) {
+        connect(spin, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, slot](int) {
+            syncValueComboFromSpin(slot);
+            updateObjectValueFields();
+        });
+        connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, slot](int) {
+            syncValueSpinFromCombo(slot);
+            updateObjectValueFields();
+        });
+    };
+    connect_value_slot(0, value0_, value_combo0_);
+    connect_value_slot(1, value1_, value_combo1_);
+    connect_value_slot(2, value2_, value_combo2_);
+    connect_value_slot(3, value3_, value_combo3_);
+
     extra_flags2_panel_->setVisible(false);
+    updateObjectValueFields();
 }
 
 nebbie::qt::MudFieldList ObjEditorWidget::mudFields() const {
@@ -249,10 +287,15 @@ void ObjEditorWidget::loadFromObject(const nebbie::GameObject& obj) {
     action_description_->setStorageText(QString::fromStdString(obj.action_description));
 
     setComboIntValue(type_flag_, obj.type_flag);
+    const QSignalBlocker b0(value0_);
+    const QSignalBlocker b1(value1_);
+    const QSignalBlocker b2(value2_);
+    const QSignalBlocker b3(value3_);
     value0_->setValue(obj.value[0]);
     value1_->setValue(obj.value[1]);
     value2_->setValue(obj.value[2]);
     value3_->setValue(obj.value[3]);
+    updateObjectValueFields();
 
     wear_flags_->setValue(obj.wear_flags);
     extra_flags_->setValue(obj.extra_flags);
@@ -404,4 +447,172 @@ void ObjEditorWidget::refreshAffectForm() {
     }
     setComboIntValue(affect_location_, item->data(Qt::UserRole).toInt());
     affect_modifier_->setValue(item->data(Qt::UserRole + 1).toInt());
+}
+
+void ObjEditorWidget::fillValueEnumCombo(const int slot_index, const nebbie::ObjValueEditorKind kind) {
+    QComboBox* combo = nullptr;
+    switch (slot_index) {
+    case 0:
+        combo = value_combo0_;
+        break;
+    case 1:
+        combo = value_combo1_;
+        break;
+    case 2:
+        combo = value_combo2_;
+        break;
+    case 3:
+        combo = value_combo3_;
+        break;
+    default:
+        return;
+    }
+
+    combo->clear();
+    combo->setEditable(false);
+    switch (kind) {
+    case nebbie::ObjValueEditorKind::yes_no:
+        combo->addItem("0 — no", 0);
+        combo->addItem("1 — sì", 1);
+        break;
+    case nebbie::ObjValueEditorKind::weapon_damage_type:
+        for (const auto& [value, label] : nebbie::obj_weapon_damage_type_choices()) {
+            combo->addItem(QString::fromStdString(label), value);
+        }
+        break;
+    case nebbie::ObjValueEditorKind::liquid_type:
+        for (const auto& [value, label] : nebbie::obj_liquid_type_choices()) {
+            combo->addItem(QString::fromStdString(label), value);
+        }
+        break;
+    case nebbie::ObjValueEditorKind::spell_number:
+        combo->setEditable(true);
+        for (const auto& [value, label] : nebbie::obj_spell_number_choices()) {
+            combo->addItem(QString::fromStdString(label), value);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void ObjEditorWidget::syncValueComboFromSpin(const int slot_index) {
+    QSpinBox* spin = nullptr;
+    QComboBox* combo = nullptr;
+    switch (slot_index) {
+    case 0:
+        spin = value0_;
+        combo = value_combo0_;
+        break;
+    case 1:
+        spin = value1_;
+        combo = value_combo1_;
+        break;
+    case 2:
+        spin = value2_;
+        combo = value_combo2_;
+        break;
+    case 3:
+        spin = value3_;
+        combo = value_combo3_;
+        break;
+    default:
+        return;
+    }
+    if (!combo->isVisible()) {
+        return;
+    }
+    const int value = spin->value();
+    const int index = combo->findData(value);
+    if (index >= 0) {
+        combo->setCurrentIndex(index);
+    }
+}
+
+void ObjEditorWidget::syncValueSpinFromCombo(const int slot_index) {
+    QSpinBox* spin = nullptr;
+    QComboBox* combo = nullptr;
+    switch (slot_index) {
+    case 0:
+        spin = value0_;
+        combo = value_combo0_;
+        break;
+    case 1:
+        spin = value1_;
+        combo = value_combo1_;
+        break;
+    case 2:
+        spin = value2_;
+        combo = value_combo2_;
+        break;
+    case 3:
+        spin = value3_;
+        combo = value_combo3_;
+        break;
+    default:
+        return;
+    }
+    if (!combo->isVisible()) {
+        return;
+    }
+    spin->setValue(combo->currentData().toInt());
+}
+
+void ObjEditorWidget::updateObjectValueFields() {
+    const int type_flag = comboIntValue(type_flag_);
+    const nebbie::ObjValueTypeSchema schema = nebbie::obj_value_schema_for_type(type_flag);
+    const bool type_changed = type_flag != last_value_type_flag_;
+    last_value_type_flag_ = type_flag;
+
+    value_legend_->setText(
+        QString::fromStdString(schema.legend_it + "\n\nTipo: " + nebbie::obj_type_name(type_flag) + " (#"
+                               + std::to_string(type_flag) + ")."));
+
+    struct SlotWidgets {
+        QLabel* label;
+        QSpinBox* spin;
+        QComboBox* combo;
+        QLabel* hint;
+    };
+    SlotWidgets value_ui[] = {
+        {value_label0_, value0_, value_combo0_, value_hint0_},
+        {value_label1_, value1_, value_combo1_, value_hint1_},
+        {value_label2_, value2_, value_combo2_, value_hint2_},
+        {value_label3_, value3_, value_combo3_, value_hint3_},
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        const nebbie::ObjValueSlotSchema& slot_schema = schema.value_slots[i];
+        SlotWidgets& ui = value_ui[i];
+        ui.label->setText(QString::fromStdString(slot_schema.label_it));
+        ui.spin->setToolTip(QString::fromStdString(slot_schema.tooltip_it));
+        ui.combo->setToolTip(QString::fromStdString(slot_schema.tooltip_it));
+
+        const bool used = slot_schema.editor != nebbie::ObjValueEditorKind::unused;
+        ui.spin->setEnabled(used);
+        if (used && slot_schema.max_value >= slot_schema.min_value) {
+            ui.spin->setRange(slot_schema.min_value, slot_schema.max_value);
+        }
+
+        const bool show_combo = used && slot_schema.editor != nebbie::ObjValueEditorKind::integer;
+        ui.combo->setVisible(show_combo);
+        if (type_changed && show_combo) {
+            fillValueEnumCombo(i, slot_schema.editor);
+        }
+
+        if (show_combo) {
+            const QSignalBlocker combo_block(ui.combo);
+            syncValueComboFromSpin(i);
+        }
+
+        const std::string hint = nebbie::obj_value_slot_display_hint(type_flag, i, ui.spin->value());
+        if (!hint.empty() && slot_schema.editor != nebbie::ObjValueEditorKind::integer
+            && slot_schema.editor != nebbie::ObjValueEditorKind::unused) {
+            ui.hint->setText(QString::fromUtf8("→ ") + QString::fromStdString(hint));
+        } else if (!used) {
+            ui.hint->setText(QString::fromUtf8("Non usato per questo tipo."));
+        } else {
+            ui.hint->clear();
+        }
+    }
 }

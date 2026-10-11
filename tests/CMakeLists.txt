@@ -63,6 +63,10 @@ add_executable(nebbie-preserve-source-blocks-tests test_preserve_source_blocks.c
 target_link_libraries(nebbie-preserve-source-blocks-tests PRIVATE nebbie-core)
 add_test(NAME preserve-source-blocks-tests COMMAND nebbie-preserve-source-blocks-tests)
 
+add_executable(nebbie-obj-value-catalog-tests test_obj_value_catalog.cpp)
+target_link_libraries(nebbie-obj-value-catalog-tests PRIVATE nebbie-core)
+add_test(NAME obj-value-catalog-tests COMMAND nebbie-obj-value-catalog-tests)
+
 add_executable(nebbie-mob-combat-tests test_mob_combat.cpp)
 target_link_libraries(nebbie-mob-combat-tests PRIVATE nebbie-core)
 add_test(NAME mob-combat-validation COMMAND nebbie-mob-combat-tests)
