@@ -618,10 +618,10 @@ Output atteso: riepilogo di zone, stanze, mob, oggetti senza errori fatali.
 
 ### Test GUI
 
-1. Avvia `nebbieedit` / `nebbieedit.exe` / `nebbieedit.app`.
-2. **File → Apri libreria…** e seleziona la cartella `lib`.
-3. Verifica che zone, stanze, mob e oggetti siano visibili nei pannelli.
-4. **Strumenti → Valida** (o equivalente) per un controllo di coerenza.
+1. Avvia `izanagi` / `nebbieedit` / `Izanagi.app`.
+2. **File → Apri workspace Aree…** e seleziona la root con le cartelle area (oppure, se serve, **File → Apri lib monolite…**).
+3. Apri un’area dalla lista e verifica che zone, stanze, mob e oggetti siano visibili.
+4. **Strumenti → Controlla l’area (o lib) aperta…** per un controllo di coerenza su ciò che è aperto.
 
 ### Script di simulazione (Linux, sviluppatori)
 
@@ -790,12 +790,19 @@ nebbiedit overlay export /percorso/lib
 
 | Menu | Funzione |
 |------|----------|
-| **File → Apri libreria…** | Seleziona / cambia la cartella `lib` |
-| **File → Salva** | Salva le modifiche sui file `myst.*` |
-| **Strumenti → Valida** | Controllo coerenza del mondo |
+| **File → Apri workspace Aree…** | Apre la root con le cartelle area; poi si apre un’area dalla lista |
+| **File → Apri lib monolite…** | Apre una lib unica (`myst.*` / `mudroot/lib`) — non le cartelle area |
+| **File → Salva** | Salva le modifiche sull’area (o lib) aperta, con copia di sicurezza |
+| **Strumenti → Controlla l’area (o lib) aperta…** | Controllo completo su ciò che è caricato (non su tutte le aree del workspace) |
 | **Strumenti → Esporta overlay…** | Genera file overlay per il server |
+| **Aiuto → Guida ai menu…** | Spiegazione di tutte le voci di menu e dei path di salvataggio |
 
-L'editor supporta autosalvataggio e cronologia versioni nella cartella `.nebbie/` dentro la libreria.
+Salvataggi di sicurezza (workspace Aree):
+
+- archivi area: `<workspace>/.izanagi/archives/<area>/<data-ora>/`
+- versioni / autosave: `<workspace>/.izanagi/sessions/<area>/.nebbie/versions/` e `…/workspace/`
+
+Con lib monolite: `<lib>/.nebbie/versions/` e `<lib>/.nebbie/workspace/`.
 
 ---
 

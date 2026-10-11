@@ -53,18 +53,20 @@ constexpr TranslationEntry kTranslations[] = {
     {"menu.paste_plain", "Incolla senza formattazione", "Paste plain text"},
     {"menu.select_all", "Seleziona &tutto", "Select &all"},
     {"menu.tools", "&Strumenti", "&Tools"},
-    {"menu.validate_world", "Valida &mondo intero...", "Validate &entire world..."},
+    {"menu.validate_world", "Controlla l'area (o lib) aperta...",
+     "Check open area (or lib)..."},
     {"menu.validate_world_tip",
-     "Validazione completa: stanze, reset, shop, guild, special, social.",
-     "Full validation: rooms, resets, shops, guilds, specials, socials."},
+     "Controlla errori e avvisi su ciò che hai aperto adesso: se stai lavorando "
+     "su un'area del workspace, solo quell'area; se hai aperto la lib monolite, "
+     "tutta la lib. Controlla stanze, mob, oggetti, zone/reset, shop e altro. "
+     "Non controlla tutte le aree del workspace in un colpo solo.",
+     "Checks errors and warnings in what you have open now: if you opened an area "
+     "from the workspace, only that area; if you opened the monolith lib, the whole "
+     "lib. Checks rooms, mobs, objects, zones/resets, shops, and more. "
+     "Does not check every area in the workspace at once."},
     {"menu.validate", "&Valida", "&Validate"},
+    {"menu.help_guide", "&Guida ai menu...", "&Menu guide..."},
     {"menu.export_overlays", "Esporta overlay...", "Export overlays..."},
-    {"menu.split_zones", "Dividi per zone...", "Split by zones..."},
-    {"menu.split_zones_tip",
-     "Esporta ogni zona in una sottodirectory con myst.zon/wld/mob/obj filtrati "
-     "e directory overlay rooms/objects/mobiles/zones.",
-     "Export each zone into a subdirectory with filtered myst.zon/wld/mob/obj "
-     "and overlay rooms/objects/mobiles/zones directories."},
     {"menu.align_exits", "Normalizza description uscite (mondo)...",
      "Normalize exit descriptions (world)..."},
     {"menu.align_exits_tip",

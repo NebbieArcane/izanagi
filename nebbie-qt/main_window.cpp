@@ -5,6 +5,7 @@
 #include "application_log.hpp"
 #include "coordinator_client.hpp"
 #include "edit_menu.hpp"
+#include "help_menu_guide.hpp"
 #include "mob_editor_widget.hpp"
 #include "mud_color_dialogs.hpp"
 #include "mud_color_common.hpp"
@@ -602,9 +603,6 @@ void MainWindow::setupMenus() {
     tools_menu->addSeparator();
     auto* export_overlays_action = tools_menu->addAction(appTr("menu.export_overlays"));
     connect(export_overlays_action, &QAction::triggered, this, &MainWindow::exportOverlays);
-    auto* export_zone_packs_action = tools_menu->addAction(appTr("menu.split_zones"));
-    export_zone_packs_action->setToolTip(appTr("menu.split_zones_tip"));
-    connect(export_zone_packs_action, &QAction::triggered, this, &MainWindow::exportZonePacks);
     auto* align_all_exits_action = tools_menu->addAction(appTr("menu.align_exits"));
     align_all_exits_action->setToolTip(appTr("menu.align_exits_tip"));
     connect(align_all_exits_action, &QAction::triggered, this, &MainWindow::alignAllInboundExitDescriptions);
@@ -665,6 +663,9 @@ void MainWindow::setupMenus() {
     auto_updates_action->setChecked(app_config_.check_updates);
     connect(auto_updates_action, &QAction::toggled, this, &MainWindow::toggleCheckUpdatesOnStartup);
     help_menu->addSeparator();
+    help_menu->addAction(appTr("menu.help_guide"), this, [this]() {
+        nebbie::qt::showMenuGuideDialog(this);
+    });
     help_menu->addAction(appTr("menu.about_izanagi"), this, [this]() {
         QMessageBox::about(this,
                            nebbie::qt::izanagiDisplayName(),
@@ -1981,46 +1982,6 @@ void MainWindow::loadWorldIndexFromFile() {
     setStatus(QString("World index loaded from file: %1 zones.").arg(world_index_->zones.size()));
 }
 
-void MainWindow::exportZonePacks() {
-    if (lib_path_.empty()) {
-        QMessageBox::information(this, "Dividi per zone", "Apri una libreria prima di esportare i pacchetti zona.");
-        return;
-    }
-
-    const QString dir = QFileDialog::getExistingDirectory(
-        this,
-        "Seleziona cartella di output per i pacchetti zona",
-        nebbie::qt::qstring_from_path(lib_path_),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    if (dir.isEmpty()) {
-        return;
-    }
-
-    try {
-        const auto report = nebbie::export_all_zone_packs(world_, nebbie::qt::path_from_qstring(dir));
-        QString message = QString("Pacchetti zona scritti in %1\n\n"
-                                  "Zone: %2\nStanze: %3\nOggetti: %4\nMob: %5\nReset zone: %6")
-                              .arg(dir)
-                              .arg(report.zones_written)
-                              .arg(report.rooms)
-                              .arg(report.objects)
-                              .arg(report.mobiles)
-                              .arg(report.zone_resets);
-        if (!report.warnings.empty()) {
-            message += "\n\nAvvisi:";
-            for (const auto& warning : report.warnings) {
-                message += "\n• " + QString::fromStdString(warning);
-            }
-        }
-        QMessageBox::information(this, "Dividi per zone", message);
-        setStatus(QString("Pacchetti zona esportati: %1 zone in %2.")
-                      .arg(report.zones_written)
-                      .arg(dir));
-    } catch (const std::exception& ex) {
-        QMessageBox::critical(this, "Dividi per zone", QString::fromUtf8(ex.what()));
-    }
-}
-
 void MainWindow::exportOverlays() {
     if (lib_path_.empty()) {
         QMessageBox::information(this, "Export overlay", "Apri una libreria prima di esportare gli overlay.");
@@ -2884,20 +2845,24 @@ void MainWindow::onValidationIssueActivated(QListWidgetItem* item) {
 
 void MainWindow::validateLib() {
     if (lib_path_.empty()) {
-        QMessageBox::information(this, "Valida", "Apri prima una libreria.");
+        QMessageBox::information(
+            this, appTr("menu.validate_world"),
+            QStringLiteral(
+                "Apri prima un'area dal workspace Aree (File → Apri workspace Aree) "
+                "oppure una lib monolite (File → Apri lib monolite)."));
         return;
     }
     nebbie::ValidationReport report = nebbie::validate_world(world_, validationOptions());
     nebbie::append_monolith_validation(report, lib_path_);
-    showValidation(report, QStringLiteral("Report validazione mondo intero (Nebbie Editor)"));
+    showValidation(report, QStringLiteral("Report controllo area/lib aperta (Izanagi)"));
     if (report.ok()) {
         if (report.warning_count() > 0) {
-            setStatus(QString("Validazione mondo OK con %1 avvisi.").arg(report.warning_count()));
+            setStatus(QString("Controllo area/lib OK con %1 avvisi.").arg(report.warning_count()));
         } else {
-            setStatus("Validazione mondo OK.");
+            setStatus("Controllo area/lib OK.");
         }
     } else {
-        setStatus(QString("Validazione mondo: %1 errori.").arg(report.error_count()));
+        setStatus(QString("Controllo area/lib: %1 errori.").arg(report.error_count()));
     }
 }
 
@@ -2943,7 +2908,8 @@ void MainWindow::saveLib() {
                 this, "Errori di validazione",
                 QString("Ci sono %1 errori sulle %2. Salvare comunque?\n\n"
                         "Dettaglio nel dialogo precedente e in:\n%3\n\n"
-                        "Per validare tutto il mondo usa Strumenti → Valida mondo intero...")
+                        "Per un controllo completo su ciò che hai aperto usa "
+                        "Strumenti → Controlla l'area (o lib) aperta...")
                     .arg(report.error_count())
                     .arg(scope)
                     .arg(nebbie::qt::editor_validation_log_path()),

@@ -14,6 +14,12 @@ cmake-build-*/
 *.user
 vendor/nebbietest/
 vendor/production-lib/core
+vendor/production-lib/objects/
+vendor/production-lib/rooms/
+vendor/production-lib/world/
+vendor/production-lib/mobiles/
+vendor/production-lib/zones/
+vendor/production-lib/.nebbie/
 scripts/production-world.env
 tests/fixtures/rooms/
 tests/fixtures/objects/
