@@ -50,7 +50,7 @@ QFont zone_label_font() {
     return font;
 }
 
-QString truncate_zone_name(const std::string& name, int max_chars = 16) {
+QString truncate_zone_name(const std::string& name, int max_chars = 22) {
     QString qname = QString::fromStdString(name).trimmed();
     if (qname.size() <= max_chars) {
         return qname;
@@ -58,12 +58,12 @@ QString truncate_zone_name(const std::string& name, int max_chars = 16) {
     return qname.left(max_chars - 1) + QChar(0x2026);
 }
 
+/** Mud show zones essentials: area number + name + room range (no lifespan/age/reset). */
 QStringList format_zone_lines(const nebbie::WorldZoneNode& zone) {
     return {
-        QString("#%1  %2").arg(zone.zone_num).arg(truncate_zone_name(zone.name)),
-        QString("[%1\u2013%2]").arg(zone.bottom).arg(zone.top),
-        QString("Usati: %1").arg(zone.used_count),
-        QString("Liberi: %1").arg(zone.free_count),
+        QString::number(zone.zone_num),
+        truncate_zone_name(zone.name),
+        QString("%1\u2013%2").arg(zone.bottom).arg(zone.top),
     };
 }
 

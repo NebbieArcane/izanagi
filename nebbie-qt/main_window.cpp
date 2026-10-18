@@ -31,6 +31,7 @@
 
 #include <QAbstractItemView>
 #include <QAction>
+#include <QSignalBlocker>
 #include <QActionGroup>
 #include <QApplication>
 #include <QClipboard>
@@ -40,6 +41,8 @@
 #include <QDialogButtonBox>
 #include <QDockWidget>
 #include <QHeaderView>
+#include <QMetaType>
+#include <QVariant>
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QTabWidget>
@@ -157,10 +160,51 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
 std::optional<nebbie::AreeAreaInfo> selectedAreeArea(const QTableWidget* table,
                                                      const std::vector<nebbie::AreeAreaInfo>& areas) {
     const int row = table->currentRow();
-    if (row < 0 || row >= static_cast<int>(areas.size())) {
+    if (row < 0 || !table) {
         return std::nullopt;
     }
-    return areas[static_cast<std::size_t>(row)];
+    const QTableWidgetItem* folder_item = table->item(row, 0);
+    if (!folder_item) {
+        return std::nullopt;
+    }
+    const std::string folder = folder_item->data(Qt::UserRole).toString().toStdString();
+    const std::string folder_text = folder.empty() ? folder_item->text().toStdString() : folder;
+    for (const nebbie::AreeAreaInfo& area : areas) {
+        if (area.folder_name == folder_text) {
+            return area;
+        }
+    }
+    return std::nullopt;
+}
+
+class SortRoleTableItem : public QTableWidgetItem {
+public:
+    using QTableWidgetItem::QTableWidgetItem;
+
+    bool operator<(const QTableWidgetItem& other) const override {
+        const QVariant left = data(Qt::UserRole + 1);
+        const QVariant right = other.data(Qt::UserRole + 1);
+        if (left.isValid() && right.isValid()) {
+            if (left.userType() == QMetaType::LongLong || left.userType() == QMetaType::Int) {
+                return left.toLongLong() < right.toLongLong();
+            }
+            return left.toString().localeAwareCompare(right.toString()) < 0;
+        }
+        return QTableWidgetItem::operator<(other);
+    }
+};
+
+SortRoleTableItem* makeSortableTextItem(const QString& text) {
+    auto* item = new SortRoleTableItem(text);
+    item->setData(Qt::UserRole + 1, text.toLower());
+    return item;
+}
+
+SortRoleTableItem* makeSortableNumericItem(const qlonglong value, const QString& display) {
+    auto* item = new SortRoleTableItem(display);
+    item->setData(Qt::UserRole + 1, value);
+    item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    return item;
 }
 
 } // namespace
@@ -282,9 +326,24 @@ void MainWindow::setupUi() {
 
     auto* zone_left = new QWidget;
     auto* zone_left_layout = new QVBoxLayout(zone_left);
-    zone_left_layout->addWidget(new QLabel("Zone"));
-    zone_list_ = new QListWidget;
-    zone_list_->setMinimumWidth(160);
+    auto* zone_top = new QHBoxLayout;
+    zone_top->addWidget(new QLabel("Zone"), 1);
+    zone_create_button_ = new QPushButton;
+    zone_top->addWidget(zone_create_button_);
+    zone_left_layout->addLayout(zone_top);
+    // Columns mirror mud "show zones": Zone (num) + name + rooms; skip lifespan/age/reset.
+    zone_list_ = new QTableWidget(0, 3);
+    zone_list_->setMinimumWidth(280);
+    zone_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    zone_list_->setSelectionMode(QAbstractItemView::SingleSelection);
+    zone_list_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    zone_list_->setSortingEnabled(true);
+    zone_list_->verticalHeader()->setVisible(false);
+    zone_list_->horizontalHeader()->setSectionsClickable(true);
+    zone_list_->horizontalHeader()->setSortIndicatorShown(true);
+    zone_list_->horizontalHeader()->setStretchLastSection(true);
+    zone_list_->setColumnWidth(0, 64);
+    zone_list_->setColumnWidth(1, 140);
     zone_left_layout->addWidget(zone_list_);
     zone_splitter->addWidget(zone_left);
     zone_splitter->addWidget(zone_panel);
@@ -294,16 +353,41 @@ void MainWindow::setupUi() {
     zone_tab_ = zone_page;
     tabs_->addTab(zone_page, QString());
 
-    world_data_editor_ = new WorldDataEditorWidget;
-    world_data_tab_ = world_data_editor_;
-    tabs_->addTab(world_data_tab_, QString());
-    connect(world_data_editor_, &WorldDataEditorWidget::modified, this, [this]() {
+    shops_editor_ = new WorldDataEditorWidget(WorldDataScope::Shops);
+    shops_editor_->setLibContext(&context_);
+    shops_tab_ = shops_editor_;
+    tabs_->addTab(shops_tab_, QString());
+    specials_editor_ = new WorldDataEditorWidget(WorldDataScope::Specials);
+    specials_editor_->setLibContext(&context_);
+    specials_tab_ = specials_editor_;
+    tabs_->addTab(specials_tab_, QString());
+    global_tables_editor_ = new WorldDataEditorWidget(WorldDataScope::GlobalTables);
+    global_tables_editor_->setLibContext(&context_);
+    global_tables_tab_ = global_tables_editor_;
+    tabs_->addTab(global_tables_tab_, QString());
+    connect(shops_editor_, &WorldDataEditorWidget::modified, this, [this]() {
+        if (!world_.shops.empty()) {
+            context_.has_shp = true;
+            if (context_.shp_path.empty()) {
+                context_.shp_path = nebbie::default_lib_filename_for_extension(
+                    context_, ".shp", nebbie::SHOP_FILE);
+            }
+        }
+        shops_editor_->setLibContext(&context_);
+        markDirty();
+    });
+    connect(specials_editor_, &WorldDataEditorWidget::modified, this, [this]() {
         if (!world_.special_procs.empty()) {
             context_.has_spe = true;
             if (context_.spe_path.empty()) {
-                context_.spe_path = nebbie::SPECIAL_FILE;
+                context_.spe_path = nebbie::default_lib_filename_for_extension(
+                    context_, ".spe", nebbie::SPECIAL_FILE);
             }
         }
+        specials_editor_->setLibContext(&context_);
+        markDirty();
+    });
+    connect(global_tables_editor_, &WorldDataEditorWidget::modified, this, [this]() {
         markDirty();
     });
 
@@ -415,10 +499,11 @@ void MainWindow::setupUi() {
     connect(room_page.create_button, &QPushButton::clicked, this, &MainWindow::createRoom);
     connect(mob_page.create_button, &QPushButton::clicked, this, &MainWindow::createMob);
     connect(obj_page.create_button, &QPushButton::clicked, this, &MainWindow::createObject);
+    connect(zone_create_button_, &QPushButton::clicked, this, &MainWindow::createZone);
     connect(room_search_, &QLineEdit::textChanged, this, &MainWindow::onRoomSearchChanged);
     connect(mob_search_, &QLineEdit::textChanged, this, &MainWindow::onMobSearchChanged);
     connect(obj_search_, &QLineEdit::textChanged, this, &MainWindow::onObjSearchChanged);
-    connect(zone_list_, &QListWidget::currentRowChanged, this, [this](int) { onZoneSelected(); });
+    connect(zone_list_, &QTableWidget::itemSelectionChanged, this, [this]() { onZoneSelected(); });
     connect(zone_apply, &QPushButton::clicked, this, &MainWindow::applyZoneChanges);
     connect(zone_editor_, &ZoneEditorWidget::zoneModified, this, [this]() {
         markDirty();
@@ -534,11 +619,15 @@ void MainWindow::setupAreeDock() {
     aree_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
     aree_table_->setSelectionMode(QAbstractItemView::SingleSelection);
     aree_table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    aree_table_->setSortingEnabled(true);
     aree_table_->verticalHeader()->setVisible(false);
+    aree_table_->horizontalHeader()->setSectionsClickable(true);
+    aree_table_->horizontalHeader()->setSortIndicatorShown(true);
     aree_table_->horizontalHeader()->setStretchLastSection(true);
     aree_table_->setColumnWidth(0, 100);
     aree_table_->setColumnWidth(1, 52);
-    aree_table_->setColumnWidth(2, 140);
+    aree_table_->setColumnWidth(2, 120);
+    aree_table_->setColumnWidth(3, 110);
     layout->addWidget(aree_table_, 1);
 
     auto* buttons = new QHBoxLayout;
@@ -685,6 +774,7 @@ void MainWindow::retranslateUi() {
     room_create_button_->setText(appTr("ui.new_room"));
     mob_create_button_->setText(appTr("ui.new_mob"));
     obj_create_button_->setText(appTr("ui.new_object"));
+    zone_create_button_->setText(appTr("ui.new_zone"));
     room_apply_button_->setText(appTr("ui.apply_changes_en"));
     room_sync_exits_button_->setText(appTr("ui.sync_exit_desc"));
     room_sync_exits_button_->setToolTip(appTr("ui.sync_exit_desc_tip"));
@@ -698,9 +788,15 @@ void MainWindow::retranslateUi() {
     tabs_->setTabText(1, appTr("tab.mob"));
     tabs_->setTabText(2, appTr("tab.objects"));
     tabs_->setTabText(3, appTr("tab.zone"));
-    tabs_->setTabText(4, appTr("tab.world_data"));
-    tabs_->setTabText(5, appTr("tab.map"));
-    tabs_->setTabText(6, appTr("tab.validation"));
+    tabs_->setTabText(4, appTr("tab.shops"));
+    tabs_->setTabText(5, appTr("tab.specials"));
+    tabs_->setTabText(6, appTr("tab.global_tables"));
+    tabs_->setTabText(7, appTr("tab.map"));
+    tabs_->setTabText(8, appTr("tab.validation"));
+    if (zone_list_) {
+        zone_list_->setHorizontalHeaderLabels(
+            {appTr("zone.col_num"), appTr("zone.col_name"), appTr("zone.col_rooms")});
+    }
     if (map_tabs_) {
         map_tabs_->setTabText(0, appTr("tab.map_zone"));
         map_tabs_->setTabText(1, appTr("tab.map_world"));
@@ -708,7 +804,7 @@ void MainWindow::retranslateUi() {
     if (aree_dock_) {
         aree_dock_->setWindowTitle(appTr("aree.dock_title"));
         const QStringList headers = {appTr("aree.col_folder"), appTr("aree.col_zone"), appTr("aree.col_name"),
-                                     appTr("aree.col_top")};
+                                     appTr("aree.col_range")};
         aree_table_->setHorizontalHeaderLabels(headers);
         aree_open_button_->setText(appTr("aree.open_area"));
         aree_restore_button_->setText(appTr("aree.restore_archive"));
@@ -766,8 +862,12 @@ void MainWindow::applyTextEditorSettings() {
     obj_editor_->setShowColorCodes(app_config_.show_color_codes);
     zone_editor_->setMaxLineLength(app_config_.max_line_length);
     zone_editor_->setShowColorCodes(app_config_.show_color_codes);
-    world_data_editor_->setMaxLineLength(app_config_.max_line_length);
-    world_data_editor_->setShowColorCodes(app_config_.show_color_codes);
+    shops_editor_->setMaxLineLength(app_config_.max_line_length);
+    shops_editor_->setShowColorCodes(app_config_.show_color_codes);
+    specials_editor_->setMaxLineLength(app_config_.max_line_length);
+    specials_editor_->setShowColorCodes(app_config_.show_color_codes);
+    global_tables_editor_->setMaxLineLength(app_config_.max_line_length);
+    global_tables_editor_->setShowColorCodes(app_config_.show_color_codes);
 }
 
 void MainWindow::toggleExtendedColorView(bool enabled) {
@@ -820,7 +920,13 @@ nebbie::qt::MudColorTextEdit* MainWindow::activeMudTextField() const {
     if (auto* field = pick(zone_editor_->focusedMudField())) {
         return field;
     }
-    if (auto* field = pick(world_data_editor_->focusedMudField())) {
+    if (auto* field = pick(shops_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(specials_editor_->focusedMudField())) {
+        return field;
+    }
+    if (auto* field = pick(global_tables_editor_->focusedMudField())) {
         return field;
     }
     return nullptr;
@@ -1128,7 +1234,7 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     refreshZoneMap();
     refreshWorldZoneMap();
     zone_editor_->setWorld(&world_);
-    world_data_editor_->setWorld(&world_);
+    refreshWorldDataEditors();
 
     const QString label = QString("Libreria: %1 — %2 zone, %3 stanze, %4 mob, %5 oggetti, %6 negozi")
                               .arg(nebbie::qt::qstring_from_path(path))
@@ -1167,15 +1273,22 @@ void MainWindow::refreshAreeAreaList() {
     }
 
     aree_areas_ = nebbie::scan_aree_areas(*aree_workspace_);
+    const bool was_sorting = aree_table_->isSortingEnabled();
+    aree_table_->setSortingEnabled(false);
     aree_table_->setRowCount(static_cast<int>(aree_areas_.size()));
     for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
         const nebbie::AreeAreaInfo& area = aree_areas_[static_cast<std::size_t>(row)];
-        aree_table_->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(area.folder_name)));
-        aree_table_->setItem(row, 1, new QTableWidgetItem(QString::number(area.zone_num)));
-        aree_table_->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(area.zone_name)));
-        aree_table_->setItem(row, 3, new QTableWidgetItem(QString::number(area.top_vnum)));
+        auto* folder_item = makeSortableTextItem(QString::fromStdString(area.folder_name));
+        folder_item->setData(Qt::UserRole, QString::fromStdString(area.folder_name));
+        aree_table_->setItem(row, 0, folder_item);
+        aree_table_->setItem(row, 1, makeSortableNumericItem(area.zone_num, QString::number(area.zone_num)));
+        aree_table_->setItem(row, 2, makeSortableTextItem(QString::fromStdString(area.zone_name)));
+        const QString range_text =
+            QStringLiteral("%1-%2").arg(area.bottom_vnum).arg(area.top_vnum);
+        aree_table_->setItem(row, 3, makeSortableNumericItem(area.bottom_vnum, range_text));
     }
     aree_table_->resizeColumnsToContents();
+    aree_table_->setSortingEnabled(was_sorting);
 
     lib_label_->setText(appTr("aree.status_workspace",
                               nebbie::qt::qstring_from_path(aree_workspace_->root),
@@ -1295,6 +1408,12 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
     world_ = std::move(loaded_world);
     context_ = std::move(loaded_context);
     context_.write_eof_markers_on_save = false;
+    // Preserve workspace-derived bottoms so suggest/create use the area block, not 0..top.
+    for (nebbie::Zone& zone : world_.zones) {
+        if (zone.num == area.zone_num) {
+            zone.bottom = area.bottom_vnum;
+        }
+    }
     lib_path_ = area.path;
     session_storage_path_ = nebbie::aree_session_storage_root(*aree_workspace_, area.folder_name);
     aree_area_folder_ = area.folder_name;
@@ -1316,7 +1435,7 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
     refreshZoneMap();
     refreshWorldZoneMap();
     zone_editor_->setWorld(&world_);
-    world_data_editor_->setWorld(&world_);
+    refreshWorldDataEditors();
 
     const QString label = appTr("aree.status_loaded", nebbie::qt::qstring_from_path(area.path),
                                 QString::number(world_.zones.size()), QString::number(world_.rooms.size()));
@@ -1454,23 +1573,39 @@ void MainWindow::refreshObjectList() {
 }
 
 void MainWindow::refreshZoneList() {
-    zone_list_->clear();
-    for (const auto& zone : world_.zones) {
-        const QString label = QString("#%1 %2 [%3-%4]")
-                                  .arg(zone.num)
-                                  .arg(QString::fromStdString(zone.name))
-                                  .arg(zone.bottom)
-                                  .arg(zone.top);
-        addListItem(zone_list_, zone.num, label);
+    const int previous_selected = currentZoneNum();
+    const bool was_sorting = zone_list_->isSortingEnabled();
+    const QSignalBlocker blocker(zone_list_);
+    zone_list_->setSortingEnabled(false);
+    zone_list_->setRowCount(static_cast<int>(world_.zones.size()));
+    for (int row = 0; row < static_cast<int>(world_.zones.size()); ++row) {
+        const auto& zone = world_.zones[static_cast<std::size_t>(row)];
+        auto* num_item = makeSortableNumericItem(zone.num, QString::number(zone.num));
+        num_item->setData(Qt::UserRole, static_cast<qlonglong>(zone.num));
+        zone_list_->setItem(row, 0, num_item);
+        zone_list_->setItem(row, 1, makeSortableTextItem(QString::fromStdString(zone.name)));
+        const QString rooms = QStringLiteral("%1-%2").arg(zone.bottom).arg(zone.top);
+        zone_list_->setItem(row, 2, makeSortableNumericItem(zone.bottom, rooms));
     }
-    if (zone_list_->count() > 0 && zone_list_->currentRow() < 0) {
-        zone_list_->setCurrentRow(0);
+    zone_list_->setSortingEnabled(was_sorting);
+    if (zone_list_->rowCount() > 0) {
+        int restore_row = -1;
+        for (int row = 0; row < zone_list_->rowCount(); ++row) {
+            const auto* item = zone_list_->item(row, 0);
+            if (item && item->data(Qt::UserRole).toLongLong() == previous_selected) {
+                restore_row = row;
+                break;
+            }
+        }
+        zone_list_->selectRow(restore_row >= 0 ? restore_row : 0);
     }
+    // Signals were blocked during rebuild; sync the editor for the restored row.
+    onZoneSelected();
 
     const int previous_zone = map_zone_->currentData().toInt();
     map_zone_->clear();
     for (const auto& zone : world_.zones) {
-        map_zone_->addItem(QString("#%1 %2").arg(zone.num).arg(QString::fromStdString(zone.name)), zone.num);
+        map_zone_->addItem(QString("%1 - %2").arg(zone.num).arg(QString::fromStdString(zone.name)), zone.num);
     }
     if (map_zone_->count() > 0) {
         int index = map_zone_->findData(previous_zone);
@@ -1649,15 +1784,16 @@ void MainWindow::updateWorldZoneDetails(int zone_num) {
                         .arg(node.used_count);
     }
 
-    const QString details = QString("Zona #%1 %2\nRange vnum: %3-%4\n\nStanze usate (%5):\n%6\n\nVnum liberi (%7):\n%8")
-                                .arg(node.zone_num)
-                                .arg(QString::fromStdString(node.name))
-                                .arg(node.bottom)
-                                .arg(node.top)
-                                .arg(node.used_count)
-                                .arg(used_text)
-                                .arg(node.free_count)
-                                .arg(QString::fromStdString(nebbie::format_vnum_ranges(node.free_ranges, 20)));
+    const QString details =
+        QString("N. area: %1\nNome: %2\nStanze: %3-%4\n\nStanze usate (%5):\n%6\n\nVnum liberi (%7):\n%8")
+            .arg(node.zone_num)
+            .arg(QString::fromStdString(node.name))
+            .arg(node.bottom)
+            .arg(node.top)
+            .arg(node.used_count)
+            .arg(used_text)
+            .arg(node.free_count)
+            .arg(QString::fromStdString(nebbie::format_vnum_ranges(node.free_ranges, 20)));
     world_map_details_->setPlainText(details);
     if (world_map_view_) {
         world_map_view_->setHighlightedZone(zone_num);
@@ -1738,14 +1874,19 @@ void MainWindow::applyZoneChanges() {
     nebbie::assign_zone_fields(*zone, updated);
     nebbie::recompute_zone_bottoms(world_);
 
-    for (int i = 0; i < zone_list_->count(); ++i) {
-        if (zone_list_->item(i)->data(Qt::UserRole).toLongLong() == zone_num) {
-            zone_list_->item(i)->setText(
-                QString("#%1 %2 [%3-%4]")
-                    .arg(zone->num)
-                    .arg(QString::fromStdString(zone->name))
-                    .arg(zone->bottom)
-                    .arg(zone->top));
+    for (int row = 0; row < zone_list_->rowCount(); ++row) {
+        const auto* item = zone_list_->item(row, 0);
+        if (item && item->data(Qt::UserRole).toLongLong() == zone_num) {
+            zone_list_->item(row, 0)->setText(QString::number(zone->num));
+            zone_list_->item(row, 0)->setData(Qt::UserRole + 1, static_cast<qlonglong>(zone->num));
+            if (auto* name_item = zone_list_->item(row, 1)) {
+                name_item->setText(QString::fromStdString(zone->name));
+                name_item->setData(Qt::UserRole + 1, QString::fromStdString(zone->name).toLower());
+            }
+            if (auto* rooms_item = zone_list_->item(row, 2)) {
+                rooms_item->setText(QStringLiteral("%1-%2").arg(zone->bottom).arg(zone->top));
+                rooms_item->setData(Qt::UserRole + 1, static_cast<qlonglong>(zone->bottom));
+            }
             break;
         }
     }
@@ -1756,7 +1897,11 @@ void MainWindow::applyZoneChanges() {
 }
 
 int MainWindow::currentZoneNum() const {
-    const auto* item = zone_list_->currentItem();
+    const int row = zone_list_->currentRow();
+    if (row < 0) {
+        return 0;
+    }
+    const auto* item = zone_list_->item(row, 0);
     if (!item) {
         return 0;
     }
@@ -1764,9 +1909,10 @@ int MainWindow::currentZoneNum() const {
 }
 
 void MainWindow::selectZoneByNum(const int zone_num) {
-    for (int i = 0; i < zone_list_->count(); ++i) {
-        if (zone_list_->item(i)->data(Qt::UserRole).toLongLong() == zone_num) {
-            zone_list_->setCurrentRow(i);
+    for (int row = 0; row < zone_list_->rowCount(); ++row) {
+        const auto* item = zone_list_->item(row, 0);
+        if (item && item->data(Qt::UserRole).toLongLong() == zone_num) {
+            zone_list_->selectRow(row);
             tabs_->setCurrentWidget(zone_tab_);
             return;
         }
@@ -2668,7 +2814,10 @@ void MainWindow::createRoom() {
 
     bool ok = false;
     const int suggested = std::max(1, static_cast<int>(suggestRoomVnum()));
-    const int vnum = QInputDialog::getInt(this, "Nuova stanza", "Vnum stanza:", suggested, 1, 999999, 1, &ok);
+    const int vnum = QInputDialog::getInt(
+        this, "Nuova stanza",
+        QString("Primo vnum stanza disponibile (modificabile):\nSuggerito: %1").arg(suggested), suggested, 1,
+        999999, 1, &ok);
     if (!ok) {
         return;
     }
@@ -2688,6 +2837,46 @@ void MainWindow::createRoom() {
     setStatus(QString("Creata stanza #%1.").arg(vnum));
 }
 
+void MainWindow::refreshWorldDataEditors() {
+    shops_editor_->setLibContext(&context_);
+    specials_editor_->setLibContext(&context_);
+    global_tables_editor_->setLibContext(&context_);
+    shops_editor_->setWorld(&world_);
+    specials_editor_->setWorld(&world_);
+    global_tables_editor_->setWorld(&world_);
+}
+
+void MainWindow::createZone() {
+    if (lib_path_.empty()) {
+        QMessageBox::information(this, "Zone", "Apri prima una libreria.");
+        return;
+    }
+
+    bool ok = false;
+    const int suggested = nebbie::suggest_next_zone_num(world_);
+    const int zone_num =
+        QInputDialog::getInt(this, "Nuova zona", "Numero zona (maggiore delle zone esistenti):", suggested,
+                             suggested, 999999, 1, &ok);
+    if (!ok) {
+        return;
+    }
+
+    if (!nebbie::create_zone(world_, zone_num)) {
+        QMessageBox::warning(this, "Zone",
+                             QString("Impossibile creare la zona #%1 (numero duplicato o non maggiore delle zone esistenti?).")
+                                 .arg(zone_num));
+        return;
+    }
+
+    refreshZoneList();
+    refreshZoneMap();
+    refreshWorldZoneMap();
+    selectZoneByNum(zone_num);
+    markDirty();
+    dirty_zone_nums_.insert(zone_num);
+    setStatus(QString("Creata zona #%1.").arg(zone_num));
+}
+
 void MainWindow::createMob() {
     if (lib_path_.empty()) {
         QMessageBox::information(this, "Mob", "Apri prima una libreria.");
@@ -2696,7 +2885,10 @@ void MainWindow::createMob() {
 
     bool ok = false;
     const int suggested = static_cast<int>(suggestMobVnum());
-    const int vnum = QInputDialog::getInt(this, "Nuovo mob", "Vnum mobile:", suggested, 1, 99999, 1, &ok);
+    const int vnum = QInputDialog::getInt(
+        this, "Nuovo mob",
+        QString("Primo vnum mob disponibile (modificabile):\nSuggerito: %1").arg(suggested), suggested, 1, 99999,
+        1, &ok);
     if (!ok) {
         return;
     }
@@ -2726,7 +2918,10 @@ void MainWindow::createObject() {
 
     bool ok = false;
     const int suggested = static_cast<int>(suggestObjectVnum());
-    const int vnum = QInputDialog::getInt(this, "Nuovo oggetto", "Vnum oggetto:", suggested, 1, 99999, 1, &ok);
+    const int vnum = QInputDialog::getInt(
+        this, "Nuovo oggetto",
+        QString("Primo vnum oggetto disponibile (modificabile):\nSuggerito: %1").arg(suggested), suggested, 1,
+        99999, 1, &ok);
     if (!ok) {
         return;
     }
@@ -2820,11 +3015,11 @@ void MainWindow::navigateToIssue(const nebbie::ValidationIssue& issue) {
         }
         break;
     case nebbie::ValidationTarget::shop:
-        if (world_data_tab_) {
-            tabs_->setCurrentWidget(world_data_tab_);
+        if (shops_tab_) {
+            tabs_->setCurrentWidget(shops_tab_);
         }
-        if (world_data_editor_) {
-            world_data_editor_->selectShop(issue.target_vnum);
+        if (shops_editor_) {
+            shops_editor_->selectShop(issue.target_vnum);
         }
         break;
     default:
@@ -3015,7 +3210,7 @@ void MainWindow::restoreFromWorkspace() {
         refreshMobList();
         refreshObjectList();
         refreshZoneList();
-        world_data_editor_->setWorld(&world_);
+        refreshWorldDataEditors();
         setStatus("Ripristinato autosalvataggio workspace.");
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, "Errore", QString::fromUtf8(ex.what()));
@@ -3067,7 +3262,7 @@ void MainWindow::restoreVersion() {
         refreshMobList();
         refreshObjectList();
         refreshZoneList();
-        world_data_editor_->setWorld(&world_);
+        refreshWorldDataEditors();
         setStatus(QString("Ripristinata versione %1.").arg(chosen));
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, "Errore", QString::fromUtf8(ex.what()));

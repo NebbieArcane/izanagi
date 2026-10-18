@@ -8,6 +8,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QGroupBox>
 #include <QSignalBlocker>
 #include <QFormLayout>
 #include <QHBoxLayout>
@@ -25,14 +26,14 @@
 namespace {
 
 void configureLineField(QLineEdit* field) {
-    field->setMinimumWidth(420);
-    field->setMinimumHeight(30);
+    field->setMinimumWidth(280);
+    field->setMinimumHeight(28);
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 void configureShortTextField(nebbie::qt::MudColorTextEdit* field) {
-    field->setMinimumHeight(56);
-    field->setMaximumHeight(80);
+    field->setMinimumHeight(44);
+    field->setMaximumHeight(72);
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     field->setLineWrapMode(QTextEdit::WidgetWidth);
 }
@@ -72,27 +73,52 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* tabs = new QTabWidget;
 
     auto* text_tab = new QWidget;
-    auto* text_form = new QFormLayout(text_tab);
+    auto* text_layout = new QVBoxLayout(text_tab);
+    auto* text_form = new QFormLayout;
     name_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(name_);
     short_descr_ = new nebbie::qt::MudColorTextEdit;
     configureShortTextField(short_descr_);
     description_ = new nebbie::qt::MudColorTextEdit;
-    configureTextField(description_, 110);
+    configureTextField(description_, 72);
     action_description_ = new nebbie::qt::MudColorTextEdit;
-    configureTextField(action_description_, 100);
-    action_description_->setPlaceholderText("Action description (e.g. weapons/potions); leave empty if unused");
-    text_form->addRow("Name (keywords~):", name_);
-    text_form->addRow("Short description:", short_descr_);
-    text_form->addRow("Description:", description_);
-    text_form->addRow("Action description:", action_description_);
-    tabs->addTab(text_tab, "Text");
+    configureTextField(action_description_, 56);
+    action_description_->setPlaceholderText("Testo azione (es. armi/pozioni); lascia vuoto se non serve");
+    text_form->addRow("Nome (parole chiave~):", name_);
+    text_form->addRow("Descrizione breve:", short_descr_);
+    text_form->addRow("Descrizione:", description_);
+    text_form->addRow("Testo azione:", action_description_);
+    text_layout->addLayout(text_form, 1);
+
+    auto* economy_box = new QGroupBox("Peso e prezzi");
+    auto* economy_layout = new QVBoxLayout(economy_box);
+    economy_layout->addWidget(makeLegend(
+        "Valore = prezzo negozio (obj.cost). Affitto/giorno = costo di rent (obj.cost_per_day), "
+        "come voci 8 e 9 dell'OLC.",
+        economy_box));
+    auto* economy_row = new QHBoxLayout;
+    weight_ = new QSpinBox;
+    weight_->setRange(0, 2000000000);
+    cost_ = new QSpinBox;
+    cost_->setRange(0, 2000000000);
+    cost_per_day_ = new QSpinBox;
+    cost_per_day_->setRange(0, 2000000000);
+    economy_row->addWidget(new QLabel("Peso:"));
+    economy_row->addWidget(weight_);
+    economy_row->addWidget(new QLabel("Valore:"));
+    economy_row->addWidget(cost_);
+    economy_row->addWidget(new QLabel("Affitto/giorno:"));
+    economy_row->addWidget(cost_per_day_);
+    economy_row->addStretch();
+    economy_layout->addLayout(economy_row);
+    text_layout->addWidget(economy_box);
+    tabs->addTab(text_tab, "Testo e prezzi");
 
     auto* type_tab = new QWidget;
     auto* type_layout = new QVBoxLayout(type_tab);
     value_legend_ = makeLegend(
         "I quattro valori (value[0..3]) dipendono dal tipo oggetto. Legenda allineata a "
-        "NebbieArcane/Server (create.obj / stat). Il prezzo negozio è nel tab Economy (cost).",
+        "NebbieArcane/Server (create.obj / stat). Il prezzo negozio è nel tab «Testo e prezzi» (Valore = cost).",
         type_tab);
     type_layout->addWidget(value_legend_);
     auto* type_form = new QFormLayout;
@@ -133,42 +159,23 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* flags_layout = new QVBoxLayout(flags_tab);
     wear_flags_ = new FlagGroupWidget(nebbie::obj_wear_flags(), flags_tab);
     extra_flags_ = new FlagGroupWidget(nebbie::obj_extra_flags(), flags_tab);
-    has_extra_flags2_ = new QCheckBox("Section F (extra_flags2)");
+    has_extra_flags2_ = new QCheckBox("Sezione F (extra_flags2)");
     extra_flags2_panel_ = new QWidget(flags_tab);
     auto* extra_flags2_layout = new QVBoxLayout(extra_flags2_panel_);
     extra_flags2_ = new FlagGroupWidget(nebbie::obj_extra_flags2(), extra_flags2_panel_);
     extra_flags2_layout->addWidget(extra_flags2_);
-    flags_layout->addWidget(new QLabel("Wear flags"));
+    flags_layout->addWidget(new QLabel("Flag indossabilità (wear)"));
     flags_layout->addWidget(wear_flags_);
-    flags_layout->addWidget(new QLabel("Extra flags"));
+    flags_layout->addWidget(new QLabel("Flag extra"));
     flags_layout->addWidget(extra_flags_);
     flags_layout->addWidget(has_extra_flags2_);
     flags_layout->addWidget(extra_flags2_panel_);
-    tabs->addTab(new QScrollArea, "Flags");
+    tabs->addTab(new QScrollArea, "Flag");
     {
         auto* scroll = qobject_cast<QScrollArea*>(tabs->widget(2));
         scroll->setWidgetResizable(true);
         scroll->setWidget(flags_tab);
     }
-
-    auto* economy_tab = new QWidget;
-    auto* economy_layout = new QVBoxLayout(economy_tab);
-    economy_layout->addWidget(makeLegend(
-        "Value is the object shop value (obj.cost). Rent cost is the rental cost per day "
-        "(obj.cost_per_day), as in OLC menu items 8 and 9.",
-        economy_tab));
-    auto* economy_form = new QFormLayout;
-    weight_ = new QSpinBox;
-    weight_->setRange(0, 2000000000);
-    cost_ = new QSpinBox;
-    cost_->setRange(0, 2000000000);
-    cost_per_day_ = new QSpinBox;
-    cost_per_day_->setRange(0, 2000000000);
-    economy_form->addRow("Weight:", weight_);
-    economy_form->addRow("Value:", cost_);
-    economy_form->addRow("Rent cost per day:", cost_per_day_);
-    economy_layout->addLayout(economy_form);
-    tabs->addTab(economy_tab, "Economy");
 
     auto* affect_tab = new QWidget;
     auto* affect_layout = new QVBoxLayout(affect_tab);
@@ -178,19 +185,19 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     affect_modifier_ = new QSpinBox;
     affect_modifier_->setRange(-2000000000, 2000000000);
     auto* affect_form = new QFormLayout;
-    affect_form->addRow("Apply type:", affect_location_);
-    affect_form->addRow("Modifier:", affect_modifier_);
+    affect_form->addRow("Tipo applicazione:", affect_location_);
+    affect_form->addRow("Modificatore:", affect_modifier_);
     auto* affect_buttons = new QHBoxLayout;
-    auto* affect_add = new QPushButton("Add");
-    auto* affect_remove = new QPushButton("Remove");
+    auto* affect_add = new QPushButton("Aggiungi");
+    auto* affect_remove = new QPushButton("Rimuovi");
     affect_buttons->addWidget(affect_add);
     affect_buttons->addWidget(affect_remove);
     affect_buttons->addStretch();
-    affect_layout->addWidget(new QLabel("Extra affects (section A)"));
+    affect_layout->addWidget(new QLabel("Affect extra (sezione A)"));
     affect_layout->addWidget(affect_list_, 1);
     affect_layout->addLayout(affect_form);
     affect_layout->addLayout(affect_buttons);
-    tabs->addTab(affect_tab, "Extra affects");
+    tabs->addTab(affect_tab, "Affect extra");
 
     auto* extra_tab = new QWidget;
     auto* extra_layout = new QVBoxLayout(extra_tab);
@@ -198,13 +205,13 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_desc_keyword_ = new QLineEdit;
     configureLineField(extra_desc_keyword_);
     extra_desc_description_ = new nebbie::qt::MudColorTextEdit;
-    configureTextField(extra_desc_description_, 90);
+    configureTextField(extra_desc_description_, 64);
     auto* extra_desc_form = new QFormLayout;
-    extra_desc_form->addRow("Keyword:", extra_desc_keyword_);
-    extra_desc_form->addRow("Description:", extra_desc_description_);
+    extra_desc_form->addRow("Parola chiave:", extra_desc_keyword_);
+    extra_desc_form->addRow("Descrizione:", extra_desc_description_);
     auto* extra_desc_buttons = new QHBoxLayout;
-    auto* extra_desc_add = new QPushButton("Add");
-    auto* extra_desc_remove = new QPushButton("Remove");
+    auto* extra_desc_add = new QPushButton("Aggiungi");
+    auto* extra_desc_remove = new QPushButton("Rimuovi");
     extra_desc_buttons->addWidget(extra_desc_add);
     extra_desc_buttons->addWidget(extra_desc_remove);
     extra_desc_buttons->addStretch();
@@ -213,14 +220,14 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* forbidden_form = new QFormLayout;
     configureLineField(forbidden_char_);
     configureLineField(forbidden_room_);
-    forbidden_form->addRow("Forbidden char (P):", forbidden_char_);
-    forbidden_form->addRow("Forbidden room (P):", forbidden_room_);
-    extra_layout->addWidget(new QLabel("Extra descriptions (section E)"));
+    forbidden_form->addRow("Vietato a classe/char (P):", forbidden_char_);
+    forbidden_form->addRow("Vietato in stanza (P):", forbidden_room_);
+    extra_layout->addWidget(new QLabel("Descrizioni extra (sezione E)"));
     extra_layout->addWidget(extra_desc_list_, 1);
     extra_layout->addLayout(extra_desc_form);
     extra_layout->addLayout(extra_desc_buttons);
     extra_layout->addLayout(forbidden_form);
-    tabs->addTab(extra_tab, "Extra / Forbidden");
+    tabs->addTab(extra_tab, "Extra / Vietati");
 
     root->addWidget(tabs);
 
@@ -321,7 +328,7 @@ void ObjEditorWidget::loadFromObject(const nebbie::GameObject& obj) {
     extra_desc_list_->clear();
     for (const auto& extra : obj.extra_descs) {
         const QString label = QString::fromStdString(extra.keyword);
-        auto* item = new QListWidgetItem(label.isEmpty() ? "(no keyword)" : label);
+        auto* item = new QListWidgetItem(label.isEmpty() ? "(senza parola chiave)" : label);
         item->setData(Qt::UserRole, QString::fromStdString(extra.keyword));
         item->setData(Qt::UserRole + 1, QString::fromStdString(extra.description));
         extra_desc_list_->addItem(item);
@@ -384,7 +391,7 @@ void ObjEditorWidget::addExtraDesc() {
     if (keyword.isEmpty() && description.trimmed().isEmpty()) {
         return;
     }
-    auto* item = new QListWidgetItem(keyword.isEmpty() ? "(no keyword)" : keyword);
+    auto* item = new QListWidgetItem(keyword.isEmpty() ? "(senza parola chiave)" : keyword);
     item->setData(Qt::UserRole, keyword);
     item->setData(Qt::UserRole + 1, description);
     extra_desc_list_->addItem(item);

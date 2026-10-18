@@ -245,6 +245,23 @@ std::vector<AreeAreaInfo> scan_aree_areas(const AreeWorkspace& workspace) {
         areas.push_back(std::move(info));
     }
 
+    // Bottoms follow monolith rules: sorted by zone number, each starts after previous top.
+    std::vector<std::size_t> order(areas.size());
+    for (std::size_t i = 0; i < order.size(); ++i) {
+        order[i] = i;
+    }
+    std::sort(order.begin(), order.end(), [&](const std::size_t a, const std::size_t b) {
+        if (areas[a].zone_num != areas[b].zone_num) {
+            return areas[a].zone_num < areas[b].zone_num;
+        }
+        return areas[a].folder_name < areas[b].folder_name;
+    });
+    int next_bottom = 0;
+    for (const std::size_t index : order) {
+        areas[index].bottom_vnum = next_bottom;
+        next_bottom = areas[index].top_vnum + 1;
+    }
+
     std::sort(areas.begin(), areas.end(),
               [](const AreeAreaInfo& a, const AreeAreaInfo& b) { return a.folder_name < b.folder_name; });
     return areas;

@@ -120,6 +120,8 @@ long suggest_next_room_vnum(const World& world);
 long suggest_next_mob_vnum(const World& world);
 long suggest_next_object_vnum(const World& world);
 long suggest_next_shop_vnum(const World& world);
+// Next free zone number (max existing zone num + 1, or 1 when there are no zones).
+int suggest_next_zone_num(const World& world);
 
 void apply_room_edit(Room& room, const RoomEdit& edit);
 void apply_mob_edit(Mobile& mob, const MobEdit& edit);
@@ -132,6 +134,10 @@ bool edit_object(World& world, long vnum, const ObjEdit& edit);
 bool create_room(World& world, long vnum, const RoomEdit& edit = {});
 bool create_mob(World& world, long vnum, const MobEdit& edit = {});
 bool create_object(World& world, long vnum, const ObjEdit& edit = {});
+// Append a new zone at the end of the zone list (zone_num must be > 0, unique and greater than every
+// existing zone num so the order stays stable after save). Default top = last top + 100 unless
+// edit.top is greater than the last top. Bottoms and room zone indexes are recomputed.
+bool create_zone(World& world, int zone_num, const ZoneEdit& edit = {});
 bool create_shop(World& world, long vnum);
 bool remove_shop(World& world, long vnum);
 

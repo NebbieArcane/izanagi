@@ -742,10 +742,14 @@ void save_lib(const World& world, LibContext& context, ProgressCallback progress
         save_tracked_objects(world, context, progress);
     }
     if (context.has_shp) {
-        save_myst_shp(world, save_path_for(context, context.shp_path, SHOP_FILE), progress);
+        MystSaveOptions shp_options;
+        shp_options.write_eof_markers = context.write_eof_markers_on_save;
+        save_myst_shp(world, save_path_for(context, context.shp_path, SHOP_FILE), progress, shp_options);
     }
     if (context.has_spe) {
-        save_myst_spe(world, save_path_for(context, context.spe_path, SPECIAL_FILE), progress);
+        MystSaveOptions spe_options;
+        spe_options.write_eof_markers = context.write_eof_markers_on_save;
+        save_myst_spe(world, save_path_for(context, context.spe_path, SPECIAL_FILE), progress, spe_options);
     }
     if (context.has_dam) {
         save_myst_dam(world, save_path_for(context, context.dam_path, DAMAGE_FILE), progress);
@@ -795,6 +799,35 @@ void refresh_captured_source_blocks(LibContext& context) {
         refresh(context.obj_path.empty() ? std::filesystem::path(OBJ_FILE) : context.obj_path,
                 context.obj_source_blocks_by_file);
     }
+}
+
+std::filesystem::path default_lib_filename_for_extension(const LibContext& context,
+                                                        const char* extension,
+                                                        const char* monolith_name) {
+    const std::filesystem::path* candidates[] = {
+        &context.zon_path, &context.wld_path, &context.mob_path, &context.obj_path,
+        &context.shp_path, &context.spe_path};
+    for (const auto* candidate : candidates) {
+        if (candidate->empty()) {
+            continue;
+        }
+        const std::string stem = candidate->stem().string();
+        if (stem.empty()) {
+            continue;
+        }
+        if (stem == "myst") {
+            return monolith_name;
+        }
+        return stem + extension;
+    }
+
+    std::error_code ec;
+    const std::filesystem::path root = std::filesystem::absolute(context.root, ec);
+    const std::string folder = root.filename().string();
+    if (!folder.empty() && folder != "." && folder != ".." && folder != "lib") {
+        return folder + extension;
+    }
+    return monolith_name;
 }
 
 } // namespace nebbie

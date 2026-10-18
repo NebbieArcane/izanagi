@@ -107,5 +107,5 @@ private:
     QLineEdit* exit_keyword_ = nullptr;
     FlagGroupWidget* exit_flags_ = nullptr;
     QSpinBox* exit_key_ = nullptr;
-    QSpinBox* exit_open_cmd_ = nullptr;
+    QComboBox* exit_open_cmd_ = nullptr;
 };

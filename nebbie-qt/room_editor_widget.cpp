@@ -96,7 +96,8 @@ void writeExitItem(QListWidgetItem* item, const nebbie::Exit& exit) {
         details += QString(" [%1]").arg(exit_flags);
     }
     if (exit.open_cmd >= 0) {
-        details += QString(" open_cmd=%1").arg(exit.open_cmd);
+        details += QString(" [%1]")
+                       .arg(QString::fromStdString(nebbie::exit_open_cmd_label(static_cast<int>(exit.open_cmd))));
     }
 
     item->setText(QString("%1 -> #%2%3")
@@ -250,7 +251,8 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* exit_layout = new QVBoxLayout(exits_section_);
     exit_layout->addWidget(makeLegend(
         "Direzioni: 0=nord, 1=est, 2=sud, 3=ovest, 4=su, 5=giù. Description = testo look <dir>; "
-        "se vuota il server usa il name della destinazione. Key vnum = oggetto chiave (-1 = nessuna).",
+        "se vuota il server usa il name della destinazione. Key vnum = oggetto chiave (-1 = nessuna). "
+        "Per porte secret/special: scegli il comando in-game (pull/push/…) nel menu open_cmd.",
         exits_section_));
     exit_list_ = new QListWidget;
     exit_list_->setMaximumHeight(140);
@@ -269,10 +271,12 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_key_->setRange(-1, 999999);
     exit_key_->setValue(-1);
     exit_key_->setToolTip("VNUM dell'oggetto chiave per porte bloccate. Usare -1 se la porta non richiede chiave.");
-    exit_open_cmd_ = new QSpinBox;
-    exit_open_cmd_->setRange(-1, 999999);
-    exit_open_cmd_->setValue(-1);
-    exit_open_cmd_->setToolTip("Comando open_cmd opzionale scritto in myst.wld; -1 = omesso.");
+    exit_open_cmd_ = new QComboBox;
+    fillCombo(exit_open_cmd_, nebbie::exit_open_cmd_choices());
+    exit_open_cmd_->setToolTip(
+        "Comando richiesto per aprire/chiudere questa uscita (campo open_cmd in .wld). "
+        "Per secret tipici: pull, push, twist, turn, lift, dig, cut. "
+        "open (default) = comportamento normale (open/close).");
     auto* exit_form = new QFormLayout;
     exit_form->addRow("Direction:", exit_direction_);
     exit_form->addRow("To room #:", exit_to_room_);
@@ -282,7 +286,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_form->addRow("Keyword (porta):", exit_keyword_);
     exit_form->addRow("Exit flags (exit_info):", exit_flags_);
     exit_form->addRow("Key vnum (oggetto):", exit_key_);
-    exit_form->addRow("open_cmd:", exit_open_cmd_);
+    exit_form->addRow("Comando secret (open_cmd):", exit_open_cmd_);
     auto* exit_buttons = new QHBoxLayout;
     auto* exit_apply = new QPushButton("Add / update exit");
     auto* exit_remove = new QPushButton("Remove exit");
@@ -610,7 +614,7 @@ void RoomEditorWidget::addOrUpdateExit() {
     exit.keyword = exit_keyword_->text().toStdString();
     exit.exit_info = exit_flags_->value();
     exit.key = exit_key_->value();
-    exit.open_cmd = exit_open_cmd_->value();
+    exit.open_cmd = comboIntValue(exit_open_cmd_);
 
     for (int i = 0; i < exit_list_->count(); ++i) {
         auto* item = exit_list_->item(i);
@@ -656,7 +660,7 @@ void RoomEditorWidget::refreshExitForm(const int row) {
         exit_keyword_->clear();
         exit_flags_->setValue(0);
         exit_key_->setValue(-1);
-        exit_open_cmd_->setValue(-1);
+        setComboIntValue(exit_open_cmd_, -1);
         updateTextMonitors();
         return;
     }
@@ -667,6 +671,11 @@ void RoomEditorWidget::refreshExitForm(const int row) {
     exit_keyword_->setText(QString::fromStdString(exit.keyword));
     exit_flags_->setValue(exit.exit_info);
     exit_key_->setValue(static_cast<int>(exit.key));
-    exit_open_cmd_->setValue(static_cast<int>(exit.open_cmd));
+    const int open_cmd = static_cast<int>(exit.open_cmd);
+    if (exit_open_cmd_->findData(open_cmd) < 0) {
+        exit_open_cmd_->addItem(
+            QString::fromStdString(nebbie::exit_open_cmd_label(open_cmd)), open_cmd);
+    }
+    setComboIntValue(exit_open_cmd_, open_cmd);
     updateTextMonitors();
 }

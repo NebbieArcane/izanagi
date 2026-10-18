@@ -91,7 +91,9 @@ void append_room_validation(const World& world,
                             ValidationReport& report,
                             const ValidationOptions& options,
                             const std::vector<long>* room_vnums) {
-    for (const auto& [vnum, room] : world.rooms) {
+    for (const auto& [map_vnum, room] : world.rooms) {
+        // Copy out of the structured binding so lambdas stay C++17-portable (Apple Clang).
+        const long vnum = map_vnum;
         if (!should_validate_room(vnum, room_vnums)) {
             continue;
         }

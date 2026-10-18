@@ -100,6 +100,32 @@ int main(int argc, char** argv) {
             throw std::runtime_error("suggest_next_room_vnum must not return limbo #0");
         }
 
+        {
+            nebbie::World area;
+            nebbie::Zone castelli;
+            castelli.num = 340;
+            castelli.name = "Castelli";
+            castelli.top = 34999;
+            area.zones.push_back(castelli);
+            nebbie::Room room;
+            room.vnum = 34000;
+            room.name = "Ingresso";
+            area.rooms.emplace(34000, room);
+            nebbie::Mobile mob;
+            mob.vnum = 34001;
+            mob.name = "guardia";
+            area.mobiles.emplace(34001, mob);
+            const nebbie::WorldIndex area_index = nebbie::build_world_index(area, "area-suggest");
+            const auto area_mob = nebbie::suggest_mob_vnum_in_zone(area_index, 340);
+            if (!area_mob || *area_mob < 34000) {
+                throw std::runtime_error("isolated area should suggest mob in 34000+ block");
+            }
+            const auto area_room = nebbie::suggest_room_vnum_in_zone(area_index, 340);
+            if (!area_room || *area_room < 34000) {
+                throw std::runtime_error("isolated area should suggest room in 34000+ block");
+            }
+        }
+
         if (argc >= 3) {
             std::ofstream out(argv[2]);
             out << json;

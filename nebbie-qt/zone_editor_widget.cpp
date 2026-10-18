@@ -94,8 +94,8 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     lifespan_->setToolTip("Minutes between zone resets.");
     reset_mode_ = new QComboBox;
     fillIntCombo(reset_mode_, nebbie::zone_reset_mode_choices());
-    info_form->addRow("Zone #:", zone_num_label_);
-    info_form->addRow("Name:", name_);
+    info_form->addRow("N. area:", zone_num_label_);
+    info_form->addRow("Nome:", name_);
     info_form->addRow("bottom vnum:", bottom_label_);
     info_form->addRow("top vnum:", top_);
     info_form->addRow("lifespan:", lifespan_);

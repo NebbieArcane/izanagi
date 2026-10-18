@@ -345,7 +345,8 @@ long suggest_next_shop_vnum(const World& world) {
     recompute_zone_bottoms(normalized);
     const WorldIndex index = build_world_index(normalized, "suggest");
     for (const auto& zone : index.zones) {
-        for (long vnum = zone.bottom; vnum <= zone.top; ++vnum) {
+        const long scan_bottom = suggest_bottom_for_zone(index, zone.zone_num);
+        for (long vnum = scan_bottom; vnum <= zone.top; ++vnum) {
             bool taken = false;
             for (const auto& shop : world.shops) {
                 if (shop.vnum == vnum) {
@@ -761,6 +762,39 @@ bool create_object(World& world, long vnum, const ObjEdit& edit) {
         return false;
     }
     world.objects.emplace(vnum, make_default_object(vnum, edit));
+    return true;
+}
+
+int suggest_next_zone_num(const World& world) {
+    int max_num = 0;
+    for (const auto& zone : world.zones) {
+        max_num = std::max(max_num, zone.num);
+    }
+    return max_num + 1;
+}
+
+bool create_zone(World& world, const int zone_num, const ZoneEdit& edit) {
+    if (zone_num <= 0) {
+        return false;
+    }
+    for (const auto& zone : world.zones) {
+        if (zone.num >= zone_num) {
+            return false;
+        }
+    }
+
+    const int last_top = world.zones.empty() ? -1 : world.zones.back().top;
+    Zone zone;
+    zone.num = zone_num;
+    zone.name = edit.name.empty() ? "Nuova zona" : edit.name;
+    zone.top = edit.top > last_top ? edit.top : last_top + 100;
+    zone.lifespan = edit.lifespan >= 0 ? edit.lifespan : 15;
+    zone.reset_mode = edit.reset_mode >= 0 ? edit.reset_mode : 2;
+    world.zones.push_back(std::move(zone));
+    recompute_zone_bottoms(world);
+    for (auto& [vnum, room] : world.rooms) {
+        room.zone_index = zone_index_for_vnum(world, vnum);
+    }
     return true;
 }
 

@@ -5,7 +5,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 
 namespace {
 
@@ -56,11 +58,51 @@ int main(int argc, char** argv) {
         if (world.zones.empty() || world.rooms.empty() || world.mobiles.empty() || world.objects.empty()) {
             throw std::runtime_error("expected zone/room/mobile/object data from castelli.* files");
         }
+        if (nebbie::default_lib_filename_for_extension(context, ".shp", nebbie::SHOP_FILE) != "castelli.shp") {
+            throw std::runtime_error("default shop filename should follow area stem");
+        }
+        if (nebbie::default_lib_filename_for_extension(context, ".spe", nebbie::SPECIAL_FILE) != "castelli.spe") {
+            throw std::runtime_error("default special filename should follow area stem");
+        }
 
+        const auto read_file = [](const std::filesystem::path& path) {
+            std::ifstream in(path);
+            std::ostringstream buffer;
+            buffer << in.rdbuf();
+            return buffer.str();
+        };
+        const auto ends_with_line = [](const std::string& content, const char* marker) {
+            std::string trimmed = content;
+            while (!trimmed.empty() && (trimmed.back() == '\n' || trimmed.back() == '\r')) {
+                trimmed.pop_back();
+            }
+            const std::string expected = marker;
+            return trimmed.size() >= expected.size()
+                   && trimmed.compare(trimmed.size() - expected.size(), expected.size(), expected) == 0;
+        };
+
+        // Area save: like mob/wld, omit file terminators ($~ / $).
+        context.write_eof_markers_on_save = false;
         nebbie::save_lib(world, context);
         if (!std::filesystem::exists(out / "castelli.zon")
             || !std::filesystem::exists(out / "castelli.wld")) {
             throw std::runtime_error("save_lib did not preserve castelli.* filenames");
+        }
+        if (ends_with_line(read_file(out / "castelli.shp"), "$~")) {
+            throw std::runtime_error("area .shp save must omit $~ terminator");
+        }
+        if (ends_with_line(read_file(out / "castelli.spe"), "$")) {
+            throw std::runtime_error("area .spe save must omit $ terminator");
+        }
+
+        // Monolith save: keep terminators for concat tails.
+        context.write_eof_markers_on_save = true;
+        nebbie::save_lib(world, context);
+        if (!ends_with_line(read_file(out / "castelli.shp"), "$~")) {
+            throw std::runtime_error("monolith .shp save must write $~ terminator");
+        }
+        if (!ends_with_line(read_file(out / "castelli.spe"), "$")) {
+            throw std::runtime_error("monolith .spe save must write $ terminator");
         }
 
         const auto blank_shop_dir = std::filesystem::temp_directory_path() / "nebbie-lib-blank-shop-test";

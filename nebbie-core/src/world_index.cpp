@@ -719,7 +719,53 @@ bool reservation_range_conflicts(const WorldIndex& index, const WorldIndexReserv
     return false;
 }
 
+long effective_suggest_bottom(const WorldIndex& index, const WorldIndexZone& zone) {
+    // Isolated area (single zone): prefer the block where content already lives (e.g. 34000+),
+    // not recompute's bottom=0 and not a sparse workspace bottom far below the area's vnums.
+    if (index.zones.size() == 1) {
+        long min_v = -1;
+        const auto consider = [&](const long vnum) {
+            if (vnum < 1 || vnum > zone.top) {
+                return;
+            }
+            if (min_v < 0 || vnum < min_v) {
+                min_v = vnum;
+            }
+        };
+        for (const long vnum : zone.rooms_used) {
+            consider(vnum);
+        }
+        for (const long vnum : index.mob_vnums) {
+            consider(vnum);
+        }
+        for (const long vnum : index.object_vnums) {
+            consider(vnum);
+        }
+        if (min_v > 0) {
+            return (min_v / 100) * 100;
+        }
+        if (zone.zone_num > 0) {
+            const long guess = static_cast<long>(zone.zone_num) * 100;
+            if (guess <= zone.top) {
+                return guess;
+            }
+        }
+    }
+    if (zone.bottom > 0) {
+        return zone.bottom;
+    }
+    return 0;
+}
+
 } // namespace
+
+long suggest_bottom_for_zone(const WorldIndex& index, const int zone_num) {
+    const WorldIndexZone* zone = find_world_index_zone(index, zone_num);
+    if (!zone) {
+        return 1;
+    }
+    return std::max(1L, effective_suggest_bottom(index, *zone));
+}
 
 std::optional<long> suggest_room_vnum_in_zone(const WorldIndex& index, const int zone_num) {
     const WorldIndexZone* zone = find_world_index_zone(index, zone_num);
@@ -727,8 +773,9 @@ std::optional<long> suggest_room_vnum_in_zone(const WorldIndex& index, const int
         return std::nullopt;
     }
 
+    const long bottom = effective_suggest_bottom(index, *zone);
     for (const auto& range : zone->rooms_free) {
-        const long start = std::max(1L, range.start);
+        const long start = std::max(bottom, std::max(1L, range.start));
         for (long vnum = start; vnum <= range.end; ++vnum) {
             if (!room_vnum_taken(index, vnum)) {
                 return vnum;
@@ -764,7 +811,8 @@ std::optional<long> suggest_mob_vnum_in_zone(const WorldIndex& index, const int 
         return std::nullopt;
     }
 
-    for (long vnum = zone->bottom; vnum <= zone->top; ++vnum) {
+    const long bottom = std::max(1L, effective_suggest_bottom(index, *zone));
+    for (long vnum = bottom; vnum <= zone->top; ++vnum) {
         if (!mob_vnum_taken(index, vnum)) {
             return vnum;
         }
@@ -778,7 +826,8 @@ std::optional<long> suggest_object_vnum_in_zone(const WorldIndex& index, const i
         return std::nullopt;
     }
 
-    for (long vnum = zone->bottom; vnum <= zone->top; ++vnum) {
+    const long bottom = std::max(1L, effective_suggest_bottom(index, *zone));
+    for (long vnum = bottom; vnum <= zone->top; ++vnum) {
         if (!object_vnum_taken(index, vnum)) {
             return vnum;
         }

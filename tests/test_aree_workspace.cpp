@@ -67,10 +67,12 @@ int main() {
             if (area.folder_name == "castelli") {
                 found_castelli = true;
                 expect(area.zone_num == 340, "castelli zone num");
+                expect(area.top_vnum > area.bottom_vnum, "castelli range");
             }
             if (area.folder_name == "myst") {
                 found_myst = true;
                 expect(area.zone_num == 30, "myst zone num");
+                expect(area.bottom_vnum == 0, "myst is first zone by number in fixtures");
             }
             expect(nebbie::is_aree_area_directory(area.path), "area dir check");
             expect(!nebbie::is_aree_reserved_folder(area.folder_name), "not reserved");

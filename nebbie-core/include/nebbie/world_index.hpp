@@ -57,6 +57,8 @@ std::optional<long> suggest_mob_vnum(const WorldIndex& index);
 std::optional<long> suggest_object_vnum(const WorldIndex& index);
 std::optional<long> suggest_mob_vnum_in_zone(const WorldIndex& index, int zone_num);
 std::optional<long> suggest_object_vnum_in_zone(const WorldIndex& index, int zone_num);
+/** Inclusive start used by suggest_*_in_zone (infers block for isolated single-zone libs). */
+long suggest_bottom_for_zone(const WorldIndex& index, int zone_num);
 
 const WorldIndexZone* find_world_index_zone(const WorldIndex& index, int zone_num);
 bool validate_reservation(const WorldIndex& index, const WorldIndexReservation& reservation, std::string* error_out = nullptr);

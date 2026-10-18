@@ -79,8 +79,19 @@ void save_myst_obj(const World& world,
                    const std::filesystem::path& path,
                    ProgressCallback progress = {},
                    MystSaveOptions options = {});
-void save_myst_shp(const World& world, const std::filesystem::path& path, ProgressCallback progress = {});
-void save_myst_spe(const World& world, const std::filesystem::path& path, ProgressCallback progress = {});
+void save_myst_shp(const World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   MystSaveOptions options = {});
+void save_myst_spe(const World& world,
+                   const std::filesystem::path& path,
+                   ProgressCallback progress = {},
+                   MystSaveOptions options = {});
+
+/** Basename for a companion lib file (e.g. castelli.shp) from zon/wld/… or folder name. */
+std::filesystem::path default_lib_filename_for_extension(const LibContext& context,
+                                                        const char* extension,
+                                                        const char* monolith_name);
 void save_myst_dam(const World& world, const std::filesystem::path& path, ProgressCallback progress = {});
 void save_myst_act(const World& world, const std::filesystem::path& path, ProgressCallback progress = {});
 void save_myst_pos(const World& world, const std::filesystem::path& path, ProgressCallback progress = {});

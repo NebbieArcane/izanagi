@@ -2,12 +2,15 @@
 
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
+#include "nebbie/constants.hpp"
 #include "nebbie/edit.hpp"
+#include "nebbie/lib_context.hpp"
 #include "nebbie/special_proc_catalog.hpp"
 
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QLabel>
@@ -17,6 +20,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -64,29 +68,130 @@ QWidget* wrapScroll(QWidget* content) {
     return scroll;
 }
 
-QHBoxLayout* makeListEditorRow(QListWidget* list, QWidget* editor, const int list_width = 220) {
+QLabel* makeWrappedLabel(const QString& text, QWidget* parent = nullptr) {
+    auto* label = new QLabel(text, parent);
+    label->setWordWrap(true);
+    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    return label;
+}
+
+QLabel* makeEmptyLabel(const QString& text) {
+    auto* label = makeWrappedLabel(text);
+    label->setStyleSheet("color: palette(mid); font-style: italic;");
+    label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    return label;
+}
+
+QWidget* makeListColumn(QListWidget* list, QLabel* empty_label, const int list_width = 220) {
+    auto* column = new QWidget;
+    auto* layout = new QVBoxLayout(column);
+    layout->setContentsMargins(0, 0, 0, 0);
     list->setMinimumWidth(list_width);
+    layout->addWidget(list, 1);
+    layout->addWidget(empty_label);
+    return column;
+}
+
+QHBoxLayout* makeListEditorRow(QListWidget* list, QLabel* empty_label, QWidget* editor,
+                               const int list_width = 220) {
     auto* row = new QHBoxLayout;
-    row->addWidget(list);
+    row->addWidget(makeListColumn(list, empty_label, list_width));
     row->addWidget(editor, 1);
     return row;
 }
 
+QHBoxLayout* makeSpinRow(QSpinBox* const (&spins)[5]) {
+    auto* row = new QHBoxLayout;
+    for (int i = 0; i < 5; ++i) {
+        row->addWidget(spins[i]);
+    }
+    row->addStretch();
+    return row;
+}
+
+QString shopListLabel(const long vnum, const int keeper, const int room) {
+    return QString("Negozio #%1 · mob %2 · stanza %3").arg(vnum).arg(keeper).arg(room);
+}
+
+QString specialTypeName(const char type) {
+    switch (type) {
+    case 'm':
+    case 'M':
+        return QStringLiteral("Mob");
+    case 'o':
+    case 'O':
+        return QStringLiteral("Oggetto");
+    case 'r':
+    case 'R':
+        return QStringLiteral("Stanza");
+    default:
+        return QString(QChar(type));
+    }
+}
+
+QString specialListLabel(const char type, const long vnum, const std::string& procedure) {
+    return QString("%1 #%2 → %3")
+        .arg(specialTypeName(type))
+        .arg(vnum)
+        .arg(QString::fromStdString(procedure));
+}
+
+QString damageListLabel(const int attack_type) {
+    return QString("Danno tipo %1").arg(attack_type);
+}
+
+QString socialListLabel(const int act_nr) {
+    return QString("Social #%1").arg(act_nr);
+}
+
+QString poseListLabel(const int level) {
+    return QString("Pose livello %1").arg(level);
+}
+
+QString guildListLabel(const std::string& base_filename) {
+    return base_filename.empty() ? QStringLiteral("(gilda senza nome)")
+                                 : QString::fromStdString(base_filename);
+}
+
+QString activeFileText(const nebbie::LibContext* context, const bool has_file,
+                       const std::filesystem::path& path, const char* default_name) {
+    if (!context) {
+        return QString::fromLatin1(default_name);
+    }
+    if (!has_file) {
+        return QString("%1 (non presente: verrà creato al salvataggio)").arg(QString::fromLatin1(default_name));
+    }
+    const std::string name = path.empty() ? std::string(default_name) : path.filename().string();
+    return QString::fromStdString(name);
+}
+
 } // namespace
 
-WorldDataEditorWidget::WorldDataEditorWidget(QWidget* parent) : QWidget(parent) {
+WorldDataEditorWidget::WorldDataEditorWidget(const WorldDataScope scope, QWidget* parent)
+    : QWidget(parent), scope_(scope) {
     auto* root = new QVBoxLayout(this);
-    root->addWidget(new QLabel(
-        "Tabelle monolitiche myst.shp / myst.spe / myst.dam / myst.act / myst.pos / myst.gui. "
-        "Le modifiche si applicano in memoria; usa Salva per scrivere i file."));
+    banner_ = makeWrappedLabel(QString());
+    root->addWidget(banner_);
+    files_label_ = makeWrappedLabel(QString());
+    files_label_->setStyleSheet("color: palette(mid);");
+    root->addWidget(files_label_);
     tabs_ = new QTabWidget;
-    buildShopTab(tabs_);
-    buildSpecialTab(tabs_);
-    buildDamageTab(tabs_);
-    buildSocialTab(tabs_);
-    buildPoseTab(tabs_);
-    buildGuildTab(tabs_);
+    if (scope_ == WorldDataScope::Shops) {
+        buildShopTab(tabs_);
+    } else if (scope_ == WorldDataScope::Specials) {
+        buildSpecialTab(tabs_);
+    } else {
+        buildSocialTab(tabs_);
+        buildDamageTab(tabs_);
+        buildPoseTab(tabs_);
+        buildGuildTab(tabs_);
+    }
+    // Single-page scopes don't need a nested tab bar chrome.
+    if (scope_ == WorldDataScope::Shops || scope_ == WorldDataScope::Specials) {
+        tabs_->tabBar()->hide();
+    }
     root->addWidget(tabs_, 1);
+    updateBanner();
 }
 
 void WorldDataEditorWidget::setWorld(nebbie::World* world) {
@@ -94,55 +199,129 @@ void WorldDataEditorWidget::setWorld(nebbie::World* world) {
     refresh();
 }
 
+void WorldDataEditorWidget::setLibContext(const nebbie::LibContext* context) {
+    context_ = context;
+    updateBanner();
+}
+
+void WorldDataEditorWidget::updateBanner() {
+    if (!banner_ || !files_label_) {
+        return;
+    }
+    if (scope_ == WorldDataScope::Shops) {
+        banner_->setText(
+            "File di AREA negozi (.shp): es. castelli.shp nel workspace Aree, oppure myst.shp nel "
+            "monolite. In Aree il file non deve terminare con $~ (come i mob senza %%). "
+            "Le modifiche si applicano in memoria; usa Salva per scrivere il file.");
+        files_label_->setText(
+            QString("File attivo: %1")
+                .arg(activeFileText(context_, context_ && context_->has_shp,
+                                    context_ ? context_->shp_path : std::filesystem::path(),
+                                    nebbie::SHOP_FILE)));
+    } else if (scope_ == WorldDataScope::Specials) {
+        banner_->setText(
+            "File di AREA special proc (.spe): assegna procedure del server a mob/oggetti/stanze. "
+            "In Aree il file non deve terminare con $ (come i mob senza %%). "
+            "Le modifiche si applicano in memoria; usa Salva per scrivere il file.");
+        files_label_->setText(
+            QString("File attivo: %1")
+                .arg(activeFileText(context_, context_ && context_->has_spe,
+                                    context_ ? context_->spe_path : std::filesystem::path(),
+                                    nebbie::SPECIAL_FILE)));
+    } else {
+        banner_->setText(
+            "Tabelle GLOBALI del server (non di area): myst.act = social, myst.dam = messaggi di danno, "
+            "myst.pos = pose, myst.gui = gilde. Valgono per tutto il mondo e vivono solo nel "
+            "monolite (lib); non cambiano da un'area all'altra. "
+            "Le modifiche si applicano in memoria; usa Salva per scrivere i file.");
+        const QString act = activeFileText(context_, context_ && context_->has_act,
+                                           context_ ? context_->act_path : std::filesystem::path(),
+                                           nebbie::SOCIAL_FILE);
+        const QString dam = activeFileText(context_, context_ && context_->has_dam,
+                                           context_ ? context_->dam_path : std::filesystem::path(),
+                                           nebbie::DAMAGE_FILE);
+        const QString pos = activeFileText(context_, context_ && context_->has_pos,
+                                           context_ ? context_->pos_path : std::filesystem::path(),
+                                           nebbie::POSE_FILE);
+        const QString gui = activeFileText(context_, context_ && context_->has_gui,
+                                           context_ ? context_->gui_path : std::filesystem::path(),
+                                           nebbie::GUILD_FILE);
+        files_label_->setText(
+            QString("File attivi — Social: %1 · Danni: %2 · Pose: %3 · Gilde: %4").arg(act, dam, pos, gui));
+    }
+}
+
 void WorldDataEditorWidget::refresh() {
-    shop_list_->clear();
-    special_list_->clear();
-    damage_list_->clear();
-    social_list_->clear();
-    pose_list_->clear();
-    guild_list_->clear();
+    updateBanner();
+    if (scope_ == WorldDataScope::Shops) {
+        shop_list_->clear();
+    } else if (scope_ == WorldDataScope::Specials) {
+        special_list_->clear();
+    } else {
+        damage_list_->clear();
+        social_list_->clear();
+        pose_list_->clear();
+        guild_list_->clear();
+    }
     if (!world_) {
+        if (scope_ == WorldDataScope::Shops) {
+            shop_empty_->setVisible(true);
+        } else if (scope_ == WorldDataScope::Specials) {
+            special_empty_->setVisible(true);
+        } else {
+            damage_empty_->setVisible(true);
+            social_empty_->setVisible(true);
+            pose_empty_->setVisible(true);
+            guild_empty_->setVisible(true);
+        }
         return;
     }
 
-    for (const auto& shop : world_->shops) {
-        shop_list_->addItem(QString("#%1 keeper=%2 room=%3")
-                                .arg(shop.vnum)
-                                .arg(shop.keeper)
-                                .arg(shop.in_room));
-        shop_list_->item(shop_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(shop.vnum));
-    }
-    for (std::size_t i = 0; i < world_->special_procs.size(); ++i) {
-        const auto& spe = world_->special_procs[i];
-        special_list_->addItem(QString("%1 %2 %3")
-                                   .arg(QChar(spe.type))
-                                   .arg(spe.vnum)
-                                   .arg(QString::fromStdString(spe.procedure)));
-        special_list_->item(special_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
-    }
-    for (std::size_t i = 0; i < world_->damage_messages.size(); ++i) {
-        const auto& msg = world_->damage_messages[i];
-        damage_list_->addItem(QString("attack_type %1").arg(msg.attack_type));
-        damage_list_->item(damage_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
-    }
-    for (std::size_t i = 0; i < world_->social_messages.size(); ++i) {
-        const auto& msg = world_->social_messages[i];
-        social_list_->addItem(QString("act_nr %1").arg(msg.act_nr));
-        social_list_->item(social_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
-    }
-    for (std::size_t i = 0; i < world_->pose_entries.size(); ++i) {
-        const auto& pose = world_->pose_entries[i];
-        pose_list_->addItem(QString("level %1").arg(pose.level));
-        pose_list_->item(pose_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
-    }
-    for (std::size_t i = 0; i < world_->guilds.size(); ++i) {
-        const auto& guild = world_->guilds[i];
-        guild_list_->addItem(QString::fromStdString(guild.base_filename));
-        guild_list_->item(guild_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
+    if (scope_ == WorldDataScope::Shops) {
+        for (const auto& shop : world_->shops) {
+            shop_list_->addItem(shopListLabel(shop.vnum, shop.keeper, shop.in_room));
+            shop_list_->item(shop_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(shop.vnum));
+        }
+        shop_empty_->setVisible(shop_list_->count() == 0);
+    } else if (scope_ == WorldDataScope::Specials) {
+        for (std::size_t i = 0; i < world_->special_procs.size(); ++i) {
+            const auto& spe = world_->special_procs[i];
+            special_list_->addItem(specialListLabel(spe.type, spe.vnum, spe.procedure));
+            special_list_->item(special_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
+        }
+        special_empty_->setVisible(special_list_->count() == 0);
+    } else {
+        for (std::size_t i = 0; i < world_->damage_messages.size(); ++i) {
+            const auto& msg = world_->damage_messages[i];
+            damage_list_->addItem(damageListLabel(msg.attack_type));
+            damage_list_->item(damage_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
+        }
+        for (std::size_t i = 0; i < world_->social_messages.size(); ++i) {
+            const auto& msg = world_->social_messages[i];
+            social_list_->addItem(socialListLabel(msg.act_nr));
+            social_list_->item(social_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
+        }
+        for (std::size_t i = 0; i < world_->pose_entries.size(); ++i) {
+            const auto& pose = world_->pose_entries[i];
+            pose_list_->addItem(poseListLabel(pose.level));
+            pose_list_->item(pose_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
+        }
+        for (std::size_t i = 0; i < world_->guilds.size(); ++i) {
+            const auto& guild = world_->guilds[i];
+            guild_list_->addItem(guildListLabel(guild.base_filename));
+            guild_list_->item(guild_list_->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(i));
+        }
+        damage_empty_->setVisible(damage_list_->count() == 0);
+        social_empty_->setVisible(social_list_->count() == 0);
+        pose_empty_->setVisible(pose_list_->count() == 0);
+        guild_empty_->setVisible(guild_list_->count() == 0);
     }
 }
 
 void WorldDataEditorWidget::selectShop(const long vnum) {
+    if (!shop_list_) {
+        return;
+    }
     for (int row = 0; row < shop_list_->count(); ++row) {
         if (shop_list_->item(row)->data(Qt::UserRole).toLongLong() == vnum) {
             tabs_->setCurrentIndex(0);
@@ -155,9 +334,21 @@ void WorldDataEditorWidget::selectShop(const long vnum) {
 void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
+    layout->addWidget(makeWrappedLabel(
+        "Cos'è un negozio? È una riga di myst.shp / area.shp che collega tre cose DIVERSE: "
+        "il vnum del negozio (solo l'ID della riga nel file), il mob venditore (keeper, vnum di un mob "
+        "che deve esistere) e la stanza (room) dove il venditore è presente. "
+        "Vnum negozio ≠ vnum mob venditore ≠ vnum stanza."));
     shop_list_ = new QListWidget;
+    shop_empty_ = makeEmptyLabel(
+        "Nessun negozio in questo file. Usa «Nuovo negozio» (sopra la lista o in basso) per crearne uno.");
+    auto* shop_list_header = new QHBoxLayout;
+    shop_list_header->addWidget(new QLabel("Negozi nel file"), 1);
+    auto* add_top = new QPushButton("Nuovo negozio");
+    shop_list_header->addWidget(add_top);
     auto* form_host = new QWidget;
-    auto* form = new QFormLayout(form_host);
+    auto* form_layout = new QVBoxLayout(form_host);
+
     shop_vnum_ = new QSpinBox;
     shop_vnum_->setRange(0, 999999);
     shop_keeper_ = new QSpinBox;
@@ -197,29 +388,62 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
     shop_no_buy_ = makeSingleLineMudField();
     shop_no_cash1_ = makeSingleLineMudField();
     shop_no_cash2_ = makeSingleLineMudField();
-    form->addRow("Vnum:", shop_vnum_);
-    form->addRow("Keeper (mob):", shop_keeper_);
-    form->addRow("Room:", shop_room_);
-    form->addRow("With who:", shop_with_who_);
-    form->addRow("Profit buy:", shop_profit_buy_);
-    form->addRow("Profit sell:", shop_profit_sell_);
-    for (int i = 0; i < 5; ++i) {
-        form->addRow(QString("Producing %1:").arg(i + 1), shop_producing_[i]);
-        form->addRow(QString("Trade type %1:").arg(i + 1), shop_trade_[i]);
-    }
-    form->addRow("Temper 1/2:", shop_temper1_);
-    form->addRow("", shop_temper2_);
-    form->addRow("Open/Close 1:", shop_open1_);
-    form->addRow("", shop_close1_);
-    form->addRow("Open/Close 2:", shop_open2_);
-    form->addRow("", shop_close2_);
-    form->addRow("Message buy:", shop_msg_buy_);
-    form->addRow("Message sell:", shop_msg_sell_);
-    form->addRow("No such item 1:", shop_no_item1_);
-    form->addRow("No such item 2:", shop_no_item2_);
-    form->addRow("Do not buy:", shop_no_buy_);
-    form->addRow("Missing cash 1:", shop_no_cash1_);
-    form->addRow("Missing cash 2:", shop_no_cash2_);
+
+    auto* identity_box = new QGroupBox("Identità: negozio, venditore e stanza");
+    auto* identity_form = new QFormLayout(identity_box);
+    identity_form->addRow("Vnum negozio (ID riga):", shop_vnum_);
+    identity_form->addRow("Mob venditore (keeper):", shop_keeper_);
+    identity_form->addRow("Stanza del negozio (room):", shop_room_);
+    identity_form->addRow("Clienti esclusi (with_who):", shop_with_who_);
+    form_layout->addWidget(identity_box);
+
+    auto* price_box = new QGroupBox("Prezzi");
+    auto* price_form = new QFormLayout(price_box);
+    price_form->addRow("Moltiplicatore se il cliente compra (profit_buy):", shop_profit_buy_);
+    price_form->addRow("Moltiplicatore se il cliente vende (profit_sell):", shop_profit_sell_);
+    form_layout->addWidget(price_box);
+
+    auto* goods_box = new QGroupBox("Merce");
+    auto* goods_layout = new QVBoxLayout(goods_box);
+    goods_layout->addWidget(new QLabel("Oggetti prodotti/venduti (vnum oggetto, 0 = vuoto):"));
+    goods_layout->addLayout(makeSpinRow(shop_producing_));
+    goods_layout->addWidget(new QLabel("Tipi oggetto che il negozio compra (tipo oggetto, 0 = vuoto):"));
+    goods_layout->addLayout(makeSpinRow(shop_trade_));
+    form_layout->addWidget(goods_box);
+
+    auto* hours_box = new QGroupBox("Orari e temperamento");
+    auto* hours_form = new QFormLayout(hours_box);
+    auto* hours1 = new QHBoxLayout;
+    hours1->addWidget(shop_open1_);
+    hours1->addWidget(new QLabel("→"));
+    hours1->addWidget(shop_close1_);
+    hours1->addStretch();
+    auto* hours2 = new QHBoxLayout;
+    hours2->addWidget(shop_open2_);
+    hours2->addWidget(new QLabel("→"));
+    hours2->addWidget(shop_close2_);
+    hours2->addStretch();
+    auto* temper = new QHBoxLayout;
+    temper->addWidget(shop_temper1_);
+    temper->addWidget(shop_temper2_);
+    temper->addStretch();
+    hours_form->addRow("Fascia 1 (apre → chiude):", hours1);
+    hours_form->addRow("Fascia 2 (apre → chiude):", hours2);
+    hours_form->addRow("Temperamento (temper1 / temper2):", temper);
+    form_layout->addWidget(hours_box);
+
+    auto* msg_box = new QGroupBox("Messaggi del venditore");
+    auto* msg_form = new QFormLayout(msg_box);
+    msg_form->addRow("Quando il cliente compra:", shop_msg_buy_);
+    msg_form->addRow("Quando il cliente vende:", shop_msg_sell_);
+    msg_form->addRow("Oggetto non venduto (1):", shop_no_item1_);
+    msg_form->addRow("Oggetto non venduto (2):", shop_no_item2_);
+    msg_form->addRow("Non compra questo oggetto:", shop_no_buy_);
+    msg_form->addRow("Il negozio non ha soldi (1):", shop_no_cash1_);
+    msg_form->addRow("Il negozio non ha soldi (2):", shop_no_cash2_);
+    form_layout->addWidget(msg_box);
+    form_layout->addStretch();
+
     auto* buttons = new QHBoxLayout;
     auto* add = new QPushButton("Nuovo negozio");
     auto* apply = new QPushButton("Applica negozio");
@@ -228,10 +452,23 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
     buttons->addWidget(apply);
     buttons->addWidget(remove);
     buttons->addStretch();
+    connect(add_top, &QPushButton::clicked, this, &WorldDataEditorWidget::addShop);
     connect(add, &QPushButton::clicked, this, &WorldDataEditorWidget::addShop);
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applyShop);
     connect(remove, &QPushButton::clicked, this, &WorldDataEditorWidget::removeShop);
-    layout->addLayout(makeListEditorRow(shop_list_, wrapScroll(form_host)));
+
+    auto* list_column = new QWidget;
+    auto* list_column_layout = new QVBoxLayout(list_column);
+    list_column_layout->setContentsMargins(0, 0, 0, 0);
+    list_column_layout->addLayout(shop_list_header);
+    list_column_layout->addWidget(shop_list_, 1);
+    list_column_layout->addWidget(shop_empty_);
+    shop_list_->setMinimumWidth(220);
+
+    auto* row = new QHBoxLayout;
+    row->addWidget(list_column);
+    row->addWidget(wrapScroll(form_host), 1);
+    layout->addLayout(row, 1);
     layout->addLayout(buttons);
     connect(shop_list_, &QListWidget::currentRowChanged, this, [this](int) { onShopSelected(); });
     static_cast<QTabWidget*>(parent)->addTab(page, "Negozi");
@@ -240,12 +477,18 @@ void WorldDataEditorWidget::buildShopTab(QWidget* parent) {
 void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
-    layout->addWidget(new QLabel(
-        "Assegnazioni in myst.spe (file globale libreria). Formato riga: "
-        "M <vnum> <procedura> [parametri]. Salva la libreria per scrivere il file."));
+    layout->addWidget(makeWrappedLabel(
+        "Special proc (.spe): assegna una procedura C++ del server a un mob, oggetto o stanza. "
+        "Formato riga: M <vnum> <procedura> [parametri]. Salva per scrivere il file."));
     special_list_ = new QListWidget;
+    special_empty_ = makeEmptyLabel(
+        "Nessuna special proc in questo file. Usa «Nuova special proc» per aggiungerne una.");
     auto* form_host = new QWidget;
-    auto* form = new QFormLayout(form_host);
+    auto* form_group = new QGroupBox("Assegnazione");
+    auto* form = new QFormLayout(form_group);
+    auto* form_host_layout = new QVBoxLayout(form_host);
+    form_host_layout->addWidget(form_group);
+    form_host_layout->addStretch();
     special_type_ = new QComboBox;
     special_type_->addItem("m (mobile)", QVariant(QChar('m')));
     special_type_->addItem("o (oggetto)", QVariant(QChar('o')));
@@ -256,10 +499,10 @@ void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     special_procedure_->setEditable(true);
     special_procedure_->setInsertPolicy(QComboBox::NoInsert);
     special_params_ = new QLineEdit;
-    form->addRow("Tipo:", special_type_);
-    form->addRow("Vnum:", special_vnum_);
-    form->addRow("Procedure:", special_procedure_);
-    form->addRow("Params:", special_params_);
+    form->addRow("Tipo bersaglio:", special_type_);
+    form->addRow("Vnum bersaglio:", special_vnum_);
+    form->addRow("Procedura:", special_procedure_);
+    form->addRow("Parametri:", special_params_);
     auto* buttons = new QHBoxLayout;
     auto* add = new QPushButton("Nuova special proc");
     auto* apply = new QPushButton("Applica special proc");
@@ -271,7 +514,7 @@ void WorldDataEditorWidget::buildSpecialTab(QWidget* parent) {
     connect(add, &QPushButton::clicked, this, &WorldDataEditorWidget::addSpecial);
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applySpecial);
     connect(remove, &QPushButton::clicked, this, &WorldDataEditorWidget::removeSpecial);
-    layout->addLayout(makeListEditorRow(special_list_, wrapScroll(form_host)));
+    layout->addLayout(makeListEditorRow(special_list_, special_empty_, wrapScroll(form_host)), 1);
     layout->addLayout(buttons);
     connect(special_list_, &QListWidget::currentRowChanged, this, [this](int) { onSpecialSelected(); });
     connect(special_type_, &QComboBox::currentIndexChanged, this, [this](int) {
@@ -341,9 +584,14 @@ void WorldDataEditorWidget::refreshSpecialProcedureChoices() {
 void WorldDataEditorWidget::buildDamageTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
+    layout->addWidget(makeWrappedLabel(
+        "Messaggi di combattimento (myst.dam), uno per tipo di attacco. Per ogni esito (morte, mancato, "
+        "colpito, dio) ci sono tre testi: per chi attacca, per la vittima e per la stanza."));
     damage_list_ = new QListWidget;
+    damage_empty_ = makeEmptyLabel(
+        "Nessun messaggio di danno caricato (myst.dam assente o vuoto).");
     auto* form_host = new QWidget;
-    auto* form = new QFormLayout(form_host);
+    auto* host_layout = new QVBoxLayout(form_host);
     damage_attack_type_ = new QSpinBox;
     damage_attack_type_->setRange(0, 999);
     damage_die_attacker_ = makeMultiLineMudField();
@@ -358,22 +606,30 @@ void WorldDataEditorWidget::buildDamageTab(QWidget* parent) {
     damage_god_attacker_ = makeMultiLineMudField();
     damage_god_victim_ = makeMultiLineMudField();
     damage_god_room_ = makeMultiLineMudField();
-    form->addRow("Attack type:", damage_attack_type_);
-    form->addRow("Die attacker:", damage_die_attacker_);
-    form->addRow("Die victim:", damage_die_victim_);
-    form->addRow("Die room:", damage_die_room_);
-    form->addRow("Miss attacker:", damage_miss_attacker_);
-    form->addRow("Miss victim:", damage_miss_victim_);
-    form->addRow("Miss room:", damage_miss_room_);
-    form->addRow("Hit attacker:", damage_hit_attacker_);
-    form->addRow("Hit victim:", damage_hit_victim_);
-    form->addRow("Hit room:", damage_hit_room_);
-    form->addRow("God attacker:", damage_god_attacker_);
-    form->addRow("God victim:", damage_god_victim_);
-    form->addRow("God room:", damage_god_room_);
+
+    auto* id_box = new QGroupBox("Tipo di attacco");
+    auto* id_form = new QFormLayout(id_box);
+    id_form->addRow("Numero tipo attacco (attack_type):", damage_attack_type_);
+    host_layout->addWidget(id_box);
+
+    const auto add_group = [&](const QString& title, nebbie::qt::MudColorTextEdit* attacker,
+                               nebbie::qt::MudColorTextEdit* victim, nebbie::qt::MudColorTextEdit* room) {
+        auto* box = new QGroupBox(title);
+        auto* form = new QFormLayout(box);
+        form->addRow("A chi attacca:", attacker);
+        form->addRow("Alla vittima:", victim);
+        form->addRow("Alla stanza:", room);
+        host_layout->addWidget(box);
+    };
+    add_group("Morte", damage_die_attacker_, damage_die_victim_, damage_die_room_);
+    add_group("Colpo mancato", damage_miss_attacker_, damage_miss_victim_, damage_miss_room_);
+    add_group("Colpo a segno", damage_hit_attacker_, damage_hit_victim_, damage_hit_room_);
+    add_group("Colpo di un dio", damage_god_attacker_, damage_god_victim_, damage_god_room_);
+    host_layout->addStretch();
+
     auto* apply = new QPushButton("Applica messaggi danno");
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applyDamage);
-    layout->addLayout(makeListEditorRow(damage_list_, wrapScroll(form_host)));
+    layout->addLayout(makeListEditorRow(damage_list_, damage_empty_, wrapScroll(form_host)), 1);
     layout->addWidget(apply);
     connect(damage_list_, &QListWidget::currentRowChanged, this, [this](int) { onDamageSelected(); });
     static_cast<QTabWidget*>(parent)->addTab(page, "Danni");
@@ -382,9 +638,13 @@ void WorldDataEditorWidget::buildDamageTab(QWidget* parent) {
 void WorldDataEditorWidget::buildSocialTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
+    layout->addWidget(makeWrappedLabel(
+        "Social (myst.act): testi dei comandi emotivi (es. «sorridi»). Ogni social ha testi per "
+        "quando non si indica nessuno, quando il bersaglio c'è, non c'è, o è se stessi."));
     social_list_ = new QListWidget;
+    social_empty_ = makeEmptyLabel("Nessun social caricato (myst.act assente o vuoto).");
     auto* form_host = new QWidget;
-    auto* form = new QFormLayout(form_host);
+    auto* host_layout = new QVBoxLayout(form_host);
     social_act_nr_ = new QSpinBox;
     social_act_nr_->setRange(0, 9999);
     social_hide_ = new QSpinBox;
@@ -399,20 +659,38 @@ void WorldDataEditorWidget::buildSocialTab(QWidget* parent) {
     social_not_found_ = makeMultiLineMudField(64);
     social_char_auto_ = makeMultiLineMudField(64);
     social_others_auto_ = makeMultiLineMudField(64);
-    form->addRow("act_nr:", social_act_nr_);
-    form->addRow("hide:", social_hide_);
-    form->addRow("min_victim_position:", social_min_pos_);
-    form->addRow("char_no_arg:", social_char_no_arg_);
-    form->addRow("others_no_arg:", social_others_no_arg_);
-    form->addRow("char_found:", social_char_found_);
-    form->addRow("others_found:", social_others_found_);
-    form->addRow("vict_found:", social_vict_found_);
-    form->addRow("not_found:", social_not_found_);
-    form->addRow("char_auto:", social_char_auto_);
-    form->addRow("others_auto:", social_others_auto_);
+
+    auto* id_box = new QGroupBox("Comando");
+    auto* id_form = new QFormLayout(id_box);
+    id_form->addRow("Numero comando (act_nr):", social_act_nr_);
+    id_form->addRow("Nascondi azione (hide, 0/1):", social_hide_);
+    id_form->addRow("Posizione minima vittima:", social_min_pos_);
+    host_layout->addWidget(id_box);
+
+    auto* no_arg_box = new QGroupBox("Senza bersaglio");
+    auto* no_arg_form = new QFormLayout(no_arg_box);
+    no_arg_form->addRow("A chi lo esegue:", social_char_no_arg_);
+    no_arg_form->addRow("Agli altri nella stanza:", social_others_no_arg_);
+    host_layout->addWidget(no_arg_box);
+
+    auto* found_box = new QGroupBox("Con bersaglio presente");
+    auto* found_form = new QFormLayout(found_box);
+    found_form->addRow("A chi lo esegue:", social_char_found_);
+    found_form->addRow("Agli altri nella stanza:", social_others_found_);
+    found_form->addRow("Alla vittima:", social_vict_found_);
+    host_layout->addWidget(found_box);
+
+    auto* other_box = new QGroupBox("Bersaglio assente o se stessi");
+    auto* other_form = new QFormLayout(other_box);
+    other_form->addRow("Bersaglio non trovato:", social_not_found_);
+    other_form->addRow("Su se stessi — a chi lo esegue:", social_char_auto_);
+    other_form->addRow("Su se stessi — agli altri:", social_others_auto_);
+    host_layout->addWidget(other_box);
+    host_layout->addStretch();
+
     auto* apply = new QPushButton("Applica social");
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applySocial);
-    layout->addLayout(makeListEditorRow(social_list_, wrapScroll(form_host)));
+    layout->addLayout(makeListEditorRow(social_list_, social_empty_, wrapScroll(form_host)), 1);
     layout->addWidget(apply);
     connect(social_list_, &QListWidget::currentRowChanged, this, [this](int) { onSocialSelected(); });
     static_cast<QTabWidget*>(parent)->addTab(page, "Social");
@@ -421,21 +699,32 @@ void WorldDataEditorWidget::buildSocialTab(QWidget* parent) {
 void WorldDataEditorWidget::buildPoseTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
+    layout->addWidget(makeWrappedLabel(
+        "Pose (myst.pos): messaggi del comando «posa», per livello e per classe (0-3). "
+        "Ogni classe ha un testo per chi posa e uno per gli altri nella stanza."));
     pose_list_ = new QListWidget;
+    pose_empty_ = makeEmptyLabel("Nessuna posa caricata (myst.pos assente o vuoto).");
     auto* form_host = new QWidget;
-    auto* form = new QFormLayout(form_host);
+    auto* host_layout = new QVBoxLayout(form_host);
     pose_level_ = new QSpinBox;
     pose_level_->setRange(0, 60);
+    auto* level_box = new QGroupBox("Livello");
+    auto* level_form = new QFormLayout(level_box);
+    level_form->addRow("Livello minimo:", pose_level_);
+    host_layout->addWidget(level_box);
     for (int i = 0; i < 4; ++i) {
         pose_poser_[i] = makeMultiLineMudField(56);
         pose_room_[i] = makeMultiLineMudField(56);
-        form->addRow(QString("Poser class %1:").arg(i), pose_poser_[i]);
-        form->addRow(QString("Room class %1:").arg(i), pose_room_[i]);
+        auto* box = new QGroupBox(QString("Classe %1").arg(i));
+        auto* form = new QFormLayout(box);
+        form->addRow("A chi posa:", pose_poser_[i]);
+        form->addRow("Agli altri nella stanza:", pose_room_[i]);
+        host_layout->addWidget(box);
     }
-    form->addRow("Level:", pose_level_);
+    host_layout->addStretch();
     auto* apply = new QPushButton("Applica pose");
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applyPose);
-    layout->addLayout(makeListEditorRow(pose_list_, wrapScroll(form_host)));
+    layout->addLayout(makeListEditorRow(pose_list_, pose_empty_, wrapScroll(form_host)), 1);
     layout->addWidget(apply);
     connect(pose_list_, &QListWidget::currentRowChanged, this, [this](int) { onPoseSelected(); });
     static_cast<QTabWidget*>(parent)->addTab(page, "Pose");
@@ -444,9 +733,13 @@ void WorldDataEditorWidget::buildPoseTab(QWidget* parent) {
 void WorldDataEditorWidget::buildGuildTab(QWidget* parent) {
     auto* page = new QWidget;
     auto* layout = new QVBoxLayout(page);
+    layout->addWidget(makeWrappedLabel(
+        "Gilde (myst.gui): per ogni gilda il guardiano che blocca un'uscita, i banchieri e il libro "
+        "degli iscritti. I vnum sono di mob, stanze e oggetti già esistenti."));
     guild_list_ = new QListWidget;
+    guild_empty_ = makeEmptyLabel("Nessuna gilda caricata (myst.gui assente o vuoto).");
     auto* form_host = new QWidget;
-    auto* form = new QFormLayout(form_host);
+    auto* host_layout = new QVBoxLayout(form_host);
     guild_name_ = makeSingleLineMudField();
     guild_guard_mob_ = new QSpinBox;
     guild_guard_mob_->setRange(0, 999999);
@@ -464,18 +757,32 @@ void WorldDataEditorWidget::buildGuildTab(QWidget* parent) {
     guild_bank_xp_room_->setRange(0, 999999);
     guild_member_book_ = new QSpinBox;
     guild_member_book_->setRange(0, 999999);
-    form->addRow("Nome file:", guild_name_);
-    form->addRow("Guard mob:", guild_guard_mob_);
-    form->addRow("Guard room:", guild_guard_room_);
-    form->addRow("Guard dir:", guild_guard_dir_);
-    form->addRow("Banker mob:", guild_banker_mob_);
-    form->addRow("Bank room:", guild_bank_room_);
-    form->addRow("XP banker mob:", guild_banker_xp_mob_);
-    form->addRow("XP bank room:", guild_bank_xp_room_);
-    form->addRow("Member book obj:", guild_member_book_);
+
+    auto* name_box = new QGroupBox("Gilda");
+    auto* name_form = new QFormLayout(name_box);
+    name_form->addRow("Nome file gilda:", guild_name_);
+    name_form->addRow("Oggetto libro iscritti (vnum):", guild_member_book_);
+    host_layout->addWidget(name_box);
+
+    auto* guard_box = new QGroupBox("Guardiano");
+    auto* guard_form = new QFormLayout(guard_box);
+    guard_form->addRow("Mob guardiano (vnum):", guild_guard_mob_);
+    guard_form->addRow("Stanza del guardiano (vnum):", guild_guard_room_);
+    guard_form->addRow("Direzione bloccata (0-5):", guild_guard_dir_);
+    host_layout->addWidget(guard_box);
+
+    auto* bank_box = new QGroupBox("Banca e banca XP");
+    auto* bank_form = new QFormLayout(bank_box);
+    bank_form->addRow("Mob banchiere (vnum):", guild_banker_mob_);
+    bank_form->addRow("Stanza banca (vnum):", guild_bank_room_);
+    bank_form->addRow("Mob banchiere XP (vnum):", guild_banker_xp_mob_);
+    bank_form->addRow("Stanza banca XP (vnum):", guild_bank_xp_room_);
+    host_layout->addWidget(bank_box);
+    host_layout->addStretch();
+
     auto* apply = new QPushButton("Applica gilda");
     connect(apply, &QPushButton::clicked, this, &WorldDataEditorWidget::applyGuild);
-    layout->addLayout(makeListEditorRow(guild_list_, wrapScroll(form_host)));
+    layout->addLayout(makeListEditorRow(guild_list_, guild_empty_, wrapScroll(form_host)), 1);
     layout->addWidget(apply);
     connect(guild_list_, &QListWidget::currentRowChanged, this, [this](int) { onGuildSelected(); });
     static_cast<QTabWidget*>(parent)->addTab(page, "Gilde");
@@ -538,8 +845,13 @@ void WorldDataEditorWidget::addShop() {
 
     bool ok = false;
     const int suggested = static_cast<int>(nebbie::suggest_next_shop_vnum(*world_));
-    const int vnum =
-        QInputDialog::getInt(this, "Nuovo negozio", "Vnum negozio:", suggested, 1, 999999, 1, &ok);
+    const int vnum = QInputDialog::getInt(
+        this, "Nuovo negozio",
+        QString("Primo vnum negozio disponibile (ID riga in .shp, non il mob venditore).\n"
+                "Suggerito: %1\n"
+                "Dopo la creazione imposta mob venditore e stanza nel form.")
+            .arg(suggested),
+        suggested, 1, 999999, 1, &ok);
     if (!ok) {
         return;
     }
@@ -626,7 +938,7 @@ void WorldDataEditorWidget::applyShop() {
     shop->missing_cash1 = shop_no_cash1_->storageText().toStdString();
     shop->missing_cash2 = shop_no_cash2_->storageText().toStdString();
     item->setData(Qt::UserRole, static_cast<qlonglong>(shop->vnum));
-    item->setText(QString("#%1 keeper=%2 room=%3").arg(shop->vnum).arg(shop->keeper).arg(shop->in_room));
+    item->setText(shopListLabel(shop->vnum, shop->keeper, shop->in_room));
     emit modified();
 }
 
@@ -722,7 +1034,7 @@ void WorldDataEditorWidget::removeSpecial() {
     const auto answer = QMessageBox::question(
         this,
         "Rimuovi special proc",
-        QString("Rimuovere %1 da myst.spe?").arg(label),
+        QString("Rimuovere la special proc «%1»?").arg(label),
         QMessageBox::Yes | QMessageBox::No,
         QMessageBox::No);
     if (answer != QMessageBox::Yes) {
@@ -795,7 +1107,7 @@ void WorldDataEditorWidget::applyDamage() {
     msg.god_attacker = textFromEdit(damage_god_attacker_).toStdString();
     msg.god_victim = textFromEdit(damage_god_victim_).toStdString();
     msg.god_room = textFromEdit(damage_god_room_).toStdString();
-    item->setText(QString("attack_type %1").arg(msg.attack_type));
+    item->setText(damageListLabel(msg.attack_type));
     emit modified();
 }
 
@@ -849,7 +1161,7 @@ void WorldDataEditorWidget::applySocial() {
     msg.not_found = textFromEdit(social_not_found_).toStdString();
     msg.char_auto = textFromEdit(social_char_auto_).toStdString();
     msg.others_auto = textFromEdit(social_others_auto_).toStdString();
-    item->setText(QString("act_nr %1").arg(msg.act_nr));
+    item->setText(socialListLabel(msg.act_nr));
     emit modified();
 }
 
@@ -891,7 +1203,7 @@ void WorldDataEditorWidget::applyPose() {
         pose.poser_msg[i] = textFromEdit(pose_poser_[i]).toStdString();
         pose.room_msg[i] = textFromEdit(pose_room_[i]).toStdString();
     }
-    item->setText(QString("level %1").arg(pose.level));
+    item->setText(poseListLabel(pose.level));
     emit modified();
 }
 
@@ -941,42 +1253,49 @@ void WorldDataEditorWidget::applyGuild() {
     guild.banker_xp_mob = guild_banker_xp_mob_->value();
     guild.bank_xp_room = guild_bank_xp_room_->value();
     guild.member_book_obj = guild_member_book_->value();
-    item->setText(QString::fromStdString(guild.base_filename));
+    item->setText(guildListLabel(guild.base_filename));
     emit modified();
 }
 
 nebbie::qt::MudFieldList WorldDataEditorWidget::mudFields() const {
-    nebbie::qt::MudFieldList fields = {shop_msg_buy_,
-                                       shop_msg_sell_,
-                                       shop_no_item1_,
-                                       shop_no_item2_,
-                                       shop_no_buy_,
-                                       shop_no_cash1_,
-                                       shop_no_cash2_,
-                                       damage_die_attacker_,
-                                       damage_die_victim_,
-                                       damage_die_room_,
-                                       damage_miss_attacker_,
-                                       damage_miss_victim_,
-                                       damage_miss_room_,
-                                       damage_hit_attacker_,
-                                       damage_hit_victim_,
-                                       damage_hit_room_,
-                                       damage_god_attacker_,
-                                       damage_god_victim_,
-                                       damage_god_room_,
-                                       social_char_no_arg_,
-                                       social_others_no_arg_,
-                                       social_char_found_,
-                                       social_others_found_,
-                                       social_vict_found_,
-                                       social_not_found_,
-                                       social_char_auto_,
-                                       social_others_auto_,
-                                       guild_name_};
+    nebbie::qt::MudFieldList candidates = {shop_msg_buy_,
+                                           shop_msg_sell_,
+                                           shop_no_item1_,
+                                           shop_no_item2_,
+                                           shop_no_buy_,
+                                           shop_no_cash1_,
+                                           shop_no_cash2_,
+                                           damage_die_attacker_,
+                                           damage_die_victim_,
+                                           damage_die_room_,
+                                           damage_miss_attacker_,
+                                           damage_miss_victim_,
+                                           damage_miss_room_,
+                                           damage_hit_attacker_,
+                                           damage_hit_victim_,
+                                           damage_hit_room_,
+                                           damage_god_attacker_,
+                                           damage_god_victim_,
+                                           damage_god_room_,
+                                           social_char_no_arg_,
+                                           social_others_no_arg_,
+                                           social_char_found_,
+                                           social_others_found_,
+                                           social_vict_found_,
+                                           social_not_found_,
+                                           social_char_auto_,
+                                           social_others_auto_,
+                                           guild_name_};
     for (int i = 0; i < 4; ++i) {
-        fields.push_back(pose_poser_[i]);
-        fields.push_back(pose_room_[i]);
+        candidates.push_back(pose_poser_[i]);
+        candidates.push_back(pose_room_[i]);
+    }
+    // Only fields built for this scope exist; skip the others.
+    nebbie::qt::MudFieldList fields;
+    for (auto* field : candidates) {
+        if (field) {
+            fields.push_back(field);
+        }
     }
     return fields;
 }

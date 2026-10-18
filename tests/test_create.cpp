@@ -45,6 +45,22 @@ int main(int argc, char** argv) {
             throw std::runtime_error("create_shop duplicate should fail");
         }
 
+        const std::size_t zones_before = world.zones.size();
+        const int next_zone = nebbie::suggest_next_zone_num(world);
+        if (next_zone <= 0) {
+            throw std::runtime_error("suggest_next_zone_num failed");
+        }
+        if (!nebbie::create_zone(world, next_zone)) {
+            throw std::runtime_error("create_zone failed");
+        }
+        if (nebbie::create_zone(world, next_zone)) {
+            throw std::runtime_error("create_zone duplicate should fail");
+        }
+        const nebbie::Zone* new_zone = nebbie::find_zone(world, next_zone);
+        if (world.zones.size() != zones_before + 1 || !new_zone || new_zone->top <= new_zone->bottom) {
+            throw std::runtime_error("create_zone result invalid");
+        }
+
         nebbie::ExitEdit exit;
         exit.direction = 1;
         exit.to_room = 3002;

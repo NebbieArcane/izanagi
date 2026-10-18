@@ -11,18 +11,36 @@ class QSpinBox;
 class QDoubleSpinBox;
 class QComboBox;
 class QTabWidget;
+class QLabel;
+
+namespace nebbie {
+struct LibContext;
+}
 
 namespace nebbie::qt {
 class MudColorTextEdit;
 }
 
+/** Which tables a WorldDataEditorWidget instance shows (used as separate main tabs). */
+enum class WorldDataScope {
+    /** Solo negozi (.shp), file di area. */
+    Shops,
+    /** Solo special proc (.spe), file di area. */
+    Specials,
+    /** Social (act), Danni (dam), Pose (pos), Gilde (gui): tabelle monolitiche globali. */
+    GlobalTables,
+};
+
 class WorldDataEditorWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit WorldDataEditorWidget(QWidget* parent = nullptr);
+    explicit WorldDataEditorWidget(WorldDataScope scope, QWidget* parent = nullptr);
 
+    WorldDataScope scope() const { return scope_; }
     void setWorld(nebbie::World* world);
+    /** Optional: show the active file names (from LibContext paths) in the banner. */
+    void setLibContext(const nebbie::LibContext* context);
     void refresh();
 
     void selectShop(long vnum);
@@ -53,6 +71,7 @@ private slots:
     void applyGuild();
 
 private:
+    void updateBanner();
     void buildShopTab(QWidget* parent);
     void buildSpecialTab(QWidget* parent);
     void buildDamageTab(QWidget* parent);
@@ -68,7 +87,17 @@ private:
 
     nebbie::Shop* findShop(long vnum);
 
+    WorldDataScope scope_ = WorldDataScope::Shops;
     nebbie::World* world_ = nullptr;
+    const nebbie::LibContext* context_ = nullptr;
+    QLabel* banner_ = nullptr;
+    QLabel* files_label_ = nullptr;
+    QLabel* shop_empty_ = nullptr;
+    QLabel* special_empty_ = nullptr;
+    QLabel* damage_empty_ = nullptr;
+    QLabel* social_empty_ = nullptr;
+    QLabel* pose_empty_ = nullptr;
+    QLabel* guild_empty_ = nullptr;
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
 

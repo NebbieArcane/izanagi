@@ -79,6 +79,20 @@ std::vector<std::pair<int, std::string>> exit_direction_choices() {
     return choices;
 }
 
+std::vector<std::pair<int, std::string>> exit_open_cmd_choices() {
+    // cmd id values from NebbieArcane/Server src/cmdid.hpp + interpreter.cpp (do_open_exit).
+    return {
+        {-1, "open (default) — nessun comando speciale"},
+        {224, "pull (224) — tirare"},
+        {371, "twist (371) — svitare"},
+        {372, "turn (372) — girare"},
+        {373, "lift (373) — sollevare"},
+        {374, "push (374) — spingere"},
+        {495, "dig (495) — scavare"},
+        {496, "cut/scythe (496) — tagliare"},
+    };
+}
+
 std::string room_sector_name(const int sector_type) {
     const std::size_t count = sizeof(kSectorTypes) / sizeof(kSectorTypes[0]);
     if (sector_type >= 0 && static_cast<std::size_t>(sector_type) < count) {
@@ -93,6 +107,18 @@ std::string exit_direction_label(const int direction) {
         return kExitDirs[direction];
     }
     return "dir #" + std::to_string(direction);
+}
+
+std::string exit_open_cmd_label(const int open_cmd) {
+    for (const auto& [value, label] : exit_open_cmd_choices()) {
+        if (value == open_cmd) {
+            return label;
+        }
+    }
+    if (open_cmd < 0) {
+        return "open (default)";
+    }
+    return "cmd #" + std::to_string(open_cmd);
 }
 
 bool room_sector_uses_river(const int sector_type) {

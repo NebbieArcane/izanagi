@@ -17,6 +17,8 @@ struct AreeAreaInfo {
     std::filesystem::path path;
     int zone_num = 0;
     std::string zone_name;
+    /** Inclusive vnum range for this area (bottom derived from workspace zone order). */
+    int bottom_vnum = 0;
     int top_vnum = 0;
 };
 

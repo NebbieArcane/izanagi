@@ -92,6 +92,8 @@ private slots:
     void createRoom();
     void createMob();
     void createObject();
+    void createZone();
+    void refreshWorldDataEditors();
     void onRoomSearchChanged(const QString& text);
     void onMobSearchChanged(const QString& text);
     void onObjSearchChanged(const QString& text);
@@ -206,6 +208,7 @@ private:
     QPushButton* mob_apply_button_ = nullptr;
     QPushButton* obj_apply_button_ = nullptr;
     QPushButton* zone_apply_button_ = nullptr;
+    QPushButton* zone_create_button_ = nullptr;
 
     QListWidget* room_list_ = nullptr;
     QLineEdit* room_search_ = nullptr;
@@ -219,7 +222,7 @@ private:
     QLineEdit* obj_search_ = nullptr;
     ObjEditorWidget* obj_editor_ = nullptr;
 
-    QListWidget* zone_list_ = nullptr;
+    QTableWidget* zone_list_ = nullptr;
     ZoneEditorWidget* zone_editor_ = nullptr;
 
     nebbie::SessionConfig session_config_;
@@ -230,8 +233,12 @@ private:
     std::vector<nebbie::ValidationIssue> validation_issues_;
     QWidget* validation_tab_ = nullptr;
     QWidget* zone_tab_ = nullptr;
-    QWidget* world_data_tab_ = nullptr;
-    WorldDataEditorWidget* world_data_editor_ = nullptr;
+    QWidget* shops_tab_ = nullptr;
+    QWidget* specials_tab_ = nullptr;
+    QWidget* global_tables_tab_ = nullptr;
+    WorldDataEditorWidget* shops_editor_ = nullptr;
+    WorldDataEditorWidget* specials_editor_ = nullptr;
+    WorldDataEditorWidget* global_tables_editor_ = nullptr;
     QWidget* map_tab_ = nullptr;
     QTabWidget* map_tabs_ = nullptr;
     int selected_world_zone_ = -1;
