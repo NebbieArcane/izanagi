@@ -111,12 +111,14 @@ log "--- macOS (.dmg) ---"
 if [[ "$(uname -s)" == "Darwin" ]]; then
   if command -v hdiutil >/dev/null 2>&1; then
     run_cmd "macos-package-dmg" "${ROOT}/scripts/package-dmg.sh" || true
-    DMG="$(ls -1 "${DIST}"/nebbie-editor_*_macos.dmg 2>/dev/null | head -1 || true)"
+    DMG="$(ls -1 "${DIST}"/izanagi_*_macos.dmg 2>/dev/null | head -1 || true)"
     if [[ -n "${DMG}" ]]; then
       MOUNT="${DIST}/dmg-mount"
       mkdir -p "${MOUNT}"
       run_cmd "macos-dmg-attach" hdiutil attach "${DMG}" -mountpoint "${MOUNT}" -nobrowse -readonly || true
-      if [[ -d "${MOUNT}/nebbieedit.app" ]]; then
+      if [[ -d "${MOUNT}/Izanagi.app" \
+            && -x "${MOUNT}/Izanagi.app/Contents/MacOS/nebbiedit" \
+            && -d "${MOUNT}/Izanagi.app/Contents/Resources/sample-mudroot/lib" ]]; then
         pass "macos-dmg-contains-app"
       else
         fail "macos-dmg-missing-app"
@@ -130,7 +132,9 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
   fi
 else
   skip "macos-dmg (requires macOS runner)"
-  if bash -n "${ROOT}/scripts/package-dmg.sh" 2>"${LOG_DIR}/macos-script-syntax.log"; then
+  if bash -n "${ROOT}/scripts/package-dmg.sh" \
+        && bash -n "${ROOT}/scripts/macos-embed-app-extras.sh" \
+        2>"${LOG_DIR}/macos-script-syntax.log"; then
     pass "macos-package-dmg-script-syntax"
   else
     fail "macos-package-dmg-script-syntax"

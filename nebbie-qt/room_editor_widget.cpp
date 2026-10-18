@@ -3,6 +3,7 @@
 #include "flag_group_widget.hpp"
 #include "mud_color_widgets.hpp"
 #include "nebbie/mob_catalog.hpp"
+#include "nebbie/mud_text.hpp"
 #include "nebbie/room_catalog.hpp"
 #include "room_text_monitors.hpp"
 
@@ -145,6 +146,12 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     text_form->addRow("", description_line_info_);
     text_form->addRow("", description_ascii_info_);
     text_layout->addLayout(text_form);
+    auto* fix_ascii_btn = new QPushButton("Correggi non-ASCII (accenti e apostrofi)");
+    fix_ascii_btn->setToolTip(
+        "Sostituisce a'/e'/i'/o'/u' (e maiuscole) e gli apostrofi tipografici con l'apice ASCII '. "
+        "Vale per nome, descrizione, extra, uscite e campi luce di questa stanza.");
+    text_layout->addWidget(fix_ascii_btn);
+    connect(fix_ascii_btn, &QPushButton::clicked, this, [this]() { normalizeMudAsciiAllFields(); });
     root->addWidget(text_section_);
     root->addWidget(makeSectionSeparator());
 
@@ -487,6 +494,77 @@ void RoomEditorWidget::hookMudField(nebbie::qt::MudColorTextEdit* field) {
 nebbie::qt::MudColorTextEdit* RoomEditorWidget::focusedMudField() const {
     return nebbie::qt::focusedMudField(
         {name_, description_, extra_desc_description_, exit_description_, bright_at_night_, bright_at_day_});
+}
+
+bool RoomEditorWidget::normalizeMudAsciiAllFields() {
+    const auto mud_ascii = [](const QString& text) {
+        return QString::fromStdString(nebbie::normalize_mud_ascii_text(text.toStdString()));
+    };
+
+    bool changed = false;
+    const auto fix_field = [&](nebbie::qt::MudColorTextEdit* field) {
+        if (field && field->normalizeMudAsciiText()) {
+            changed = true;
+        }
+    };
+    fix_field(name_);
+    fix_field(description_);
+    fix_field(extra_desc_description_);
+    fix_field(exit_description_);
+    fix_field(bright_at_night_);
+    fix_field(bright_at_day_);
+
+    const QString keyword_fixed = mud_ascii(extra_desc_keyword_->text());
+    if (keyword_fixed != extra_desc_keyword_->text()) {
+        extra_desc_keyword_->setText(keyword_fixed);
+        changed = true;
+    }
+    const QString exit_keyword_fixed = mud_ascii(exit_keyword_->text());
+    if (exit_keyword_fixed != exit_keyword_->text()) {
+        exit_keyword_->setText(exit_keyword_fixed);
+        changed = true;
+    }
+
+    // Push normalized form into the selected list rows, then normalize every stored row.
+    if (auto* item = extra_desc_list_->currentItem()) {
+        item->setData(Qt::UserRole, extra_desc_keyword_->text());
+        item->setData(Qt::UserRole + 1, extra_desc_description_->storageText());
+        item->setText(extra_desc_keyword_->text().isEmpty() ? QStringLiteral("(no keyword)")
+                                                            : extra_desc_keyword_->text());
+    }
+    for (int i = 0; i < extra_desc_list_->count(); ++i) {
+        auto* item = extra_desc_list_->item(i);
+        const QString kw = mud_ascii(item->data(Qt::UserRole).toString());
+        const QString desc = mud_ascii(item->data(Qt::UserRole + 1).toString());
+        if (kw != item->data(Qt::UserRole).toString()
+            || desc != item->data(Qt::UserRole + 1).toString()) {
+            item->setData(Qt::UserRole, kw);
+            item->setData(Qt::UserRole + 1, desc);
+            item->setText(kw.isEmpty() ? QStringLiteral("(no keyword)") : kw);
+            changed = true;
+        }
+    }
+
+    if (exit_to_room_->value() > 0) {
+        addOrUpdateExit();
+    }
+    for (int i = 0; i < exit_list_->count(); ++i) {
+        auto* item = exit_list_->item(i);
+        nebbie::Exit exit = readExitItem(item);
+        const std::string desc = nebbie::normalize_mud_ascii_text(exit.description);
+        const std::string keyword = nebbie::normalize_mud_ascii_text(exit.keyword);
+        if (desc != exit.description || keyword != exit.keyword) {
+            exit.description = desc;
+            exit.keyword = keyword;
+            writeExitItem(item, exit);
+            changed = true;
+        }
+    }
+
+    if (changed) {
+        updateTextMonitors();
+    }
+    return changed;
 }
 
 void RoomEditorWidget::updateTextMonitors() {

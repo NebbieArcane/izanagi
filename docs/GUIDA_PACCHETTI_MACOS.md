@@ -25,7 +25,7 @@ Ideale quando sviluppi sul **NUC** e sul Mac vuoi solo il pacchetto.
    - **Izanagi (release packages)** → **Run workflow** → branch `main` → **Run workflow**.
 4. Apri la run completata (tutti i job verdi, incluso **macos-dmg**).
 5. Sezione **Artifacts** → scarica l’artifact macOS (es. `nebbie-editor-macos-dmg` o `nebbie-editor-dmg-macos`).
-6. Sul Mac: decomprimi se necessario, apri `izanagi_*_macos.dmg`, trascina **Izanagi.app** in Applicazioni.
+6. Sul Mac: decomprimi se necessario, apri `izanagi_*_macos.dmg`, trascina **solo Izanagi.app** in Applicazioni (CLI e mondo di esempio sono già dentro il bundle).
 
 ### Da terminale Mac (senza clone del progetto)
 
@@ -101,11 +101,16 @@ xattr -cr /Applications/Izanagi.app
 
 ## Contenuto del DMG
 
-- `Izanagi.app`
-- `bin/nebbiedit`
-- `sample-mudroot/`
-- collegamento **Applications**
-- `LEGGIMI.txt`
+- `Izanagi.app` — include GUI, CLI (`Contents/MacOS/nebbiedit`) e `Contents/Resources/sample-mudroot`
+- collegamento **Applications** (trascina l’app qui)
+- `LEGGIMI.txt` (istruzioni; non va copiato)
+
+Dopo l’installazione: **File → Apri mondo di esempio**, oppure da Terminale:
+
+```bash
+/Applications/Izanagi.app/Contents/MacOS/nebbiedit info \
+  /Applications/Izanagi.app/Contents/Resources/sample-mudroot/lib
+```
 
 ---
 

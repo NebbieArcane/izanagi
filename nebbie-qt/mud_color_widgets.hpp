@@ -23,6 +23,8 @@ public:
 
     void insertColorCode(const QString& code);
     void pastePlainText();
+    /** Accents → a'/e'/… ; curly apostrophes → ' ; returns true if storage changed. */
+    bool normalizeMudAsciiText();
 
 signals:
     void storageTextChanged(const QString& text);
@@ -37,10 +39,13 @@ private slots:
     void onContentsChanged(int position, int charsRemoved, int charsAdded);
 
 private:
+    void replaceSelectionWithStorageText(const QString& text);
     void insertStorageTextAtCursor(const QString& text);
     void rebuildDocument(int preferred_storage_cursor = -1);
     void updateRulerState();
+    void paintNewlineGuides(QPainter& painter) const;
     QTextCharFormat formatForState(const MudDisplayColorState& state) const;
+    QTextCharFormat formatForDisplayedChar(const MudDisplayColorState& state, QChar ch) const;
     MudDisplayColorState color_at_storage_position(int storage_pos) const;
     QString tooltipForStoragePosition(int storage_pos) const;
 

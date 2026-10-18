@@ -269,9 +269,20 @@ void save_lib_with_backup(const World& world,
     backup_lib_on_disk(context, backup_dir, "pre-save");
     prune_versions(storage_root, SessionConfig{}.max_versions);
 
+    // Save through a root override, then copy preserve-state back. Otherwise the next
+    // Aree preserve save (empty dirty set) would rewrite the live files from stale
+    // English source blocks captured at load time.
     LibContext live_context = context;
     live_context.root = lib_root;
     save_lib(world, live_context, progress);
+    context.wld_source_blocks_by_file = std::move(live_context.wld_source_blocks_by_file);
+    context.mob_source_blocks_by_file = std::move(live_context.mob_source_blocks_by_file);
+    context.obj_source_blocks_by_file = std::move(live_context.obj_source_blocks_by_file);
+    context.dirty_room_vnums = std::move(live_context.dirty_room_vnums);
+    context.dirty_mobile_vnums = std::move(live_context.dirty_mobile_vnums);
+    context.dirty_object_vnums = std::move(live_context.dirty_object_vnums);
+    context.dirty_zone_nums = std::move(live_context.dirty_zone_nums);
+    context.zon_file_snapshot_by_leaf = std::move(live_context.zon_file_snapshot_by_leaf);
 }
 
 } // namespace nebbie

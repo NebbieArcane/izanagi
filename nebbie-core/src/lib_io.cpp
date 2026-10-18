@@ -783,7 +783,13 @@ void refresh_captured_source_blocks(LibContext& context) {
     const auto refresh = [&](const std::filesystem::path& relative, auto& map) {
         const std::filesystem::path path = context.root / relative;
         if (const auto blocks = capture_vnum_hash_file(path)) {
-            map[relative.string()] = *blocks;
+            // Match load_lib keys (filename leaf) so later preserve lookups hit the
+            // refreshed blocks instead of the originals captured at open.
+            const std::string leaf = path.filename().string();
+            map[leaf] = *blocks;
+            if (relative.string() != leaf) {
+                map[relative.string()] = *blocks;
+            }
         }
     };
 

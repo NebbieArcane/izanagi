@@ -44,8 +44,14 @@ bool has_object(const World& world, long vnum) {
     return vnum > 0 && world.objects.find(vnum) != world.objects.end();
 }
 
-bool has_room(const World& world, long vnum) {
-    return vnum > 0 && world.rooms.find(vnum) != world.rooms.end();
+bool has_room(const World& world, long vnum, const ValidationOptions& options) {
+    if (vnum <= 0) {
+        return false;
+    }
+    if (world.rooms.find(vnum) != world.rooms.end()) {
+        return true;
+    }
+    return options.known_room_vnums.find(vnum) != options.known_room_vnums.end();
 }
 
 bool room_in_zone(long vnum, const Zone& zone) {
@@ -208,7 +214,7 @@ void append_room_validation(const World& world,
             if (exit.to_room <= 0 || exit.to_room == kNowhere) {
                 continue;
             }
-            if (!has_room(world, exit.to_room)) {
+            if (!has_room(world, exit.to_room, options)) {
                 add_issue(report,
                           ValidationSeverity::error,
                           "room",
@@ -222,7 +228,7 @@ void append_room_validation(const World& world,
     }
 }
 
-void validate_resets(const World& world, ValidationReport& report) {
+void validate_resets(const World& world, ValidationReport& report, const ValidationOptions& options) {
     if (world.zones.empty()) {
         return;
     }
@@ -249,7 +255,7 @@ void validate_resets(const World& world, ValidationReport& report) {
                               zone.num,
                               static_cast<int>(i));
                 }
-                if (!world.rooms.empty() && cmd.arg3 > 0 && !has_room(world, cmd.arg3)) {
+                if (!world.rooms.empty() && cmd.arg3 > 0 && !has_room(world, cmd.arg3, options)) {
                     add_issue(report,
                               ValidationSeverity::error,
                               "reset",
@@ -275,7 +281,7 @@ void validate_resets(const World& world, ValidationReport& report) {
                               "reset",
                               where + "O references missing object " + std::to_string(cmd.arg1));
                 }
-                if (!world.rooms.empty() && cmd.arg3 > 0 && !has_room(world, cmd.arg3)) {
+                if (!world.rooms.empty() && cmd.arg3 > 0 && !has_room(world, cmd.arg3, options)) {
                     add_issue(report,
                               ValidationSeverity::error,
                               "reset",
@@ -308,7 +314,7 @@ void validate_resets(const World& world, ValidationReport& report) {
                 }
                 break;
             case 'D':
-                if (!world.rooms.empty() && cmd.arg1 > 0 && !has_room(world, cmd.arg1)) {
+                if (!world.rooms.empty() && cmd.arg1 > 0 && !has_room(world, cmd.arg1, options)) {
                     add_issue(report,
                               ValidationSeverity::error,
                               "reset",
@@ -322,7 +328,7 @@ void validate_resets(const World& world, ValidationReport& report) {
     }
 }
 
-void validate_shops(const World& world, ValidationReport& report) {
+void validate_shops(const World& world, ValidationReport& report, const ValidationOptions& options) {
     for (const auto& shop : world.shops) {
         const std::string where = "shop " + std::to_string(shop.vnum) + " ";
 
@@ -334,7 +340,7 @@ void validate_shops(const World& world, ValidationReport& report) {
                       ValidationTarget::shop,
                       shop.vnum);
         }
-        if (!world.rooms.empty() && shop.in_room > 0 && !has_room(world, shop.in_room)) {
+        if (!world.rooms.empty() && shop.in_room > 0 && !has_room(world, shop.in_room, options)) {
             add_issue(report,
                       ValidationSeverity::error,
                       "shop",
@@ -357,7 +363,7 @@ void validate_shops(const World& world, ValidationReport& report) {
     }
 }
 
-void validate_guilds(const World& world, ValidationReport& report) {
+void validate_guilds(const World& world, ValidationReport& report, const ValidationOptions& options) {
     for (const auto& guild : world.guilds) {
         const std::string where = "guild " + guild.base_filename + " ";
 
@@ -391,19 +397,19 @@ void validate_guilds(const World& world, ValidationReport& report) {
                           + " not found");
         }
         if (!world.rooms.empty()) {
-            if (guild.guard_room > 0 && !has_room(world, guild.guard_room)) {
+            if (guild.guard_room > 0 && !has_room(world, guild.guard_room, options)) {
                 add_issue(report,
                           ValidationSeverity::error,
                           "guild",
                           where + "guard room " + std::to_string(guild.guard_room) + " not found");
             }
-            if (guild.bank_room > 0 && !has_room(world, guild.bank_room)) {
+            if (guild.bank_room > 0 && !has_room(world, guild.bank_room, options)) {
                 add_issue(report,
                           ValidationSeverity::error,
                           "guild",
                           where + "bank room " + std::to_string(guild.bank_room) + " not found");
             }
-            if (guild.bank_xp_room > 0 && !has_room(world, guild.bank_xp_room)) {
+            if (guild.bank_xp_room > 0 && !has_room(world, guild.bank_xp_room, options)) {
                 add_issue(report,
                           ValidationSeverity::error,
                           "guild",
@@ -414,7 +420,8 @@ void validate_guilds(const World& world, ValidationReport& report) {
     }
 }
 
-void validate_special_procs(const World& world, ValidationReport& report) {
+void validate_special_procs(const World& world, ValidationReport& report,
+                            const ValidationOptions& options) {
     std::map<std::pair<char, long>, std::size_t> seen_entries;
 
     for (const auto& spe : world.special_procs) {
@@ -477,7 +484,7 @@ void validate_special_procs(const World& world, ValidationReport& report) {
             break;
         case 'r':
         case 'R':
-            if (!world.rooms.empty() && !has_room(world, spe.vnum)) {
+            if (!world.rooms.empty() && !has_room(world, spe.vnum, options)) {
                 add_issue(report,
                           ValidationSeverity::error,
                           "special",
@@ -691,10 +698,10 @@ ValidationReport validate_world(const World& world, const ValidationOptions& opt
     append_mob_combat_validation(world, report);
     append_mob_text_validation(world, report, options);
     append_object_text_validation(world, report, options);
-    validate_resets(world, report);
-    validate_shops(world, report);
-    validate_guilds(world, report);
-    validate_special_procs(world, report);
+    validate_resets(world, report, options);
+    validate_shops(world, report, options);
+    validate_guilds(world, report, options);
+    validate_special_procs(world, report, options);
     validate_socials(world, report);
     return report;
 }

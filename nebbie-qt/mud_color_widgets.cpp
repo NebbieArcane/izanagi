@@ -1,13 +1,18 @@
 #include "mud_color_widgets.hpp"
 
+#include "nebbie/mud_text.hpp"
 #include "nebbie/text_lines.hpp"
 
 #include <QApplication>
 #include <QClipboard>
+#include <QFont>
+#include <QFontMetrics>
 #include <QHelpEvent>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QTextBlock>
 #include <QTextCursor>
+#include <QTextDocument>
 #include <QToolTip>
 
 namespace nebbie::qt {
@@ -16,9 +21,29 @@ namespace {
 
 constexpr QColor kRulerOkColor(255, 245, 170, 180);
 constexpr QColor kRulerExceededColor(220, 60, 60, 220);
+constexpr QColor kNewlineMarkerColor(90, 130, 180, 200);
+constexpr QColor kBlankLineFillColor(180, 210, 255, 70);
+constexpr QColor kTrailingBlankFillColor(255, 200, 160, 90);
 
 int char_column_width(const QFontMetrics& metrics) {
     return metrics.horizontalAdvance(QLatin1Char('M'));
+}
+
+int trailing_empty_block_count(const QTextDocument* document) {
+    if (!document) {
+        return 0;
+    }
+    int count = 0;
+    for (QTextBlock block = document->lastBlock(); block.isValid(); block = block.previous()) {
+        if (!block.text().isEmpty()) {
+            break;
+        }
+        ++count;
+        if (block.blockNumber() == 0) {
+            break;
+        }
+    }
+    return count;
 }
 
 void paint_line_length_ruler(QWidget* widget,
@@ -98,30 +123,55 @@ void MudColorTextEdit::setSingleLineMode(bool single_line) {
     single_line_mode_ = single_line;
 }
 
-void MudColorTextEdit::insertColorCode(const QString& code) {
+void MudColorTextEdit::replaceSelectionWithStorageText(const QString& text) {
+    QString normalized =
+        QString::fromStdString(nebbie::normalize_mud_ascii_text(text.toStdString()));
+    if (single_line_mode_) {
+        normalized.replace(QLatin1Char('\r'), QLatin1Char(' '));
+        normalized.replace(QLatin1Char('\n'), QLatin1Char(' '));
+    }
+
+    const QTextCursor cursor = textCursor();
+    int storage_from = display_position_to_storage(storage_, cursor.position(), show_color_codes_);
+    int storage_to = storage_from;
+    if (cursor.hasSelection()) {
+        storage_from = display_position_to_storage(storage_, cursor.selectionStart(), show_color_codes_);
+        storage_to = display_position_to_storage(storage_, cursor.selectionEnd(), show_color_codes_);
+    }
+
+    if (storage_to > storage_from) {
+        storage_.remove(storage_from, storage_to - storage_from);
+    }
+    if (!normalized.isEmpty()) {
+        storage_.insert(storage_from, normalized);
+    }
+    rebuildDocument(storage_from + normalized.size());
+    emit storageTextChanged(storage_);
+}
+
+bool MudColorTextEdit::normalizeMudAsciiText() {
     const int storage_cursor =
         display_position_to_storage(storage_, textCursor().position(), show_color_codes_);
-    storage_.insert(storage_cursor, code);
-    rebuildDocument(storage_cursor + code.size());
+    const QString fixed =
+        QString::fromStdString(nebbie::normalize_mud_ascii_text(storage_.toStdString()));
+    if (fixed == storage_) {
+        return false;
+    }
+    storage_ = fixed;
+    rebuildDocument(qMin(storage_cursor, storage_.size()));
     emit storageTextChanged(storage_);
+    return true;
+}
+
+void MudColorTextEdit::insertColorCode(const QString& code) {
+    replaceSelectionWithStorageText(code);
 }
 
 void MudColorTextEdit::insertStorageTextAtCursor(const QString& text) {
     if (text.isEmpty()) {
         return;
     }
-
-    QString normalized = text;
-    if (single_line_mode_) {
-        normalized.replace(QLatin1Char('\r'), QLatin1Char(' '));
-        normalized.replace(QLatin1Char('\n'), QLatin1Char(' '));
-    }
-
-    const int storage_cursor =
-        display_position_to_storage(storage_, textCursor().position(), show_color_codes_);
-    storage_.insert(storage_cursor, normalized);
-    rebuildDocument(storage_cursor + normalized.size());
-    emit storageTextChanged(storage_);
+    replaceSelectionWithStorageText(text);
 }
 
 void MudColorTextEdit::pastePlainText() {
@@ -152,10 +202,12 @@ void MudColorTextEdit::rebuildDocument(int preferred_storage_cursor) {
     cursor.removeSelectedText();
 
     MudDisplayColorState state;
-    const std::string bytes = storage_.toStdString();
     for (int storage_pos = 0; storage_pos < storage_.size();) {
-        nebbie::MudColorCode code;
-        if (nebbie::try_parse_mud_color_code(bytes, static_cast<std::size_t>(storage_pos), &code)) {
+        const int code_len = mud_color_code_length_at(storage_, storage_pos);
+        if (code_len > 0) {
+            nebbie::MudColorCode code;
+            const std::string raw = storage_.mid(storage_pos, code_len).toStdString();
+            nebbie::try_parse_mud_color_code(raw, 0, &code);
             if (show_color_codes_) {
                 cursor.setCharFormat(formatForState(state));
                 cursor.insertText(QString::fromStdString(code.raw));
@@ -163,12 +215,13 @@ void MudColorTextEdit::rebuildDocument(int preferred_storage_cursor) {
             state.foreground = code.foreground;
             state.bold = code.bold;
             state.modifier = code.modifier;
-            storage_pos += static_cast<int>(code.raw.size());
+            storage_pos += code_len;
             continue;
         }
 
-        cursor.setCharFormat(formatForState(state));
-        cursor.insertText(QString(storage_.at(storage_pos)));
+        const QChar ch = storage_.at(storage_pos);
+        cursor.setCharFormat(formatForDisplayedChar(state, ch));
+        cursor.insertText(QString(ch));
         ++storage_pos;
     }
     cursor.endEditBlock();
@@ -202,16 +255,33 @@ QTextCharFormat MudColorTextEdit::formatForState(const MudDisplayColorState& sta
     return format;
 }
 
+QTextCharFormat MudColorTextEdit::formatForDisplayedChar(const MudDisplayColorState& state,
+                                                         const QChar ch) const {
+    QTextCharFormat format = formatForState(state);
+    if (is_mud_ascii_qchar(ch)) {
+        return format;
+    }
+
+    // Warm highlight so accented / Unicode paste stand out against mud colors.
+    format.setBackground(QColor(255, 214, 102));
+    format.setForeground(QColor(120, 24, 0));
+    format.setFontWeight(QFont::Bold);
+    return format;
+}
+
 MudDisplayColorState MudColorTextEdit::color_at_storage_position(int storage_pos) const {
     MudDisplayColorState state;
-    const std::string bytes = storage_.toStdString();
     for (int index = 0; index < storage_pos && index < storage_.size();) {
-        nebbie::MudColorCode code;
-        if (nebbie::try_parse_mud_color_code(bytes, static_cast<std::size_t>(index), &code)) {
-            state.foreground = code.foreground;
-            state.bold = code.bold;
-            state.modifier = code.modifier;
-            index += static_cast<int>(code.raw.size());
+        const int code_len = mud_color_code_length_at(storage_, index);
+        if (code_len > 0) {
+            nebbie::MudColorCode code;
+            const std::string raw = storage_.mid(index, code_len).toStdString();
+            if (nebbie::try_parse_mud_color_code(raw, 0, &code)) {
+                state.foreground = code.foreground;
+                state.bold = code.bold;
+                state.modifier = code.modifier;
+            }
+            index += code_len;
             continue;
         }
         ++index;
@@ -220,20 +290,21 @@ MudDisplayColorState MudColorTextEdit::color_at_storage_position(int storage_pos
 }
 
 QString MudColorTextEdit::tooltipForStoragePosition(int storage_pos) const {
-    const std::string bytes = storage_.toStdString();
-    for (int index = 0; index < storage_pos && index < storage_.size();) {
-        nebbie::MudColorCode code;
-        if (nebbie::try_parse_mud_color_code(bytes, static_cast<std::size_t>(index), &code)) {
-            index += static_cast<int>(code.raw.size());
-            continue;
-        }
-        ++index;
+    if (storage_pos >= 0 && storage_pos < storage_.size()
+        && !is_mud_ascii_qchar(storage_.at(storage_pos))) {
+        return QStringLiteral(
+            "Carattere non ASCII: nel client di gioco non si vede correttamente. "
+            "Usa e', a', o', u' come nel resto del mondo.");
     }
 
     for (int index = storage_pos; index < storage_.size();) {
-        nebbie::MudColorCode code;
-        if (nebbie::try_parse_mud_color_code(bytes, static_cast<std::size_t>(index), &code)) {
-            return QString::fromStdString(nebbie::mud_color_code_description(code));
+        const int code_len = mud_color_code_length_at(storage_, index);
+        if (code_len > 0) {
+            nebbie::MudColorCode code;
+            const std::string raw = storage_.mid(index, code_len).toStdString();
+            if (nebbie::try_parse_mud_color_code(raw, 0, &code)) {
+                return QString::fromStdString(nebbie::mud_color_code_description(code));
+            }
         }
         break;
     }
@@ -252,15 +323,18 @@ void MudColorTextEdit::onContentsChanged(int position, int charsRemoved, int cha
     }
 
     if (show_color_codes_) {
-        storage_ = toPlainText();
+        storage_ = QString::fromStdString(nebbie::normalize_mud_ascii_text(toPlainText().toStdString()));
         previous_display_ = storage_;
-        updateRulerState();
-        viewport()->update();
+        rebuildDocument(textCursor().position());
         emit storageTextChanged(storage_);
         return;
     }
 
-    const QString inserted = charsAdded > 0 ? toPlainText().mid(position, charsAdded) : QString();
+    const QString inserted =
+        charsAdded > 0
+            ? QString::fromStdString(
+                  nebbie::normalize_mud_ascii_text(toPlainText().mid(position, charsAdded).toStdString()))
+            : QString();
     const int storage_from = display_position_to_storage(storage_, position, false);
     const int storage_to = display_position_to_storage(storage_, position + charsRemoved, false);
     storage_.remove(storage_from, storage_to - storage_from);
@@ -269,8 +343,48 @@ void MudColorTextEdit::onContentsChanged(int position, int charsRemoved, int cha
     emit storageTextChanged(storage_);
 }
 
+void MudColorTextEdit::paintNewlineGuides(QPainter& painter) const {
+    if (single_line_mode_) {
+        return;
+    }
+
+    const QFontMetrics metrics(font());
+    const QString marker = QStringLiteral("\u21b5"); // ↵
+    const int marker_width = qMax(metrics.horizontalAdvance(marker), metrics.averageCharWidth());
+    const int trailing_blanks = trailing_empty_block_count(document());
+    const int last_block_number = document()->lastBlock().blockNumber();
+
+    for (QTextBlock block = document()->firstBlock(); block.isValid(); block = block.next()) {
+        const bool empty_line = block.text().isEmpty();
+        const int from_end = last_block_number - block.blockNumber();
+        const bool trailing_blank = empty_line && from_end < trailing_blanks;
+
+        QTextCursor start_cursor(block);
+        start_cursor.movePosition(QTextCursor::StartOfBlock);
+        QTextCursor end_cursor(block);
+        end_cursor.movePosition(QTextCursor::EndOfBlock);
+        const QRect start_rect = cursorRect(start_cursor);
+        const QRect end_rect = cursorRect(end_cursor);
+
+        if (empty_line) {
+            const int top = start_rect.top();
+            const int height = qMax(end_rect.bottom() - top + 1, metrics.lineSpacing());
+            painter.fillRect(0, top, viewport()->width(), height,
+                             trailing_blank ? kTrailingBlankFillColor : kBlankLineFillColor);
+        }
+
+        const int x = empty_line ? 4 : end_rect.right() + 2;
+        painter.setPen(trailing_blank ? QColor(180, 80, 30, 220) : kNewlineMarkerColor);
+        painter.drawText(x, end_rect.top(), marker_width + 4, qMax(end_rect.height(), metrics.height()),
+                         Qt::AlignLeft | Qt::AlignVCenter, marker);
+    }
+}
+
 void MudColorTextEdit::paintEvent(QPaintEvent* event) {
     QTextEdit::paintEvent(event);
+    QPainter painter(viewport());
+    painter.setFont(font());
+    paintNewlineGuides(painter);
     paint_line_length_ruler(viewport(), font(), max_line_length_, ruler_exceeded_);
 }
 
@@ -283,7 +397,7 @@ void MudColorTextEdit::keyPressEvent(QKeyEvent* event) {
 }
 
 bool MudColorTextEdit::event(QEvent* event) {
-    if (event->type() == QEvent::ToolTip && !show_color_codes_ && !storage_.isEmpty()) {
+    if (event->type() == QEvent::ToolTip && !storage_.isEmpty()) {
         const auto* help = static_cast<QHelpEvent*>(event);
         const int storage_pos =
             display_position_to_storage(storage_, textCursor().position(), show_color_codes_);

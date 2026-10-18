@@ -40,16 +40,34 @@ inline QColor mud_foreground_color(int color, bool bold) {
     return result;
 }
 
+inline bool is_mud_ascii_qchar(const QChar ch) {
+    const uint unicode = ch.unicode();
+    return unicode == '\t' || unicode == '\n' || unicode == '\r'
+           || (unicode >= 0x20u && unicode <= 0x7Eu);
+}
+
+// Color codes are ASCII; probe from a QString index so UTF-8 multi-byte letters do not
+// desync storage indexing used by the editor widgets.
+inline int mud_color_code_length_at(const QString& storage_text, int storage_index) {
+    if (storage_index < 0 || storage_index >= storage_text.size()
+        || storage_text.at(storage_index) != QLatin1Char('$')) {
+        return 0;
+    }
+    constexpr int kMaxCodeChars = 8;
+    const std::string prefix =
+        storage_text.mid(storage_index, kMaxCodeChars).toStdString();
+    return static_cast<int>(nebbie::mud_color_code_length(prefix, 0));
+}
+
 inline int display_position_to_storage(const QString& storage_text, int display_pos, bool show_codes) {
     int display = 0;
     int storage_index = 0;
-    const std::string bytes = storage_text.toStdString();
     while (storage_index < storage_text.size() && display < display_pos) {
-        const std::size_t code_len = nebbie::mud_color_code_length(bytes, static_cast<std::size_t>(storage_index));
+        const int code_len = mud_color_code_length_at(storage_text, storage_index);
         if (code_len > 0) {
-            storage_index += static_cast<int>(code_len);
+            storage_index += code_len;
             if (show_codes) {
-                display += static_cast<int>(code_len);
+                display += code_len;
             }
             continue;
         }
@@ -62,13 +80,12 @@ inline int display_position_to_storage(const QString& storage_text, int display_
 inline int storage_position_to_display(const QString& storage_text, int storage_pos, bool show_codes) {
     int display = 0;
     int index = 0;
-    const std::string bytes = storage_text.toStdString();
     while (index < storage_pos && index < storage_text.size()) {
-        const std::size_t code_len = nebbie::mud_color_code_length(bytes, static_cast<std::size_t>(index));
+        const int code_len = mud_color_code_length_at(storage_text, index);
         if (code_len > 0) {
-            index += static_cast<int>(code_len);
+            index += code_len;
             if (show_codes) {
-                display += static_cast<int>(code_len);
+                display += code_len;
             }
             continue;
         }

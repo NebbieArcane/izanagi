@@ -1,5 +1,6 @@
 #include "nebbie/aree_workspace.hpp"
 #include "nebbie/io.hpp"
+#include "nebbie/validate.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -82,6 +83,42 @@ int main() {
                    "fixture zon must not contain #$");
         }
         expect(found_castelli && found_myst, "missing expected fixtures");
+
+        {
+            const auto known = nebbie::collect_aree_workspace_room_vnums(workspace);
+            expect(!known.empty(), "workspace room scan should find rooms");
+            expect(known.count(34000) > 0, "castelli room #34000 should be known in workspace");
+            expect(known.count(3001) > 0, "myst room should be known in workspace");
+
+            nebbie::World only_castelli;
+            nebbie::load_lib(only_castelli, work / "castelli");
+            // Fake a cross-area exit into myst while only castelli is loaded.
+            nebbie::Room* room = only_castelli.find_room(34000);
+            expect(room != nullptr, "castelli #34000");
+            nebbie::Exit cross;
+            cross.direction = 0;
+            cross.to_room = 3001;
+            room->exits.push_back(cross);
+
+            nebbie::ValidationOptions local_only;
+            const auto local_report = nebbie::validate_rooms(only_castelli, local_only);
+            bool missing_without_workspace = false;
+            for (const auto& issue : local_report.issues) {
+                if (issue.message.find("missing room 3001") != std::string::npos) {
+                    missing_without_workspace = true;
+                    break;
+                }
+            }
+            expect(missing_without_workspace, "without workspace rooms, cross-area exit must error");
+
+            nebbie::ValidationOptions with_workspace;
+            with_workspace.known_room_vnums = known;
+            const auto workspace_report = nebbie::validate_rooms(only_castelli, with_workspace);
+            for (const auto& issue : workspace_report.issues) {
+                expect(issue.message.find("missing room 3001") == std::string::npos,
+                       "workspace-known destination must not be reported missing");
+            }
+        }
 
         expect(nebbie::aree_areas_container(work) == work, "fixture areas at workspace root");
         const nebbie::AreeLibOpenGuard block_root = nebbie::classify_aree_lib_open_guard(work);

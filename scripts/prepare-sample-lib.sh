@@ -102,8 +102,8 @@ Percorsi tipici dopo l'installazione:
     /usr/share/nebbie-editor/sample-mudroot/lib
 
   macOS (.dmg)
-    <volume DMG>/sample-mudroot/lib
-    oppure /Applications/nebbieedit.app/../sample-mudroot/lib se copiato
+    /Applications/Izanagi.app/Contents/Resources/sample-mudroot/lib
+    (File → Apri mondo di esempio)
 
   Windows (zip o installer)
     <cartella installazione>\sample-mudroot\lib

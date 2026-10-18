@@ -86,6 +86,8 @@ AppConfig read_config() {
             config.aree_workspace_root = value_after_equals(line);
         } else if (line.startsWith(QStringLiteral("aree_last_area="))) {
             config.aree_last_area = value_after_equals(line);
+        } else if (line.startsWith(QStringLiteral("aree_archive_on_first_save="))) {
+            config.aree_archive_on_first_save = parse_bool(value_after_equals(line));
         }
     }
     return config;
@@ -130,6 +132,7 @@ bool write_config(const AppConfig& config) {
     if (!config.aree_last_area.isEmpty()) {
         out << "aree_last_area=" << config.aree_last_area << '\n';
     }
+    out << "aree_archive_on_first_save=" << (config.aree_archive_on_first_save ? 1 : 0) << '\n';
     return true;
 }
 

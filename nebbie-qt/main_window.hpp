@@ -25,6 +25,7 @@ class MudColorTextEdit;
 #include <filesystem>
 #include <optional>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 class QNetworkAccessManager;
@@ -64,6 +65,7 @@ public:
 
 public slots:
     void openLib();
+    void openBundledSampleLib();
     void reloadLib();
     void saveLib();
     void saveLibForce();
@@ -73,6 +75,7 @@ public slots:
     void restoreVersion();
     void openAreeWorkspace();
     void openAreeArea();
+    void archiveAreeArea();
     void restoreAreeArchive();
     void onAreeAreaActivated();
     void onValidationIssueActivated(QListWidgetItem* item);
@@ -109,6 +112,8 @@ private slots:
     void toggleExtendedColorView(bool enabled);
     void showColorLegend();
     void insertColorCode();
+    void normalizeFocusedMudAscii();
+    void normalizeRoomMudAscii();
     void checkForUpdates();
     void onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info);
     void toggleCheckUpdatesOnStartup(bool enabled);
@@ -126,7 +131,8 @@ private:
     void updateBranding();
     void scheduleStartupUpdateCheck();
     void loadLib(const std::filesystem::path& path);
-    void loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first, const std::string& archive_label);
+    void loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first = false,
+                      const std::string& archive_label = {}, long select_room_vnum = 0);
     void clearAreeMode();
     void refreshAreeAreaList();
     void openAreeWorkspaceFromPath(const QString& dir, const QString& select_area_folder = {});
@@ -134,7 +140,10 @@ private:
     void tryLoadLastAreeAreaWithoutArchive();
     void promptStartupLibrary();
     std::filesystem::path sessionStorageRoot() const;
-    bool promptAreeSessionStart(const QString& area_name, bool& archive_first, QString& archive_label);
+    bool promptArchiveLabel(const QString& area_name, QString& archive_label);
+    bool archiveAreeFolder(const std::string& area_folder, const std::string& archive_label);
+    bool maybeArchiveAreeBeforeFirstSave();
+    const nebbie::AreeAreaInfo* findAreeAreaForRoomVnum(long room_vnum) const;
     void rememberLibPath(const std::filesystem::path& path);
     void refreshRoomList();
     void refreshMobList();
@@ -164,6 +173,7 @@ private:
     bool confirmSaveIfDirty();
     void markDirty();
     void markClean();
+    void markAllLoadedEntitiesDirty();
     void syncDirtyEntityVnumsToContext();
     std::vector<long> roomsPendingSaveValidation() const;
     int preferredZoneNum() const;
@@ -175,6 +185,8 @@ private:
     bool warnIfRemoteVnumConflict(const QString& kind, long vnum) const;
     nebbie::WorldIndex worldIndexForValidation() const;
     nebbie::ValidationOptions validationOptions() const;
+    /** Room vnums from every area .wld when a workspace is open; empty otherwise. */
+    std::unordered_set<long> workspaceKnownRoomVnums() const;
 
     nebbie::World world_;
     nebbie::LibContext context_;
@@ -255,6 +267,10 @@ private:
     QDockWidget* aree_dock_ = nullptr;
     QTableWidget* aree_table_ = nullptr;
     QPushButton* aree_open_button_ = nullptr;
+    QPushButton* aree_archive_button_ = nullptr;
     QPushButton* aree_restore_button_ = nullptr;
+    QAction* aree_archive_on_first_save_action_ = nullptr;
     std::vector<nebbie::AreeAreaInfo> aree_areas_;
+    /** True until the open area is archived once (manual or first save). */
+    bool aree_pending_session_archive_ = false;
 };

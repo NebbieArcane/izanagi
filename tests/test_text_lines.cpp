@@ -64,6 +64,9 @@ int main() {
         expect(!nebbie::is_mud_ascii_text("c'è una porta"), "utf8 accent is not mud ascii");
         expect(nebbie::transliterate_italian_accents_to_apostrophe("c'è") == "c'e'",
                "accent transliteration");
+        expect(nebbie::normalize_mud_ascii_text("È À Ò") == "E' A' O'", "uppercase accent transliteration");
+        expect(nebbie::normalize_mud_ascii_text("l\u2019acqua") == "l'acqua", "curly apostrophe to ascii");
+        expect(nebbie::normalize_mud_ascii_text("a\u00A0b") == "a b", "nbsp to space");
 
         std::cout << "OK\n";
         return 0;

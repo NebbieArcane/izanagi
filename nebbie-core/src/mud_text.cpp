@@ -118,6 +118,18 @@ const char* transliterate_codepoint(char32_t codepoint) {
     case U'Û':
     case U'Ü':
         return "U'";
+    // Typographic / "smart" apostrophes and lookalikes → ASCII apostrophe.
+    case U'\u2018': // ‘
+    case U'\u2019': // ’
+    case U'\u201A': // ‚
+    case U'\u201B': // ‛
+    case U'\u2032': // ′
+    case U'\u00B4': // ´
+    case U'\u02B9': // ʹ
+    case U'\u02BC': // ʼ
+        return "'";
+    case U'\u00A0': // NBSP
+        return " ";
     default:
         return nullptr;
     }

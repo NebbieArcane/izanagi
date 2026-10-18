@@ -102,8 +102,10 @@ jobs:
           test -d /tmp/cypher-dmg/Cypher.app
           test -d /tmp/cypher-dmg/Cypher.app/Contents/Frameworks
           test -x /tmp/cypher-dmg/Cypher.app/Contents/MacOS/Cypher
+          test -d /tmp/cypher-dmg/Cypher.app/Contents/Resources/sample-mudroot/lib
           test -f /tmp/cypher-dmg/Cypher.app/Contents/Resources/cypher.icns
           test -f /tmp/cypher-dmg/LEGGIMI.txt
+          test ! -e /tmp/cypher-dmg/sample-mudroot
           codesign --verify --deep --strict /tmp/cypher-dmg/Cypher.app
           if [[ "${{ steps.apple_signing.outputs.enabled }}" == "true" ]]; then
             xcrun stapler validate /tmp/cypher-dmg/Cypher.app

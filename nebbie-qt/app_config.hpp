@@ -18,6 +18,8 @@ struct AppConfig {
     QString ui_language = QStringLiteral("it");
     QString aree_workspace_root;
     QString aree_last_area;
+    /** When true, archive the open Aree folder once before the first Save of that session. */
+    bool aree_archive_on_first_save = true;
 };
 
 QString default_config_path();

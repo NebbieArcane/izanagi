@@ -63,6 +63,9 @@ if [[ ! -d "${APP_SRC}" ]]; then
     exit 1
 fi
 
+echo "==> Embedding sample lib into app bundle"
+"${ROOT}/scripts/macos-embed-app-extras.sh" "${APP_SRC}"
+
 echo "==> Bundling Qt and signing app"
 "${ROOT}/scripts/macos-prepare-app-bundle.sh" "${APP_SRC}"
 
@@ -70,22 +73,23 @@ echo "==> Preparing DMG staging"
 rm -rf "${STAGING}"
 mkdir -p "${STAGING}"
 cp -R "${APP_SRC}" "${STAGING}/"
-cp -a "${DIST}/sample-mudroot" "${STAGING}/"
 cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
 Cypher (macOS)
 ==============
 
-1. Apri il file .dmg (doppio clic)
-2. Trascina Cypher.app nella cartella Applicazioni
-3. Avvia Cypher → File → Apri libreria → mudroot o mudroot/lib
+Installazione (un solo passaggio):
+1. Apri questo .dmg
+2. Trascina Cypher.app su Applicazioni
+3. Avvia Cypher
 
-Se macOS dice che l'app è "danneggiata" o non si apre:
-  - NON è il download corrotto: è la protezione Gatekeeper su app non notarizzate.
+Mondo di prova dentro l'app:
+  Cypher.app/Contents/Resources/sample-mudroot/lib
+
+Se macOS dice che l'app e' "danneggiata" o non si apre:
+  - NON e' il download corrotto: e' Gatekeeper su app non notarizzate.
   - Tasto destro su Cypher.app → Apri (solo la prima volta)
   - oppure in Terminale:
       xattr -cr /Applications/Cypher.app
-
-Mondo di prova: sample-mudroot/lib
 EOF
 ln -sf /Applications "${STAGING}/Applications"
 

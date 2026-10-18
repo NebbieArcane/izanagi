@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <queue>
 #include <sstream>
+#include <unordered_set>
 
 namespace nebbie {
 
@@ -24,7 +25,23 @@ std::vector<long> rooms_in_zone(const World& world, int zone_num) {
     return vnums;
 }
 
-ZoneGraph build_zone_graph(const World& world, int zone_num) {
+namespace {
+
+bool room_exists_for_graph(const World& world, const long vnum,
+                           const std::unordered_set<long>* known_room_vnums) {
+    if (vnum <= 0) {
+        return false;
+    }
+    if (world.find_room(vnum) != nullptr) {
+        return true;
+    }
+    return known_room_vnums != nullptr && known_room_vnums->find(vnum) != known_room_vnums->end();
+}
+
+} // namespace
+
+ZoneGraph build_zone_graph(const World& world, int zone_num,
+                           const std::unordered_set<long>* known_room_vnums) {
     ZoneGraph graph;
     graph.zone_num = zone_num;
 
@@ -49,7 +66,7 @@ ZoneGraph build_zone_graph(const World& world, int zone_num) {
             edge.from_vnum = vnum;
             edge.to_vnum = exit.to_room;
             edge.direction = exit.direction;
-            edge.broken = exit.to_room > 0 && !world.find_room(exit.to_room);
+            edge.broken = exit.to_room > 0 && !room_exists_for_graph(world, exit.to_room, known_room_vnums);
             graph.edges.push_back(edge);
         }
     }
@@ -180,7 +197,8 @@ WorldZoneNode build_world_zone_node(const World& world, const Zone& zone) {
     return node;
 }
 
-WorldZoneGraph build_world_zone_graph(const World& world) {
+WorldZoneGraph build_world_zone_graph(const World& world,
+                                      const std::unordered_set<long>* known_room_vnums) {
     WorldZoneGraph graph;
     for (const auto& zone : world.zones) {
         graph.zones.push_back(build_world_zone_node(world, zone));
@@ -213,7 +231,7 @@ WorldZoneGraph build_world_zone_graph(const World& world) {
             }
 
             ++edge.link_count;
-            if (!world.find_room(exit.to_room)) {
+            if (!room_exists_for_graph(world, exit.to_room, known_room_vnums)) {
                 ++edge.broken_count;
             }
         }

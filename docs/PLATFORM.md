@@ -114,7 +114,7 @@ Guide passo-passo (anche **DMG/Windows via CI** senza sorgente sul Mac/PC): **[G
 
 Il `.deb` installa `nebbiedit` e `nebbieedit` in `/usr/bin` e il file `.desktop`.
 Il `.deb` include anche `/usr/share/nebbie-editor/sample-mudroot/lib` (dataset `getworldlocal` da nebbietest).
-Il `.dmg` contiene `nebbieedit.app`, `bin/nebbiedit`, `sample-mudroot/lib` e un collegamento ad `Applications`.
+Il `.dmg` contiene `Izanagi.app` (con CLI e `sample-mudroot` dentro il bundle) e un collegamento ad `Applications`.
 Lo zip Windows contiene `nebbiedit.exe`, `nebbieedit.exe` e le DLL Qt necessarie.
 L’installer Inno Setup (`.exe`) aggiunge collegamenti nel menu Start, opzione icona desktop e opzione PATH per la CLI.
 

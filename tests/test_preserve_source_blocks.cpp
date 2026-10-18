@@ -1,5 +1,6 @@
 #include "nebbie/edit.hpp"
 #include "nebbie/io.hpp"
+#include "nebbie/session.hpp"
 #include "nebbie/source_blocks.hpp"
 
 #include <filesystem>
@@ -145,6 +146,32 @@ int main() {
         expect(wld_dirty.find("\n-1 8|64|32768 0\n") != std::string::npos
                    || wld_dirty.find("-1 8|64|32768 0\n") != std::string::npos,
                "dirty room rewrite must preserve -1 zone line prefix");
+
+        // Regression: save_lib_with_backup must refresh caller source blocks, otherwise a
+        // later preserve save with an empty dirty set rewrites the previous edit away.
+        {
+            const auto backup_work = std::filesystem::temp_directory_path() / "nebbie-preserve-backup-wld-test";
+            if (std::filesystem::exists(backup_work)) {
+                std::filesystem::remove_all(backup_work);
+            }
+            std::filesystem::create_directories(backup_work);
+            std::filesystem::copy_file(wld_fixture, backup_work / "castelli.wld");
+
+            nebbie::World backup_world;
+            nebbie::LibContext backup_context;
+            backup_context.write_eof_markers_on_save = false;
+            nebbie::load_lib(backup_world, backup_work, backup_context);
+            nebbie::Room* room = backup_world.find_room(34116);
+            expect(room != nullptr, "expected room 34116 for backup regression");
+            room->name = "Nome Tradotto Test";
+            backup_context.dirty_room_vnums.insert(34116);
+            nebbie::save_lib_with_backup(backup_world, backup_context, backup_work);
+            backup_context.dirty_room_vnums.clear();
+            nebbie::save_lib_with_backup(backup_world, backup_context, backup_work);
+            const std::string after_second = read_file(backup_work / "castelli.wld");
+            expect(after_second.find("Nome Tradotto Test") != std::string::npos,
+                   "second preserve save must keep text written by the first save_lib_with_backup");
+        }
 
         const auto myst_wld_work = std::filesystem::temp_directory_path() / "nebbie-preserve-myst-wld-test";
         if (std::filesystem::exists(myst_wld_work)) {

@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace nebbie {
@@ -67,6 +68,12 @@ AreeLibOpenGuard classify_aree_lib_open_guard(const std::filesystem::path& resol
 AreeWorkspace make_aree_workspace(const std::filesystem::path& root);
 
 std::vector<AreeAreaInfo> scan_aree_areas(const AreeWorkspace& workspace);
+
+/**
+ * Collect room vnums from every area .wld in the workspace (header lines #N only).
+ * Used so validation/maps treat cross-area exits as present when the destination exists elsewhere.
+ */
+std::unordered_set<long> collect_aree_workspace_room_vnums(const AreeWorkspace& workspace);
 
 /** Parse #N and zone name from area/<area>.zon (first zone block). */
 bool read_aree_zone_header(const std::filesystem::path& area_dir, int& zone_num, std::string& zone_name,

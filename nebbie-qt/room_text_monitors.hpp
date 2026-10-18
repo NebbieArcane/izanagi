@@ -41,6 +41,18 @@ inline void updateAsciiMonitor(QLabel* label, const std::string& text) {
     label->setStyleSheet(QStringLiteral("color: #b03000; font-weight: bold;"));
 }
 
+inline int countTrailingEmptyLines(const QString& text) {
+    if (text.isEmpty()) {
+        return 0;
+    }
+    // Match QTextEdit blocks: each trailing \n yields an empty line after content.
+    int count = 0;
+    for (int i = text.size() - 1; i >= 0 && text.at(i) == QLatin1Char('\n'); --i) {
+        ++count;
+    }
+    return count;
+}
+
 inline QString formatLongestLineStatus(const std::string& text, int max_length) {
     const nebbie::LongestVisibleLine longest = nebbie::find_longest_visible_line(text);
     if (longest.line_number <= 0) {
@@ -50,8 +62,14 @@ inline QString formatLongestLineStatus(const std::string& text, int max_length) 
     QString status = QStringLiteral("Riga più lunga: %1 caratteri (riga %2)")
                          .arg(static_cast<qlonglong>(longest.visible_length))
                          .arg(longest.line_number);
-  if (max_length > 0) {
+    if (max_length > 0) {
         status += QStringLiteral(" — limite %1").arg(max_length);
+    }
+    const int trailing_empty = countTrailingEmptyLines(QString::fromStdString(text));
+    if (trailing_empty > 0) {
+        status += trailing_empty == 1
+                      ? QStringLiteral(" — 1 riga vuota finale (marker \u21b5)")
+                      : QStringLiteral(" — %1 righe vuote finali (marker \u21b5)").arg(trailing_empty);
     }
     return status;
 }
@@ -60,27 +78,28 @@ inline void updateLineLengthMonitor(QLabel* label, const std::string& text, int 
     if (!label) {
         return;
     }
-    if (max_length <= 0) {
-        label->setText(formatLongestLineStatus(text, max_length));
-        label->setStyleSheet(QStringLiteral("color: #606060;"));
-        return;
-    }
 
     QString status = formatLongestLineStatus(text, max_length);
-    const nebbie::TextLineLengthReport report = nebbie::check_visible_text_line_lengths(text, max_length);
-    if (!report.overlong.empty()) {
-        QStringList details;
-        for (const auto& issue : report.overlong) {
-            details << QStringLiteral("riga %1 (%2)")
-                           .arg(issue.line_number)
-                           .arg(static_cast<qlonglong>(issue.length));
+    nebbie::TextLineLengthReport report;
+    if (max_length > 0) {
+        report = nebbie::check_visible_text_line_lengths(text, max_length);
+        if (!report.overlong.empty()) {
+            QStringList details;
+            for (const auto& issue : report.overlong) {
+                details << QStringLiteral("riga %1 (%2)")
+                               .arg(issue.line_number)
+                               .arg(static_cast<qlonglong>(issue.length));
+            }
+            status += QStringLiteral(" — oltre limite: ") + details.join(QStringLiteral(", "));
         }
-        status += QStringLiteral(" — oltre limite: ") + details.join(QStringLiteral(", "));
     }
     label->setText(status);
 
-    if (!report.ok()) {
+    const int trailing_empty = countTrailingEmptyLines(QString::fromStdString(text));
+    if (!report.ok() || trailing_empty > 0) {
         label->setStyleSheet(QStringLiteral("color: #b03000; font-weight: bold;"));
+    } else if (max_length <= 0) {
+        label->setStyleSheet(QStringLiteral("color: #606060;"));
     } else {
         label->setStyleSheet(QStringLiteral("color: #406040;"));
     }

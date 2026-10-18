@@ -64,12 +64,11 @@ Il disco immagine contiene:
 
 | Elemento | Descrizione |
 |----------|-------------|
-| `nebbieedit.app` | Applicazione grafica (bundle macOS con runtime Qt incorporato nel build) |
-| `bin/nebbiedit` | CLI da terminale |
-| `sample-mudroot/lib` | Libreria di prova (`myst.*`) |
-| `Applications` | Collegamento simbolico per il drag-and-drop in `/Applications` |
+| `Izanagi.app` | Bundle completo: GUI, CLI e `sample-mudroot` (Qt incorporato) |
+| `Applications` | Collegamento per il drag-and-drop in `/Applications` |
+| `LEGGIMI.txt` | Istruzioni (non va copiato) |
 
-> **Nota:** la CLI `nebbiedit` resta nella cartella `bin/` del volume DMG (o va copiata manualmente, ad es. in `/usr/local/bin`) se si desidera usarla da terminale ovunque.
+> **Nota:** basta trascinare `Izanagi.app` in Applicazioni. CLI: `Izanagi.app/Contents/MacOS/nebbiedit`. Mondo di prova: **File → Apri mondo di esempio**.
 
 ### Windows (zip o installer)
 
@@ -229,30 +228,29 @@ sudo dpkg -i nebbie-editor_0.2.0_amd64.deb
 Doppio clic su:
 
 ```
-nebbie-editor_0.1.0_macos.dmg
+izanagi_0.1.0_macos.dmg
 ```
 
-Si monta un volume chiamato **Nebbie Editor** contenente:
+Si monta un volume chiamato **Izanagi** contenente:
 
 ```
-Nebbie Editor/
-├── nebbieedit.app      ← applicazione grafica
-├── bin/
-│   └── nebbiedit       ← CLI
-└── Applications        ← collegamento a /Applications
+Izanagi/
+├── Izanagi.app         ← tutto (GUI + CLI + sample)
+├── Applications        ← collegamento a /Applications
+└── LEGGIMI.txt
 ```
 
 ### Passo 2 — Installare l'applicazione
 
 **Metodo consigliato (drag-and-drop):**
 
-1. Trascina `nebbieedit.app` sul collegamento `Applications` (oppure direttamente nella cartella `/Applications` nel Finder).
+1. Trascina **solo** `Izanagi.app` sul collegamento `Applications` (oppure in `/Applications`).
 2. Smonta il volume DMG (tasto destro → «Espulsione»).
 
 **Metodo da terminale:**
 
 ```bash
-cp -R "/Volumes/Nebbie Editor/nebbieedit.app" /Applications/
+cp -R "/Volumes/Izanagi/Izanagi.app" /Applications/
 ```
 
 ### Passo 3 — Primo avvio e Gatekeeper
@@ -260,38 +258,37 @@ cp -R "/Volumes/Nebbie Editor/nebbieedit.app" /Applications/
 Al primo avvio macOS potrebbe mostrare un avviso di sicurezza se l'app non è firmata con certificato Apple Developer:
 
 1. Vai in **Impostazioni di sistema → Privacy e sicurezza**.
-2. Clicca **Apri comunque** accanto a «nebbieedit».
+2. Clicca **Apri comunque** accanto a «Izanagi».
 3. Conferma l'apertura.
 
 In alternativa, da terminale:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/nebbieedit.app
-open /Applications/nebbieedit.app
+xattr -cr /Applications/Izanagi.app
+open /Applications/Izanagi.app
 ```
 
-### Passo 4 — Installare la CLI (opzionale)
+### Passo 4 — CLI e mondo di esempio (gia' nel bundle)
 
-Per usare `nebbiedit` da qualsiasi terminale:
+Non serve copiare altro dal DMG. Opzionale, per avere `nebbiedit` nel PATH:
 
 ```bash
-sudo cp "/Volumes/Nebbie Editor/bin/nebbiedit" /usr/local/bin/
-sudo chmod +x /usr/local/bin/nebbiedit
+sudo ln -sf /Applications/Izanagi.app/Contents/MacOS/nebbiedit /usr/local/bin/nebbiedit
 ```
 
-Verifica:
+Mondo di prova: in Izanagi usa **File → Apri mondo di esempio**, oppure:
 
 ```bash
-nebbiedit info /percorso/alla/mudroot/lib
+nebbiedit info /Applications/Izanagi.app/Contents/Resources/sample-mudroot/lib
 ```
 
 ### Passo 5 — Avvio quotidiano
 
 ```bash
-open /Applications/nebbieedit.app
+open /Applications/Izanagi.app
 ```
 
-Oppure avvia «Nebbie Editor» da Launchpad / Spotlight.
+Oppure avvia «Izanagi» da Launchpad / Spotlight.
 
 ---
 
@@ -547,7 +544,7 @@ Ogni pacchetto (`.deb`, `.dmg`, zip/installer Windows) include una copia **`samp
 | Piattaforma | Percorso dopo installazione |
 |-------------|----------------------------|
 | Linux | `/usr/share/nebbie-editor/sample-mudroot/lib` |
-| macOS (DMG) | `<volume>/sample-mudroot/lib` |
+| macOS (DMG) | `/Applications/Izanagi.app/Contents/Resources/sample-mudroot/lib` |
 | Windows | `<installazione>\sample-mudroot\lib` |
 
 Prova immediata:

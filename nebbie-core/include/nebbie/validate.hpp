@@ -3,6 +3,7 @@
 #include "world.hpp"
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace nebbie {
@@ -41,6 +42,11 @@ struct ValidationReport {
 
 struct ValidationOptions {
     int max_line_length = 0;
+    /**
+     * Room vnums known outside the currently loaded World (e.g. other Aree in the
+     * workspace). Exit/reset targets in this set are not reported as missing.
+     */
+    std::unordered_set<long> known_room_vnums;
 };
 
 ValidationReport validate_world(const World& world, const ValidationOptions& options = {});

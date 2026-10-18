@@ -37,9 +37,12 @@
 #include <QClipboard>
 #include <QCloseEvent>
 #include <QCheckBox>
+#include <QCoreApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QDockWidget>
+#include <QFileInfo>
 #include <QHeaderView>
 #include <QMetaType>
 #include <QVariant>
@@ -72,6 +75,8 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
+#include <cctype>
+#include <fstream>
 #include <stdexcept>
 
 using nebbie::qt::appTr;
@@ -562,7 +567,9 @@ void MainWindow::setupUi() {
             return;
         }
         const int zone_num = map_zone_->currentData().toInt();
-        const nebbie::ZoneGraph graph = nebbie::build_zone_graph(world_, zone_num);
+        const auto known = workspaceKnownRoomVnums();
+        const nebbie::ZoneGraph graph =
+            nebbie::build_zone_graph(world_, zone_num, known.empty() ? nullptr : &known);
         QApplication::clipboard()->setText(QString::fromStdString(nebbie::zone_graph_to_dot(graph)));
         setStatus("DOT zona copiato negli appunti.");
     });
@@ -593,7 +600,9 @@ void MainWindow::setupUi() {
         openZoneRoomMap(selected_world_zone_);
     });
     connect(world_export_dot, &QPushButton::clicked, this, [this]() {
-        const nebbie::WorldZoneGraph graph = nebbie::build_world_zone_graph(world_);
+        const auto known = workspaceKnownRoomVnums();
+        const nebbie::WorldZoneGraph graph =
+            nebbie::build_world_zone_graph(world_, known.empty() ? nullptr : &known);
         QApplication::clipboard()->setText(QString::fromStdString(nebbie::world_zone_graph_to_dot(graph)));
         setStatus("DOT mondo (zone) copiato negli appunti.");
     });
@@ -632,8 +641,10 @@ void MainWindow::setupAreeDock() {
 
     auto* buttons = new QHBoxLayout;
     aree_open_button_ = new QPushButton;
+    aree_archive_button_ = new QPushButton;
     aree_restore_button_ = new QPushButton;
     buttons->addWidget(aree_open_button_);
+    buttons->addWidget(aree_archive_button_);
     buttons->addWidget(aree_restore_button_);
     layout->addLayout(buttons);
 
@@ -642,6 +653,7 @@ void MainWindow::setupAreeDock() {
     aree_dock_->hide();
 
     connect(aree_open_button_, &QPushButton::clicked, this, &MainWindow::openAreeArea);
+    connect(aree_archive_button_, &QPushButton::clicked, this, &MainWindow::archiveAreeArea);
     connect(aree_restore_button_, &QPushButton::clicked, this, &MainWindow::restoreAreeArchive);
     connect(aree_table_, &QTableWidget::cellDoubleClicked, this, [this](int, int) { openAreeArea(); });
     connect(aree_table_, &QTableWidget::itemSelectionChanged, this, &MainWindow::onAreeAreaActivated);
@@ -659,6 +671,10 @@ void MainWindow::setupMenus() {
     auto* open_action = file_menu->addAction(appTr("menu.open_lib"));
     open_action->setToolTip(appTr("menu.open_lib_tip"));
     connect(open_action, &QAction::triggered, this, &MainWindow::openLib);
+
+    auto* open_sample_action = file_menu->addAction(appTr("menu.open_sample_lib"));
+    open_sample_action->setToolTip(appTr("menu.open_sample_lib_tip"));
+    connect(open_sample_action, &QAction::triggered, this, &MainWindow::openBundledSampleLib);
 
     file_menu->addSeparator();
     auto* reload_action = file_menu->addAction(appTr("menu.reload_lib"));
@@ -678,6 +694,11 @@ void MainWindow::setupMenus() {
     connect(restore_workspace_action, &QAction::triggered, this, &MainWindow::restoreFromWorkspace);
     auto* restore_version_action = history_menu->addAction(appTr("menu.restore_version"));
     connect(restore_version_action, &QAction::triggered, this, &MainWindow::restoreVersion);
+    history_menu->addSeparator();
+    auto* archive_area_action = history_menu->addAction(appTr("aree.archive_area"));
+    connect(archive_area_action, &QAction::triggered, this, &MainWindow::archiveAreeArea);
+    auto* restore_aree_archive_action = history_menu->addAction(appTr("menu.aree_restore_archive"));
+    connect(restore_aree_archive_action, &QAction::triggered, this, &MainWindow::restoreAreeArchive);
 
     file_menu->addSeparator();
     file_menu->addAction(appTr("menu.exit"), this, &QWidget::close);
@@ -695,6 +716,14 @@ void MainWindow::setupMenus() {
     auto* align_all_exits_action = tools_menu->addAction(appTr("menu.align_exits"));
     align_all_exits_action->setToolTip(appTr("menu.align_exits_tip"));
     connect(align_all_exits_action, &QAction::triggered, this, &MainWindow::alignAllInboundExitDescriptions);
+    tools_menu->addSeparator();
+    auto* fix_ascii_field_action = tools_menu->addAction(appTr("menu.fix_mud_ascii_field"));
+    fix_ascii_field_action->setToolTip(appTr("menu.fix_mud_ascii_field_tip"));
+    fix_ascii_field_action->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_A));
+    connect(fix_ascii_field_action, &QAction::triggered, this, &MainWindow::normalizeFocusedMudAscii);
+    auto* fix_ascii_room_action = tools_menu->addAction(appTr("menu.fix_mud_ascii_room"));
+    fix_ascii_room_action->setToolTip(appTr("menu.fix_mud_ascii_room_tip"));
+    connect(fix_ascii_room_action, &QAction::triggered, this, &MainWindow::normalizeRoomMudAscii);
 
     auto* prefs_menu = menuBar()->addMenu(appTr("menu.prefs"));
     auto* line_limit_action = prefs_menu->addAction(appTr("menu.line_limit"));
@@ -704,6 +733,17 @@ void MainWindow::setupMenus() {
     extended_color_action->setCheckable(true);
     extended_color_action->setChecked(app_config_.show_color_codes);
     connect(extended_color_action, &QAction::toggled, this, &MainWindow::toggleExtendedColorView);
+
+    aree_archive_on_first_save_action_ = prefs_menu->addAction(appTr("aree.archive_on_first_save"));
+    aree_archive_on_first_save_action_->setCheckable(true);
+    aree_archive_on_first_save_action_->setChecked(app_config_.aree_archive_on_first_save);
+    connect(aree_archive_on_first_save_action_, &QAction::toggled, this, [this](bool enabled) {
+        app_config_.aree_archive_on_first_save = enabled;
+        nebbie::qt::write_config(app_config_);
+        if (!enabled) {
+            aree_pending_session_archive_ = false;
+        }
+    });
 
     auto* language_menu = prefs_menu->addMenu(appTr("menu.language"));
     auto* language_group = new QActionGroup(this);
@@ -807,7 +847,14 @@ void MainWindow::retranslateUi() {
                                      appTr("aree.col_range")};
         aree_table_->setHorizontalHeaderLabels(headers);
         aree_open_button_->setText(appTr("aree.open_area"));
+        if (aree_archive_button_) {
+            aree_archive_button_->setText(appTr("aree.archive_area"));
+        }
         aree_restore_button_->setText(appTr("aree.restore_archive"));
+        if (aree_archive_on_first_save_action_) {
+            aree_archive_on_first_save_action_->setText(appTr("aree.archive_on_first_save"));
+            aree_archive_on_first_save_action_->setChecked(app_config_.aree_archive_on_first_save);
+        }
     }
     if (lib_path_.empty() && statusBar()->currentMessage().isEmpty()) {
         statusBar()->showMessage(appTr("status.ready"));
@@ -847,9 +894,19 @@ void MainWindow::rememberLibPath(const std::filesystem::path& path) {
     nebbie::qt::write_config(app_config_);
 }
 
+std::unordered_set<long> MainWindow::workspaceKnownRoomVnums() const {
+    if (!aree_workspace_) {
+        return {};
+    }
+    return nebbie::collect_aree_workspace_room_vnums(*aree_workspace_);
+}
+
 nebbie::ValidationOptions MainWindow::validationOptions() const {
     nebbie::ValidationOptions options;
     options.max_line_length = app_config_.max_line_length;
+    // Cross-area exits (e.g. tower -> avamposti) are valid if the destination exists
+    // anywhere in the workspace, not only in the currently open area.
+    options.known_room_vnums = workspaceKnownRoomVnums();
     return options;
 }
 
@@ -902,6 +959,31 @@ void MainWindow::insertColorCode() {
     }
     field->insertColorCode(dialog.selectedCode());
     setStatus(QString("Inserito codice %1.").arg(dialog.selectedCode()));
+}
+
+void MainWindow::normalizeFocusedMudAscii() {
+    nebbie::qt::MudColorTextEdit* field = activeMudTextField();
+    if (!field) {
+        setStatus(appTr("status.mud_ascii_need_field"));
+        return;
+    }
+    if (field->normalizeMudAsciiText()) {
+        setStatus(appTr("status.mud_ascii_fixed"));
+    } else {
+        setStatus(appTr("status.mud_ascii_unchanged"));
+    }
+}
+
+void MainWindow::normalizeRoomMudAscii() {
+    if (!room_editor_) {
+        return;
+    }
+    if (room_editor_->normalizeMudAsciiAllFields()) {
+        applyRoomChanges();
+        setStatus(appTr("status.mud_ascii_fixed"));
+    } else {
+        setStatus(appTr("status.mud_ascii_unchanged"));
+    }
 }
 
 nebbie::qt::MudColorTextEdit* MainWindow::activeMudTextField() const {
@@ -1088,6 +1170,35 @@ void MainWindow::openLibPath(const QString& path) {
     }
 }
 
+void MainWindow::openBundledSampleLib() {
+    if (!confirmSaveIfDirty()) {
+        return;
+    }
+
+    const QStringList candidates = {
+#if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
+        QDir(QCoreApplication::applicationDirPath())
+            .absoluteFilePath(QStringLiteral("../Resources/sample-mudroot/lib")),
+#endif
+        QStringLiteral("/usr/share/nebbie-editor/sample-mudroot/lib"),
+        QStringLiteral("/usr/share/nebbie-translate/sample-mudroot/lib"),
+        QDir(QCoreApplication::applicationDirPath())
+            .absoluteFilePath(QStringLiteral("sample-mudroot/lib")),
+        QDir(QCoreApplication::applicationDirPath())
+            .absoluteFilePath(QStringLiteral("../sample-mudroot/lib")),
+    };
+
+    for (const QString& candidate : candidates) {
+        const QFileInfo info(candidate);
+        if (info.isDir()) {
+            openLibPath(info.canonicalFilePath());
+            return;
+        }
+    }
+
+    QMessageBox::information(this, appTr("menu.open_sample_lib"), appTr("dialog.sample_lib_missing"));
+}
+
 void MainWindow::openLib() {
     if (!confirmSaveIfDirty()) {
         return;
@@ -1259,6 +1370,7 @@ void MainWindow::clearAreeMode() {
     aree_workspace_.reset();
     aree_area_folder_.reset();
     aree_areas_.clear();
+    aree_pending_session_archive_ = false;
     if (aree_table_) {
         aree_table_->setRowCount(0);
     }
@@ -1347,51 +1459,90 @@ void MainWindow::openAreeWorkspaceFromPath(const QString& dir, const QString& se
 
 void MainWindow::onAreeAreaActivated() {
     const bool has_selection = aree_table_->currentRow() >= 0;
+    const bool has_workspace = aree_workspace_.has_value();
     aree_open_button_->setEnabled(has_selection);
-    aree_restore_button_->setEnabled(has_selection && aree_workspace_.has_value());
+    if (aree_archive_button_) {
+        aree_archive_button_->setEnabled(has_workspace && (aree_area_folder_.has_value() || has_selection));
+    }
+    aree_restore_button_->setEnabled(has_selection && has_workspace);
 }
 
-bool MainWindow::promptAreeSessionStart(const QString& area_name, bool& archive_first, QString& archive_label) {
-    QDialog dialog(this);
-    dialog.setWindowTitle(appTr("aree.session_title"));
+bool MainWindow::promptArchiveLabel(const QString& area_name, QString& archive_label) {
+    bool ok = false;
+    archive_label = QInputDialog::getText(this, appTr("aree.archive_title"),
+                                          appTr("aree.archive_prompt", area_name), QLineEdit::Normal,
+                                          {}, &ok)
+                        .trimmed();
+    return ok;
+}
 
-    auto* layout = new QVBoxLayout(&dialog);
-    layout->addWidget(new QLabel(appTr("aree.session_prompt", area_name)));
-
-    auto* archive_check = new QCheckBox(appTr("aree.archive_before"));
-    archive_check->setChecked(true);
-    layout->addWidget(archive_check);
-
-    auto* comment_edit = new QLineEdit;
-    comment_edit->setPlaceholderText(appTr("aree.archive_comment"));
-    layout->addWidget(comment_edit);
-
-    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-    layout->addWidget(buttons);
-
-    if (dialog.exec() != QDialog::Accepted) {
+bool MainWindow::archiveAreeFolder(const std::string& area_folder, const std::string& archive_label) {
+    if (!aree_workspace_) {
         return false;
     }
-
-    archive_first = archive_check->isChecked();
-    archive_label = comment_edit->text().trimmed();
+    try {
+        nebbie::archive_aree_area(*aree_workspace_, area_folder, archive_label);
+    } catch (const std::exception& ex) {
+        QMessageBox::critical(this, appTr("aree.archive_title"),
+                              appTr("aree.archive_failed", QString::fromUtf8(ex.what())));
+        return false;
+    }
+    if (aree_area_folder_ && *aree_area_folder_ == area_folder) {
+        aree_pending_session_archive_ = false;
+    }
+    setStatus(appTr("aree.archive_ok", QString::fromStdString(area_folder)));
     return true;
 }
 
+bool MainWindow::maybeArchiveAreeBeforeFirstSave() {
+    if (!aree_pending_session_archive_ || !app_config_.aree_archive_on_first_save || !aree_workspace_
+        || !aree_area_folder_) {
+        return true;
+    }
+    return archiveAreeFolder(*aree_area_folder_, {});
+}
+
+const nebbie::AreeAreaInfo* MainWindow::findAreeAreaForRoomVnum(const long room_vnum) const {
+    if (room_vnum <= 0) {
+        return nullptr;
+    }
+    for (const nebbie::AreeAreaInfo& area : aree_areas_) {
+        if (room_vnum >= area.bottom_vnum && room_vnum <= area.top_vnum) {
+            return &area;
+        }
+    }
+    // Fallback: match the #vnum header in each area .wld (range table can miss edge cases).
+    const std::string needle = "#" + std::to_string(room_vnum);
+    for (const nebbie::AreeAreaInfo& area : aree_areas_) {
+        const std::filesystem::path wld = area.path / (area.folder_name + ".wld");
+        std::ifstream in(wld);
+        if (!in) {
+            continue;
+        }
+        std::string line;
+        while (std::getline(in, line)) {
+            if (!line.empty() && line.back() == '\r') {
+                line.pop_back();
+            }
+            if (line == needle || line.rfind(needle, 0) == 0) {
+                const std::size_t n = needle.size();
+                if (line.size() == n || !std::isdigit(static_cast<unsigned char>(line[n]))) {
+                    return &area;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
 void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first,
-                              const std::string& archive_label) {
+                              const std::string& archive_label, const long select_room_vnum) {
     if (!aree_workspace_) {
         return;
     }
 
     if (archive_first) {
-        try {
-            nebbie::archive_aree_area(*aree_workspace_, area.folder_name, archive_label);
-        } catch (const std::exception& ex) {
-            QMessageBox::critical(this, appTr("aree.session_title"),
-                                  appTr("aree.archive_failed", QString::fromUtf8(ex.what())));
+        if (!archiveAreeFolder(area.folder_name, archive_label)) {
             return;
         }
     }
@@ -1417,6 +1568,7 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
     lib_path_ = area.path;
     session_storage_path_ = nebbie::aree_session_storage_root(*aree_workspace_, area.folder_name);
     aree_area_folder_ = area.folder_name;
+    aree_pending_session_archive_ = app_config_.aree_archive_on_first_save;
 
     app_config_.aree_last_area = QString::fromStdString(area.folder_name);
     nebbie::qt::write_config(app_config_);
@@ -1436,6 +1588,14 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
     refreshWorldZoneMap();
     zone_editor_->setWorld(&world_);
     refreshWorldDataEditors();
+    onAreeAreaActivated();
+
+    if (select_room_vnum > 0) {
+        selectRoomByVnum(select_room_vnum);
+        if (tabs_) {
+            tabs_->setCurrentIndex(0);
+        }
+    }
 
     const QString label = appTr("aree.status_loaded", nebbie::qt::qstring_from_path(area.path),
                                 QString::number(world_.zones.size()), QString::number(world_.rooms.size()));
@@ -1457,13 +1617,35 @@ void MainWindow::openAreeArea() {
         return;
     }
 
-    bool archive_first = true;
-    QString archive_label;
-    if (!promptAreeSessionStart(QString::fromStdString(selected->folder_name), archive_first, archive_label)) {
+    loadAreeArea(*selected);
+}
+
+void MainWindow::archiveAreeArea() {
+    if (!aree_workspace_) {
+        QMessageBox::information(this, appTr("aree.dock_title"), appTr("aree.no_workspace"));
         return;
     }
 
-    loadAreeArea(*selected, archive_first, archive_label.toStdString());
+    std::string folder;
+    if (aree_area_folder_) {
+        folder = *aree_area_folder_;
+    } else {
+        const auto selected = selectedAreeArea(aree_table_, aree_areas_);
+        if (!selected) {
+            QMessageBox::information(this, appTr("aree.archive_title"), appTr("aree.no_open_area"));
+            return;
+        }
+        folder = selected->folder_name;
+    }
+
+    QString label;
+    if (!promptArchiveLabel(QString::fromStdString(folder), label)) {
+        return;
+    }
+    if (archiveAreeFolder(folder, label.toStdString())) {
+        QMessageBox::information(this, appTr("aree.archive_title"),
+                                 appTr("aree.archive_ok", QString::fromStdString(folder)));
+    }
 }
 
 void MainWindow::restoreAreeArchive() {
@@ -1681,7 +1863,9 @@ void MainWindow::refreshZoneMap() {
     }
 
     const int zone_num = map_zone_->currentData().toInt();
-    const nebbie::ZoneGraph graph = nebbie::build_zone_graph(world_, zone_num);
+    const auto known = workspaceKnownRoomVnums();
+    const nebbie::ZoneGraph graph =
+        nebbie::build_zone_graph(world_, zone_num, known.empty() ? nullptr : &known);
     if (graph.nodes.empty()) {
         map_view_->clearGraph();
         map_floor_->clear();
@@ -1715,7 +1899,9 @@ void MainWindow::refreshWorldZoneMap() {
         return;
     }
 
-    const nebbie::WorldZoneGraph graph = nebbie::build_world_zone_graph(world_);
+    const auto known = workspaceKnownRoomVnums();
+    const nebbie::WorldZoneGraph graph =
+        nebbie::build_world_zone_graph(world_, known.empty() ? nullptr : &known);
     if (graph.zones.empty()) {
         world_map_view_->clearGraph();
         if (world_map_details_) {
@@ -1806,7 +1992,9 @@ void MainWindow::updateMapStats() {
     }
 
     const int zone_num = map_zone_->currentData().toInt();
-    const nebbie::ZoneGraph graph = nebbie::build_zone_graph(world_, zone_num);
+    const auto known = workspaceKnownRoomVnums();
+    const nebbie::ZoneGraph graph =
+        nebbie::build_zone_graph(world_, zone_num, known.empty() ? nullptr : &known);
     if (graph.nodes.empty()) {
         return;
     }
@@ -2485,11 +2673,56 @@ void MainWindow::goToExitTarget() {
         QMessageBox::information(this, "Exits", "Select an exit in the Exits tab.");
         return;
     }
-    if (!world_.find_room(to_room)) {
-        QMessageBox::warning(this, "Exits", QString("Room #%1 does not exist in this library.").arg(to_room));
+    if (world_.find_room(to_room)) {
+        selectRoomByVnum(to_room);
         return;
     }
-    selectRoomByVnum(to_room);
+
+    if (!aree_workspace_) {
+        QMessageBox::warning(this, "Exits",
+                             QString("Room #%1 does not exist in this library.").arg(to_room));
+        return;
+    }
+
+    // Refresh area list ranges if needed, then locate destination by workspace vnum range.
+    if (aree_areas_.empty()) {
+        refreshAreeAreaList();
+    }
+    const nebbie::AreeAreaInfo* target_area = findAreeAreaForRoomVnum(to_room);
+    if (!target_area) {
+        const auto known = workspaceKnownRoomVnums();
+        if (known.find(to_room) == known.end()) {
+            QMessageBox::warning(this, "Exits", appTr("aree.goto_missing_room", QString::number(to_room)));
+            return;
+        }
+        // Room exists in some .wld but range lookup failed: rescan and retry by folder tops.
+        refreshAreeAreaList();
+        target_area = findAreeAreaForRoomVnum(to_room);
+    }
+    if (!target_area) {
+        QMessageBox::warning(this, "Exits", appTr("aree.goto_missing_room", QString::number(to_room)));
+        return;
+    }
+
+    if (aree_area_folder_ && *aree_area_folder_ == target_area->folder_name) {
+        QMessageBox::warning(this, "Exits",
+                             QString("Room #%1 is in this area's range but not loaded (reload?).").arg(to_room));
+        return;
+    }
+
+    const auto answer = QMessageBox::question(
+        this, appTr("ui.goto_exit"),
+        appTr("aree.goto_other_area", QString::number(to_room),
+              QString::fromStdString(target_area->folder_name)),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+
+    loadAreeArea(*target_area, false, {}, to_room);
+    if (!world_.find_room(to_room)) {
+        QMessageBox::warning(this, "Exits", appTr("aree.goto_missing_room", QString::number(to_room)));
+    }
 }
 
 void MainWindow::applyRoomChanges() {
@@ -2521,6 +2754,14 @@ void MainWindow::applyRoomChanges() {
             world_, vnum, nebbie::InboundExitAlignPolicy::SyncDestinationName, &old_name);
         if (aligned > 0) {
             refreshRoomEditorIfInboundExitsChanged(vnum);
+            for (const auto& [other_vnum, other_room] : world_.rooms) {
+                for (const auto& exit : other_room.exits) {
+                    if (exit.to_room == vnum) {
+                        dirty_room_vnums_.insert(other_vnum);
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -2552,6 +2793,16 @@ void MainWindow::syncInboundExitLabels() {
     const std::size_t aligned = nebbie::refresh_inbound_exit_descriptions(world_, vnum);
     if (aligned > 0) {
         refreshRoomEditorIfInboundExitsChanged(vnum);
+        // Other rooms' exit text changed in memory; without dirty vnums, Aree preserve
+        // save would keep the old English blocks on disk.
+        for (const auto& [other_vnum, other_room] : world_.rooms) {
+            for (const auto& exit : other_room.exits) {
+                if (exit.to_room == vnum) {
+                    dirty_room_vnums_.insert(other_vnum);
+                    break;
+                }
+            }
+        }
         markDirty();
         setStatus(QString("Stanza %1: aggiornate %2 description in altre stanze (uscite verso \"%3\").")
                       .arg(vnum)
@@ -2596,6 +2847,7 @@ void MainWindow::alignCurrentExitLabel() {
         return;
     }
 
+    dirty_room_vnums_.insert(vnum);
     markDirty();
     reloadRoomEditor(vnum);
     room_editor_->focusExitTab(direction);
@@ -2705,6 +2957,9 @@ void MainWindow::alignAllInboundExitDescriptions() {
     showExitAlignmentReport(text, report);
 
     if (report.exits_aligned > 0) {
+        for (const auto& change : report.changes) {
+            dirty_room_vnums_.insert(change.from_vnum);
+        }
         markDirty();
         const long current = currentRoomVnum();
         if (current > 0) {
@@ -3074,6 +3329,10 @@ void MainWindow::saveLib() {
         return;
     }
 
+    if (!maybeArchiveAreeBeforeFirstSave()) {
+        return;
+    }
+
     const std::vector<long> rooms_to_check = roomsPendingSaveValidation();
     if (rooms_to_check.empty()) {
         try {
@@ -3145,6 +3404,27 @@ void MainWindow::saveLibForce() {
         QMessageBox::information(this, "Salva", "Apri prima una libreria.");
         return;
     }
+    if (!maybeArchiveAreeBeforeFirstSave()) {
+        return;
+    }
+
+    // Aree preserve-save only rewrites dirty vnums. After the stale-source-block bug,
+    // memory can hold a full translation while dirty is empty — force must rewrite all.
+    if (!context_.write_eof_markers_on_save) {
+        const auto answer = QMessageBox::question(
+            this, "Salva forzato (area)",
+            QString("Riscrivere TUTTA l'area da quello che vedi in Izanagi?\n\n"
+                    "Path:\n%1\n\n"
+                    "Usa questo se le stanze in editor sono tradotte ma i file .wld/.mob "
+                    "sono ancora in inglese. Viene creato un backup pre-salvataggio.")
+                .arg(nebbie::qt::qstring_from_path(lib_path_)),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        if (answer != QMessageBox::Yes) {
+            return;
+        }
+        markAllLoadedEntitiesDirty();
+    }
+
     try {
         flushPendingEditorChanges();
         syncDirtyEntityVnumsToContext();
@@ -3152,6 +3432,11 @@ void MainWindow::saveLibForce() {
         markClean();
         last_version_time_ = std::chrono::system_clock::now();
         setStatus("Libreria salvata (forzato, backup creato).");
+        if (!context_.write_eof_markers_on_save) {
+            QMessageBox::information(
+                this, "Salva forzato",
+                "Area riscritta da memoria. Riapri il .wld in Pulsar per verificare.");
+        }
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, "Errore", QString::fromUtf8(ex.what()));
     }
@@ -3163,6 +3448,7 @@ void MainWindow::onAutosaveTick() {
     }
 
     try {
+        flushPendingEditorChanges();
         syncDirtyEntityVnumsToContext();
         const auto result =
             nebbie::run_autosave(world_, context_, lib_path_, session_config_, last_version_time_, sessionStorageRoot());
@@ -3205,7 +3491,10 @@ void MainWindow::restoreFromWorkspace() {
 
     try {
         nebbie::restore_snapshot(world_, context_, workspace);
-        markDirty();
+        // load_lib resets dirty sets; mark every entity so Aree preserve-save writes
+        // the restored texts instead of stale source blocks from the previous open.
+        context_.root = lib_path_;
+        markAllLoadedEntitiesDirty();
         refreshRoomList();
         refreshMobList();
         refreshObjectList();
@@ -3257,7 +3546,8 @@ void MainWindow::restoreVersion() {
     try {
         const auto snapshot = nebbie::versions_dir(sessionStorageRoot()) / versions[static_cast<std::size_t>(index)].id;
         nebbie::restore_snapshot(world_, context_, snapshot);
-        markDirty();
+        context_.root = lib_path_;
+        markAllLoadedEntitiesDirty();
         refreshRoomList();
         refreshMobList();
         refreshObjectList();
@@ -3287,6 +3577,26 @@ void MainWindow::syncDirtyEntityVnumsToContext() {
 void MainWindow::markDirty() {
     dirty_ = true;
     updateBranding();
+}
+
+void MainWindow::markAllLoadedEntitiesDirty() {
+    dirty_room_vnums_.clear();
+    dirty_mobile_vnums_.clear();
+    dirty_object_vnums_.clear();
+    dirty_zone_nums_.clear();
+    for (const auto& [vnum, _] : world_.rooms) {
+        dirty_room_vnums_.insert(vnum);
+    }
+    for (const auto& [vnum, _] : world_.mobiles) {
+        dirty_mobile_vnums_.insert(vnum);
+    }
+    for (const auto& [vnum, _] : world_.objects) {
+        dirty_object_vnums_.insert(vnum);
+    }
+    for (const nebbie::Zone& zone : world_.zones) {
+        dirty_zone_nums_.insert(zone.num);
+    }
+    markDirty();
 }
 
 void MainWindow::markClean() {

@@ -36,7 +36,9 @@ copia automatica fatta mentre lavoravi.</li>
 </ul>
 <p>Nel pannello <b>Workspace Aree</b> (a sinistra, dopo aver aperto il workspace):</p>
 <ul>
-<li><b>Apri area</b> — Carica l’area selezionata per modificarla.</li>
+<li><b>Apri area</b> — Carica subito l’area selezionata (senza dialogo).</li>
+<li><b>Archivia area</b> — Crea una copia di sicurezza dell’area aperta
+(o di quella selezionata). Opzionale: Preferenze → archivia al primo Salva.</li>
 <li><b>Ripristina da archivio</b> — Riporta l’area a una copia di sicurezza
 fatta in precedenza (vedi path sotto).</li>
 </ul>
@@ -153,7 +155,9 @@ in-memory changes.</li>
 </ul>
 <p>In the <b>Aree workspace</b> dock (left side, after opening a workspace):</p>
 <ul>
-<li><b>Open area</b> — Loads the selected area for editing.</li>
+<li><b>Open area</b> — Loads the selected area immediately (no dialog).</li>
+<li><b>Archive area</b> — Full-folder safety copy of the open (or selected) area.
+Optional: Preferences → archive on first Save.</li>
 <li><b>Restore from archive</b> — Restores the area from an earlier full-folder archive
 (see paths below).</li>
 </ul>

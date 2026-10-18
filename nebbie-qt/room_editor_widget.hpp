@@ -31,6 +31,8 @@ public:
     bool showColorCodes() const { return show_color_codes_; }
 
     nebbie::qt::MudColorTextEdit* focusedMudField() const;
+    /** Accents/curly apostrophes → mud ASCII in all room text fields. Returns true if anything changed. */
+    bool normalizeMudAsciiAllFields();
 
     long selectedExitToRoom() const;
     int selectedExitDirection() const;

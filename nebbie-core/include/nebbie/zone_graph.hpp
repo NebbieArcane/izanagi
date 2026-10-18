@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace nebbie {
@@ -67,11 +68,13 @@ struct WorldZoneGraph {
 };
 
 std::vector<long> rooms_in_zone(const World& world, int zone_num);
-ZoneGraph build_zone_graph(const World& world, int zone_num);
+ZoneGraph build_zone_graph(const World& world, int zone_num,
+                           const std::unordered_set<long>* known_room_vnums = nullptr);
 ZoneZLayout compute_zone_z_levels(const ZoneGraph& graph);
 std::vector<int> sorted_z_levels(const ZoneZLayout& layout);
 WorldZoneNode build_world_zone_node(const World& world, const Zone& zone);
-WorldZoneGraph build_world_zone_graph(const World& world);
+WorldZoneGraph build_world_zone_graph(const World& world,
+                                      const std::unordered_set<long>* known_room_vnums = nullptr);
 std::string zone_graph_to_dot(const ZoneGraph& graph);
 std::string world_zone_graph_to_dot(const WorldZoneGraph& graph);
 std::string format_vnum_ranges(const std::vector<VnumRange>& ranges, std::size_t max_ranges = 8);

@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <regex>
 #include <sstream>
+#include <unordered_set>
 
 namespace nebbie {
 
@@ -265,6 +266,42 @@ std::vector<AreeAreaInfo> scan_aree_areas(const AreeWorkspace& workspace) {
     std::sort(areas.begin(), areas.end(),
               [](const AreeAreaInfo& a, const AreeAreaInfo& b) { return a.folder_name < b.folder_name; });
     return areas;
+}
+
+std::unordered_set<long> collect_aree_workspace_room_vnums(const AreeWorkspace& workspace) {
+    std::unordered_set<long> vnums;
+    for (const AreeAreaInfo& area : scan_aree_areas(workspace)) {
+        const std::filesystem::path wld_path = area.path / (area.folder_name + ".wld");
+        std::ifstream in(wld_path);
+        if (!in) {
+            continue;
+        }
+        std::string line;
+        while (std::getline(in, line)) {
+            if (!line.empty() && line.back() == '\r') {
+                line.pop_back();
+            }
+            if (line.size() < 2 || line[0] != '#') {
+                continue;
+            }
+            if (line[1] == '$') {
+                continue;
+            }
+            std::size_t pos = 1;
+            if (pos >= line.size() || std::isdigit(static_cast<unsigned char>(line[pos])) == 0) {
+                continue;
+            }
+            long vnum = 0;
+            while (pos < line.size() && std::isdigit(static_cast<unsigned char>(line[pos])) != 0) {
+                vnum = vnum * 10 + (line[pos] - '0');
+                ++pos;
+            }
+            if (vnum > 0) {
+                vnums.insert(vnum);
+            }
+        }
+    }
+    return vnums;
 }
 
 std::filesystem::path aree_archive_destination(const AreeWorkspace& workspace, const std::string& area_folder,

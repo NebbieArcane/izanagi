@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a macOS disk image (.dmg) with Izanagi.app and nebbiedit CLI.
+# Build a macOS disk image (.dmg) with a self-contained Izanagi.app.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,9 +14,9 @@ usage() {
 Usage: ./scripts/package-dmg.sh [options]
 
 Builds dist/izanagi_<version>_macos.dmg containing:
-  - Izanagi.app
-  - bin/nebbiedit (CLI)
+  - Izanagi.app (GUI + CLI + sample-mudroot inside the bundle)
   - Applications symlink (drag-and-drop install)
+  - LEGGIMI.txt (instructions only; no need to copy)
 
 Options:
   --no-build       Skip ./scripts/build.sh --macos-bundle
@@ -84,6 +84,9 @@ if [[ ! -x "${CLI_SRC}" ]]; then
     exit 1
 fi
 
+echo "==> Embedding sample lib and CLI into app bundle"
+"${ROOT}/scripts/macos-embed-app-extras.sh" "${APP_SRC}" --cli "${CLI_SRC}"
+
 echo "==> Bundling Qt and signing app"
 ENTITLEMENTS="${ROOT}/nebbie-qt/macos/entitlements.plist"
 if [[ ! -f "${ENTITLEMENTS}" ]]; then
@@ -93,26 +96,27 @@ fi
 
 echo "==> Preparing DMG staging"
 rm -rf "${STAGING}"
-mkdir -p "${STAGING}/bin"
+mkdir -p "${STAGING}"
 cp -R "${APP_SRC}" "${STAGING}/"
-cp "${CLI_SRC}" "${STAGING}/bin/"
-cp -a "${DIST}/sample-mudroot" "${STAGING}/"
 cat > "${STAGING}/LEGGIMI.txt" <<'EOF'
 Izanagi
 =======
 
-1. Apri il file .dmg (doppio clic)
-2. Trascina Izanagi.app nella cartella Applicazioni
-3. Avvia Izanagi → File → Apri libreria → mudroot o mudroot/lib
+Installazione (un solo passaggio):
+1. Apri questo .dmg
+2. Trascina Izanagi.app su Applicazioni
+3. Avvia Izanagi
 
-Se macOS dice che l'app è "danneggiata" o non si apre:
-  - NON è il download corrotto: è la protezione Gatekeeper su app non notarizzate.
+Dentro l'app trovi gia' tutto:
+  - mondo di prova: File → Apri mondo di esempio
+    (oppure Izanagi.app/Contents/Resources/sample-mudroot/lib)
+  - CLI: /Applications/Izanagi.app/Contents/MacOS/nebbiedit
+
+Se macOS dice che l'app e' "danneggiata" o non si apre:
+  - NON e' il download corrotto: e' Gatekeeper su app non notarizzate.
   - Tasto destro su Izanagi.app → Apri (solo la prima volta)
   - oppure in Terminale:
       xattr -cr /Applications/Izanagi.app
-
-CLI incluso: bin/nebbiedit
-Mondo di prova: sample-mudroot/lib
 EOF
 ln -sf /Applications "${STAGING}/Applications"
 
@@ -140,4 +144,4 @@ echo "Disk image created:"
 echo "  ${DMG_FILE}"
 ls -lh "${DMG_FILE}"
 echo ""
-echo "Users can drag Izanagi.app to Applications."
+echo "Users only need to drag Izanagi.app to Applications."
