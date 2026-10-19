@@ -71,6 +71,10 @@ add_executable(nebbie-mob-combat-tests test_mob_combat.cpp)
 target_link_libraries(nebbie-mob-combat-tests PRIVATE nebbie-core)
 add_test(NAME mob-combat-validation COMMAND nebbie-mob-combat-tests)
 
+add_executable(nebbie-english-lexicon-tests test_english_lexicon.cpp)
+target_link_libraries(nebbie-english-lexicon-tests PRIVATE nebbie-core)
+add_test(NAME english-lexicon-tests COMMAND nebbie-english-lexicon-tests)
+
 add_executable(nebbie-validate-tests test_validate.cpp)
 target_link_libraries(nebbie-validate-tests PRIVATE nebbie-core)
 

@@ -23,7 +23,11 @@ constexpr QColor kRulerOkColor(255, 245, 170, 180);
 constexpr QColor kRulerExceededColor(220, 60, 60, 220);
 constexpr QColor kNewlineMarkerColor(90, 130, 180, 200);
 constexpr QColor kBlankLineFillColor(180, 210, 255, 70);
-constexpr QColor kTrailingBlankFillColor(255, 200, 160, 90);
+constexpr QColor kTrailingBlankWarnFillColor(255, 200, 160, 90);
+constexpr QColor kTrailingBlankWarnMarkerColor(180, 80, 30, 220);
+constexpr QColor kTrailingBlankOkFillColor(160, 220, 170, 90);
+constexpr QColor kTrailingBlankOkMarkerColor(40, 130, 60, 220);
+constexpr QColor kTrailingBlankMissingMarkerColor(200, 50, 40, 230);
 
 int char_column_width(const QFontMetrics& metrics) {
     return metrics.horizontalAdvance(QLatin1Char('M'));
@@ -74,6 +78,27 @@ void configureMudDescriptionField(MudColorTextEdit* field) {
     field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     field->setLineWrapMode(QTextEdit::NoWrap);
     field->setSingleLineMode(false);
+    // .wld paragraph bodies always write "\n~"; show that final newline as expected.
+    field->setRequireTrailingNewline(true);
+}
+
+void configureMudOnOwnLineField(MudColorTextEdit* field, int min_height) {
+    if (!field) {
+        return;
+    }
+    field->setMinimumHeight(min_height);
+    field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    field->setLineWrapMode(QTextEdit::WidgetWidth);
+    field->setSingleLineMode(false);
+    field->setRequireTrailingNewline(true);
+}
+
+void syncMudParagraphTrailingNewlinePolicy(MudColorTextEdit* field) {
+    if (!field) {
+        return;
+    }
+    const bool needs_on_own_line = field->storageText().contains(QLatin1Char('\n'));
+    field->setRequireTrailingNewline(needs_on_own_line);
 }
 
 void configureMudSingleLineField(MudColorTextEdit* field) {
@@ -86,6 +111,8 @@ void configureMudSingleLineField(MudColorTextEdit* field) {
     field->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     field->setLineWrapMode(QTextEdit::NoWrap);
     field->setSingleLineMode(true);
+    field->setRequireTrailingNewline(false);
+    field->refreshTrailingNewlineToolTip();
 }
 
 MudColorTextEdit::MudColorTextEdit(QWidget* parent) : QTextEdit(parent) {
@@ -116,6 +143,35 @@ void MudColorTextEdit::setShowColorCodes(bool show) {
 void MudColorTextEdit::setMaxLineLength(int max_length) {
     max_line_length_ = max_length < 0 ? 0 : max_length;
     updateRulerState();
+    viewport()->update();
+}
+
+void MudColorTextEdit::refreshTrailingNewlineToolTip() {
+    if (single_line_mode_) {
+        setToolTip(QStringLiteral(
+            "Campo a una riga: la ~ sta sulla stessa riga del testo (niente Invio finale)."));
+        return;
+    }
+    if (require_trailing_newline_) {
+        setToolTip(QStringLiteral(
+            "Dopo l'ultima riga di testo premi Invio una volta.\n"
+            "↵ verde = corretto (nel file la ~ sta sulla riga sotto).\n"
+            "↵ rosso sull'ultima riga = manca l'Invio; ↵ rosso su righe vuote extra = toglile."));
+    } else {
+        setToolTip(QStringLiteral(
+            "Niente Invio dopo l'ultima riga di testo.\n"
+            "↵ rosso in coda = togli quell'Invio (nel file la ~ sta sulla stessa riga).\n"
+            "Se il testo ha piu' paragrafi, l'editor puo' richiedere invece un Invio finale."));
+    }
+}
+
+void MudColorTextEdit::setRequireTrailingNewline(bool required) {
+    if (require_trailing_newline_ == required) {
+        refreshTrailingNewlineToolTip();
+        return;
+    }
+    require_trailing_newline_ = required;
+    refreshTrailingNewlineToolTip();
     viewport()->update();
 }
 
@@ -353,11 +409,15 @@ void MudColorTextEdit::paintNewlineGuides(QPainter& painter) const {
     const int marker_width = qMax(metrics.horizontalAdvance(marker), metrics.averageCharWidth());
     const int trailing_blanks = trailing_empty_block_count(document());
     const int last_block_number = document()->lastBlock().blockNumber();
+    const bool has_content = !storage_.isEmpty();
+    const bool missing_required_trailing =
+        require_trailing_newline_ && has_content && trailing_blanks == 0;
 
     for (QTextBlock block = document()->firstBlock(); block.isValid(); block = block.next()) {
         const bool empty_line = block.text().isEmpty();
         const int from_end = last_block_number - block.blockNumber();
         const bool trailing_blank = empty_line && from_end < trailing_blanks;
+        const bool last_content_line = !empty_line && block.blockNumber() == last_block_number;
 
         QTextCursor start_cursor(block);
         start_cursor.movePosition(QTextCursor::StartOfBlock);
@@ -369,12 +429,33 @@ void MudColorTextEdit::paintNewlineGuides(QPainter& painter) const {
         if (empty_line) {
             const int top = start_rect.top();
             const int height = qMax(end_rect.bottom() - top + 1, metrics.lineSpacing());
-            painter.fillRect(0, top, viewport()->width(), height,
-                             trailing_blank ? kTrailingBlankFillColor : kBlankLineFillColor);
+            QColor fill = kBlankLineFillColor;
+            if (trailing_blank) {
+                if (require_trailing_newline_) {
+                    // Blank closest to content = expected "\n~"; further blanks = extra.
+                    const bool is_required_slot = from_end == trailing_blanks - 1;
+                    fill = is_required_slot ? kTrailingBlankOkFillColor : kTrailingBlankWarnFillColor;
+                } else {
+                    fill = kTrailingBlankWarnFillColor;
+                }
+            }
+            painter.fillRect(0, top, viewport()->width(), height, fill);
+        }
+
+        QColor marker_color = kNewlineMarkerColor;
+        if (trailing_blank) {
+            if (require_trailing_newline_) {
+                const bool is_required_slot = from_end == trailing_blanks - 1;
+                marker_color = is_required_slot ? kTrailingBlankOkMarkerColor : kTrailingBlankWarnMarkerColor;
+            } else {
+                marker_color = kTrailingBlankWarnMarkerColor;
+            }
+        } else if (missing_required_trailing && last_content_line) {
+            marker_color = kTrailingBlankMissingMarkerColor;
         }
 
         const int x = empty_line ? 4 : end_rect.right() + 2;
-        painter.setPen(trailing_blank ? QColor(180, 80, 30, 220) : kNewlineMarkerColor);
+        painter.setPen(marker_color);
         painter.drawText(x, end_rect.top(), marker_width + 4, qMax(end_rect.height(), metrics.height()),
                          Qt::AlignLeft | Qt::AlignVCenter, marker);
     }

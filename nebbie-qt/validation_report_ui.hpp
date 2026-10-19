@@ -13,6 +13,9 @@ QString translate_application_log_path();
 QString editor_validation_log_path();
 QString translate_validation_log_path();
 
+/** Human-readable title for a ValidationIssue::category (IT UI). */
+QString validation_category_title(const std::string& category);
+
 QString format_validation_report(const nebbie::ValidationReport& report,
                                  const QString& context = {},
                                  const QString& library_path = {});

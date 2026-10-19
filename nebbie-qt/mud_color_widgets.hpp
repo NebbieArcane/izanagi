@@ -20,6 +20,15 @@ public:
     void setMaxLineLength(int max_length);
     int maxLineLength() const { return max_line_length_; }
     void setSingleLineMode(bool single_line);
+    bool isSingleLineMode() const { return single_line_mode_; }
+    /**
+     * When true, a final empty line is expected (OnOwnLine: text then \\n then ~) and shown green.
+     * When false on multiline fields, a trailing empty line is warned in red (Inline: text~).
+     */
+    void setRequireTrailingNewline(bool required);
+    bool requireTrailingNewline() const { return require_trailing_newline_; }
+    /** Refresh the field tooltip that explains green/red ↵ for this tilde policy. */
+    void refreshTrailingNewlineToolTip();
 
     void insertColorCode(const QString& code);
     void pastePlainText();
@@ -53,6 +62,7 @@ private:
     QString previous_display_;
     bool show_color_codes_ = false;
     bool single_line_mode_ = false;
+    bool require_trailing_newline_ = false;
     int max_line_length_ = 0;
     bool ruler_exceeded_ = false;
     bool rebuilding_ = false;
@@ -60,5 +70,12 @@ private:
 
 void configureMudDescriptionField(MudColorTextEdit* field);
 void configureMudSingleLineField(MudColorTextEdit* field);
+/** Multiline field that always uses OnOwnLine tilde (e.g. mob long_descr). */
+void configureMudOnOwnLineField(MudColorTextEdit* field, int min_height);
+/**
+ * Inline if the text has no '\\n', OnOwnLine (required trailing newline) if it has paragraphs
+ * — matches nebbie_paragraph_tilde_style.
+ */
+void syncMudParagraphTrailingNewlinePolicy(MudColorTextEdit* field);
 
 } // namespace nebbie::qt

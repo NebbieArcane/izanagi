@@ -120,4 +120,5 @@ Dopo lavoro in Cloud: sul NUC eseguire `git pull origin main`.
 - `docs/ARCHITECTURE.md` — monolite + overlay, boot server
 - `docs/PLATFORM.md` — build per OS
 - `docs/proposals/AREE_WORKSPACE.md` — workspace Aree, archivi `.izanagi/`
-- `scripts/aree/` — deploy PHP (non modificare senza accordo)
+- `scripts/aree/` — mirror/docs dello script Aree; **non** modificare né “migliorare”
+  `deploy_aree.php` / il build Aree senza accordo esplicito (autoritativo = repo Aree)

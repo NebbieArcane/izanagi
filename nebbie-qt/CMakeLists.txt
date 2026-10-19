@@ -23,6 +23,8 @@ add_executable(nebbieedit
     help_menu_guide.hpp
     mud_editor_fields.cpp
     mud_editor_fields.hpp
+    spin_box_wheel_guard.cpp
+    spin_box_wheel_guard.hpp
     app_theme.cpp
     app_theme.hpp
     application_log.cpp

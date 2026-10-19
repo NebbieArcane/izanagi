@@ -4,6 +4,7 @@
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
 #include "nebbie/mob_catalog.hpp"
+#include "room_text_monitors.hpp"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -16,6 +17,8 @@
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
+
+#include <string>
 
 namespace {
 
@@ -121,18 +124,34 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* text_tab = new QWidget;
     auto* text_form = new QFormLayout(text_tab);
+    english_lexicon_banner_ = nebbie::qt::makeTextMonitorLabel();
     name_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(name_);
     short_descr_ = new nebbie::qt::MudColorTextEdit;
     configureShortTextField(short_descr_);
+    short_descr_->setRequireTrailingNewline(false);
+    short_descr_->refreshTrailingNewlineToolTip();
     long_descr_ = new nebbie::qt::MudColorTextEdit;
-    configureTextField(long_descr_, 110);
+    nebbie::qt::configureMudOnOwnLineField(long_descr_, 110);
+    long_descr_tilde_hint_ = nebbie::qt::makeTextMonitorLabel();
     description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(description_, 130);
+    description_->setRequireTrailingNewline(false);
+    description_->refreshTrailingNewlineToolTip();
+    description_tilde_hint_ = nebbie::qt::makeTextMonitorLabel();
+    text_form->addRow(makeLegend(
+        "Marker \u21b5: verde = Invio finale corretto (~ sotto nel file); "
+        "rosso in coda = togli l'Invio (~ sulla stessa riga). "
+        "Long: serve sempre un Invio dopo l'ultima riga. "
+        "Description a una riga: niente Invio finale; se ha piu' paragrafi, ne serve uno.",
+        text_tab));
+    text_form->addRow(english_lexicon_banner_);
     text_form->addRow("Name (keywords~):", name_);
     text_form->addRow("Short description:", short_descr_);
     text_form->addRow("Long description:", long_descr_);
+    text_form->addRow("", long_descr_tilde_hint_);
     text_form->addRow("Description:", description_);
+    text_form->addRow("", description_tilde_hint_);
     tabs->addTab(text_tab, "Text");
 
     auto* combat_tab = new QWidget;
@@ -290,6 +309,35 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     race_row_->setVisible(false);
     immunity_panel_->setVisible(false);
     updateTypeDependentFields();
+
+    for (nebbie::qt::MudColorTextEdit* field : mudFields()) {
+        if (field == nullptr) {
+            continue;
+        }
+        connect(field, &nebbie::qt::MudColorTextEdit::storageTextChanged, this, [this]() {
+            updateEnglishLexiconBanner();
+            updateTildeNewlineHints();
+        });
+    }
+    updateTildeNewlineHints();
+}
+
+void MobEditorWidget::updateEnglishLexiconBanner() {
+    std::string blob;
+    for (nebbie::qt::MudColorTextEdit* field : mudFields()) {
+        if (field == nullptr) {
+            continue;
+        }
+        blob += field->storageText().toStdString();
+        blob.push_back(' ');
+    }
+    nebbie::qt::updateEnglishLexiconMonitor(english_lexicon_banner_, blob);
+}
+
+void MobEditorWidget::updateTildeNewlineHints() {
+    nebbie::qt::syncMudParagraphTrailingNewlinePolicy(description_);
+    nebbie::qt::updateTildeNewlineHint(long_descr_tilde_hint_, long_descr_);
+    nebbie::qt::updateTildeNewlineHint(description_tilde_hint_, description_);
 }
 
 nebbie::qt::MudFieldList MobEditorWidget::mudFields() const {
@@ -431,6 +479,8 @@ void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {
     }
 
     updateTypeDependentFields();
+    updateEnglishLexiconBanner();
+    updateTildeNewlineHints();
 }
 
 void MobEditorWidget::saveToMobile(nebbie::Mobile& mob) const {

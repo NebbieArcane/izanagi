@@ -34,6 +34,8 @@ public:
 private:
     void updateTypeDependentFields();
     void updateEconomyFieldLabels();
+    void updateEnglishLexiconBanner();
+    void updateTildeNewlineHints();
     void migrateCombatFieldsForTypeChange(char from_type, char to_type);
 
     char last_mobtype_ = 'A';
@@ -43,10 +45,13 @@ private:
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
 
+    QLabel* english_lexicon_banner_ = nullptr;
     nebbie::qt::MudColorTextEdit* name_ = nullptr;
     nebbie::qt::MudColorTextEdit* short_descr_ = nullptr;
     nebbie::qt::MudColorTextEdit* long_descr_ = nullptr;
+    QLabel* long_descr_tilde_hint_ = nullptr;
     nebbie::qt::MudColorTextEdit* description_ = nullptr;
+    QLabel* description_tilde_hint_ = nullptr;
 
     QComboBox* mobtype_ = nullptr;
     QSpinBox* mult_att_ = nullptr;

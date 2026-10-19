@@ -25,7 +25,7 @@ public:
     explicit ObjEditorWidget(QWidget* parent = nullptr);
 
     void loadFromObject(const nebbie::GameObject& obj);
-    void saveToObject(nebbie::GameObject& obj) const;
+    void saveToObject(nebbie::GameObject& obj);
 
     void setMaxLineLength(int max_length);
     void setShowColorCodes(bool show);
@@ -35,6 +35,7 @@ public:
 private slots:
     void onExtraDescSelected();
     void addExtraDesc();
+    void updateExtraDesc();
     void removeExtraDesc();
     void onAffectSelected();
     void addAffect();
@@ -45,6 +46,8 @@ private:
     void refreshAffectForm();
     void setComboIntValue(QComboBox* combo, int value) const;
     void applyMudFieldSettings();
+    void updateEnglishLexiconBanner();
+    void updateTildeNewlineHints();
     nebbie::qt::MudFieldList mudFields() const;
     void updateObjectValueFields();
     void syncValueComboFromSpin(int slot_index);
@@ -54,10 +57,13 @@ private:
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
 
+    QLabel* english_lexicon_banner_ = nullptr;
     nebbie::qt::MudColorTextEdit* name_ = nullptr;
     nebbie::qt::MudColorTextEdit* short_descr_ = nullptr;
     nebbie::qt::MudColorTextEdit* description_ = nullptr;
+    QLabel* description_tilde_hint_ = nullptr;
     nebbie::qt::MudColorTextEdit* action_description_ = nullptr;
+    QLabel* action_tilde_hint_ = nullptr;
 
     QComboBox* type_flag_ = nullptr;
     QLabel* value_legend_ = nullptr;
@@ -96,6 +102,7 @@ private:
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;
     nebbie::qt::MudColorTextEdit* extra_desc_description_ = nullptr;
+    QLabel* extra_desc_tilde_hint_ = nullptr;
 
     QLineEdit* forbidden_char_ = nullptr;
     QLineEdit* forbidden_room_ = nullptr;

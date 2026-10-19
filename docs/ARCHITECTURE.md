@@ -51,7 +51,14 @@ world/      # stato runtime stanza (oggetti/mob a terra), NON prototipi
 
 ### Build Aree (`NebbieArcane/Aree`)
 
-Il deploy concatena `src/<area>/<area>.*` in `mudroot/myst.*` con `deploy_aree.php` (invocato da `build.sh`). I marker EOF (`#$`, `%%`, `#0`) devono comparire **solo** in `src/_tail/`; se un'area singola li contiene (export Izanagi, copia da monolite), il merge li propagava e il server tronca il caricamento. Fix canonico: `scripts/aree/deploy_aree.php`.
+Il monolite lo costruisce **solo** `deploy_aree.php` di NebbieArcane/Aree (altra
+macchina / `build.sh`), non Izanagi. Concat grezzo: `_head` + aree + `_tail`
+(`.wld` con `rtrim`+newline; altre ext byte-per-byte). `_head.wld` porta la stanza
+`#0` reale; `_tail.wld` è vuoto; terminatori mob/obj/zon/shp/spe stanno in `_tail`.
+I file area salvati da Izanagi devono omettere quei terminatori
+(`write_eof_markers_on_save = false`). Mirror di riferimento:
+`scripts/aree/deploy_aree.php` + `scripts/aree/README.md` (non “migliorare” lo
+script Aree senza accordo esplicito).
 
 ## Moduli editor
 

@@ -51,6 +51,7 @@
 #include <QTabWidget>
 #include <QComboBox>
 #include <QFileDialog>
+#include <QFont>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -75,9 +76,12 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <map>
 #include <stdexcept>
+#include <vector>
 
 using nebbie::qt::appTr;
 
@@ -3202,29 +3206,74 @@ void MainWindow::showValidation(const nebbie::ValidationReport& report, const QS
     validation_issues_ = report.issues;
     validation_list_->clear();
 
-    for (std::size_t i = 0; i < validation_issues_.size(); ++i) {
-        const auto& issue = validation_issues_[i];
-        const char* level = issue.severity == nebbie::ValidationSeverity::error ? "ERRORE" : "AVVISO";
-        const QString text = QString("[%1] %2: %3")
-                                 .arg(level)
-                                 .arg(QString::fromStdString(issue.category))
-                                 .arg(QString::fromStdString(issue.message));
-        auto* item = new QListWidgetItem(text, validation_list_);
-        item->setData(Qt::UserRole, static_cast<qlonglong>(i));
-        if (issue.severity == nebbie::ValidationSeverity::error) {
-            item->setForeground(Qt::red);
-        } else {
-            item->setForeground(QColor(180, 120, 0));
-        }
-    }
-
-    if (validation_list_->count() == 0) {
-        validation_list_->addItem("Nessun problema rilevato.");
+    if (validation_issues_.empty()) {
+        validation_list_->addItem(QStringLiteral("Nessun problema rilevato."));
     } else {
+        std::map<std::string, std::vector<std::size_t>> indices_by_category;
+        for (std::size_t i = 0; i < validation_issues_.size(); ++i) {
+            indices_by_category[validation_issues_[i].category].push_back(i);
+        }
+        std::vector<std::string> categories;
+        categories.reserve(indices_by_category.size());
+        for (const auto& [category, _] : indices_by_category) {
+            categories.push_back(category);
+        }
+        const auto category_key = [](const std::string& category) {
+            static const char* order[] = {"english_text", "room_text", "mob_text", "object_text",
+                                          "room",         "mob_combat", "mob_economy", "reset",
+                                          "shop",         "guild",      "special",     "social"};
+            for (int i = 0; i < static_cast<int>(sizeof(order) / sizeof(order[0])); ++i) {
+                if (category == order[i]) {
+                    return i;
+                }
+            }
+            return 1000;
+        };
+        std::sort(categories.begin(), categories.end(),
+                  [&](const std::string& a, const std::string& b) {
+                      const int ka = category_key(a);
+                      const int kb = category_key(b);
+                      if (ka != kb) {
+                          return ka < kb;
+                      }
+                      return a < b;
+                  });
+
         auto* summary = new QListWidgetItem(
-            QString("\n%1 errori, %2 avvisi").arg(report.error_count()).arg(report.warning_count()));
+            QStringLiteral("%1 errori, %2 avvisi — doppio clic sulla riga per aprire l'entita'")
+                .arg(report.error_count())
+                .arg(report.warning_count()));
         summary->setFlags(Qt::NoItemFlags);
         validation_list_->addItem(summary);
+
+        for (const std::string& category : categories) {
+            const auto& indices = indices_by_category[category];
+            auto* header = new QListWidgetItem(
+                QStringLiteral("— %1 (%2) —")
+                    .arg(nebbie::qt::validation_category_title(category))
+                    .arg(static_cast<qlonglong>(indices.size())));
+            header->setFlags(Qt::NoItemFlags);
+            QFont header_font = header->font();
+            header_font.setBold(true);
+            header->setFont(header_font);
+            validation_list_->addItem(header);
+
+            for (std::size_t i : indices) {
+                const auto& issue = validation_issues_[i];
+                const char* level =
+                    issue.severity == nebbie::ValidationSeverity::error ? "ERRORE" : "AVVISO";
+                const QString text = QStringLiteral("[%1] %2")
+                                         .arg(QString::fromUtf8(level))
+                                         .arg(QString::fromStdString(issue.message));
+                auto* item = new QListWidgetItem(text, validation_list_);
+                item->setData(Qt::UserRole, static_cast<qlonglong>(i));
+                if (issue.severity == nebbie::ValidationSeverity::error) {
+                    item->setForeground(Qt::red);
+                } else {
+                    item->setForeground(QColor(180, 120, 0));
+                }
+            }
+        }
     }
 
     tabs_->setCurrentWidget(validation_tab_);

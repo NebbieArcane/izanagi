@@ -44,6 +44,7 @@ signals:
 private slots:
     void onExtraDescSelected();
     void addExtraDesc();
+    void updateExtraDesc();
     void removeExtraDesc();
     void onExitSelected();
     void addOrUpdateExit();
@@ -54,6 +55,7 @@ private:
     void updateConditionalFields();
     void refreshExtraDescForm();
     void refreshExitForm(int row = -1);
+    void commitPendingExtraDesc();
     void commitPendingExit();
     void setComboIntValue(QComboBox* combo, int value) const;
     void applyColorSettingsToFields();
@@ -73,13 +75,18 @@ private:
     nebbie::qt::MudColorTextEdit* name_ = nullptr;
     QLabel* name_line_info_ = nullptr;
     QLabel* name_ascii_info_ = nullptr;
+    QLabel* name_english_info_ = nullptr;
     nebbie::qt::MudColorTextEdit* description_ = nullptr;
     QLabel* description_line_info_ = nullptr;
     QLabel* description_ascii_info_ = nullptr;
+    QLabel* description_english_info_ = nullptr;
 
     QComboBox* sector_type_ = nullptr;
     FlagGroupWidget* room_flags_ = nullptr;
 
+    QCheckBox* teleport_enabled_ = nullptr;
+    QWidget* teleport_fields_ = nullptr;
+    QLabel* teleport_status_ = nullptr;
     QSpinBox* tele_time_ = nullptr;
     QSpinBox* tele_targ_ = nullptr;
     QSpinBox* tele_mask_ = nullptr;
@@ -96,9 +103,11 @@ private:
 
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;
+    QLabel* extra_desc_keyword_english_info_ = nullptr;
     nebbie::qt::MudColorTextEdit* extra_desc_description_ = nullptr;
     QLabel* extra_desc_line_info_ = nullptr;
     QLabel* extra_desc_ascii_info_ = nullptr;
+    QLabel* extra_desc_english_info_ = nullptr;
 
     QListWidget* exit_list_ = nullptr;
     QComboBox* exit_direction_ = nullptr;
@@ -106,7 +115,9 @@ private:
     nebbie::qt::MudColorTextEdit* exit_description_ = nullptr;
     QLabel* exit_line_info_ = nullptr;
     QLabel* exit_ascii_info_ = nullptr;
+    QLabel* exit_english_info_ = nullptr;
     QLineEdit* exit_keyword_ = nullptr;
+    QLabel* exit_keyword_english_info_ = nullptr;
     FlagGroupWidget* exit_flags_ = nullptr;
     QSpinBox* exit_key_ = nullptr;
     QComboBox* exit_open_cmd_ = nullptr;

@@ -129,5 +129,5 @@ Test: `tests/test_aree_workspace.cpp` su fixture `castelli` + `myst`.
 
 - `nebbie-core/src/aree_workspace.cpp`
 - `nebbie-core/src/lib_io.cpp` (`discover_files_by_extension` → `area/area.zon`)
-- `scripts/aree/deploy_aree.php` (copia canonica fix EOF)
+- `scripts/aree/deploy_aree.php` (mirror dello script Aree; autoritativo è Aree)
 - `tests/fixtures/aree/`

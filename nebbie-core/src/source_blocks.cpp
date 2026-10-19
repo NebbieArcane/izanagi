@@ -127,7 +127,7 @@ std::string format_room_block(const Room& room, const World& world) {
     std::ostringstream out;
     out << '#' << room.vnum << '\n';
     append_string_field(out, room.name, NebbieTildeStyle::Inline);
-    append_string_field(out, room.description, nebbie_paragraph_tilde_style(room.description));
+    append_string_field(out, room.description, nebbie_wld_paragraph_tilde_style(room.description));
 
     write_zone_data_line(out, room, world);
 
@@ -147,13 +147,13 @@ std::string format_room_block(const Room& room, const World& world) {
     for (const auto& extra : room.extra_descs) {
         out << "E\n";
         append_string_field(out, extra.keyword, NebbieTildeStyle::Inline);
-        append_string_field(out, extra.description, nebbie_paragraph_tilde_style(extra.description));
+        append_string_field(out, extra.description, nebbie_wld_paragraph_tilde_style(extra.description));
     }
 
     if (!room.bright_at_night.empty() || !room.bright_at_day.empty()) {
         out << "L\n";
-        append_string_field(out, room.bright_at_night, nebbie_paragraph_tilde_style(room.bright_at_night));
-        append_string_field(out, room.bright_at_day, nebbie_paragraph_tilde_style(room.bright_at_day));
+        append_string_field(out, room.bright_at_night, nebbie_wld_paragraph_tilde_style(room.bright_at_night));
+        append_string_field(out, room.bright_at_day, nebbie_wld_paragraph_tilde_style(room.bright_at_day));
     }
 
     out << "S\n";

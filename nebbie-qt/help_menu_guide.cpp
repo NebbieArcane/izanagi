@@ -60,9 +60,11 @@ fatta in precedenza (vedi path sotto).</li>
 (stanze, mob, oggetti, zone, negozi, ecc.);</li>
 <li>se hai aperto la lib monolite → controlla tutta la lib caricata.</li>
 </ul>
-Non controlla tutte le aree del workspace in un colpo solo. Al salvataggio
-Izanagi fa un controllo più ristretto (soprattutto sulle stanze modificate);
-questa voce serve per un controllo completo di ciò che è aperto.</li>
+Non controlla tutte le aree del workspace in un colpo solo. Segnala anche
+possibili testi inglesi residui (stanze, mob, oggetti) da tradurre.
+Al salvataggio Izanagi fa un controllo più ristretto (soprattutto sulle
+stanze modificate); questa voce serve per un controllo completo di ciò
+che è aperto.</li>
 <li><b>Esporta overlay…</b> — Crea i file “overlay” usati dal server a partire
 da ciò che è aperto (uso avanzato / deploy).</li>
 <li><b>Normalizza description uscite…</b> — Sistema le descrizioni delle uscite
@@ -179,8 +181,10 @@ Optional: Preferences → archive on first Save.</li>
 (rooms, mobs, objects, zones, shops, etc.);</li>
 <li>monolith lib → checks the whole loaded lib.</li>
 </ul>
-It does not check every area in the workspace at once. On save, Izanagi runs a
-narrower check (mainly dirty rooms); use this item for a full check of what is open.</li>
+It does not check every area in the workspace at once. It also flags possible
+leftover English text (rooms, mobs, objects) still to translate.
+On save, Izanagi runs a narrower check (mainly dirty rooms); use this item
+for a full check of what is open.</li>
 <li><b>Export overlays…</b> — Builds server overlay files from what is open
 (advanced / deploy use).</li>
 <li><b>Normalize exit descriptions…</b> — Fixes exit descriptions that differ from the

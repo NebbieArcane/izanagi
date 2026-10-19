@@ -1,6 +1,7 @@
 #include "nebbie/validate.hpp"
 
 #include "nebbie/edit.hpp"
+#include "nebbie/english_lexicon.hpp"
 #include "nebbie/mob_catalog.hpp"
 #include "nebbie/mud_text.hpp"
 #include "nebbie/special_proc_catalog.hpp"
@@ -692,12 +693,108 @@ void append_object_text_validation(const World& world,
     }
 }
 
+void append_english_text_validation(const World& world, ValidationReport& report) {
+    const auto check_field = [&](ValidationTarget target,
+                                 long vnum,
+                                 const std::string& entity_label,
+                                 const std::string& field_label,
+                                 const std::string& text) {
+        const std::vector<std::string> tokens = find_english_tokens(text);
+        if (tokens.empty()) {
+            return;
+        }
+        add_issue(report,
+                  ValidationSeverity::warning,
+                  "english_text",
+                  entity_label + " #" + std::to_string(vnum) + " " + field_label + ": "
+                      + join_english_tokens(tokens),
+                  target,
+                  vnum);
+    };
+
+    for (const auto& [vnum, room] : world.rooms) {
+        check_field(ValidationTarget::room, vnum, "room", "name", room.name);
+        check_field(ValidationTarget::room, vnum, "room", "description", room.description);
+        check_field(ValidationTarget::room, vnum, "room", "bright_at_night", room.bright_at_night);
+        check_field(ValidationTarget::room, vnum, "room", "bright_at_day", room.bright_at_day);
+        for (std::size_t i = 0; i < room.extra_descs.size(); ++i) {
+            const ExtraDesc& extra = room.extra_descs[i];
+            check_field(ValidationTarget::room,
+                        vnum,
+                        "room",
+                        "extra " + std::to_string(i) + " keyword",
+                        extra.keyword);
+            check_field(ValidationTarget::room,
+                        vnum,
+                        "room",
+                        "extra " + std::to_string(i) + " description",
+                        extra.description);
+        }
+        for (const Exit& exit : room.exits) {
+            const std::string dir = exit_direction_name(exit.direction);
+            check_field(ValidationTarget::room,
+                        vnum,
+                        "room",
+                        "exit " + dir + " look",
+                        exit.description);
+            check_field(ValidationTarget::room,
+                        vnum,
+                        "room",
+                        "exit " + dir + " keyword",
+                        exit.keyword);
+        }
+    }
+
+    for (const auto& [vnum, mob] : world.mobiles) {
+        check_field(ValidationTarget::mob, vnum, "mobile", "name", mob.name);
+        check_field(ValidationTarget::mob, vnum, "mobile", "short_descr", mob.short_descr);
+        check_field(ValidationTarget::mob, vnum, "mobile", "long_descr", mob.long_descr);
+        check_field(ValidationTarget::mob, vnum, "mobile", "description", mob.description);
+        check_field(ValidationTarget::mob, vnum, "mobile", "sounds", mob.sounds);
+        check_field(ValidationTarget::mob, vnum, "mobile", "distant_sounds", mob.distant_sounds);
+        for (std::size_t i = 0; i < mob.extra_sound_strings.size(); ++i) {
+            check_field(ValidationTarget::mob,
+                        vnum,
+                        "mobile",
+                        "extra_sound " + std::to_string(i),
+                        mob.extra_sound_strings[i]);
+        }
+    }
+
+    for (const auto& [vnum, obj] : world.objects) {
+        check_field(ValidationTarget::object, vnum, "object", "name", obj.name);
+        check_field(ValidationTarget::object, vnum, "object", "short_descr", obj.short_descr);
+        check_field(ValidationTarget::object, vnum, "object", "description", obj.description);
+        check_field(ValidationTarget::object,
+                    vnum,
+                    "object",
+                    "action_description",
+                    obj.action_description);
+        check_field(ValidationTarget::object, vnum, "object", "forbidden_char", obj.forbidden_char);
+        check_field(ValidationTarget::object, vnum, "object", "forbidden_room", obj.forbidden_room);
+        for (std::size_t i = 0; i < obj.extra_descs.size(); ++i) {
+            const ExtraDesc& extra = obj.extra_descs[i];
+            check_field(ValidationTarget::object,
+                        vnum,
+                        "object",
+                        "extra " + std::to_string(i) + " keyword",
+                        extra.keyword);
+            check_field(ValidationTarget::object,
+                        vnum,
+                        "object",
+                        "extra " + std::to_string(i) + " description",
+                        extra.description);
+        }
+    }
+}
+
 ValidationReport validate_world(const World& world, const ValidationOptions& options) {
     ValidationReport report;
     append_room_validation(world, report, options, nullptr);
     append_mob_combat_validation(world, report);
     append_mob_text_validation(world, report, options);
     append_object_text_validation(world, report, options);
+    append_english_text_validation(world, report);
     validate_resets(world, report, options);
     validate_shops(world, report, options);
     validate_guilds(world, report, options);

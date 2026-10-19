@@ -67,11 +67,13 @@ constexpr TranslationEntry kTranslations[] = {
     {"menu.validate_world_tip",
      "Controlla errori e avvisi su ciò che hai aperto adesso: se stai lavorando "
      "su un'area del workspace, solo quell'area; se hai aperto la lib monolite, "
-     "tutta la lib. Controlla stanze, mob, oggetti, zone/reset, shop e altro. "
+     "tutta la lib. Controlla stanze, mob, oggetti, zone/reset, shop e altro, "
+     "e segnala anche possibili testi inglesi residui ancora da tradurre. "
      "Non controlla tutte le aree del workspace in un colpo solo.",
      "Checks errors and warnings in what you have open now: if you opened an area "
      "from the workspace, only that area; if you opened the monolith lib, the whole "
-     "lib. Checks rooms, mobs, objects, zones/resets, shops, and more. "
+     "lib. Checks rooms, mobs, objects, zones/resets, shops, and more, and also "
+     "flags possible leftover English text still to translate. "
      "Does not check every area in the workspace at once."},
     {"menu.validate", "&Valida", "&Validate"},
     {"menu.help_guide", "&Guida ai menu...", "&Menu guide..."},

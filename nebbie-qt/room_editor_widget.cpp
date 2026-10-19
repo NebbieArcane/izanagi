@@ -8,7 +8,9 @@
 #include "room_text_monitors.hpp"
 
 #include "mud_editor_fields.hpp"
+#include "spin_box_wheel_guard.hpp"
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QFrame>
@@ -128,23 +130,29 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* text_layout = new QVBoxLayout(text_section_);
     text_layout->addWidget(makeLegend(
         "Nome e descrizione mostrati all'ingresso. Il client legge solo testo ASCII "
-        "(usa e', a', o', u' al posto delle lettere accentate).",
+        "(usa e', a', o', u' al posto delle lettere accentate). "
+        "Descrizione: dopo l'ultima riga premi Invio una volta (\u21b5 verde; nel file ~ sotto). "
+        "Nome: niente Invio finale.",
         text_section_));
     name_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(name_);
     name_line_info_ = nebbie::qt::makeTextMonitorLabel();
     name_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
+    name_english_info_ = nebbie::qt::makeTextMonitorLabel();
     description_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudDescriptionField(description_);
     description_line_info_ = nebbie::qt::makeTextMonitorLabel();
     description_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
+    description_english_info_ = nebbie::qt::makeTextMonitorLabel();
     auto* text_form = new QFormLayout;
     text_form->addRow("Nome:", name_);
     text_form->addRow("", name_line_info_);
     text_form->addRow("", name_ascii_info_);
+    text_form->addRow("", name_english_info_);
     text_form->addRow("Descrizione:", description_);
     text_form->addRow("", description_line_info_);
     text_form->addRow("", description_ascii_info_);
+    text_form->addRow("", description_english_info_);
     text_layout->addLayout(text_form);
     auto* fix_ascii_btn = new QPushButton("Correggi non-ASCII (accenti e apostrofi)");
     fix_ascii_btn->setToolTip(
@@ -175,22 +183,34 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     teleport_section_ = new QWidget;
     auto* tele_layout = new QVBoxLayout(teleport_section_);
     tele_layout->addWidget(makeLegend(
-        "Stanze teleport: sector -1 in myst.wld. tele_time / tele_targ / tele_mask controllano "
-        "il teletrasporto; con bit 0 (TELE_COUNT) attivo, tele_cnt viene scritto.",
+        "Teleport solo se abilitato qui sotto. Con la rotella dello scroll i valori non "
+        "cambiano finché non clicchi sullo spin (evita modifiche accidentali). "
+        "Nel .wld: sector -1 + tele_time / tele_targ / tele_mask; con bit TELE_COUNT, anche tele_cnt.",
         teleport_section_));
-    auto* tele_form = new QFormLayout;
+    teleport_enabled_ = new QCheckBox(QStringLiteral("Stanza teleport (scrive sector -1 nel .wld)"));
+    teleport_enabled_->setToolTip(
+        QStringLiteral("Disattivato: i campi tele_* sono nascosti e a salvataggio restano a 0 "
+                       "(stanza normale). Attivato: puoi impostare destinazione e tempi."));
+    teleport_status_ = new QLabel;
+    teleport_status_->setWordWrap(true);
+    teleport_status_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    teleport_fields_ = new QWidget(teleport_section_);
+    auto* tele_form = new QFormLayout(teleport_fields_);
     tele_time_ = new QSpinBox;
     tele_targ_ = new QSpinBox;
     tele_mask_ = new QSpinBox;
     tele_cnt_ = new QSpinBox;
     for (QSpinBox* spin : {tele_time_, tele_targ_, tele_mask_, tele_cnt_}) {
         spin->setRange(0, 2000000000);
+        nebbie::qt::installSpinBoxWheelGuard(spin);
     }
     tele_form->addRow("tele_time:", tele_time_);
     tele_form->addRow("tele_targ:", tele_targ_);
     tele_form->addRow("tele_mask:", tele_mask_);
     tele_form->addRow("tele_cnt:", tele_cnt_);
-    tele_layout->addLayout(tele_form);
+    tele_layout->addWidget(teleport_enabled_);
+    tele_layout->addWidget(teleport_status_);
+    tele_layout->addWidget(teleport_fields_);
     root->addWidget(teleport_section_);
     root->addWidget(makeSectionSeparator());
 
@@ -203,12 +223,15 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     river_speed_->setRange(0, 2000000000);
     river_dir_->setRange(0, 5);
     river_dir_->setToolTip("River direction 0=north .. 5=down (Arcane redit).");
+    nebbie::qt::installSpinBoxWheelGuard(river_speed_);
+    nebbie::qt::installSpinBoxWheelGuard(river_dir_);
     river_form->addRow("River speed:", river_speed_);
     river_form->addRow("River direction (0-5):", river_dir_);
     moblim_panel_ = new QWidget(environment_section_);
     auto* moblim_form = new QFormLayout(moblim_panel_);
     moblim_ = new QSpinBox;
     moblim_->setRange(1, 2000000000);
+    nebbie::qt::installSpinBoxWheelGuard(moblim_);
     moblim_form->addRow("moblim (TUNNEL):", moblim_);
     bright_at_night_ = new nebbie::qt::MudColorTextEdit;
     bright_at_day_ = new nebbie::qt::MudColorTextEdit;
@@ -234,17 +257,23 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     configureLineField(extra_desc_keyword_);
     extra_desc_description_ = new nebbie::qt::MudColorTextEdit;
     configureExtraDescriptionField(extra_desc_description_);
+    extra_desc_keyword_english_info_ = nebbie::qt::makeTextMonitorLabel();
     extra_desc_line_info_ = nebbie::qt::makeTextMonitorLabel();
     extra_desc_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
+    extra_desc_english_info_ = nebbie::qt::makeTextMonitorLabel();
     auto* extra_desc_form = new QFormLayout;
     extra_desc_form->addRow("Keyword:", extra_desc_keyword_);
+    extra_desc_form->addRow("", extra_desc_keyword_english_info_);
     extra_desc_form->addRow("Description:", extra_desc_description_);
     extra_desc_form->addRow("", extra_desc_line_info_);
     extra_desc_form->addRow("", extra_desc_ascii_info_);
+    extra_desc_form->addRow("", extra_desc_english_info_);
     auto* extra_desc_buttons = new QHBoxLayout;
     auto* extra_desc_add = new QPushButton("Add");
+    auto* extra_desc_update = new QPushButton("Update");
     auto* extra_desc_remove = new QPushButton("Remove");
     extra_desc_buttons->addWidget(extra_desc_add);
+    extra_desc_buttons->addWidget(extra_desc_update);
     extra_desc_buttons->addWidget(extra_desc_remove);
     extra_desc_buttons->addStretch();
     extra_layout->addWidget(new QLabel("Extra descriptions (section E)"));
@@ -267,17 +296,21 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     fillCombo(exit_direction_, nebbie::exit_direction_choices());
     exit_to_room_ = new QSpinBox;
     exit_to_room_->setRange(0, 999999);
+    nebbie::qt::installSpinBoxWheelGuard(exit_to_room_);
     exit_description_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(exit_description_);
     exit_keyword_ = new QLineEdit;
     configureLineField(exit_keyword_);
     exit_line_info_ = nebbie::qt::makeTextMonitorLabel();
     exit_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
+    exit_english_info_ = nebbie::qt::makeTextMonitorLabel();
+    exit_keyword_english_info_ = nebbie::qt::makeTextMonitorLabel();
     exit_flags_ = new FlagGroupWidget(nebbie::exit_flag_defs(), exits_section_);
     exit_key_ = new QSpinBox;
     exit_key_->setRange(-1, 999999);
     exit_key_->setValue(-1);
     exit_key_->setToolTip("VNUM dell'oggetto chiave per porte bloccate. Usare -1 se la porta non richiede chiave.");
+    nebbie::qt::installSpinBoxWheelGuard(exit_key_);
     exit_open_cmd_ = new QComboBox;
     fillCombo(exit_open_cmd_, nebbie::exit_open_cmd_choices());
     exit_open_cmd_->setToolTip(
@@ -290,7 +323,9 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_form->addRow("Description (look <dir>):", exit_description_);
     exit_form->addRow("", exit_line_info_);
     exit_form->addRow("", exit_ascii_info_);
+    exit_form->addRow("", exit_english_info_);
     exit_form->addRow("Keyword (porta):", exit_keyword_);
+    exit_form->addRow("", exit_keyword_english_info_);
     exit_form->addRow("Exit flags (exit_info):", exit_flags_);
     exit_form->addRow("Key vnum (oggetto):", exit_key_);
     exit_form->addRow("Comando secret (open_cmd):", exit_open_cmd_);
@@ -313,8 +348,29 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(sector_type_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int) { updateConditionalFields(); });
     connect(room_flags_, &FlagGroupWidget::valueChanged, this, [this]() { updateConditionalFields(); });
+    connect(teleport_enabled_, &QCheckBox::toggled, this, [this](bool enabled) {
+        if (!enabled && !loading_) {
+            const QSignalBlocker b0(tele_time_);
+            const QSignalBlocker b1(tele_targ_);
+            const QSignalBlocker b2(tele_mask_);
+            const QSignalBlocker b3(tele_cnt_);
+            tele_time_->setValue(0);
+            tele_targ_->setValue(0);
+            tele_mask_->setValue(0);
+            tele_cnt_->setValue(0);
+        }
+        updateConditionalFields();
+    });
+    for (QSpinBox* spin : {tele_time_, tele_targ_, tele_mask_, tele_cnt_}) {
+        connect(spin, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) {
+            if (!loading_) {
+                updateConditionalFields();
+            }
+        });
+    }
     connect(extra_desc_list_, &QListWidget::currentRowChanged, this, [this](int) { onExtraDescSelected(); });
     connect(extra_desc_add, &QPushButton::clicked, this, &RoomEditorWidget::addExtraDesc);
+    connect(extra_desc_update, &QPushButton::clicked, this, &RoomEditorWidget::updateExtraDesc);
     connect(extra_desc_remove, &QPushButton::clicked, this, &RoomEditorWidget::removeExtraDesc);
     connect(exit_list_, &QListWidget::currentRowChanged, this, [this](int) { onExitSelected(); });
     connect(exit_apply, &QPushButton::clicked, this, &RoomEditorWidget::addOrUpdateExit);
@@ -327,9 +383,13 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     hookMudField(exit_description_);
     hookMudField(bright_at_night_);
     hookMudField(bright_at_day_);
+    connect(extra_desc_keyword_, &QLineEdit::textChanged, this, [this]() { updateTextMonitors(); });
+    connect(exit_keyword_, &QLineEdit::textChanged, this, [this]() { updateTextMonitors(); });
 
     river_panel_->setVisible(false);
     moblim_panel_->setVisible(false);
+    teleport_fields_->setVisible(false);
+    updateConditionalFields();
 }
 
 RoomEditorWidget::~RoomEditorWidget() {
@@ -377,6 +437,23 @@ void RoomEditorWidget::updateConditionalFields() {
     const int sector = comboIntValue(sector_type_);
     river_panel_->setVisible(nebbie::room_sector_uses_river(sector));
     moblim_panel_->setVisible(nebbie::room_flags_use_moblim(room_flags_->value()));
+
+    const bool tele_on = teleport_enabled_->isChecked();
+    teleport_fields_->setVisible(tele_on);
+    if (!tele_on) {
+        teleport_status_->setText(
+            QStringLiteral("Teleport disattivo: lo scroll della maschera non altera tele_*. "
+                           "Attiva la spunta solo per stanze teleport."));
+        teleport_status_->setStyleSheet(QStringLiteral("color: #8a8a8a;"));
+        return;
+    }
+    teleport_status_->setText(
+        QStringLiteral("Teleport attivo: tele_time=%1  tele_targ=#%2  tele_mask=%3  tele_cnt=%4")
+            .arg(tele_time_->value())
+            .arg(tele_targ_->value())
+            .arg(tele_mask_->value())
+            .arg(tele_cnt_->value()));
+    teleport_status_->setStyleSheet(QStringLiteral("color: #c9a227; font-weight: 600;"));
 }
 
 void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
@@ -396,10 +473,19 @@ void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
     setComboIntValue(sector_type_, static_cast<int>(room.sector_type));
     room_flags_->setValue(room.room_flags);
 
-    tele_time_->setValue(static_cast<int>(room.tele_time));
-    tele_targ_->setValue(static_cast<int>(room.tele_targ));
-    tele_mask_->setValue(static_cast<int>(room.tele_mask));
-    tele_cnt_->setValue(static_cast<int>(room.tele_cnt));
+    {
+        const QSignalBlocker be(teleport_enabled_);
+        const QSignalBlocker b0(tele_time_);
+        const QSignalBlocker b1(tele_targ_);
+        const QSignalBlocker b2(tele_mask_);
+        const QSignalBlocker b3(tele_cnt_);
+        tele_time_->setValue(static_cast<int>(room.tele_time));
+        tele_targ_->setValue(static_cast<int>(room.tele_targ));
+        tele_mask_->setValue(static_cast<int>(room.tele_mask));
+        tele_cnt_->setValue(static_cast<int>(room.tele_cnt));
+        const bool is_teleport = room.tele_time != 0 || room.tele_targ != 0 || room.tele_mask != 0;
+        teleport_enabled_->setChecked(is_teleport);
+    }
 
     river_speed_->setValue(static_cast<int>(room.river_speed));
     river_dir_->setValue(static_cast<int>(room.river_dir));
@@ -579,6 +665,12 @@ void RoomEditorWidget::updateTextMonitors() {
     nebbie::qt::updateAsciiMonitor(description_ascii_info_, description_->storageText().toStdString());
     nebbie::qt::updateAsciiMonitor(extra_desc_ascii_info_, extra_desc_description_->storageText().toStdString());
     nebbie::qt::updateAsciiMonitor(exit_ascii_info_, exit_description_->storageText().toStdString());
+    nebbie::qt::updateEnglishLexiconMonitor(name_english_info_, name_);
+    nebbie::qt::updateEnglishLexiconMonitor(description_english_info_, description_);
+    nebbie::qt::updateEnglishLexiconMonitor(extra_desc_keyword_english_info_, extra_desc_keyword_);
+    nebbie::qt::updateEnglishLexiconMonitor(extra_desc_english_info_, extra_desc_description_);
+    nebbie::qt::updateEnglishLexiconMonitor(exit_english_info_, exit_description_);
+    nebbie::qt::updateEnglishLexiconMonitor(exit_keyword_english_info_, exit_keyword_);
 }
 
 void RoomEditorWidget::commitPendingExit() {
@@ -589,16 +681,24 @@ void RoomEditorWidget::commitPendingExit() {
 }
 
 void RoomEditorWidget::saveToRoom(nebbie::Room& room) {
+    commitPendingExtraDesc();
     commitPendingExit();
     room.name = name_->storageText().toStdString();
     room.description = description_->storageText().toStdString();
     room.sector_type = comboIntValue(sector_type_);
     room.room_flags = room_flags_->value();
 
-    room.tele_time = tele_time_->value();
-    room.tele_targ = tele_targ_->value();
-    room.tele_mask = tele_mask_->value();
-    room.tele_cnt = tele_cnt_->value();
+    if (teleport_enabled_->isChecked()) {
+        room.tele_time = tele_time_->value();
+        room.tele_targ = tele_targ_->value();
+        room.tele_mask = tele_mask_->value();
+        room.tele_cnt = tele_cnt_->value();
+    } else {
+        room.tele_time = 0;
+        room.tele_targ = 0;
+        room.tele_mask = 0;
+        room.tele_cnt = 0;
+    }
 
     if (nebbie::room_sector_uses_river(room.sector_type)) {
         room.river_speed = river_speed_->value();
@@ -657,6 +757,33 @@ void RoomEditorWidget::addExtraDesc() {
     extra_desc_list_->setCurrentItem(item);
     extra_desc_keyword_->clear();
     extra_desc_description_->setStorageText({});
+}
+
+void RoomEditorWidget::updateExtraDesc() {
+    auto* item = extra_desc_list_->currentItem();
+    if (!item) {
+        return;
+    }
+    const QString keyword = extra_desc_keyword_->text().trimmed();
+    const QString description = extra_desc_description_->storageText();
+    if (keyword.isEmpty() && description.trimmed().isEmpty()) {
+        return;
+    }
+    item->setData(Qt::UserRole, keyword);
+    item->setData(Qt::UserRole + 1, description);
+    item->setText(keyword.isEmpty() ? QStringLiteral("(no keyword)") : keyword);
+}
+
+void RoomEditorWidget::commitPendingExtraDesc() {
+    if (loading_ || extra_desc_list_->currentItem() == nullptr) {
+        return;
+    }
+    const QString keyword = extra_desc_keyword_->text().trimmed();
+    const QString description = extra_desc_description_->storageText();
+    if (keyword.isEmpty() && description.trimmed().isEmpty()) {
+        return;
+    }
+    updateExtraDesc();
 }
 
 void RoomEditorWidget::removeExtraDesc() {

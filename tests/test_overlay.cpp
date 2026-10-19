@@ -54,12 +54,13 @@ int main(int argc, char** argv) {
         {
             std::ifstream in(room_path);
             std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-            const auto marker = "Una piccola stanza di test.~";
+            // Room .wld paragraphs use OnOwnLine tilde: text, newline, then ~ alone.
+            const std::string marker = "Una piccola stanza di test.\n~";
             const auto pos = content.find(marker);
             if (pos == std::string::npos) {
                 throw std::runtime_error("room overlay missing expected description");
             }
-            content.replace(pos, std::strlen(marker), "Descrizione overlay aggiornata.~");
+            content.replace(pos, marker.size(), "Descrizione overlay aggiornata.\n~");
             std::ofstream out(room_path, std::ios::trunc);
             out << content;
         }
@@ -67,7 +68,8 @@ int main(int argc, char** argv) {
         nebbie::World overlay_world;
         nebbie::load_lib(overlay_world, work);
         const nebbie::Room* room = overlay_world.find_room(3001);
-        if (!room || room->description != "Descrizione overlay aggiornata.") {
+        // OnOwnLine tilde keeps the newline before ~ in the loaded string (same as server fread_string).
+        if (!room || room->description != "Descrizione overlay aggiornata.\n") {
             throw std::runtime_error("room overlay was not applied on load");
         }
 

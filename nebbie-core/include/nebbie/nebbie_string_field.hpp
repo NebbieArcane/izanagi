@@ -17,13 +17,20 @@ enum class NebbieTildeStyle {
 /**
  * Tilde placement rules (NebbieArcane / Aree):
  * - Inline: mob/obj names, short strings, wld room titles, exit/extra keywords, shop/dam lines.
- * - OnOwnLine always: mob long_descr, mob L sounds, wld exit look descriptions.
- * - OnOwnLine when value contains '\\n': wld/obj room-like paragraphs, mob description, extra desc bodies.
+ * - OnOwnLine always: mob long_descr, mob L sounds, wld exit look descriptions,
+ *   wld room description / extra-desc body / L brightness (even if single-line), so the
+ *   following zone line and D/E/L/S records never sit on the same physical line as text~.
+ * - OnOwnLine when value contains '\\n': remaining room-like paragraphs (e.g. mob description).
  */
 
 /** Use split tilde when the stored value spans multiple lines (Aree multiline text). */
 inline NebbieTildeStyle nebbie_paragraph_tilde_style(const std::string& value) {
     return value.find('\n') != std::string::npos ? NebbieTildeStyle::OnOwnLine : NebbieTildeStyle::Inline;
+}
+
+/** Room .wld paragraph bodies: always newline then ~ on its own line. */
+inline NebbieTildeStyle nebbie_wld_paragraph_tilde_style(const std::string& /*value*/) {
+    return NebbieTildeStyle::OnOwnLine;
 }
 
 std::string normalize_nebbie_field_text(std::string value);

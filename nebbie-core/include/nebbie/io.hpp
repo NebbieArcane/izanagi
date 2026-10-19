@@ -13,7 +13,11 @@ using ProgressCallback = std::function<void(const std::string&)>;
 
 /** Controls EOF markers when writing myst.* fragments (full lib vs per-area export). */
 struct MystSaveOptions {
-    /** When false, omit #$ / %% / #0 — required for Aree src/<area>/<area>.* merge. */
+    /**
+     * When false, omit monolith terminators (#$ / %% / %%~ / $~ / $ / trailing #0).
+     * Required for Aree area files: deploy_aree.php concatenates raw chunks with
+     * _head/_tail and does not strip mid-file terminators.
+     */
     bool write_eof_markers = true;
 };
 

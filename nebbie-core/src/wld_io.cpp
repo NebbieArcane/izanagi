@@ -219,7 +219,8 @@ void read_room_body(FILE* fp, Room& room, World& world) {
 
 void write_room_body(FILE* fp, const Room& room, const World& world) {
     fwrite_nebbie_string_field(fp, room.name, NebbieTildeStyle::Inline);
-    fwrite_nebbie_string_field(fp, room.description, nebbie_paragraph_tilde_style(room.description));
+    // Always OnOwnLine: zone flags/sector and D/E/L/S must start on a new line after ~.
+    fwrite_nebbie_string_field(fp, room.description, nebbie_wld_paragraph_tilde_style(room.description));
 
     {
         std::ostringstream zone_line;
@@ -248,13 +249,16 @@ void write_room_body(FILE* fp, const Room& room, const World& world) {
     for (const auto& extra : room.extra_descs) {
         std::fprintf(fp, "E\n");
         fwrite_nebbie_string_field(fp, extra.keyword, NebbieTildeStyle::Inline);
-        fwrite_nebbie_string_field(fp, extra.description, nebbie_paragraph_tilde_style(extra.description));
+        fwrite_nebbie_string_field(fp, extra.description,
+                                   nebbie_wld_paragraph_tilde_style(extra.description));
     }
 
     if (!room.bright_at_night.empty() || !room.bright_at_day.empty()) {
         std::fprintf(fp, "L\n");
-        fwrite_nebbie_string_field(fp, room.bright_at_night, nebbie_paragraph_tilde_style(room.bright_at_night));
-        fwrite_nebbie_string_field(fp, room.bright_at_day, nebbie_paragraph_tilde_style(room.bright_at_day));
+        fwrite_nebbie_string_field(fp, room.bright_at_night,
+                                   nebbie_wld_paragraph_tilde_style(room.bright_at_night));
+        fwrite_nebbie_string_field(fp, room.bright_at_day,
+                                   nebbie_wld_paragraph_tilde_style(room.bright_at_day));
     }
 
     std::fprintf(fp, "S\n");

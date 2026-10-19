@@ -14,7 +14,72 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
+#include <algorithm>
+#include <map>
+#include <vector>
+
 namespace nebbie::qt {
+
+namespace {
+
+const char* k_category_order[] = {
+    "english_text", "room_text", "mob_text", "object_text", "room", "mob_combat",
+    "mob_economy",  "reset",     "shop",     "guild",       "special", "social",
+};
+
+int category_sort_key(const std::string& category) {
+    for (int i = 0; i < static_cast<int>(sizeof(k_category_order) / sizeof(k_category_order[0])); ++i) {
+        if (category == k_category_order[i]) {
+            return i;
+        }
+    }
+    return 1000;
+}
+
+} // namespace
+
+QString validation_category_title(const std::string& category) {
+    if (category == "english_text") {
+        return QStringLiteral("Testi inglesi (lessico)");
+    }
+    if (category == "room_text") {
+        return QStringLiteral("Testi stanza (righe / ASCII)");
+    }
+    if (category == "mob_text") {
+        return QStringLiteral("Testi mob (lunghezza riga)");
+    }
+    if (category == "object_text") {
+        return QStringLiteral("Testi oggetto (lunghezza riga)");
+    }
+    if (category == "room") {
+        return QStringLiteral("Stanze (struttura / uscite)");
+    }
+    if (category == "mob_combat") {
+        return QStringLiteral("Combattimento mob");
+    }
+    if (category == "mob_economy") {
+        return QStringLiteral("Economia mob (XP)");
+    }
+    if (category == "reset") {
+        return QStringLiteral("Reset / zone");
+    }
+    if (category == "shop") {
+        return QStringLiteral("Negozi");
+    }
+    if (category == "guild") {
+        return QStringLiteral("Gilde");
+    }
+    if (category == "special") {
+        return QStringLiteral("Special proc");
+    }
+    if (category == "social") {
+        return QStringLiteral("Social");
+    }
+    if (category.empty()) {
+        return QStringLiteral("Altro");
+    }
+    return QString::fromStdString(category);
+}
 
 namespace {
 
@@ -68,12 +133,36 @@ QString format_validation_report(const nebbie::ValidationReport& report,
         return lines.join('\n');
     }
 
+    std::map<std::string, std::vector<const nebbie::ValidationIssue*>> by_category;
     for (const auto& issue : report.issues) {
-        const char* level = issue.severity == nebbie::ValidationSeverity::error ? "ERR" : "WARN";
-        lines << QStringLiteral("[%1] [%2] %3")
-                     .arg(QString::fromUtf8(level))
-                     .arg(QString::fromStdString(issue.category))
-                     .arg(QString::fromStdString(issue.message));
+        by_category[issue.category].push_back(&issue);
+    }
+    std::vector<std::string> categories;
+    categories.reserve(by_category.size());
+    for (const auto& [category, _] : by_category) {
+        categories.push_back(category);
+    }
+    std::sort(categories.begin(), categories.end(), [](const std::string& a, const std::string& b) {
+        const int ka = category_sort_key(a);
+        const int kb = category_sort_key(b);
+        if (ka != kb) {
+            return ka < kb;
+        }
+        return a < b;
+    });
+
+    for (const std::string& category : categories) {
+        const auto& group = by_category[category];
+        lines << QStringLiteral("— %1 (%2) —")
+                     .arg(validation_category_title(category))
+                     .arg(static_cast<qlonglong>(group.size()));
+        for (const nebbie::ValidationIssue* issue : group) {
+            const char* level = issue->severity == nebbie::ValidationSeverity::error ? "ERR" : "WARN";
+            lines << QStringLiteral("[%1] %2")
+                         .arg(QString::fromUtf8(level))
+                         .arg(QString::fromStdString(issue->message));
+        }
+        lines << QString();
     }
     return lines.join('\n');
 }

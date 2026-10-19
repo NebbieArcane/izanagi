@@ -26,7 +26,7 @@ struct ZonePartitionOptions {
     bool write_overlay_dirs = true;
     bool include_shop_entities = true;
     bool include_special_procs = true;
-    /** Omit #$ / %% / #0 in per-zone myst.* (Aree deploy_aree.php concat). */
+    /** Omit monolith terminators in per-zone packs (raw Aree deploy_aree.php concat). */
     bool write_eof_markers = false;
     /** Write src/<slug>/<slug>.{zon,wld,...} instead of zone-NNNN-name/myst.* */
     bool aree_layout = false;

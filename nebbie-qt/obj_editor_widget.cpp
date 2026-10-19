@@ -5,6 +5,7 @@
 #include "mud_editor_fields.hpp"
 #include "nebbie/obj_catalog.hpp"
 #include "nebbie/obj_value_catalog.hpp"
+#include "room_text_monitors.hpp"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -22,6 +23,8 @@
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QVBoxLayout>
+
+#include <string>
 
 namespace {
 
@@ -75,19 +78,36 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* text_tab = new QWidget;
     auto* text_layout = new QVBoxLayout(text_tab);
     auto* text_form = new QFormLayout;
+    english_lexicon_banner_ = nebbie::qt::makeTextMonitorLabel();
     name_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(name_);
     short_descr_ = new nebbie::qt::MudColorTextEdit;
     configureShortTextField(short_descr_);
+    short_descr_->setRequireTrailingNewline(false);
+    short_descr_->refreshTrailingNewlineToolTip();
     description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(description_, 72);
+    description_->setRequireTrailingNewline(false);
+    description_->refreshTrailingNewlineToolTip();
+    description_tilde_hint_ = nebbie::qt::makeTextMonitorLabel();
     action_description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(action_description_, 56);
+    action_description_->setRequireTrailingNewline(false);
+    action_description_->refreshTrailingNewlineToolTip();
     action_description_->setPlaceholderText("Testo azione (es. armi/pozioni); lascia vuoto se non serve");
+    action_tilde_hint_ = nebbie::qt::makeTextMonitorLabel();
+    text_form->addRow(makeLegend(
+        "Marker \u21b5: descrizione / azione oggetto = niente Invio finale "
+        "(\u21b5 rosso in coda = toglilo; ~ sulla stessa riga). "
+        "Solo la descrizione extra (sezione E) multilinea vuole un Invio finale (\u21b5 verde).",
+        text_tab));
+    text_form->addRow(english_lexicon_banner_);
     text_form->addRow("Nome (parole chiave~):", name_);
     text_form->addRow("Descrizione breve:", short_descr_);
     text_form->addRow("Descrizione:", description_);
+    text_form->addRow("", description_tilde_hint_);
     text_form->addRow("Testo azione:", action_description_);
+    text_form->addRow("", action_tilde_hint_);
     text_layout->addLayout(text_form, 1);
 
     auto* economy_box = new QGroupBox("Peso e prezzi");
@@ -206,13 +226,19 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     configureLineField(extra_desc_keyword_);
     extra_desc_description_ = new nebbie::qt::MudColorTextEdit;
     configureTextField(extra_desc_description_, 64);
+    extra_desc_description_->setRequireTrailingNewline(false);
+    extra_desc_description_->refreshTrailingNewlineToolTip();
+    extra_desc_tilde_hint_ = nebbie::qt::makeTextMonitorLabel();
     auto* extra_desc_form = new QFormLayout;
     extra_desc_form->addRow("Parola chiave:", extra_desc_keyword_);
     extra_desc_form->addRow("Descrizione:", extra_desc_description_);
+    extra_desc_form->addRow("", extra_desc_tilde_hint_);
     auto* extra_desc_buttons = new QHBoxLayout;
     auto* extra_desc_add = new QPushButton("Aggiungi");
+    auto* extra_desc_update = new QPushButton("Aggiorna");
     auto* extra_desc_remove = new QPushButton("Rimuovi");
     extra_desc_buttons->addWidget(extra_desc_add);
+    extra_desc_buttons->addWidget(extra_desc_update);
     extra_desc_buttons->addWidget(extra_desc_remove);
     extra_desc_buttons->addStretch();
     forbidden_char_ = new QLineEdit;
@@ -234,6 +260,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(has_extra_flags2_, &QCheckBox::toggled, extra_flags2_panel_, &QWidget::setVisible);
     connect(extra_desc_list_, &QListWidget::currentRowChanged, this, [this](int) { onExtraDescSelected(); });
     connect(extra_desc_add, &QPushButton::clicked, this, &ObjEditorWidget::addExtraDesc);
+    connect(extra_desc_update, &QPushButton::clicked, this, &ObjEditorWidget::updateExtraDesc);
     connect(extra_desc_remove, &QPushButton::clicked, this, &ObjEditorWidget::removeExtraDesc);
     connect(affect_list_, &QListWidget::currentRowChanged, this, [this](int) { onAffectSelected(); });
     connect(affect_add, &QPushButton::clicked, this, &ObjEditorWidget::addAffect);
@@ -259,6 +286,53 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     extra_flags2_panel_->setVisible(false);
     updateObjectValueFields();
+
+    for (nebbie::qt::MudColorTextEdit* field : mudFields()) {
+        if (field == nullptr) {
+            continue;
+        }
+        connect(field, &nebbie::qt::MudColorTextEdit::storageTextChanged, this, [this]() {
+            updateEnglishLexiconBanner();
+            updateTildeNewlineHints();
+        });
+    }
+    connect(extra_desc_keyword_, &QLineEdit::textChanged, this, [this]() { updateEnglishLexiconBanner(); });
+    connect(forbidden_char_, &QLineEdit::textChanged, this, [this]() { updateEnglishLexiconBanner(); });
+    connect(forbidden_room_, &QLineEdit::textChanged, this, [this]() { updateEnglishLexiconBanner(); });
+    updateTildeNewlineHints();
+}
+
+void ObjEditorWidget::updateTildeNewlineHints() {
+    // obj description / action are always Inline on disk; only extra-desc body may be OnOwnLine.
+    description_->setRequireTrailingNewline(false);
+    action_description_->setRequireTrailingNewline(false);
+    nebbie::qt::syncMudParagraphTrailingNewlinePolicy(extra_desc_description_);
+    nebbie::qt::updateTildeNewlineHint(description_tilde_hint_, description_);
+    nebbie::qt::updateTildeNewlineHint(action_tilde_hint_, action_description_);
+    nebbie::qt::updateTildeNewlineHint(extra_desc_tilde_hint_, extra_desc_description_);
+}
+
+void ObjEditorWidget::updateEnglishLexiconBanner() {
+    std::string blob;
+    for (nebbie::qt::MudColorTextEdit* field : mudFields()) {
+        if (field == nullptr) {
+            continue;
+        }
+        blob += field->storageText().toStdString();
+        blob.push_back(' ');
+    }
+    if (extra_desc_keyword_ != nullptr) {
+        blob += extra_desc_keyword_->text().toStdString();
+        blob.push_back(' ');
+    }
+    if (forbidden_char_ != nullptr) {
+        blob += forbidden_char_->text().toStdString();
+        blob.push_back(' ');
+    }
+    if (forbidden_room_ != nullptr) {
+        blob += forbidden_room_->text().toStdString();
+    }
+    nebbie::qt::updateEnglishLexiconMonitor(english_lexicon_banner_, blob);
 }
 
 nebbie::qt::MudFieldList ObjEditorWidget::mudFields() const {
@@ -336,9 +410,20 @@ void ObjEditorWidget::loadFromObject(const nebbie::GameObject& obj) {
 
     forbidden_char_->setText(QString::fromStdString(obj.forbidden_char));
     forbidden_room_->setText(QString::fromStdString(obj.forbidden_room));
+    updateEnglishLexiconBanner();
+    updateTildeNewlineHints();
 }
 
-void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) const {
+void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) {
+    // Apply the form to the selected extra before reading the list (same as Update).
+    if (extra_desc_list_->currentItem() != nullptr) {
+        const QString keyword = extra_desc_keyword_->text().trimmed();
+        const QString description = extra_desc_description_->storageText();
+        if (!(keyword.isEmpty() && description.trimmed().isEmpty())) {
+            updateExtraDesc();
+        }
+    }
+
     obj.name = name_->storageText().toStdString();
     obj.short_descr = short_descr_->storageText().toStdString();
     obj.description = description_->storageText().toStdString();
@@ -398,6 +483,21 @@ void ObjEditorWidget::addExtraDesc() {
     extra_desc_list_->setCurrentItem(item);
     extra_desc_keyword_->clear();
     extra_desc_description_->setStorageText({});
+}
+
+void ObjEditorWidget::updateExtraDesc() {
+    auto* item = extra_desc_list_->currentItem();
+    if (!item) {
+        return;
+    }
+    const QString keyword = extra_desc_keyword_->text().trimmed();
+    const QString description = extra_desc_description_->storageText();
+    if (keyword.isEmpty() && description.trimmed().isEmpty()) {
+        return;
+    }
+    item->setData(Qt::UserRole, keyword);
+    item->setData(Qt::UserRole + 1, description);
+    item->setText(keyword.isEmpty() ? QStringLiteral("(senza parola chiave)") : keyword);
 }
 
 void ObjEditorWidget::removeExtraDesc() {

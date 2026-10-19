@@ -15,6 +15,7 @@ add_library(nebbie-core
     src/lib_io.cpp
     src/lib_context.cpp
     src/validate.cpp
+    src/english_lexicon.cpp
     src/text_lines.cpp
     src/mud_colors.cpp
     src/mud_text.cpp
