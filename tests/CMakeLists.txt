@@ -8,6 +8,10 @@ target_link_libraries(nebbie-zone-file-eof-tests PRIVATE nebbie-core)
 add_test(NAME zone-file-eof
          COMMAND nebbie-zone-file-eof-tests ${CMAKE_SOURCE_DIR}/tests/fixtures)
 
+add_executable(nebbie-zon-blank-lines-tests test_zon_blank_lines.cpp)
+target_link_libraries(nebbie-zon-blank-lines-tests PRIVATE nebbie-core)
+add_test(NAME zon-blank-lines-roundtrip COMMAND nebbie-zon-blank-lines-tests)
+
 find_package(Qt6 QUIET COMPONENTS Core)
 if(Qt6_FOUND)
     add_executable(nebbie-release-update-tests test_release_update.cpp

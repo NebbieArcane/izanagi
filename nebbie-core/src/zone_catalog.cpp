@@ -19,6 +19,7 @@ const char* kResetCommands[] = {
     "D — Set door state",
     "C — Mob command",
     "H — Hour / time trigger",
+    "* — Comment line",
 };
 
 const char* kEquipPositions[] = {
@@ -44,7 +45,7 @@ std::vector<std::pair<int, std::string>> zone_reset_mode_choices() {
 
 std::vector<std::pair<char, std::string>> zone_reset_command_choices() {
     std::vector<std::pair<char, std::string>> choices;
-    const char commands[] = {'M', 'O', 'G', 'E', 'P', 'D', 'C', 'H'};
+    const char commands[] = {'M', 'O', 'G', 'E', 'P', 'D', 'C', 'H', '*'};
     const std::size_t count = sizeof(commands) / sizeof(commands[0]);
     for (std::size_t i = 0; i < count; ++i) {
         choices.emplace_back(commands[i], kResetCommands[i]);
@@ -96,6 +97,8 @@ std::string zone_reset_command_legend(const char command) {
         return "Mob command: if_flag | mob vnum | command number";
     case 'H':
         return "Hour trigger: if_flag | room vnum | hour/time value";
+    case '*':
+        return "Comment line written as *<text> in the .zon file (not executed by the server).";
     default:
         return "Select a reset command";
     }

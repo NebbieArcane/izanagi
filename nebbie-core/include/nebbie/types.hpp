@@ -55,6 +55,11 @@ struct ResetCommand {
     int arg2 = 0;
     int arg3 = -1;
     int arg4 = 0;
+    /**
+     * Original text after the command letter (includes trailing newline), or a
+     * full raw line when command == 0 (e.g. intentional blank "\\n" preserved
+     * for .zon round-trip — not a server reset opcode).
+     */
     std::string raw_line;
 };
 

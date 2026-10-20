@@ -114,7 +114,9 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
         "  1 = only if the previous command succeeded\n"
         "\n"
         "G / E / P depend on the last M or O command.\n"
-        "Comments (*) and separators (;) are read-only.\n"
+        "Trailing note (*!) is written on the same line, e.g.\n"
+        "  O 0 1500 1 1514 0  *! Carica oggetto 1500 ...\n"
+        "Comment lines (*) and blank lines are preserved and editable here.\n"
         "The table ends with S in myst.zon.",
         reset_tab));
     reset_list_ = new QListWidget;
@@ -140,6 +142,10 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     reset_arg3_->setRange(-1, 999999);
     reset_arg4_ = new QSpinBox;
     reset_arg4_->setRange(-1, 999999);
+    reset_note_ = new QLineEdit;
+    configureLineField(reset_note_);
+    reset_note_->setPlaceholderText(
+        QStringLiteral("optional trailing note after *!  (ASCII)"));
 
     equip_panel_ = new QWidget(reset_tab);
     auto* equip_form = new QFormLayout(equip_panel_);
@@ -162,10 +168,12 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     reset_form->addRow(arg4_label_, reset_arg4_);
     reset_form->addRow(equip_panel_);
     reset_form->addRow(door_state_panel_);
+    reset_form->addRow(QStringLiteral("Note (*!):"), reset_note_);
     reset_layout->addLayout(reset_form);
 
     auto* reset_buttons = new QHBoxLayout;
     auto* reset_add = new QPushButton("New reset");
+    auto* reset_blank = new QPushButton("Blank line");
     auto* reset_apply = new QPushButton("Apply");
     auto* reset_remove = new QPushButton("Remove");
     auto* reset_up = new QPushButton("Up");
@@ -173,6 +181,7 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* reset_goto_room = new QPushButton("Go to room");
     auto* reset_goto_entity = new QPushButton("Go to entity");
     reset_buttons->addWidget(reset_add);
+    reset_buttons->addWidget(reset_blank);
     reset_buttons->addWidget(reset_apply);
     reset_buttons->addWidget(reset_remove);
     reset_buttons->addWidget(reset_up);
@@ -194,6 +203,7 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(reset_command_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &ZoneEditorWidget::onResetCommandChanged);
     connect(reset_add, &QPushButton::clicked, this, &ZoneEditorWidget::addReset);
+    connect(reset_blank, &QPushButton::clicked, this, &ZoneEditorWidget::addBlankReset);
     connect(reset_apply, &QPushButton::clicked, this, &ZoneEditorWidget::applyReset);
     connect(reset_remove, &QPushButton::clicked, this, &ZoneEditorWidget::removeReset);
     connect(reset_up, &QPushButton::clicked, this, &ZoneEditorWidget::moveResetUp);
@@ -279,10 +289,22 @@ void ZoneEditorWidget::refreshResetList() {
                                   .arg(QString::fromStdString(nebbie::reset_command_summary(cmd)));
         reset_list_->addItem(label);
         reset_list_->item(static_cast<int>(i))->setData(Qt::UserRole, static_cast<qlonglong>(i));
-        if (!nebbie::is_editable_reset_command(cmd.command)) {
+        // Keep blank/separator selectable so they can be moved/removed.
+        if (!nebbie::is_editable_reset_command(cmd.command) && cmd.command != 0
+            && cmd.command != ';') {
             reset_list_->item(static_cast<int>(i))->setFlags(Qt::NoItemFlags);
         }
     }
+}
+
+void ZoneEditorWidget::setNumericResetFieldsEnabled(const bool enabled) {
+    reset_if_flag_->setEnabled(enabled);
+    reset_arg1_->setEnabled(enabled);
+    reset_arg2_->setEnabled(enabled);
+    reset_arg3_->setEnabled(enabled);
+    reset_arg4_->setEnabled(enabled);
+    equip_position_->setEnabled(enabled);
+    door_state_->setEnabled(enabled);
 }
 
 void ZoneEditorWidget::updateResetFieldLabels() {
@@ -295,16 +317,30 @@ void ZoneEditorWidget::updateResetFieldLabels() {
     arg3_label_->setText(QString::fromStdString(labels.arg3));
     arg4_label_->setText(QString::fromStdString(labels.arg4));
 
+    const bool is_comment = command == '*';
     const bool is_equip = command == 'E';
     const bool is_door = command == 'D';
-    equip_panel_->setVisible(is_equip);
-    door_state_panel_->setVisible(is_door);
-    reset_arg3_->setVisible(!is_equip && !is_door);
-    arg3_label_->setVisible(!is_equip && !is_door);
+    equip_panel_->setVisible(is_equip && !is_comment);
+    door_state_panel_->setVisible(is_door && !is_comment);
+    reset_if_flag_->setVisible(!is_comment);
+    if_flag_label_->setVisible(!is_comment);
+    reset_arg1_->setVisible(!is_comment);
+    arg1_label_->setVisible(!is_comment);
+    reset_arg2_->setVisible(!is_comment);
+    arg2_label_->setVisible(!is_comment);
+    reset_arg3_->setVisible(!is_comment && !is_equip && !is_door);
+    arg3_label_->setVisible(!is_comment && !is_equip && !is_door);
 
-    const bool use_arg4 = command == 'M' || command == 'O';
+    const bool use_arg4 = !is_comment && (command == 'M' || command == 'O');
     reset_arg4_->setVisible(use_arg4);
     arg4_label_->setVisible(use_arg4);
+
+    if (is_comment) {
+        reset_note_->setPlaceholderText(QStringLiteral("comment text after *  (ASCII)"));
+    } else {
+        reset_note_->setPlaceholderText(
+            QStringLiteral("optional trailing note after *!  (ASCII)"));
+    }
 }
 
 int ZoneEditorWidget::currentResetIndex() const {
@@ -331,17 +367,20 @@ void ZoneEditorWidget::loadResetForm(const nebbie::ResetCommand& cmd) {
     if (cmd.command == 'D') {
         setComboIntValue(door_state_, cmd.arg3);
     }
+    reset_note_->setText(QString::fromStdString(nebbie::reset_inline_note(cmd)));
     updateResetFieldLabels();
 
     const bool editable = nebbie::is_editable_reset_command(cmd.command);
+    const bool is_blank = cmd.command == 0;
     reset_command_->setEnabled(editable);
-    reset_if_flag_->setEnabled(editable);
-    reset_arg1_->setEnabled(editable);
-    reset_arg2_->setEnabled(editable);
-    reset_arg3_->setEnabled(editable);
-    reset_arg4_->setEnabled(editable);
-    equip_position_->setEnabled(editable);
-    door_state_->setEnabled(editable);
+    setNumericResetFieldsEnabled(editable && cmd.command != '*');
+    reset_note_->setEnabled(editable || is_blank);
+    if (is_blank) {
+        reset_note_->setEnabled(false);
+        reset_note_->setText(QString());
+        reset_command_->setEnabled(false);
+        setNumericResetFieldsEnabled(false);
+    }
 }
 
 nebbie::ResetCommand ZoneEditorWidget::readResetForm() const {
@@ -358,6 +397,7 @@ nebbie::ResetCommand ZoneEditorWidget::readResetForm() const {
     if (cmd.command == 'D') {
         cmd.arg3 = comboIntValue(door_state_);
     }
+    nebbie::set_reset_inline_note(cmd, reset_note_->text().toStdString());
     return cmd;
 }
 
@@ -391,12 +431,37 @@ void ZoneEditorWidget::addReset() {
     }
 
     const char command = reset_command_->currentData().toChar().toLatin1();
-    const nebbie::ResetCommand cmd = nebbie::default_zone_reset(command, *zone, *world_);
+    nebbie::ResetCommand cmd = nebbie::default_zone_reset(command, *zone, *world_);
+    if (command == '*') {
+        const QString note = reset_note_->text().trimmed();
+        nebbie::set_reset_inline_note(cmd, note.isEmpty() ? std::string("comment")
+                                                          : note.toStdString());
+    } else if (!reset_note_->text().trimmed().isEmpty()) {
+        nebbie::set_reset_inline_note(cmd, reset_note_->text().toStdString());
+    }
     if (!nebbie::add_zone_reset(*world_, zone_num_, cmd)) {
         QMessageBox::warning(this, "Zone", "Unable to add reset.");
         return;
     }
 
+    refreshResetList();
+    reset_list_->setCurrentRow(reset_list_->count() - 1);
+    emit zoneModified();
+}
+
+void ZoneEditorWidget::addBlankReset() {
+    if (!world_ || zone_num_ <= 0) {
+        QMessageBox::information(this, "Zone", "Select a zone.");
+        return;
+    }
+    nebbie::Zone* zone = nebbie::find_zone(*world_, zone_num_);
+    if (!zone) {
+        return;
+    }
+    nebbie::ResetCommand blank;
+    blank.command = 0;
+    blank.raw_line = "\n";
+    zone->commands.push_back(blank);
     refreshResetList();
     reset_list_->setCurrentRow(reset_list_->count() - 1);
     emit zoneModified();
@@ -409,6 +474,15 @@ void ZoneEditorWidget::applyReset() {
     const int index = currentResetIndex();
     if (index < 0) {
         QMessageBox::information(this, "Zone", "Select an editable reset.");
+        return;
+    }
+
+    const nebbie::Zone* zone = nebbie::find_zone(*world_, zone_num_);
+    if (!zone || static_cast<std::size_t>(index) >= zone->commands.size()) {
+        return;
+    }
+    if (zone->commands[static_cast<std::size_t>(index)].command == 0) {
+        QMessageBox::information(this, "Zone", "Blank lines have no fields to edit.");
         return;
     }
 

@@ -8,6 +8,7 @@
 
 class QComboBox;
 class QLabel;
+class QLineEdit;
 class QListWidget;
 class QSpinBox;
 
@@ -41,6 +42,7 @@ private slots:
     void onResetSelected();
     void onResetCommandChanged();
     void addReset();
+    void addBlankReset();
     void applyReset();
     void removeReset();
     void moveResetUp();
@@ -56,6 +58,7 @@ private:
     int currentResetIndex() const;
     void setComboIntValue(QComboBox* combo, int value) const;
     void applyMudFieldSettings();
+    void setNumericResetFieldsEnabled(bool enabled);
 
     nebbie::World* world_ = nullptr;
     int zone_num_ = 0;
@@ -86,4 +89,5 @@ private:
     QComboBox* door_state_ = nullptr;
     QWidget* equip_panel_ = nullptr;
     QWidget* door_state_panel_ = nullptr;
+    QLineEdit* reset_note_ = nullptr;
 };

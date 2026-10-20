@@ -205,6 +205,11 @@ bool is_editable_reset_command(char command);
 std::string reset_command_summary(const ResetCommand& cmd);
 ResetCommand default_zone_reset(char command, const Zone& zone, const World& world);
 
+/** Trailing text after "*!" on a reset line (empty if none). Comment-only (*) lines return the body. */
+std::string reset_inline_note(const ResetCommand& cmd);
+/** Rebuild raw_line from numeric fields + optional trailing "*!" note (or full * comment body). */
+void set_reset_inline_note(ResetCommand& cmd, const std::string& note);
+
 bool add_zone_reset(World& world, int zone_num, const ResetCommand& cmd);
 bool update_zone_reset(World& world, int zone_num, std::size_t index, const ResetCommand& cmd);
 bool remove_zone_reset(World& world, int zone_num, std::size_t index);

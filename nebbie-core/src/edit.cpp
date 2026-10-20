@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <sstream>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -1006,10 +1007,83 @@ const Zone* find_zone(const World& world, int zone_num) {
 }
 
 bool is_editable_reset_command(const char command) {
-    return std::strchr("HFMCOGEPD", command) != nullptr;
+    // Do not use strchr(..., command): command == 0 would match the C-string NUL.
+    switch (command) {
+    case 'H':
+    case 'F':
+    case 'M':
+    case 'C':
+    case 'O':
+    case 'G':
+    case 'E':
+    case 'P':
+    case 'D':
+    case '*':
+        return true;
+    default:
+        return false;
+    }
+}
+
+namespace {
+
+std::string trim_copy_ascii(std::string value) {
+    while (!value.empty() && (value.front() == ' ' || value.front() == '\t' || value.front() == '\r'
+                              || value.front() == '\n')) {
+        value.erase(value.begin());
+    }
+    while (!value.empty() && (value.back() == ' ' || value.back() == '\t' || value.back() == '\r'
+                             || value.back() == '\n')) {
+        value.pop_back();
+    }
+    return value;
+}
+
+} // namespace
+
+std::string reset_inline_note(const ResetCommand& cmd) {
+    if (cmd.command == '*') {
+        return trim_copy_ascii(cmd.raw_line);
+    }
+    if (cmd.command == 0 || cmd.raw_line.empty()) {
+        return {};
+    }
+    const std::size_t bang = cmd.raw_line.find("*!");
+    if (bang == std::string::npos) {
+        return {};
+    }
+    return trim_copy_ascii(cmd.raw_line.substr(bang + 2));
+}
+
+void set_reset_inline_note(ResetCommand& cmd, const std::string& note) {
+    const std::string cleaned = trim_copy_ascii(note);
+    if (cmd.command == '*') {
+        cmd.raw_line = cleaned.empty() ? "\n" : (cleaned + "\n");
+        return;
+    }
+    if (cmd.command == 0) {
+        cmd.raw_line = "\n";
+        return;
+    }
+    // Match High Tower style: " 0 a1 a2 a3 a4  *! note"
+    std::ostringstream line;
+    line << ' ' << cmd.if_flag << ' ' << cmd.arg1 << ' ' << cmd.arg2 << ' ' << cmd.arg3 << ' '
+         << cmd.arg4;
+    if (!cleaned.empty()) {
+        line << "  *! " << cleaned;
+    }
+    line << '\n';
+    cmd.raw_line = line.str();
 }
 
 std::string reset_command_summary(const ResetCommand& cmd) {
+    if (cmd.command == 0) {
+        std::string line = cmd.raw_line;
+        while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) {
+            line.pop_back();
+        }
+        return line.empty() ? "(blank line)" : std::string("Raw: ") + line;
+    }
     if (cmd.command == '*') {
         std::string line = cmd.raw_line;
         while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) {
@@ -1093,6 +1167,15 @@ ResetCommand default_zone_reset(const char command, const Zone& zone, const Worl
     cmd.arg3 = -1;
     cmd.arg4 = 0;
 
+    if (command == '*') {
+        set_reset_inline_note(cmd, "comment");
+        return cmd;
+    }
+    if (command == 0) {
+        cmd.raw_line = "\n";
+        return cmd;
+    }
+
     const long room = first_room_in_zone(zone, world);
     const long mob = first_mobile_vnum(world);
     const long obj = first_object_vnum(world);
@@ -1136,6 +1219,7 @@ ResetCommand default_zone_reset(const char command, const Zone& zone, const Worl
     default:
         break;
     }
+    set_reset_inline_note(cmd, {});
     return cmd;
 }
 
@@ -1144,7 +1228,10 @@ bool add_zone_reset(World& world, const int zone_num, const ResetCommand& cmd) {
     if (!zone || !is_editable_reset_command(cmd.command)) {
         return false;
     }
-    zone->commands.push_back(cmd);
+    // Always rebuild raw_line from current args + "*!" note (args may have changed after default).
+    ResetCommand stored = cmd;
+    set_reset_inline_note(stored, reset_inline_note(cmd));
+    zone->commands.push_back(stored);
     return true;
 }
 
@@ -1156,8 +1243,9 @@ bool update_zone_reset(World& world, const int zone_num, const std::size_t index
     if (!is_editable_reset_command(cmd.command)) {
         return false;
     }
-    zone->commands[index] = cmd;
-    zone->commands[index].raw_line.clear();
+    ResetCommand stored = cmd;
+    set_reset_inline_note(stored, reset_inline_note(cmd));
+    zone->commands[index] = stored;
     return true;
 }
 
@@ -1167,7 +1255,8 @@ bool remove_zone_reset(World& world, const int zone_num, const std::size_t index
         return false;
     }
     const ResetCommand& cmd = zone->commands[index];
-    if (!is_editable_reset_command(cmd.command)) {
+    // Editable resets, comment lines (*), blank lines, and ';' separators.
+    if (!is_editable_reset_command(cmd.command) && cmd.command != 0 && cmd.command != ';') {
         return false;
     }
     zone->commands.erase(zone->commands.begin() + static_cast<std::ptrdiff_t>(index));

@@ -17,12 +17,38 @@ bool is_reset_command(char c) {
     return std::strchr("HFMCOGEPD*;SR", c) != nullptr;
 }
 
+/** Consume the remainder of the current line only (do not skip following blank lines). */
+void finish_current_line(FILE* fp) {
+    int c = std::fgetc(fp);
+    while (c != EOF && c != '\n' && c != '\r') {
+        c = std::fgetc(fp);
+    }
+    if (c == '\r') {
+        c = std::fgetc(fp);
+        if (c != '\n' && c != EOF) {
+            std::ungetc(c, fp);
+        }
+    }
+}
+
 void read_zone_reset_commands(FILE* fp, Zone& zone) {
     zone.commands.clear();
     while (true) {
         int c = std::fgetc(fp);
-        while (c != EOF && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {
+        // Preserve intentional blank lines; only skip spaces/tabs on the same line.
+        while (c == ' ' || c == '\t') {
             c = std::fgetc(fp);
+        }
+        if (c == '\r') {
+            c = std::fgetc(fp);
+        }
+        if (c == '\n') {
+            // Keep intentional blank lines as raw passthrough (command 0 + "\n").
+            ResetCommand blank;
+            blank.command = 0;
+            blank.raw_line = "\n";
+            zone.commands.push_back(blank);
+            continue;
         }
         if (c == EOF) {
             throw ParseError("Unexpected EOF in zone reset overlay");
@@ -49,6 +75,12 @@ void read_zone_reset_commands(FILE* fp, Zone& zone) {
                 comment.command = '*';
                 comment.raw_line = line;
                 zone.commands.push_back(comment);
+            } else {
+                // Preserve ';' separator lines as raw entries for round-trip.
+                ResetCommand separator;
+                separator.command = ';';
+                separator.raw_line = line;
+                zone.commands.push_back(separator);
             }
             continue;
         }
@@ -80,8 +112,27 @@ void read_zone_reset_commands(FILE* fp, Zone& zone) {
 
 void write_zone_reset_commands(FILE* fp, const Zone& zone) {
     for (const auto& cmd : zone.commands) {
+        // command == 0: write raw_line unchanged (blank lines, etc.).
+        if (cmd.command == 0) {
+            if (!cmd.raw_line.empty()) {
+                std::fputs(cmd.raw_line.c_str(), fp);
+                if (cmd.raw_line.back() != '\n') {
+                    std::fprintf(fp, "\n");
+                }
+            } else {
+                std::fprintf(fp, "\n");
+            }
+            continue;
+        }
         if (cmd.command == '*') {
             std::fprintf(fp, "*%s", cmd.raw_line.c_str());
+            if (cmd.raw_line.empty() || cmd.raw_line.back() != '\n') {
+                std::fprintf(fp, "\n");
+            }
+            continue;
+        }
+        if (cmd.command == ';') {
+            std::fprintf(fp, ";%s", cmd.raw_line.c_str());
             if (cmd.raw_line.empty() || cmd.raw_line.back() != '\n') {
                 std::fprintf(fp, "\n");
             }
@@ -149,6 +200,8 @@ void load_myst_zon(World& world, const std::filesystem::path& path, ProgressCall
         zone.top = static_cast<int>(fread_number(fp));
         zone.lifespan = static_cast<int>(fread_number(fp));
         zone.reset_mode = static_cast<int>(fread_number(fp));
+        // End of "top lifespan reset_mode" line — not an intentional blank reset row.
+        finish_current_line(fp);
         zone.bottom = world.zones.empty() ? 0 : world.zones.back().top + 1;
 
         read_zone_reset_commands(fp, zone);
