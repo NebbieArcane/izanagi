@@ -95,6 +95,39 @@ constexpr TranslationEntry kTranslations[] = {
     {"menu.fix_mud_ascii_room_tip",
      "Corregge nome, descrizione, extra, uscite e campi luce della stanza aperta.",
      "Fixes name, description, extras, exits and light fields of the open room."},
+    {"menu.find_duplicate_vnums", "Cerca vnum mob/oggetto duplicati (workspace)...",
+     "Find duplicate mob/object vnums (workspace)..."},
+    {"menu.special_proc_catalog", "Catalogo special proc...",
+     "Special proc catalog..."},
+    {"menu.special_proc_catalog_tip",
+     "Imposta il path del Server per il catalogo dinamico e modifica l'allowlist "
+     "locale dei nomi accettati dalla validazione.",
+     "Set the Server path for the dynamic catalog and edit the local allowlist "
+     "of procedure names accepted by validation."},
+    {"menu.find_duplicate_vnums_tip",
+     "Scansiona tutte le aree del workspace Aree e segnala vnum di mob o oggetti "
+     "ripetuti (tra aree diverse o due volte nella stessa area). "
+     "Doppio clic su un risultato per aprire quell'area e selezionare l'entita'.",
+     "Scans every area in the Aree workspace and reports mob or object vnums that "
+     "appear more than once (across areas or twice in the same area). "
+     "Double-click a result to open that area and select the entity."},
+    {"tools.dup_vnums.title", "Vnum mob/oggetto duplicati", "Duplicate mob/object vnums"},
+    {"tools.dup_vnums.need_workspace",
+     "Apri prima un workspace Aree (File → Apri workspace Aree).",
+     "Open an Aree workspace first (File → Open Aree workspace)."},
+    {"tools.dup_vnums.summary_ok",
+     "Nessun vnum di mob o oggetto ripetuto nelle %1 aree del workspace.",
+     "No duplicate mob or object vnums across the %1 areas in the workspace."},
+    {"tools.dup_vnums.summary_found",
+     "Trovati %1 vnum mob e %2 vnum oggetto ripetuti (su %3 aree). "
+     "Doppio clic su una riga per aprire l'area e selezionare l'entita'.",
+     "Found %1 duplicate mob vnum(s) and %2 duplicate object vnum(s) across %3 areas. "
+     "Double-click a row to open the area and select the entity."},
+    {"tools.dup_vnums.mob_hit", "Mob #%1 in %2", "Mob #%1 in %2"},
+    {"tools.dup_vnums.obj_hit", "Oggetto #%1 in %2", "Object #%1 in %2"},
+    {"tools.dup_vnums.area_missing",
+     "Area \"%1\" non trovata nel workspace.",
+     "Area \"%1\" not found in the workspace."},
     {"status.mud_ascii_fixed", "Testo corretto in ASCII mud (accenti/apostrofi).",
      "Text normalized to mud ASCII (accents/apostrophes)."},
     {"status.mud_ascii_unchanged", "Nessun carattere non-ASCII da correggere.",

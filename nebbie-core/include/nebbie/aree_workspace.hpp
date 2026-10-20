@@ -75,6 +75,27 @@ std::vector<AreeAreaInfo> scan_aree_areas(const AreeWorkspace& workspace);
  */
 std::unordered_set<long> collect_aree_workspace_room_vnums(const AreeWorkspace& workspace);
 
+/** A vnum that appears in more than one place across the workspace (mob or object files). */
+struct AreeDuplicateVnumGroup {
+    long vnum = 0;
+    /** Area folder names that declare this vnum (order of discovery). */
+    std::vector<std::string> area_folders;
+};
+
+struct AreeDuplicateVnumReport {
+    std::vector<AreeDuplicateVnumGroup> mobiles;
+    std::vector<AreeDuplicateVnumGroup> objects;
+
+    bool empty() const { return mobiles.empty() && objects.empty(); }
+};
+
+/**
+ * Scan every area .mob / .obj for #vnum headers and report vnums that appear more than once
+ * in the workspace (cross-area collisions or duplicates inside the same area file).
+ * Reserved folders (_head, _tail, …) are excluded via {@link scan_aree_areas}.
+ */
+AreeDuplicateVnumReport find_aree_workspace_duplicate_entity_vnums(const AreeWorkspace& workspace);
+
 /** Parse #N and zone name from area/<area>.zon (first zone block). */
 bool read_aree_zone_header(const std::filesystem::path& area_dir, int& zone_num, std::string& zone_name,
                            int& top_vnum);

@@ -1,5 +1,7 @@
 #include "nebbie/obj_catalog.hpp"
 
+#include <algorithm>
+
 namespace nebbie {
 
 namespace {
@@ -103,6 +105,51 @@ std::string obj_apply_type_name(const int location) {
         return kApplyTypes[location];
     }
     return "Apply #" + std::to_string(location);
+}
+
+int sum_obj_affect_modifier(const std::vector<ObjAffect>& affects, const int location) {
+    int total = 0;
+    for (const ObjAffect& affect : affects) {
+        if (affect.location == location) {
+            total += affect.modifier;
+        }
+    }
+    return total;
+}
+
+void set_obj_affect_modifier(std::vector<ObjAffect>& affects, const int location,
+                             const int modifier) {
+    if (modifier == 0) {
+        affects.erase(std::remove_if(affects.begin(), affects.end(),
+                                     [location](const ObjAffect& affect) {
+                                         return affect.location == location;
+                                     }),
+                      affects.end());
+        return;
+    }
+
+    bool updated = false;
+    std::vector<ObjAffect> kept;
+    kept.reserve(affects.size() + 1);
+    for (const ObjAffect& affect : affects) {
+        if (affect.location != location) {
+            kept.push_back(affect);
+            continue;
+        }
+        if (!updated) {
+            ObjAffect row = affect;
+            row.modifier = modifier;
+            kept.push_back(row);
+            updated = true;
+        }
+    }
+    if (!updated) {
+        ObjAffect row;
+        row.location = location;
+        row.modifier = modifier;
+        kept.push_back(row);
+    }
+    affects = std::move(kept);
 }
 
 } // namespace nebbie

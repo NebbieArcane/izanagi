@@ -9,6 +9,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QGroupBox;
 class QLabel;
 class QSpinBox;
 class FlagGroupWidget;
@@ -34,6 +35,7 @@ public:
 private:
     void updateTypeDependentFields();
     void updateEconomyFieldLabels();
+    void updateDamageEstimate();
     void updateEnglishLexiconBanner();
     void updateTildeNewlineHints();
     void migrateCombatFieldsForTypeChange(char from_type, char to_type);
@@ -67,6 +69,8 @@ private:
     QSpinBox* dam_plus_ = nullptr;
     QWidget* hit_dice_row_ = nullptr;
     QWidget* hit_bonus_row_ = nullptr;
+    QGroupBox* damage_sim_box_ = nullptr;
+    QLabel* damage_estimate_ = nullptr;
 
     QSpinBox* alignment_ = nullptr;
     QSpinBox* gold_ = nullptr;

@@ -65,6 +65,11 @@ possibili testi inglesi residui (stanze, mob, oggetti) da tradurre.
 Al salvataggio Izanagi fa un controllo più ristretto (soprattutto sulle
 stanze modificate); questa voce serve per un controllo completo di ciò
 che è aperto.</li>
+<li><b>Cerca vnum mob/oggetto duplicati (workspace)…</b> — Scansiona
+<strong>tutte</strong> le aree del workspace Aree e elenca i vnum di mob o
+oggetti ripetuti (tra aree diverse o due volte nella stessa area).
+Doppio clic su un risultato per aprire quell’area e selezionare l’entità.
+Serve un workspace Aree aperto.</li>
 <li><b>Esporta overlay…</b> — Crea i file “overlay” usati dal server a partire
 da ciò che è aperto (uso avanzato / deploy).</li>
 <li><b>Normalizza description uscite…</b> — Sistema le descrizioni delle uscite
@@ -185,6 +190,11 @@ It does not check every area in the workspace at once. It also flags possible
 leftover English text (rooms, mobs, objects) still to translate.
 On save, Izanagi runs a narrower check (mainly dirty rooms); use this item
 for a full check of what is open.</li>
+<li><b>Find duplicate mob/object vnums (workspace)…</b> — Scans
+<strong>every</strong> area in the Aree workspace and lists mob or object
+vnums that appear more than once (across areas or twice in the same area).
+Double-click a result to open that area and select the entity.
+Requires an open Aree workspace.</li>
 <li><b>Export overlays…</b> — Builds server overlay files from what is open
 (advanced / deploy use).</li>
 <li><b>Normalize exit descriptions…</b> — Fixes exit descriptions that differ from the

@@ -8,6 +8,7 @@
 #include <chrono>
 #include <fstream>
 #include <iomanip>
+#include <map>
 #include <regex>
 #include <sstream>
 #include <unordered_set>
@@ -268,40 +269,89 @@ std::vector<AreeAreaInfo> scan_aree_areas(const AreeWorkspace& workspace) {
     return areas;
 }
 
+namespace {
+
+/** Parse #N entity headers from a myst.* hash file (rooms/mobs/objects). Skips #$ and non-numeric. */
+std::vector<long> collect_hash_vnums_from_file(const std::filesystem::path& path) {
+    std::vector<long> vnums;
+    std::ifstream in(path);
+    if (!in) {
+        return vnums;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (line.size() < 2 || line[0] != '#') {
+            continue;
+        }
+        if (line[1] == '$') {
+            continue;
+        }
+        std::size_t pos = 1;
+        if (pos >= line.size() || std::isdigit(static_cast<unsigned char>(line[pos])) == 0) {
+            continue;
+        }
+        long vnum = 0;
+        while (pos < line.size() && std::isdigit(static_cast<unsigned char>(line[pos])) != 0) {
+            vnum = vnum * 10 + (line[pos] - '0');
+            ++pos;
+        }
+        if (vnum > 0) {
+            vnums.push_back(vnum);
+        }
+    }
+    return vnums;
+}
+
+std::vector<AreeDuplicateVnumGroup> duplicate_groups_from_hits(
+    const std::map<long, std::vector<std::string>>& hits_by_vnum) {
+    std::vector<AreeDuplicateVnumGroup> groups;
+    for (const auto& [vnum, areas] : hits_by_vnum) {
+        if (areas.size() < 2) {
+            continue;
+        }
+        AreeDuplicateVnumGroup group;
+        group.vnum = vnum;
+        group.area_folders = areas;
+        groups.push_back(std::move(group));
+    }
+    return groups;
+}
+
+} // namespace
+
 std::unordered_set<long> collect_aree_workspace_room_vnums(const AreeWorkspace& workspace) {
     std::unordered_set<long> vnums;
     for (const AreeAreaInfo& area : scan_aree_areas(workspace)) {
         const std::filesystem::path wld_path = area.path / (area.folder_name + ".wld");
-        std::ifstream in(wld_path);
-        if (!in) {
-            continue;
-        }
-        std::string line;
-        while (std::getline(in, line)) {
-            if (!line.empty() && line.back() == '\r') {
-                line.pop_back();
-            }
-            if (line.size() < 2 || line[0] != '#') {
-                continue;
-            }
-            if (line[1] == '$') {
-                continue;
-            }
-            std::size_t pos = 1;
-            if (pos >= line.size() || std::isdigit(static_cast<unsigned char>(line[pos])) == 0) {
-                continue;
-            }
-            long vnum = 0;
-            while (pos < line.size() && std::isdigit(static_cast<unsigned char>(line[pos])) != 0) {
-                vnum = vnum * 10 + (line[pos] - '0');
-                ++pos;
-            }
-            if (vnum > 0) {
-                vnums.insert(vnum);
-            }
+        for (const long vnum : collect_hash_vnums_from_file(wld_path)) {
+            vnums.insert(vnum);
         }
     }
     return vnums;
+}
+
+AreeDuplicateVnumReport find_aree_workspace_duplicate_entity_vnums(const AreeWorkspace& workspace) {
+    std::map<long, std::vector<std::string>> mob_hits;
+    std::map<long, std::vector<std::string>> obj_hits;
+
+    for (const AreeAreaInfo& area : scan_aree_areas(workspace)) {
+        const std::filesystem::path mob_path = area.path / (area.folder_name + ".mob");
+        for (const long vnum : collect_hash_vnums_from_file(mob_path)) {
+            mob_hits[vnum].push_back(area.folder_name);
+        }
+        const std::filesystem::path obj_path = area.path / (area.folder_name + ".obj");
+        for (const long vnum : collect_hash_vnums_from_file(obj_path)) {
+            obj_hits[vnum].push_back(area.folder_name);
+        }
+    }
+
+    AreeDuplicateVnumReport report;
+    report.mobiles = duplicate_groups_from_hits(mob_hits);
+    report.objects = duplicate_groups_from_hits(obj_hits);
+    return report;
 }
 
 std::filesystem::path aree_archive_destination(const AreeWorkspace& workspace, const std::string& area_folder,

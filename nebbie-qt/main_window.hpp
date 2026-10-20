@@ -114,6 +114,8 @@ private slots:
     void insertColorCode();
     void normalizeFocusedMudAscii();
     void normalizeRoomMudAscii();
+    void findDuplicateEntityVnums();
+    void editSpecialProcCatalog();
     void checkForUpdates();
     void onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info);
     void toggleCheckUpdatesOnStartup(bool enabled);
@@ -187,6 +189,7 @@ private:
     nebbie::ValidationOptions validationOptions() const;
     /** Room vnums from every area .wld when a workspace is open; empty otherwise. */
     std::unordered_set<long> workspaceKnownRoomVnums() const;
+    void applySpecialProcCatalogFromConfig();
 
     nebbie::World world_;
     nebbie::LibContext context_;

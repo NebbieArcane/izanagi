@@ -72,7 +72,9 @@ std::string read_exit_data_line(FILE* fp) {
 void read_exit(FILE* fp, Room& room, int direction, const World& world) {
     Exit exit;
     exit.direction = direction;
-    exit.description = fread_string(fp);
+    // File form is always "text\n~" (OnOwnLine). fread_string keeps that final \n;
+    // strip it so in-memory / editor single-line look fields are not flagged as errors.
+    exit.description = normalize_nebbie_field_text(fread_string(fp));
     exit.keyword = fread_string(fp);
 
     const std::string data_line = read_exit_data_line(fp);

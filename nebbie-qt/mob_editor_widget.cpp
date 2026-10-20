@@ -4,6 +4,7 @@
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
 #include "nebbie/mob_catalog.hpp"
+#include "nebbie/mob_damage_estimate.hpp"
 #include "room_text_monitors.hpp"
 
 #include <QCheckBox>
@@ -12,12 +13,14 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QRegularExpression>
 #include <QScrollArea>
 #include <QSizePolicy>
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include <algorithm>
 #include <string>
 
 namespace {
@@ -190,6 +193,15 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     combat_form->addRow("Hit bonus (type A/N/B/L):", hit_bonus_row_);
     combat_form->addRow("Damage dice:", dam_row);
     combat_layout->addLayout(combat_form);
+
+    damage_sim_box_ = new QGroupBox("Stima danni", combat_tab);
+    auto* sim_layout = new QVBoxLayout(damage_sim_box_);
+    damage_estimate_ = new QLabel(damage_sim_box_);
+    damage_estimate_->setWordWrap(true);
+    damage_estimate_->setTextFormat(Qt::RichText);
+    damage_estimate_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    sim_layout->addWidget(damage_estimate_);
+    combat_layout->addWidget(damage_sim_box_);
     tabs->addTab(combat_tab, "Combat");
 
     auto* economy_tab = new QWidget;
@@ -300,6 +312,17 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
 
     connect(mobtype_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int) { updateTypeDependentFields(); });
+    const auto refresh_damage = [this](int) { updateDamageEstimate(); };
+    connect(level_, QOverload<int>::of(&QSpinBox::valueChanged), this, refresh_damage);
+    connect(mult_att_, QOverload<int>::of(&QSpinBox::valueChanged), this, refresh_damage);
+    connect(dam_num_, QOverload<int>::of(&QSpinBox::valueChanged), this, refresh_damage);
+    connect(dam_size_, QOverload<int>::of(&QSpinBox::valueChanged), this, refresh_damage);
+    connect(dam_plus_, QOverload<int>::of(&QSpinBox::valueChanged), this, refresh_damage);
+    connect(act_flags_, &FlagGroupWidget::valueChanged, this, [this]() { updateDamageEstimate(); });
+    connect(short_descr_, &nebbie::qt::MudColorTextEdit::storageTextChanged, this,
+            [this]() { updateDamageEstimate(); });
+    connect(name_, &nebbie::qt::MudColorTextEdit::storageTextChanged, this,
+            [this]() { updateDamageEstimate(); });
     connect(extended_gold_, &QCheckBox::toggled, race_row_, &QWidget::setVisible);
     connect(extended_gold_, &QCheckBox::toggled, this, [this](bool) { updateEconomyFieldLabels(); });
     connect(exp_, QOverload<int>::of(&QSpinBox::valueChanged), this,
@@ -309,6 +332,7 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     race_row_->setVisible(false);
     immunity_panel_->setVisible(false);
     updateTypeDependentFields();
+    updateDamageEstimate();
 
     for (nebbie::qt::MudColorTextEdit* field : mudFields()) {
         if (field == nullptr) {
@@ -431,6 +455,100 @@ void MobEditorWidget::updateTypeDependentFields() {
     sounds_panel_->setEnabled(nebbie::mob_type_uses_sounds(mobtype) || !sounds_->storageText().isEmpty()
                               || !distant_sounds_->storageText().isEmpty());
     updateEconomyFieldLabels();
+    updateDamageEstimate();
+}
+
+void MobEditorWidget::updateDamageEstimate() {
+    if (damage_estimate_ == nullptr || act_flags_ == nullptr || damage_sim_box_ == nullptr) {
+        return;
+    }
+
+    QString mob_label = short_descr_->storageText().trimmed();
+    if (mob_label.isEmpty()) {
+        mob_label = name_->storageText().trimmed();
+    }
+    if (mob_label.isEmpty()) {
+        mob_label = QStringLiteral("(nuovo mob)");
+    }
+    // Short descr can contain color codes; strip $cXXXX for the title line.
+    mob_label.remove(QRegularExpression(QStringLiteral("\\$[cC][0-9]{4}")));
+    mob_label = mob_label.simplified();
+
+    nebbie::DiceValues dam;
+    dam.number = dam_num_->value();
+    dam.size = dam_size_->value();
+    dam.plus = dam_plus_->value();
+    const char mobtype = comboTypeValue(mobtype_);
+    const int level = level_->value();
+    const int attacks = nebbie::mob_type_uses_mult_att(mobtype) ? std::max(1, mult_att_->value()) : 1;
+
+    const nebbie::MobDamageSimulation sim =
+        nebbie::simulate_mob_round_damage(act_flags_->value(), mobtype, level, mult_att_->value(), dam);
+
+    damage_sim_box_->setTitle(QStringLiteral("Stima danni — %1").arg(mob_label));
+
+    const QString dice_text =
+        QStringLiteral("%1d%2%3")
+            .arg(dam.number)
+            .arg(dam.size)
+            .arg(dam.plus > 0   ? QStringLiteral("+%1").arg(dam.plus)
+                 : dam.plus < 0 ? QString::number(dam.plus)
+                                : QString());
+
+    const auto role_color = [](nebbie::MobDamageRole role) -> QString {
+        switch (role) {
+        case nebbie::MobDamageRole::Fighter:
+            return QStringLiteral("#1b7a3c"); // green — fisico
+        case nebbie::MobDamageRole::Mage:
+            return QStringLiteral("#1a5fad"); // blue — mago
+        case nebbie::MobDamageRole::Cleric:
+            return QStringLiteral("#a65b00"); // amber — chierico
+        case nebbie::MobDamageRole::Psionic:
+            return QStringLiteral("#0b6e7a"); // teal — psi
+        }
+        return QStringLiteral("#333333");
+    };
+
+    QString html;
+    html += QStringLiteral(
+        "<div style='line-height:1.4;'>"
+        "<div style='margin-bottom:8px;'>"
+        "<span style='font-size:13pt;font-weight:700;'>%1</span>"
+        "<br/>"
+        "<span style='opacity:0.85;'>"
+        "lvl <b style='color:#1a5fad;'>%2</b> · "
+        "<b style='color:#1b7a3c;'>%3</b> att · "
+        "danno <b>%4</b>"
+        "</span></div>")
+                .arg(mob_label.toHtmlEscaped())
+                .arg(level)
+                .arg(attacks)
+                .arg(dice_text.toHtmlEscaped());
+
+    for (const auto& component : sim.components) {
+        QString label = QString::fromStdString(nebbie::mob_damage_role_label(component.role));
+        if (!component.act_labels.empty()) {
+            label += QStringLiteral(" · %1").arg(QString::fromStdString(component.act_labels));
+        }
+        const QString color = role_color(component.role);
+        html += QStringLiteral(
+                    "<div style='margin:4px 0;padding:3px 0;border-left:3px solid %1;padding-left:8px;'>"
+                    "<span style='font-weight:700;color:%1;'>%2</span>"
+                    " &nbsp; "
+                    "<span style='opacity:0.75;'>%3–%4</span>"
+                    " &nbsp; "
+                    "<span style='font-weight:800;font-size:12pt;color:%1;'>media %5</span>"
+                    " &nbsp; "
+                    "<span style='opacity:0.55;font-size:9pt;'>[%6]</span>"
+                    "</div>")
+                    .arg(color, label.toHtmlEscaped())
+                    .arg(component.min_damage)
+                    .arg(component.max_damage)
+                    .arg(component.avg_damage, 0, 'f', 1)
+                    .arg(QString::fromStdString(component.summary).toHtmlEscaped());
+    }
+    html += QStringLiteral("</div>");
+    damage_estimate_->setText(html);
 }
 
 void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {
@@ -479,6 +597,7 @@ void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {
     }
 
     updateTypeDependentFields();
+    updateDamageEstimate();
     updateEnglishLexiconBanner();
     updateTildeNewlineHints();
 }

@@ -251,7 +251,7 @@ const char* kRoomSpecialProcNames[] = {
 
 } // namespace
 
-const std::vector<std::string>& mob_object_special_proc_names() {
+const std::vector<std::string>& embedded_mob_object_special_proc_names() {
     static const std::vector<std::string> names = [] {
         std::vector<std::string> out;
         out.reserve(209);
@@ -263,7 +263,7 @@ const std::vector<std::string>& mob_object_special_proc_names() {
     return names;
 }
 
-const std::vector<std::string>& room_special_proc_names() {
+const std::vector<std::string>& embedded_room_special_proc_names() {
     static const std::vector<std::string> names = [] {
         std::vector<std::string> out;
         out.reserve(29);

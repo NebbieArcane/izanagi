@@ -39,8 +39,16 @@ bool parse_bool(const QString& value) {
 
 } // namespace
 
+QString config_directory_path() {
+    return config_directory();
+}
+
 QString default_config_path() {
     return config_directory() + QStringLiteral("/nebbieedit.conf");
+}
+
+QString default_extra_special_procs_path() {
+    return config_directory() + QStringLiteral("/extra_special_procs.txt");
 }
 
 AppConfig read_config() {
@@ -88,6 +96,8 @@ AppConfig read_config() {
             config.aree_last_area = value_after_equals(line);
         } else if (line.startsWith(QStringLiteral("aree_archive_on_first_save="))) {
             config.aree_archive_on_first_save = parse_bool(value_after_equals(line));
+        } else if (line.startsWith(QStringLiteral("server_root="))) {
+            config.server_root = value_after_equals(line);
         }
     }
     return config;
@@ -133,6 +143,9 @@ bool write_config(const AppConfig& config) {
         out << "aree_last_area=" << config.aree_last_area << '\n';
     }
     out << "aree_archive_on_first_save=" << (config.aree_archive_on_first_save ? 1 : 0) << '\n';
+    if (!config.server_root.isEmpty()) {
+        out << "server_root=" << config.server_root << '\n';
+    }
     return true;
 }
 

@@ -556,6 +556,10 @@ void WorldDataEditorWidget::selectSpecialIndex(const std::size_t index) {
     }
 }
 
+void WorldDataEditorWidget::reloadSpecialProcNameChoices() {
+    refreshSpecialProcedureChoices();
+}
+
 void WorldDataEditorWidget::refreshSpecialProcedureChoices() {
     if (!special_procedure_ || !special_type_) {
         return;

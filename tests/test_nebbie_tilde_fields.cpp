@@ -97,6 +97,19 @@ int main() {
                    "single-line room description must not use inline ~");
             expect(block.find("\n~\n") != std::string::npos && block.find("\nD0\n") != std::string::npos,
                    "zone/exit records must follow description ~ on later lines");
+            expect(block.find("Nord.\n~") != std::string::npos,
+                   "exit look description must use newline then ~ on disk");
+            expect(block.find("Nord.~") == std::string::npos,
+                   "exit look description must not use inline ~");
+
+            nebbie::World reloaded;
+            nebbie::load_myst_wld(reloaded, single_out / "myst.wld");
+            const nebbie::Room* loaded = reloaded.find_room(9901);
+            expect(loaded != nullptr && !loaded->exits.empty(), "reloaded exit room missing");
+            expect(loaded->exits.front().description == "Nord.",
+                   "exit look description must strip trailing newline after OnOwnLine load");
+            expect(loaded->exits.front().description.find('\n') == std::string::npos,
+                   "exit look description must not keep file tilde newline in memory");
         }
 
         expect(mob3015.find("inventario.\n~") != std::string::npos,

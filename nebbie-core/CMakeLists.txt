@@ -23,6 +23,7 @@ add_library(nebbie-core
     src/session.cpp
     src/zone_graph.cpp
     src/mob_catalog.cpp
+    src/mob_damage_estimate.cpp
     src/obj_catalog.cpp
     src/obj_value_catalog.cpp
     src/room_catalog.cpp

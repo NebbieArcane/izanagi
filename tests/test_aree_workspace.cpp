@@ -150,6 +150,43 @@ int main() {
         const auto archives = nebbie::list_aree_archives(workspace, "myst");
         expect(!archives.empty(), "archive listed");
 
+        {
+            const auto clean = nebbie::find_aree_workspace_duplicate_entity_vnums(workspace);
+            expect(clean.empty(), "fixture workspace should have unique mob/obj vnums");
+
+            {
+                std::ofstream mob_out(work / "castelli" / "castelli.mob", std::ios::app);
+                mob_out << "#3000\n";
+            }
+            {
+                std::ofstream obj_out(work / "castelli" / "castelli.obj", std::ios::app);
+                obj_out << "#43\n";
+            }
+
+            const auto dups = nebbie::find_aree_workspace_duplicate_entity_vnums(workspace);
+            expect(dups.mobiles.size() == 1, "cross-area mob #3000 should be reported");
+            expect(dups.mobiles[0].vnum == 3000, "duplicate mob vnum is 3000");
+            expect(dups.mobiles[0].area_folders.size() == 2, "mob #3000 in two areas");
+            expect(dups.objects.size() == 1, "cross-area obj #43 should be reported");
+            expect(dups.objects[0].vnum == 43, "duplicate obj vnum is 43");
+            expect(dups.objects[0].area_folders.size() == 2, "obj #43 in two areas");
+
+            {
+                std::ofstream mob_out(work / "castelli" / "castelli.mob", std::ios::app);
+                mob_out << "#34001\n";
+            }
+            const auto same_area = nebbie::find_aree_workspace_duplicate_entity_vnums(workspace);
+            bool found_same_area_mob = false;
+            for (const auto& group : same_area.mobiles) {
+                if (group.vnum == 34001) {
+                    found_same_area_mob = true;
+                    expect(group.area_folders.size() >= 2, "same-area mob duplicate lists area twice");
+                    break;
+                }
+            }
+            expect(found_same_area_mob, "same-area mob #34001 duplicate should be reported");
+        }
+
         std::cout << "OK\n";
         return 0;
     } catch (const std::exception& ex) {

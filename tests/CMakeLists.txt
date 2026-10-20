@@ -67,9 +67,17 @@ add_executable(nebbie-obj-value-catalog-tests test_obj_value_catalog.cpp)
 target_link_libraries(nebbie-obj-value-catalog-tests PRIVATE nebbie-core)
 add_test(NAME obj-value-catalog-tests COMMAND nebbie-obj-value-catalog-tests)
 
+add_executable(nebbie-obj-spellpower-affect-tests test_obj_spellpower_affect.cpp)
+target_link_libraries(nebbie-obj-spellpower-affect-tests PRIVATE nebbie-core)
+add_test(NAME obj-spellpower-affect-tests COMMAND nebbie-obj-spellpower-affect-tests)
+
 add_executable(nebbie-mob-combat-tests test_mob_combat.cpp)
 target_link_libraries(nebbie-mob-combat-tests PRIVATE nebbie-core)
 add_test(NAME mob-combat-validation COMMAND nebbie-mob-combat-tests)
+
+add_executable(nebbie-mob-damage-estimate-tests test_mob_damage_estimate.cpp)
+target_link_libraries(nebbie-mob-damage-estimate-tests PRIVATE nebbie-core)
+add_test(NAME mob-damage-estimate-tests COMMAND nebbie-mob-damage-estimate-tests)
 
 add_executable(nebbie-english-lexicon-tests test_english_lexicon.cpp)
 target_link_libraries(nebbie-english-lexicon-tests PRIVATE nebbie-core)

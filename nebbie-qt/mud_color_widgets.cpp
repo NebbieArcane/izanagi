@@ -128,6 +128,11 @@ MudColorTextEdit::MudColorTextEdit(QWidget* parent) : QTextEdit(parent) {
 
 void MudColorTextEdit::setStorageText(const QString& text) {
     storage_ = text;
+    if (single_line_mode_) {
+        while (storage_.endsWith(QLatin1Char('\n')) || storage_.endsWith(QLatin1Char('\r'))) {
+            storage_.chop(1);
+        }
+    }
     rebuildDocument();
     emit storageTextChanged(storage_);
 }

@@ -199,6 +199,20 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* affect_tab = new QWidget;
     auto* affect_layout = new QVBoxLayout(affect_tab);
+    affect_layout->addWidget(makeLegend(
+        "Spellpower e Hit & Spellpower sono scorciatoie sugli affect A "
+        "(APPLY_SPELLPOWER / APPLY_HITNSP). 0 = assente dal file. "
+        "La lista sotto resta completa per tutti i tipi.",
+        affect_tab));
+    spellpower_ = new QSpinBox;
+    spellpower_->setRange(-50, 50);
+    hit_nsp_ = new QSpinBox;
+    hit_nsp_->setRange(-50, 50);
+    auto* shortcut_form = new QFormLayout;
+    shortcut_form->addRow("Spellpower:", spellpower_);
+    shortcut_form->addRow("Hit & Spellpower (HIT-N-SP):", hit_nsp_);
+    affect_layout->addLayout(shortcut_form);
+
     affect_list_ = new QListWidget;
     affect_location_ = new QComboBox;
     fillCombo(affect_location_, nebbie::obj_apply_type_choices());
@@ -265,6 +279,10 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(affect_list_, &QListWidget::currentRowChanged, this, [this](int) { onAffectSelected(); });
     connect(affect_add, &QPushButton::clicked, this, &ObjEditorWidget::addAffect);
     connect(affect_remove, &QPushButton::clicked, this, &ObjEditorWidget::removeAffect);
+    connect(spellpower_, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &ObjEditorWidget::onSpellpowerShortcutChanged);
+    connect(hit_nsp_, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &ObjEditorWidget::onHitNspShortcutChanged);
 
     connect(type_flag_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int) { updateObjectValueFields(); });
@@ -388,16 +406,7 @@ void ObjEditorWidget::loadFromObject(const nebbie::GameObject& obj) {
     cost_->setValue(obj.cost);
     cost_per_day_->setValue(obj.cost_per_day);
 
-    affect_list_->clear();
-    for (const auto& affect : obj.affects) {
-        const QString label = QString("%1 %+2")
-                                  .arg(QString::fromStdString(nebbie::obj_apply_type_name(affect.location)))
-                                  .arg(affect.modifier);
-        auto* item = new QListWidgetItem(label);
-        item->setData(Qt::UserRole, affect.location);
-        item->setData(Qt::UserRole + 1, affect.modifier);
-        affect_list_->addItem(item);
-    }
+    replaceAffectList(obj.affects);
 
     extra_desc_list_->clear();
     for (const auto& extra : obj.extra_descs) {
@@ -536,6 +545,7 @@ void ObjEditorWidget::addAffect() {
     item->setData(Qt::UserRole + 1, affect.modifier);
     affect_list_->addItem(item);
     affect_list_->setCurrentItem(item);
+    syncSpellpowerShortcutsFromList();
 }
 
 void ObjEditorWidget::removeAffect() {
@@ -545,6 +555,57 @@ void ObjEditorWidget::removeAffect() {
     }
     delete affect_list_->takeItem(row);
     refreshAffectForm();
+    syncSpellpowerShortcutsFromList();
+}
+
+void ObjEditorWidget::onSpellpowerShortcutChanged() {
+    applyAffectLocationShortcut(nebbie::APPLY_SPELLPOWER, spellpower_->value());
+}
+
+void ObjEditorWidget::onHitNspShortcutChanged() {
+    applyAffectLocationShortcut(nebbie::APPLY_HITNSP, hit_nsp_->value());
+}
+
+std::vector<nebbie::ObjAffect> ObjEditorWidget::affectsFromList() const {
+    std::vector<nebbie::ObjAffect> affects;
+    affects.reserve(static_cast<std::size_t>(affect_list_->count()));
+    for (int i = 0; i < affect_list_->count(); ++i) {
+        const auto* item = affect_list_->item(i);
+        nebbie::ObjAffect affect;
+        affect.location = item->data(Qt::UserRole).toInt();
+        affect.modifier = item->data(Qt::UserRole + 1).toInt();
+        affects.push_back(affect);
+    }
+    return affects;
+}
+
+void ObjEditorWidget::replaceAffectList(const std::vector<nebbie::ObjAffect>& affects) {
+    const QSignalBlocker blocker(affect_list_);
+    affect_list_->clear();
+    for (const auto& affect : affects) {
+        const QString label = QString("%1 %+2")
+                                  .arg(QString::fromStdString(nebbie::obj_apply_type_name(affect.location)))
+                                  .arg(affect.modifier);
+        auto* item = new QListWidgetItem(label);
+        item->setData(Qt::UserRole, affect.location);
+        item->setData(Qt::UserRole + 1, affect.modifier);
+        affect_list_->addItem(item);
+    }
+    syncSpellpowerShortcutsFromList();
+}
+
+void ObjEditorWidget::syncSpellpowerShortcutsFromList() {
+    const auto affects = affectsFromList();
+    const QSignalBlocker b_sp(spellpower_);
+    const QSignalBlocker b_hn(hit_nsp_);
+    spellpower_->setValue(nebbie::sum_obj_affect_modifier(affects, nebbie::APPLY_SPELLPOWER));
+    hit_nsp_->setValue(nebbie::sum_obj_affect_modifier(affects, nebbie::APPLY_HITNSP));
+}
+
+void ObjEditorWidget::applyAffectLocationShortcut(const int location, const int modifier) {
+    auto affects = affectsFromList();
+    nebbie::set_obj_affect_modifier(affects, location, modifier);
+    replaceAffectList(affects);
 }
 
 void ObjEditorWidget::refreshAffectForm() {

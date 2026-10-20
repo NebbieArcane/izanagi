@@ -6,6 +6,7 @@
 #include "nebbie/world.hpp"
 
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -27,6 +28,9 @@ bool has_issue(const nebbie::ValidationReport& report,
 
 int main() {
     try {
+        // Reset catalog to embedded-only for deterministic tests.
+        nebbie::configure_special_proc_catalog({});
+
         if (!nebbie::is_known_special_proc('m', "puff")) {
             throw std::runtime_error("expected puff in mob/object catalog");
         }
@@ -35,6 +39,47 @@ int main() {
         }
         if (nebbie::is_known_special_proc('m', "NotARealProcEver")) {
             throw std::runtime_error("unexpected catalog match for fake proc");
+        }
+
+        const std::string sample = "{\n\t{ \"Incastonatore\",(genericspecial_func) Incastonatore },\n"
+                                   "\t{ \"Fountain\", Fountain },\n};\n";
+        const auto parsed = nebbie::parse_special_proc_names_from_cpp(sample);
+        if (parsed.size() != 2) {
+            throw std::runtime_error("parse_special_proc_names_from_cpp size mismatch");
+        }
+
+        const auto tmp = std::filesystem::temp_directory_path() / "nebbie-special-proc-catalog-test";
+        std::filesystem::create_directories(tmp);
+        const auto allow = tmp / "extra_special_procs.txt";
+        {
+            std::ofstream out(allow);
+            out << "# test\nLocalOnlyProc\n";
+        }
+
+        nebbie::SpecialProcCatalogConfig config;
+        config.extra_allowlist_path = allow;
+        // Point at real Server if present so dynamic path is exercised.
+        const auto server = nebbie::default_nebbie_server_root();
+        std::error_code ec;
+        if (!server.empty()
+            && std::filesystem::is_regular_file(server / "src" / "specialproc_other.cpp", ec)) {
+            config.server_root = server;
+        }
+        nebbie::configure_special_proc_catalog(config);
+
+        if (!nebbie::is_known_special_proc('m', "LocalOnlyProc")) {
+            throw std::runtime_error("allowlist name should be known after configure");
+        }
+        if (!config.server_root.empty() && !nebbie::is_known_special_proc('m', "Incastonatore")) {
+            throw std::runtime_error("Incastonatore should come from Server catalog");
+        }
+
+        nebbie::set_extra_special_proc_names({"AnotherExtra"});
+        if (!nebbie::is_known_special_proc('r', "AnotherExtra")) {
+            throw std::runtime_error("set_extra_special_proc_names should update effective catalog");
+        }
+        if (!nebbie::save_extra_special_procs(allow)) {
+            throw std::runtime_error("save_extra_special_procs failed");
         }
 
         nebbie::World add_world;
@@ -71,6 +116,8 @@ int main() {
             || loaded.special_procs.front().procedure != "Incastonatore") {
             throw std::runtime_error("myst.spe roundtrip failed for appended special proc");
         }
+
+        nebbie::configure_special_proc_catalog({});
 
         nebbie::World world;
         nebbie::Mobile mob;
@@ -124,6 +171,14 @@ int main() {
                        nebbie::ValidationSeverity::warning,
                        "unknown procedure name")) {
             throw std::runtime_error("expected warning for unknown procedure name");
+        }
+
+        nebbie::set_extra_special_proc_names({"TotallyFakeProc"});
+        const nebbie::ValidationReport allowlisted = nebbie::validate_world(world);
+        if (has_issue(allowlisted,
+                      nebbie::ValidationSeverity::warning,
+                      "unknown procedure name")) {
+            throw std::runtime_error("allowlist should silence unknown procedure warning");
         }
 
         std::cout << "OK\n";

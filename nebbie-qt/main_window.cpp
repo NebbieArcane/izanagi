@@ -12,12 +12,13 @@
 #include "mud_color_list_delegate.hpp"
 #include "mud_color_widgets.hpp"
 #include "obj_editor_widget.hpp"
+#include "path_util.hpp"
 #include "room_editor_widget.hpp"
+#include "special_proc_catalog_dialog.hpp"
 #include "zone_editor_widget.hpp"
 #include "world_data_editor_widget.hpp"
 #include "world_zone_map_widget.hpp"
 #include "zone_map_widget.hpp"
-#include "path_util.hpp"
 #include "validation_report_ui.hpp"
 #include "nebbie/edit.hpp"
 #include "nebbie/aree_workspace.hpp"
@@ -25,6 +26,7 @@
 #include "nebbie/overlay_io.hpp"
 #include "nebbie/io.hpp"
 #include "nebbie/monolith_audit.hpp"
+#include "nebbie/special_proc_catalog.hpp"
 #include "nebbie/validate.hpp"
 #include "nebbie/world_index.hpp"
 #include "nebbie/zone_graph.hpp"
@@ -225,6 +227,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     update_checker_ = new nebbie::qt::ReleaseUpdateChecker(nebbie::qt::ReleaseProduct::Izanagi, this);
     connect(update_checker_, &nebbie::qt::ReleaseUpdateChecker::checkFinished, this,
             &MainWindow::onUpdateCheckFinished);
+    applySpecialProcCatalogFromConfig();
     setupUi();
     setupAreeDock();
     setupMenus();
@@ -728,6 +731,13 @@ void MainWindow::setupMenus() {
     auto* fix_ascii_room_action = tools_menu->addAction(appTr("menu.fix_mud_ascii_room"));
     fix_ascii_room_action->setToolTip(appTr("menu.fix_mud_ascii_room_tip"));
     connect(fix_ascii_room_action, &QAction::triggered, this, &MainWindow::normalizeRoomMudAscii);
+    tools_menu->addSeparator();
+    auto* find_dup_vnums_action = tools_menu->addAction(appTr("menu.find_duplicate_vnums"));
+    find_dup_vnums_action->setToolTip(appTr("menu.find_duplicate_vnums_tip"));
+    connect(find_dup_vnums_action, &QAction::triggered, this, &MainWindow::findDuplicateEntityVnums);
+    auto* special_catalog_action = tools_menu->addAction(appTr("menu.special_proc_catalog"));
+    special_catalog_action->setToolTip(appTr("menu.special_proc_catalog_tip"));
+    connect(special_catalog_action, &QAction::triggered, this, &MainWindow::editSpecialProcCatalog);
 
     auto* prefs_menu = menuBar()->addMenu(appTr("menu.prefs"));
     auto* line_limit_action = prefs_menu->addAction(appTr("menu.line_limit"));
@@ -914,6 +924,52 @@ nebbie::ValidationOptions MainWindow::validationOptions() const {
     return options;
 }
 
+void MainWindow::applySpecialProcCatalogFromConfig() {
+    nebbie::SpecialProcCatalogConfig config;
+    if (!app_config_.server_root.trimmed().isEmpty()) {
+        config.server_root = nebbie::qt::path_from_qstring(app_config_.server_root.trimmed());
+    } else {
+        config.server_root = nebbie::default_nebbie_server_root();
+    }
+    config.extra_allowlist_path =
+        nebbie::qt::path_from_qstring(nebbie::qt::default_extra_special_procs_path());
+    nebbie::configure_special_proc_catalog(std::move(config));
+}
+
+void MainWindow::editSpecialProcCatalog() {
+    nebbie::qt::SpecialProcCatalogDialog dialog(this);
+    if (dialog.exec() != QDialog::Accepted || !dialog.saved()) {
+        return;
+    }
+
+    app_config_.server_root = dialog.serverRoot();
+    nebbie::qt::write_config(app_config_);
+
+    const auto allowlist_path =
+        nebbie::qt::path_from_qstring(nebbie::qt::default_extra_special_procs_path());
+    std::vector<std::string> extras;
+    for (const QString& name : dialog.extraNames()) {
+        extras.push_back(name.toStdString());
+    }
+    nebbie::set_extra_special_proc_names(std::move(extras));
+    if (!nebbie::save_extra_special_procs(allowlist_path)) {
+        QMessageBox::warning(this, appTr("menu.special_proc_catalog"),
+                             QStringLiteral("Impossibile salvare l'allowlist in %1")
+                                 .arg(nebbie::qt::default_extra_special_procs_path()));
+    }
+
+    applySpecialProcCatalogFromConfig();
+    if (specials_editor_) {
+        specials_editor_->reloadSpecialProcNameChoices();
+    }
+
+    const auto status = nebbie::special_proc_catalog_status();
+    setStatus(QStringLiteral("Catalogo special proc aggiornato (%1 mob/obj, %2 room, allowlist %3)")
+                  .arg(status.effective_mob_object_count)
+                  .arg(status.effective_room_count)
+                  .arg(status.extra_count));
+}
+
 void MainWindow::applyTextEditorSettings() {
     room_editor_->setMaxLineLength(app_config_.max_line_length);
     room_editor_->setShowColorCodes(app_config_.show_color_codes);
@@ -988,6 +1044,98 @@ void MainWindow::normalizeRoomMudAscii() {
     } else {
         setStatus(appTr("status.mud_ascii_unchanged"));
     }
+}
+
+void MainWindow::findDuplicateEntityVnums() {
+    if (!aree_workspace_) {
+        QMessageBox::information(this, appTr("tools.dup_vnums.title"),
+                                 appTr("tools.dup_vnums.need_workspace"));
+        return;
+    }
+
+    const nebbie::AreeDuplicateVnumReport report =
+        nebbie::find_aree_workspace_duplicate_entity_vnums(*aree_workspace_);
+    const int area_count = static_cast<int>(aree_areas_.size());
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(appTr("tools.dup_vnums.title"));
+    auto* layout = new QVBoxLayout(&dialog);
+    auto* summary = new QLabel(&dialog);
+    summary->setWordWrap(true);
+    if (report.empty()) {
+        summary->setText(appTr("tools.dup_vnums.summary_ok", QString::number(area_count)));
+    } else {
+        summary->setText(appTr("tools.dup_vnums.summary_found",
+                               QString::number(report.mobiles.size()),
+                               QString::number(report.objects.size()), QString::number(area_count)));
+    }
+    layout->addWidget(summary);
+
+    auto* list = new QListWidget(&dialog);
+    list->setMinimumHeight(360);
+    list->setAlternatingRowColors(true);
+
+    constexpr int kRoleKind = Qt::UserRole;
+    constexpr int kRoleVnum = Qt::UserRole + 1;
+    constexpr int kRoleArea = Qt::UserRole + 2;
+    constexpr int kKindMob = 1;
+    constexpr int kKindObj = 2;
+
+    const auto append_hits = [&](const std::vector<nebbie::AreeDuplicateVnumGroup>& groups, int kind,
+                                 const char* label_key) {
+        for (const auto& group : groups) {
+            for (const std::string& area_folder : group.area_folders) {
+                auto* item = new QListWidgetItem(
+                    appTr(label_key, QString::number(group.vnum), QString::fromStdString(area_folder)),
+                    list);
+                item->setData(kRoleKind, kind);
+                item->setData(kRoleVnum, static_cast<qlonglong>(group.vnum));
+                item->setData(kRoleArea, QString::fromStdString(area_folder));
+            }
+        }
+    };
+    append_hits(report.mobiles, kKindMob, "tools.dup_vnums.mob_hit");
+    append_hits(report.objects, kKindObj, "tools.dup_vnums.obj_hit");
+
+    layout->addWidget(list, 1);
+
+    connect(list, &QListWidget::itemDoubleClicked, &dialog, [this, &dialog](QListWidgetItem* item) {
+        if (!item || !aree_workspace_) {
+            return;
+        }
+        const int kind = item->data(Qt::UserRole).toInt();
+        const long vnum = static_cast<long>(item->data(Qt::UserRole + 1).toLongLong());
+        const std::string area_folder = item->data(Qt::UserRole + 2).toString().toStdString();
+
+        const nebbie::AreeAreaInfo* area = nullptr;
+        for (const nebbie::AreeAreaInfo& candidate : aree_areas_) {
+            if (candidate.folder_name == area_folder) {
+                area = &candidate;
+                break;
+            }
+        }
+        if (!area) {
+            QMessageBox::warning(&dialog, appTr("tools.dup_vnums.title"),
+                                 appTr("tools.dup_vnums.area_missing", QString::fromStdString(area_folder)));
+            return;
+        }
+
+        dialog.accept();
+        loadAreeArea(*area);
+        if (kind == 1) {
+            selectMobByVnum(vnum);
+        } else if (kind == 2) {
+            selectObjectByVnum(vnum);
+        }
+    });
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    layout->addWidget(buttons);
+
+    dialog.resize(720, 520);
+    dialog.exec();
 }
 
 nebbie::qt::MudColorTextEdit* MainWindow::activeMudTextField() const {

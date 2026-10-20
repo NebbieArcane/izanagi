@@ -42,6 +42,8 @@ public:
     /** Optional: show the active file names (from LibContext paths) in the banner. */
     void setLibContext(const nebbie::LibContext* context);
     void refresh();
+    /** Reload special-proc name combo after catalog/allowlist changes. */
+    void reloadSpecialProcNameChoices();
 
     void selectShop(long vnum);
 

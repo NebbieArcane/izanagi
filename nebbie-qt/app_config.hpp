@@ -20,9 +20,14 @@ struct AppConfig {
     QString aree_last_area;
     /** When true, archive the open Aree folder once before the first Save of that session. */
     bool aree_archive_on_first_save = true;
+    /** Root of NebbieArcane/Server for dynamic special-proc catalog (empty = default guess). */
+    QString server_root;
 };
 
 QString default_config_path();
+/** Directory that holds nebbieedit.conf and extra_special_procs.txt. */
+QString config_directory_path();
+QString default_extra_special_procs_path();
 AppConfig read_config();
 bool write_config(const AppConfig& config);
 

@@ -6,6 +6,8 @@
 
 #include <QWidget>
 
+#include <vector>
+
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -40,6 +42,8 @@ private slots:
     void onAffectSelected();
     void addAffect();
     void removeAffect();
+    void onSpellpowerShortcutChanged();
+    void onHitNspShortcutChanged();
 
 private:
     void refreshExtraDescForm();
@@ -53,6 +57,10 @@ private:
     void syncValueComboFromSpin(int slot_index);
     void syncValueSpinFromCombo(int slot_index);
     void fillValueEnumCombo(int slot_index, nebbie::ObjValueEditorKind kind);
+    std::vector<nebbie::ObjAffect> affectsFromList() const;
+    void replaceAffectList(const std::vector<nebbie::ObjAffect>& affects);
+    void syncSpellpowerShortcutsFromList();
+    void applyAffectLocationShortcut(int location, int modifier);
 
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
@@ -98,6 +106,8 @@ private:
     QListWidget* affect_list_ = nullptr;
     QComboBox* affect_location_ = nullptr;
     QSpinBox* affect_modifier_ = nullptr;
+    QSpinBox* spellpower_ = nullptr;
+    QSpinBox* hit_nsp_ = nullptr;
 
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;
