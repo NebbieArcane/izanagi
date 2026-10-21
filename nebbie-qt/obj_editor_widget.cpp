@@ -529,6 +529,7 @@ void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) {
     obj.value[2] = value2_->value();
     obj.value[3] = value3_->value();
 
+    // Flag tickbox → OR di bit (long). In file: potenze di due separate da | .
     obj.wear_flags = wear_flags_->value();
     obj.extra_flags = extra_flags_->value();
     obj.has_extra_flags2 = has_extra_flags2_->isChecked();
@@ -539,6 +540,7 @@ void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) {
     obj.cost_per_day = cost_per_day_->value();
 
     obj.affects = affectsFromList();
+    nebbie::normalize_obj_affects_for_mud_save(obj.affects);
 
     obj.extra_descs.clear();
     for (int i = 0; i < extra_desc_list_->count(); ++i) {
@@ -741,6 +743,13 @@ void ObjEditorWidget::addAffect() {
     const int location = comboIntValue(affect_location_);
     const int modifier = readAffectModifierFromEditor();
     if (location == 0 && modifier == 0) {
+        return;
+    }
+    if (affect_list_->count() >= nebbie::MAX_OBJ_AFFECT) {
+        affect_modifier_hint_->setText(
+            QStringLiteral("Il mud carica al massimo %1 affect (A) per oggetto. "
+                           "Rimuovi una riga oppure unisci i bit nello stesso tipo.")
+                .arg(nebbie::MAX_OBJ_AFFECT));
         return;
     }
     auto* item = new QListWidgetItem;

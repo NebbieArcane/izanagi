@@ -16,7 +16,7 @@ long parsed_mask_value(const std::string& token) {
 
 } // namespace
 
-std::string format_nebbie_bit_mask(long value) {
+std::string format_nebbie_bit_mask(const long value) {
     if (value == 0) {
         return "0";
     }
@@ -42,14 +42,12 @@ std::string format_nebbie_bit_mask(long value) {
     return oss.str();
 }
 
-std::string format_nebbie_bit_mask_for_file(long value, const std::optional<std::string>& prior_token) {
-    if (prior_token && !prior_token->empty()) {
-        if (parsed_mask_value(*prior_token) == value) {
-            return *prior_token;
-        }
-        if (prior_token->find('|') == std::string::npos && value >= 0) {
-            return std::to_string(value);
-        }
+std::string format_nebbie_bit_mask_for_file(const long value,
+                                           const std::optional<std::string>& prior_token) {
+    // Unchanged token: keep exact file spelling (order/spacing of existing 1|2|4).
+    // On any rewrite: always pipe-separated powers of two — never a summed decimal.
+    if (prior_token && !prior_token->empty() && parsed_mask_value(*prior_token) == value) {
+        return *prior_token;
     }
     return format_nebbie_bit_mask(value);
 }

@@ -87,7 +87,8 @@ int main() {
         const std::string touched = read_file(work / "myst.mob");
         expect(touched.find("2|64|1048576|2097152") != std::string::npos,
                "dirty mob rewrite should use pipe-separated flags");
-        expect(touched.find("3145794") == std::string::npos, "dirty mob rewrite must not use summed act mask");
+        expect(touched.find("3145794") == std::string::npos,
+               "dirty mob rewrite must not collapse act mask to a summed decimal");
 
         expect(nebbie::create_mob(world, 3016), "create mob #3016 failed");
         context.dirty_mobile_vnums.insert(3016);

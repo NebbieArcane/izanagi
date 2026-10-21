@@ -24,6 +24,9 @@ constexpr int APPLY_ALIGN_SLAYER = 49;
 constexpr int APPLY_SPELLPOWER = 65;
 constexpr int APPLY_HITNSP = 66;
 
+/** Server structs.hpp MAX_OBJ_AFFECT — only this many A sections are loaded. */
+constexpr int MAX_OBJ_AFFECT = 5;
+
 /** How the affect modifier should be edited in the GUI. */
 enum class ObjAffectModifierKind {
     integer,
@@ -67,5 +70,12 @@ int sum_obj_affect_modifier(const std::vector<ObjAffect>& affects, int location)
  * location; otherwise keep/update the first row and drop duplicates.
  */
 void set_obj_affect_modifier(std::vector<ObjAffect>& affects, int location, int modifier);
+
+/**
+ * Prepare affects for .obj write like the mud: bitmask APPLY_* rows with the
+ * same location are OR-merged into one modifier (never written as 1|2|4), then
+ * the list is capped at {@link MAX_OBJ_AFFECT}.
+ */
+void normalize_obj_affects_for_mud_save(std::vector<ObjAffect>& affects);
 
 } // namespace nebbie

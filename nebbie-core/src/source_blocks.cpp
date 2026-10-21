@@ -5,6 +5,7 @@
 #include "nebbie/legacy_format.hpp"
 #include "nebbie/mob_trailing_sound.hpp"
 #include "nebbie/nebbie_string_field.hpp"
+#include "nebbie/obj_catalog.hpp"
 #include "nebbie/types.hpp"
 #include "nebbie/wld_room_lines.hpp"
 #include "nebbie/world.hpp"
@@ -176,7 +177,9 @@ std::string format_object_block(const GameObject& obj) {
         append_string_field(out, extra.description, nebbie_paragraph_tilde_style(extra.description));
     }
 
-    for (const auto& affect : obj.affects) {
+    std::vector<ObjAffect> affects = obj.affects;
+    normalize_obj_affects_for_mud_save(affects);
+    for (const auto& affect : affects) {
         out << "A\n" << affect.location << ' ' << affect.modifier << '\n';
     }
 

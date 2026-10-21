@@ -3,11 +3,14 @@
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
+#include "nebbie/legacy_format.hpp"
 #include "nebbie/nebbie_string_field.hpp"
+#include "nebbie/obj_catalog.hpp"
 
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+#include <vector>
 
 namespace nebbie {
 
@@ -239,8 +242,8 @@ void write_object_body(FILE* fp, const GameObject& obj) {
     fwrite_nebbie_string_field(fp, obj.description, NebbieTildeStyle::Inline);
     fwrite_nebbie_string_field(fp, obj.action_description, NebbieTildeStyle::Inline);
 
-    std::fprintf(fp, "%d %ld %ld\n",
-                 obj.type_flag, obj.extra_flags, obj.wear_flags);
+    std::fprintf(fp, "%d %s %s\n", obj.type_flag, format_nebbie_bit_mask(obj.extra_flags).c_str(),
+                 format_nebbie_bit_mask(obj.wear_flags).c_str());
     std::fprintf(fp, "%d %d %d %d\n",
                  obj.value[0], obj.value[1], obj.value[2], obj.value[3]);
     std::fprintf(fp, "%d %d %d\n",
@@ -252,7 +255,10 @@ void write_object_body(FILE* fp, const GameObject& obj) {
         fwrite_nebbie_string_field(fp, extra.description, nebbie_paragraph_tilde_style(extra.description));
     }
 
-    for (const auto& affect : obj.affects) {
+    std::vector<ObjAffect> affects = obj.affects;
+    normalize_obj_affects_for_mud_save(affects);
+    for (const auto& affect : affects) {
+        // Plain decimal modifier (bitmasks already OR-merged); never 1|2|4 here.
         std::fprintf(fp, "A\n%d %d\n", affect.location, affect.modifier);
     }
 

@@ -342,4 +342,59 @@ void set_obj_affect_modifier(std::vector<ObjAffect>& affects, const int location
     affects = std::move(kept);
 }
 
+namespace {
+
+bool obj_affect_uses_bitmask_modifier(const int location) {
+    switch (obj_affect_modifier_kind(location)) {
+    case ObjAffectModifierKind::immunity_bits:
+    case ObjAffectModifierKind::spell_affect_bits:
+    case ObjAffectModifierKind::spell_affect2_bits:
+    case ObjAffectModifierKind::align_bits:
+        return true;
+    default:
+        return false;
+    }
+}
+
+} // namespace
+
+void normalize_obj_affects_for_mud_save(std::vector<ObjAffect>& affects) {
+    std::vector<ObjAffect> normalized;
+    normalized.reserve(affects.size());
+
+    for (const ObjAffect& affect : affects) {
+        if (affect.location == 0 && affect.modifier == 0) {
+            continue;
+        }
+        if (obj_affect_uses_bitmask_modifier(affect.location)) {
+            bool merged = false;
+            for (ObjAffect& existing : normalized) {
+                if (existing.location != affect.location) {
+                    continue;
+                }
+                existing.modifier |= affect.modifier;
+                merged = true;
+                break;
+            }
+            if (!merged) {
+                normalized.push_back(affect);
+            }
+            continue;
+        }
+        normalized.push_back(affect);
+    }
+
+    normalized.erase(std::remove_if(normalized.begin(), normalized.end(),
+                                    [](const ObjAffect& affect) {
+                                        return obj_affect_uses_bitmask_modifier(affect.location)
+                                               && affect.modifier == 0;
+                                    }),
+                     normalized.end());
+
+    if (static_cast<int>(normalized.size()) > MAX_OBJ_AFFECT) {
+        normalized.resize(static_cast<std::size_t>(MAX_OBJ_AFFECT));
+    }
+    affects = std::move(normalized);
+}
+
 } // namespace nebbie

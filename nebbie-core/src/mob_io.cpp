@@ -2,6 +2,7 @@
 #include "nebbie/overlay_io.hpp"
 
 #include "nebbie/fread.hpp"
+#include "nebbie/legacy_format.hpp"
 #include "nebbie/mob_trailing_sound.hpp"
 #include "nebbie/nebbie_string_field.hpp"
 
@@ -403,9 +404,10 @@ void write_new_mob_stats(FILE* fp, const Mobile& mob) {
     }
 
     if (mob.extended_sex) {
-        std::fprintf(fp, "%d %d %d %ld %ld %ld\n",
-                     mob.position, mob.default_pos, mob.sex + 3,
-                     mob.immune, mob.meta_immune, mob.susceptible);
+        std::fprintf(fp, "%d %d %d %s %s %s\n", mob.position, mob.default_pos, mob.sex + 3,
+                     format_nebbie_bit_mask(mob.immune).c_str(),
+                     format_nebbie_bit_mask(mob.meta_immune).c_str(),
+                     format_nebbie_bit_mask(mob.susceptible).c_str());
     } else {
         std::fprintf(fp, "%d %d %d\n", mob.position, mob.default_pos, mob.sex);
     }
@@ -426,12 +428,12 @@ void write_mobile_body(FILE* fp, const Mobile& mob) {
     fwrite_nebbie_string_field(fp, mob.description, nebbie_paragraph_tilde_style(mob.description));
 
     if (mob.mobtype == 'A' || mob.mobtype == 'B' || mob.mobtype == 'L') {
-        std::fprintf(fp, "%ld %ld %ld %c %d\n",
-                     mob.act, mob.affected_by, mob.alignment,
-                     mob.mobtype, mob.mult_att);
+        std::fprintf(fp, "%s %s %ld %c %d\n", format_nebbie_bit_mask(mob.act).c_str(),
+                     format_nebbie_bit_mask(mob.affected_by).c_str(), mob.alignment, mob.mobtype,
+                     mob.mult_att);
     } else {
-        std::fprintf(fp, "%ld %ld %ld %c\n",
-                     mob.act, mob.affected_by, mob.alignment, mob.mobtype);
+        std::fprintf(fp, "%s %s %ld %c\n", format_nebbie_bit_mask(mob.act).c_str(),
+                     format_nebbie_bit_mask(mob.affected_by).c_str(), mob.alignment, mob.mobtype);
     }
 
     write_new_mob_stats(fp, mob);
