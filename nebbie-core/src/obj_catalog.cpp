@@ -210,10 +210,29 @@ std::vector<std::pair<int, std::string>> obj_apply_type_choices() {
 }
 
 std::vector<std::pair<int, std::string>> obj_apply_type_choices_ui() {
+    // Tipi davvero usati nei .obj delle Aree (piu' SPELLPOWER / HIT-N-SP).
+    // Esclusi: NONE, SEX, LEVEL, GOLD, EXP, SLOW, AFF2, FIND-TRAPS, MOD_*, T_*.
+    static constexpr int kEditorApply[] = {
+        1,  2,  3,  4,  5,  6,           // attributi
+        12, 13, 14,                      // mana / hit / move
+        17, 18, 19, 40,                  // AC / hitroll / damroll / hit-n-dam
+        20, 21, 22, 23, 24, 25,          // salvezze
+        26, 27, 28, 29,                  // immune / susc / m-imm / spell AFF
+        30, 31,                          // weapon spell / eat spell
+        32, 33, 34, 35, 36, 37, 38, 39, 47,  // skill %
+        41, 42, 43,                      // spellfail / attacks / haste
+        48, 49,                          // race / align slayer
+        50, 51, 52,                      // regen
+        9,  10, 11,                      // age / peso / altezza (rari ma in area)
+        65, 66,                          // spellpower / hit-n-sp
+    };
     std::vector<std::pair<int, std::string>> choices;
-    const std::size_t count = sizeof(kApplyTypesUi) / sizeof(kApplyTypesUi[0]);
-    for (std::size_t i = 0; i < count; ++i) {
-        choices.emplace_back(static_cast<int>(i), kApplyTypesUi[i]);
+    choices.reserve(sizeof(kEditorApply) / sizeof(kEditorApply[0]));
+    const std::size_t ui_count = sizeof(kApplyTypesUi) / sizeof(kApplyTypesUi[0]);
+    for (const int location : kEditorApply) {
+        if (location >= 0 && static_cast<std::size_t>(location) < ui_count) {
+            choices.emplace_back(location, kApplyTypesUi[location]);
+        }
     }
     return choices;
 }

@@ -60,6 +60,7 @@ private:
     void syncValueSpinFromCombo(int slot_index);
     void fillValueEnumCombo(int slot_index, nebbie::ObjValueEditorKind kind);
     void updateAffectModifierEditor();
+    void ensureAffectLocationInCombo(int location);
     int readAffectModifierFromEditor() const;
     void writeAffectModifierToEditor(int modifier);
     QString affectListLabel(int location, int modifier) const;

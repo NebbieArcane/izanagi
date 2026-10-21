@@ -83,12 +83,34 @@ QWidget* wrapFlagGroup(FlagGroupWidget* flags, QWidget* parent) {
     layout->setContentsMargins(0, 0, 0, 0);
     auto* scroll = new QScrollArea(wrap);
     scroll->setWidgetResizable(true);
-    scroll->setMinimumHeight(140);
-    scroll->setMaximumHeight(220);
+    scroll->setFixedHeight(160);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scroll->setFrameShape(QFrame::StyledPanel);
     scroll->setWidget(flags);
     layout->addWidget(scroll);
+    wrap->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     return wrap;
+}
+
+void shrinkStackedWidgetToCurrent(QStackedWidget* stack) {
+    if (!stack) {
+        return;
+    }
+    for (int i = 0; i < stack->count(); ++i) {
+        QWidget* page = stack->widget(i);
+        if (!page) {
+            continue;
+        }
+        const bool current = i == stack->currentIndex();
+        page->setSizePolicy(current ? QSizePolicy::Preferred : QSizePolicy::Ignored,
+                            current ? QSizePolicy::Preferred : QSizePolicy::Ignored);
+        if (!current) {
+            page->setMaximumHeight(0);
+        } else {
+            page->setMaximumHeight(QWIDGETSIZE_MAX);
+        }
+    }
+    stack->adjustSize();
 }
 
 } // namespace
@@ -249,9 +271,10 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* affect_tab = new QWidget;
     auto* affect_layout = new QVBoxLayout(affect_tab);
     affect_layout->addWidget(makeLegend(
-        "Affect della sezione A: scegli il tipo dal menu, poi il valore con controlli "
-        "leggibili (menu, bit, o numero). Spellpower e Hit & Spellpower sono voci "
-        "normali della lista (niente scorciatoie duplicate).",
+        "Affect (sezione A): lista a sinistra, editor a destra. "
+        "Aggiungi = nuova riga dai campi sotto; Aggiorna = modifica la riga selezionata "
+        "(senza Aggiorna le modifiche ai campi non toccano le altre righe). "
+        "Tipi limitati a quelli usati nelle Aree (max 5 per oggetto).",
         affect_tab));
 
     auto* affect_split = new QSplitter(Qt::Horizontal, affect_tab);
@@ -273,6 +296,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     affect_form->addRow("", affect_modifier_hint_);
 
     affect_modifier_stack_ = new QStackedWidget;
+    affect_modifier_stack_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     affect_modifier_ = new QSpinBox;
     affect_modifier_->setRange(-2000000000, 2000000000);
     affect_stack_integer_ = affect_modifier_stack_->addWidget(affect_modifier_);
@@ -514,9 +538,8 @@ void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) {
             updateExtraDesc();
         }
     }
-    if (affect_list_->currentItem() != nullptr) {
-        updateAffect();
-    }
+    // Non chiamare updateAffect() qui: i campi a destra possono essere una bozza
+    // per "Aggiungi"; riscrivere la riga selezionata corromperebbe gli affect.
 
     obj.name = name_->storageText().toStdString();
     obj.short_descr = short_descr_->storageText().toStdString();
@@ -539,8 +562,8 @@ void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) {
     obj.cost = cost_->value();
     obj.cost_per_day = cost_per_day_->value();
 
+    // Lista UI cosi' com'e': merge/cap a 5 solo in scrittura file (.obj).
     obj.affects = affectsFromList();
-    nebbie::normalize_obj_affects_for_mud_save(obj.affects);
 
     obj.extra_descs.clear();
     for (int i = 0; i < extra_desc_list_->count(); ++i) {
@@ -624,6 +647,14 @@ void ObjEditorWidget::writeAffectListItem(QListWidgetItem* item, const int locat
                          .arg(modifier));
 }
 
+void ObjEditorWidget::ensureAffectLocationInCombo(const int location) {
+    if (affect_location_->findData(location) >= 0) {
+        return;
+    }
+    affect_location_->addItem(
+        QString::fromStdString(nebbie::obj_apply_type_label(location) + " (raro)"), location);
+}
+
 void ObjEditorWidget::updateAffectModifierEditor() {
     const int location = comboIntValue(affect_location_);
     const nebbie::ObjAffectModifierKind kind = nebbie::obj_affect_modifier_kind(location);
@@ -664,6 +695,7 @@ void ObjEditorWidget::updateAffectModifierEditor() {
         hint = QStringLiteral("Modificatore numerico (positivo o negativo).");
         break;
     }
+    shrinkStackedWidgetToCurrent(affect_modifier_stack_);
     affect_modifier_hint_->setText(hint);
 }
 
@@ -733,6 +765,8 @@ void ObjEditorWidget::writeAffectModifierToEditor(const int modifier) {
 
 void ObjEditorWidget::onAffectLocationChanged() {
     updateAffectModifierEditor();
+    // Cambio tipo manuale: azzera il valore (evita bit/numero della riga precedente).
+    writeAffectModifierToEditor(0);
 }
 
 void ObjEditorWidget::onAffectSelected() {
@@ -754,8 +788,13 @@ void ObjEditorWidget::addAffect() {
     }
     auto* item = new QListWidgetItem;
     writeAffectListItem(item, location, modifier);
-    affect_list_->addItem(item);
-    affect_list_->setCurrentItem(item);
+    {
+        // Blocca refresh mentre aggiungiamo: la selezione non deve riscrivere altre righe.
+        const QSignalBlocker blocker(affect_list_);
+        affect_list_->addItem(item);
+        affect_list_->setCurrentItem(item);
+    }
+    refreshAffectForm();
 }
 
 void ObjEditorWidget::updateAffect() {
@@ -798,9 +837,8 @@ void ObjEditorWidget::replaceAffectList(const std::vector<nebbie::ObjAffect>& af
     }
     if (affect_list_->count() > 0) {
         affect_list_->setCurrentRow(0);
-    } else {
-        refreshAffectForm();
     }
+    refreshAffectForm();
 }
 
 void ObjEditorWidget::refreshAffectForm() {
@@ -808,8 +846,10 @@ void ObjEditorWidget::refreshAffectForm() {
     if (!item) {
         return;
     }
+    const int location = item->data(Qt::UserRole).toInt();
     const QSignalBlocker location_block(affect_location_);
-    setComboIntValue(affect_location_, item->data(Qt::UserRole).toInt());
+    ensureAffectLocationInCombo(location);
+    setComboIntValue(affect_location_, location);
     updateAffectModifierEditor();
     writeAffectModifierToEditor(item->data(Qt::UserRole + 1).toInt());
 }

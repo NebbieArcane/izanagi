@@ -52,7 +52,11 @@ std::vector<MobFlagDef> obj_align_slayer_flags();
 
 /** Technical short names (stable for tests / logs). */
 std::vector<std::pair<int, std::string>> obj_apply_type_choices();
-/** Italian readable labels for the affect type dropdown. */
+/**
+ * Italian labels for the affect type dropdown: only APPLY_* used in Aree
+ * objects (plus SPELLPOWER / HIT-N-SP). Full table remains in
+ * {@link obj_apply_type_label} for rare rows already on file.
+ */
 std::vector<std::pair<int, std::string>> obj_apply_type_choices_ui();
 
 std::string obj_type_name(int type_flag);
