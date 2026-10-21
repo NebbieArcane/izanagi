@@ -19,6 +19,8 @@ QString appTr(const char* key);
 QString appTr(const char* key, const QString& arg1);
 QString appTr(const char* key, const QString& arg1, const QString& arg2);
 QString appTr(const char* key, const QString& arg1, const QString& arg2, const QString& arg3);
+QString appTr(const char* key, const QString& arg1, const QString& arg2, const QString& arg3,
+              const QString& arg4);
 
 QString izanagiDisplayName();
 QString cypherDisplayName();

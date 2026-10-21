@@ -13,7 +13,9 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QListWidgetItem;
 class QSpinBox;
+class QStackedWidget;
 class FlagGroupWidget;
 
 namespace nebbie::qt {
@@ -40,10 +42,10 @@ private slots:
     void updateExtraDesc();
     void removeExtraDesc();
     void onAffectSelected();
+    void onAffectLocationChanged();
     void addAffect();
+    void updateAffect();
     void removeAffect();
-    void onSpellpowerShortcutChanged();
-    void onHitNspShortcutChanged();
 
 private:
     void refreshExtraDescForm();
@@ -57,10 +59,13 @@ private:
     void syncValueComboFromSpin(int slot_index);
     void syncValueSpinFromCombo(int slot_index);
     void fillValueEnumCombo(int slot_index, nebbie::ObjValueEditorKind kind);
+    void updateAffectModifierEditor();
+    int readAffectModifierFromEditor() const;
+    void writeAffectModifierToEditor(int modifier);
+    QString affectListLabel(int location, int modifier) const;
     std::vector<nebbie::ObjAffect> affectsFromList() const;
     void replaceAffectList(const std::vector<nebbie::ObjAffect>& affects);
-    void syncSpellpowerShortcutsFromList();
-    void applyAffectLocationShortcut(int location, int modifier);
+    void writeAffectListItem(QListWidgetItem* item, int location, int modifier) const;
 
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
@@ -105,9 +110,24 @@ private:
 
     QListWidget* affect_list_ = nullptr;
     QComboBox* affect_location_ = nullptr;
+    QLabel* affect_modifier_hint_ = nullptr;
+    QStackedWidget* affect_modifier_stack_ = nullptr;
     QSpinBox* affect_modifier_ = nullptr;
-    QSpinBox* spellpower_ = nullptr;
-    QSpinBox* hit_nsp_ = nullptr;
+    FlagGroupWidget* affect_immune_flags_ = nullptr;
+    FlagGroupWidget* affect_spell_flags_ = nullptr;
+    FlagGroupWidget* affect_spell2_flags_ = nullptr;
+    FlagGroupWidget* affect_align_flags_ = nullptr;
+    QComboBox* affect_spell_combo_ = nullptr;
+    QComboBox* affect_race_combo_ = nullptr;
+    QComboBox* affect_sex_combo_ = nullptr;
+    int affect_stack_integer_ = 0;
+    int affect_stack_immune_ = 1;
+    int affect_stack_spell_ = 2;
+    int affect_stack_spell2_ = 3;
+    int affect_stack_spell_num_ = 4;
+    int affect_stack_race_ = 5;
+    int affect_stack_sex_ = 6;
+    int affect_stack_align_ = 7;
 
     QListWidget* extra_desc_list_ = nullptr;
     QLineEdit* extra_desc_keyword_ = nullptr;

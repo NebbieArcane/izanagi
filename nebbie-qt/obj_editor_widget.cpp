@@ -3,23 +3,27 @@
 #include "flag_group_widget.hpp"
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
+#include "nebbie/mob_catalog.hpp"
 #include "nebbie/obj_catalog.hpp"
 #include "nebbie/obj_value_catalog.hpp"
 #include "room_text_monitors.hpp"
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFrame>
 #include <QGroupBox>
-#include <QSignalBlocker>
-#include <QFormLayout>
 #include <QHBoxLayout>
+#include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QSizePolicy>
 #include <QSpinBox>
+#include <QSplitter>
+#include <QStackedWidget>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -50,6 +54,7 @@ QLabel* makeLegend(const QString& text, QWidget* parent) {
     auto* label = new QLabel(text, parent);
     label->setWordWrap(true);
     label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    label->setStyleSheet(QStringLiteral("color: palette(mid);"));
     return label;
 }
 
@@ -62,6 +67,28 @@ void fillCombo(QComboBox* combo, const std::vector<std::pair<int, std::string>>&
 
 int comboIntValue(QComboBox* combo) {
     return combo->currentData().toInt();
+}
+
+QScrollArea* wrapFlagsInScroll(QWidget* content) {
+    auto* scroll = new QScrollArea;
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setWidget(content);
+    return scroll;
+}
+
+QWidget* wrapFlagGroup(FlagGroupWidget* flags, QWidget* parent) {
+    auto* wrap = new QWidget(parent);
+    auto* layout = new QVBoxLayout(wrap);
+    layout->setContentsMargins(0, 0, 0, 0);
+    auto* scroll = new QScrollArea(wrap);
+    scroll->setWidgetResizable(true);
+    scroll->setMinimumHeight(140);
+    scroll->setMaximumHeight(220);
+    scroll->setFrameShape(QFrame::StyledPanel);
+    scroll->setWidget(flags);
+    layout->addWidget(scroll);
+    return wrap;
 }
 
 } // namespace
@@ -138,7 +165,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* type_layout = new QVBoxLayout(type_tab);
     value_legend_ = makeLegend(
         "I quattro valori (value[0..3]) dipendono dal tipo oggetto. Legenda allineata a "
-        "NebbieArcane/Server (create.obj / stat). Il prezzo negozio è nel tab «Testo e prezzi» (Valore = cost).",
+        "NebbieArcane/Server (create.obj / stat). Il prezzo negozio e' nel tab «Testo e prezzi» (Valore = cost).",
         type_tab);
     type_layout->addWidget(value_legend_);
     auto* type_form = new QFormLayout;
@@ -179,62 +206,128 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* flags_layout = new QVBoxLayout(flags_tab);
     wear_flags_ = new FlagGroupWidget(nebbie::obj_wear_flags(), flags_tab);
     extra_flags_ = new FlagGroupWidget(nebbie::obj_extra_flags(), flags_tab);
-    has_extra_flags2_ = new QCheckBox("Sezione F (extra_flags2)");
+    has_extra_flags2_ = new QCheckBox("Abilita flag extra 2 (sezione F)");
     extra_flags2_panel_ = new QWidget(flags_tab);
     auto* extra_flags2_layout = new QVBoxLayout(extra_flags2_panel_);
+    extra_flags2_layout->setContentsMargins(0, 0, 0, 0);
     extra_flags2_ = new FlagGroupWidget(nebbie::obj_extra_flags2(), extra_flags2_panel_);
     extra_flags2_layout->addWidget(extra_flags2_);
-    flags_layout->addWidget(new QLabel("Flag indossabilità (wear)"));
+
+    flags_layout->addWidget(new QLabel("Dove si puo' indossare (wear)"));
     flags_layout->addWidget(wear_flags_);
-    flags_layout->addWidget(new QLabel("Flag extra"));
+    flags_layout->addWidget(new QLabel("Flag extra (include ANTI-classe / allineamento)"));
+    flags_layout->addWidget(makeLegend(
+        "I flag ANTI-* e ONLY-* qui decidono chi puo' usare l'oggetto. "
+        "Non confonderli con i messaggi sotto: quelli sono solo testo mostrato "
+        "quando l'indosso e' bloccato.",
+        flags_tab));
     flags_layout->addWidget(extra_flags_);
     flags_layout->addWidget(has_extra_flags2_);
     flags_layout->addWidget(extra_flags2_panel_);
-    tabs->addTab(new QScrollArea, "Flag");
-    {
-        auto* scroll = qobject_cast<QScrollArea*>(tabs->widget(2));
-        scroll->setWidgetResizable(true);
-        scroll->setWidget(flags_tab);
-    }
+
+    auto* forbidden_box = new QGroupBox("Messaggi se indossare e' vietato (sezione P)");
+    auto* forbidden_layout = new QVBoxLayout(forbidden_box);
+    forbidden_layout->addWidget(makeLegend(
+        "Opzionale. Non e' un flag ANTI: sono stringhe custom mostrate al personaggio "
+        "e alla stanza quando qualcuno prova a indossare l'oggetto e non puo'. "
+        "Lascia vuoto se non servono.",
+        forbidden_box));
+    forbidden_char_ = new QLineEdit;
+    forbidden_room_ = new QLineEdit;
+    configureLineField(forbidden_char_);
+    configureLineField(forbidden_room_);
+    forbidden_char_->setPlaceholderText("Messaggio al personaggio~");
+    forbidden_room_->setPlaceholderText("Messaggio alla stanza~");
+    auto* forbidden_form = new QFormLayout;
+    forbidden_form->addRow("Al personaggio:", forbidden_char_);
+    forbidden_form->addRow("Alla stanza:", forbidden_room_);
+    forbidden_layout->addLayout(forbidden_form);
+    flags_layout->addWidget(forbidden_box);
+    flags_layout->addStretch();
+    tabs->addTab(wrapFlagsInScroll(flags_tab), "Flag");
 
     auto* affect_tab = new QWidget;
     auto* affect_layout = new QVBoxLayout(affect_tab);
     affect_layout->addWidget(makeLegend(
-        "Spellpower e Hit & Spellpower sono scorciatoie sugli affect A "
-        "(APPLY_SPELLPOWER / APPLY_HITNSP). 0 = assente dal file. "
-        "La lista sotto resta completa per tutti i tipi.",
+        "Affect della sezione A: scegli il tipo dal menu, poi il valore con controlli "
+        "leggibili (menu, bit, o numero). Spellpower e Hit & Spellpower sono voci "
+        "normali della lista (niente scorciatoie duplicate).",
         affect_tab));
-    spellpower_ = new QSpinBox;
-    spellpower_->setRange(-50, 50);
-    hit_nsp_ = new QSpinBox;
-    hit_nsp_->setRange(-50, 50);
-    auto* shortcut_form = new QFormLayout;
-    shortcut_form->addRow("Spellpower:", spellpower_);
-    shortcut_form->addRow("Hit & Spellpower (HIT-N-SP):", hit_nsp_);
-    affect_layout->addLayout(shortcut_form);
 
+    auto* affect_split = new QSplitter(Qt::Horizontal, affect_tab);
     affect_list_ = new QListWidget;
+    affect_list_->setMinimumWidth(220);
+    affect_list_->setAlternatingRowColors(true);
+    affect_split->addWidget(affect_list_);
+
+    auto* affect_editor = new QWidget;
+    auto* affect_editor_layout = new QVBoxLayout(affect_editor);
+    affect_editor_layout->setContentsMargins(8, 0, 0, 0);
+    auto* affect_form = new QFormLayout;
     affect_location_ = new QComboBox;
-    fillCombo(affect_location_, nebbie::obj_apply_type_choices());
+    affect_location_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    affect_location_->setMinimumContentsLength(28);
+    fillCombo(affect_location_, nebbie::obj_apply_type_choices_ui());
+    affect_form->addRow("Tipo di bonus:", affect_location_);
+    affect_modifier_hint_ = makeLegend("", affect_editor);
+    affect_form->addRow("", affect_modifier_hint_);
+
+    affect_modifier_stack_ = new QStackedWidget;
     affect_modifier_ = new QSpinBox;
     affect_modifier_->setRange(-2000000000, 2000000000);
-    auto* affect_form = new QFormLayout;
-    affect_form->addRow("Tipo applicazione:", affect_location_);
-    affect_form->addRow("Modificatore:", affect_modifier_);
+    affect_stack_integer_ = affect_modifier_stack_->addWidget(affect_modifier_);
+
+    affect_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags());
+    affect_stack_immune_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_immune_flags_, affect_editor));
+
+    affect_spell_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect_flags());
+    affect_stack_spell_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_spell_flags_, affect_editor));
+
+    affect_spell2_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect2_flags());
+    affect_stack_spell2_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_spell2_flags_, affect_editor));
+
+    affect_spell_combo_ = new QComboBox;
+    affect_spell_combo_->setEditable(true);
+    fillCombo(affect_spell_combo_, nebbie::obj_spell_number_choices());
+    affect_stack_spell_num_ = affect_modifier_stack_->addWidget(affect_spell_combo_);
+
+    affect_race_combo_ = new QComboBox;
+    fillCombo(affect_race_combo_, nebbie::mob_race_choices());
+    affect_stack_race_ = affect_modifier_stack_->addWidget(affect_race_combo_);
+
+    affect_sex_combo_ = new QComboBox;
+    fillCombo(affect_sex_combo_, nebbie::mob_sex_choices());
+    affect_stack_sex_ = affect_modifier_stack_->addWidget(affect_sex_combo_);
+
+    affect_align_flags_ = new FlagGroupWidget(nebbie::obj_align_slayer_flags());
+    affect_stack_align_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_align_flags_, affect_editor));
+
+    affect_form->addRow("Valore:", affect_modifier_stack_);
+    affect_editor_layout->addLayout(affect_form);
+
     auto* affect_buttons = new QHBoxLayout;
     auto* affect_add = new QPushButton("Aggiungi");
+    auto* affect_update = new QPushButton("Aggiorna");
     auto* affect_remove = new QPushButton("Rimuovi");
     affect_buttons->addWidget(affect_add);
+    affect_buttons->addWidget(affect_update);
     affect_buttons->addWidget(affect_remove);
     affect_buttons->addStretch();
-    affect_layout->addWidget(new QLabel("Affect extra (sezione A)"));
-    affect_layout->addWidget(affect_list_, 1);
-    affect_layout->addLayout(affect_form);
-    affect_layout->addLayout(affect_buttons);
-    tabs->addTab(affect_tab, "Affect extra");
+    affect_editor_layout->addLayout(affect_buttons);
+    affect_editor_layout->addStretch();
+    affect_split->addWidget(affect_editor);
+    affect_split->setStretchFactor(0, 2);
+    affect_split->setStretchFactor(1, 3);
+    affect_layout->addWidget(affect_split, 1);
+    tabs->addTab(affect_tab, "Affect");
 
     auto* extra_tab = new QWidget;
     auto* extra_layout = new QVBoxLayout(extra_tab);
+    extra_layout->addWidget(makeLegend(
+        "Descrizioni extra (sezione E): parole chiave per look sull'oggetto "
+        "(es. look gemma). Non c'entrano con i flag ANTI ne' con i messaggi di "
+        "indosso vietato (sono nel tab Flag).",
+        extra_tab));
     extra_desc_list_ = new QListWidget;
     extra_desc_keyword_ = new QLineEdit;
     configureLineField(extra_desc_keyword_);
@@ -255,19 +348,10 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_desc_buttons->addWidget(extra_desc_update);
     extra_desc_buttons->addWidget(extra_desc_remove);
     extra_desc_buttons->addStretch();
-    forbidden_char_ = new QLineEdit;
-    forbidden_room_ = new QLineEdit;
-    auto* forbidden_form = new QFormLayout;
-    configureLineField(forbidden_char_);
-    configureLineField(forbidden_room_);
-    forbidden_form->addRow("Vietato a classe/char (P):", forbidden_char_);
-    forbidden_form->addRow("Vietato in stanza (P):", forbidden_room_);
-    extra_layout->addWidget(new QLabel("Descrizioni extra (sezione E)"));
     extra_layout->addWidget(extra_desc_list_, 1);
     extra_layout->addLayout(extra_desc_form);
     extra_layout->addLayout(extra_desc_buttons);
-    extra_layout->addLayout(forbidden_form);
-    tabs->addTab(extra_tab, "Extra / Vietati");
+    tabs->addTab(extra_tab, "Descrizioni extra");
 
     root->addWidget(tabs);
 
@@ -277,12 +361,11 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(extra_desc_update, &QPushButton::clicked, this, &ObjEditorWidget::updateExtraDesc);
     connect(extra_desc_remove, &QPushButton::clicked, this, &ObjEditorWidget::removeExtraDesc);
     connect(affect_list_, &QListWidget::currentRowChanged, this, [this](int) { onAffectSelected(); });
+    connect(affect_location_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [this](int) { onAffectLocationChanged(); });
     connect(affect_add, &QPushButton::clicked, this, &ObjEditorWidget::addAffect);
+    connect(affect_update, &QPushButton::clicked, this, &ObjEditorWidget::updateAffect);
     connect(affect_remove, &QPushButton::clicked, this, &ObjEditorWidget::removeAffect);
-    connect(spellpower_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-            &ObjEditorWidget::onSpellpowerShortcutChanged);
-    connect(hit_nsp_, QOverload<int>::of(&QSpinBox::valueChanged), this,
-            &ObjEditorWidget::onHitNspShortcutChanged);
 
     connect(type_flag_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int) { updateObjectValueFields(); });
@@ -304,6 +387,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     extra_flags2_panel_->setVisible(false);
     updateObjectValueFields();
+    updateAffectModifierEditor();
 
     for (nebbie::qt::MudColorTextEdit* field : mudFields()) {
         if (field == nullptr) {
@@ -321,7 +405,6 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 }
 
 void ObjEditorWidget::updateTildeNewlineHints() {
-    // obj description / action are always Inline on disk; only extra-desc body may be OnOwnLine.
     description_->setRequireTrailingNewline(false);
     action_description_->setRequireTrailingNewline(false);
     nebbie::qt::syncMudParagraphTrailingNewlinePolicy(extra_desc_description_);
@@ -424,13 +507,15 @@ void ObjEditorWidget::loadFromObject(const nebbie::GameObject& obj) {
 }
 
 void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) {
-    // Apply the form to the selected extra before reading the list (same as Update).
     if (extra_desc_list_->currentItem() != nullptr) {
         const QString keyword = extra_desc_keyword_->text().trimmed();
         const QString description = extra_desc_description_->storageText();
         if (!(keyword.isEmpty() && description.trimmed().isEmpty())) {
             updateExtraDesc();
         }
+    }
+    if (affect_list_->currentItem() != nullptr) {
+        updateAffect();
     }
 
     obj.name = name_->storageText().toStdString();
@@ -453,14 +538,7 @@ void ObjEditorWidget::saveToObject(nebbie::GameObject& obj) {
     obj.cost = cost_->value();
     obj.cost_per_day = cost_per_day_->value();
 
-    obj.affects.clear();
-    for (int i = 0; i < affect_list_->count(); ++i) {
-        const auto* item = affect_list_->item(i);
-        nebbie::ObjAffect affect;
-        affect.location = item->data(Qt::UserRole).toInt();
-        affect.modifier = item->data(Qt::UserRole + 1).toInt();
-        obj.affects.push_back(affect);
-    }
+    obj.affects = affectsFromList();
 
     obj.extra_descs.clear();
     for (int i = 0; i < extra_desc_list_->count(); ++i) {
@@ -529,23 +607,154 @@ void ObjEditorWidget::refreshExtraDescForm() {
     extra_desc_description_->setStorageText(item->data(Qt::UserRole + 1).toString());
 }
 
+QString ObjEditorWidget::affectListLabel(const int location, const int modifier) const {
+    return QString::fromStdString(nebbie::format_obj_affect_label(location, modifier));
+}
+
+void ObjEditorWidget::writeAffectListItem(QListWidgetItem* item, const int location,
+                                         const int modifier) const {
+    item->setData(Qt::UserRole, location);
+    item->setData(Qt::UserRole + 1, modifier);
+    item->setText(affectListLabel(location, modifier));
+    item->setToolTip(QStringLiteral("%1 (#%2) = %3")
+                         .arg(QString::fromStdString(nebbie::obj_apply_type_name(location)))
+                         .arg(location)
+                         .arg(modifier));
+}
+
+void ObjEditorWidget::updateAffectModifierEditor() {
+    const int location = comboIntValue(affect_location_);
+    const nebbie::ObjAffectModifierKind kind = nebbie::obj_affect_modifier_kind(location);
+    QString hint;
+    switch (kind) {
+    case nebbie::ObjAffectModifierKind::immunity_bits:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_immune_);
+        hint = QStringLiteral("Seleziona una o piu' immunita'/resistenze. "
+                              "Vale per Immunita', Suscettibilita' e Resistenza meta.");
+        break;
+    case nebbie::ObjAffectModifierKind::spell_affect_bits:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_spell_);
+        hint = QStringLiteral("Flag affect magici (AFF) applicati indossando l'oggetto.");
+        break;
+    case nebbie::ObjAffectModifierKind::spell_affect2_bits:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_spell2_);
+        hint = QStringLiteral("Flag affect secondari (AFF2).");
+        break;
+    case nebbie::ObjAffectModifierKind::spell_number:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_spell_num_);
+        hint = QStringLiteral("Scegli l'incantesimo dal menu (o digita il numero spell).");
+        break;
+    case nebbie::ObjAffectModifierKind::race:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_race_);
+        hint = QStringLiteral("Razza bersaglio del race-slayer.");
+        break;
+    case nebbie::ObjAffectModifierKind::sex:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_sex_);
+        hint = QStringLiteral("Sesso risultante (additivo rispetto al personaggio).");
+        break;
+    case nebbie::ObjAffectModifierKind::align_bits:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_align_);
+        hint = QStringLiteral("Allineamenti colpiti dall'align-slayer (si possono combinare).");
+        break;
+    case nebbie::ObjAffectModifierKind::integer:
+    default:
+        affect_modifier_stack_->setCurrentIndex(affect_stack_integer_);
+        hint = QStringLiteral("Modificatore numerico (positivo o negativo).");
+        break;
+    }
+    affect_modifier_hint_->setText(hint);
+}
+
+int ObjEditorWidget::readAffectModifierFromEditor() const {
+    const int location = comboIntValue(affect_location_);
+    switch (nebbie::obj_affect_modifier_kind(location)) {
+    case nebbie::ObjAffectModifierKind::immunity_bits:
+        return static_cast<int>(affect_immune_flags_->value());
+    case nebbie::ObjAffectModifierKind::spell_affect_bits:
+        return static_cast<int>(affect_spell_flags_->value());
+    case nebbie::ObjAffectModifierKind::spell_affect2_bits:
+        return static_cast<int>(affect_spell2_flags_->value());
+    case nebbie::ObjAffectModifierKind::align_bits:
+        return static_cast<int>(affect_align_flags_->value());
+    case nebbie::ObjAffectModifierKind::spell_number: {
+        const QVariant data = affect_spell_combo_->currentData();
+        if (data.isValid()) {
+            return data.toInt();
+        }
+        bool ok = false;
+        const int typed = affect_spell_combo_->currentText().trimmed().section(' ', 0, 0).toInt(&ok);
+        return ok ? typed : 0;
+    }
+    case nebbie::ObjAffectModifierKind::race:
+        return comboIntValue(affect_race_combo_);
+    case nebbie::ObjAffectModifierKind::sex:
+        return comboIntValue(affect_sex_combo_);
+    case nebbie::ObjAffectModifierKind::integer:
+    default:
+        return affect_modifier_->value();
+    }
+}
+
+void ObjEditorWidget::writeAffectModifierToEditor(const int modifier) {
+    const int location = comboIntValue(affect_location_);
+    switch (nebbie::obj_affect_modifier_kind(location)) {
+    case nebbie::ObjAffectModifierKind::immunity_bits:
+        affect_immune_flags_->setValue(modifier);
+        break;
+    case nebbie::ObjAffectModifierKind::spell_affect_bits:
+        affect_spell_flags_->setValue(modifier);
+        break;
+    case nebbie::ObjAffectModifierKind::spell_affect2_bits:
+        affect_spell2_flags_->setValue(modifier);
+        break;
+    case nebbie::ObjAffectModifierKind::align_bits:
+        affect_align_flags_->setValue(modifier);
+        break;
+    case nebbie::ObjAffectModifierKind::spell_number:
+        setComboIntValue(affect_spell_combo_, modifier);
+        if (affect_spell_combo_->currentData().toInt() != modifier) {
+            affect_spell_combo_->setEditText(QString::number(modifier));
+        }
+        break;
+    case nebbie::ObjAffectModifierKind::race:
+        setComboIntValue(affect_race_combo_, modifier);
+        break;
+    case nebbie::ObjAffectModifierKind::sex:
+        setComboIntValue(affect_sex_combo_, modifier);
+        break;
+    case nebbie::ObjAffectModifierKind::integer:
+    default:
+        affect_modifier_->setValue(modifier);
+        break;
+    }
+}
+
+void ObjEditorWidget::onAffectLocationChanged() {
+    updateAffectModifierEditor();
+}
+
 void ObjEditorWidget::onAffectSelected() {
     refreshAffectForm();
 }
 
 void ObjEditorWidget::addAffect() {
-    nebbie::ObjAffect affect;
-    affect.location = comboIntValue(affect_location_);
-    affect.modifier = affect_modifier_->value();
-    const QString label = QString("%1 %+2")
-                              .arg(QString::fromStdString(nebbie::obj_apply_type_name(affect.location)))
-                              .arg(affect.modifier);
-    auto* item = new QListWidgetItem(label);
-    item->setData(Qt::UserRole, affect.location);
-    item->setData(Qt::UserRole + 1, affect.modifier);
+    const int location = comboIntValue(affect_location_);
+    const int modifier = readAffectModifierFromEditor();
+    if (location == 0 && modifier == 0) {
+        return;
+    }
+    auto* item = new QListWidgetItem;
+    writeAffectListItem(item, location, modifier);
     affect_list_->addItem(item);
     affect_list_->setCurrentItem(item);
-    syncSpellpowerShortcutsFromList();
+}
+
+void ObjEditorWidget::updateAffect() {
+    auto* item = affect_list_->currentItem();
+    if (!item) {
+        return;
+    }
+    writeAffectListItem(item, comboIntValue(affect_location_), readAffectModifierFromEditor());
 }
 
 void ObjEditorWidget::removeAffect() {
@@ -555,15 +764,6 @@ void ObjEditorWidget::removeAffect() {
     }
     delete affect_list_->takeItem(row);
     refreshAffectForm();
-    syncSpellpowerShortcutsFromList();
-}
-
-void ObjEditorWidget::onSpellpowerShortcutChanged() {
-    applyAffectLocationShortcut(nebbie::APPLY_SPELLPOWER, spellpower_->value());
-}
-
-void ObjEditorWidget::onHitNspShortcutChanged() {
-    applyAffectLocationShortcut(nebbie::APPLY_HITNSP, hit_nsp_->value());
 }
 
 std::vector<nebbie::ObjAffect> ObjEditorWidget::affectsFromList() const {
@@ -583,29 +783,15 @@ void ObjEditorWidget::replaceAffectList(const std::vector<nebbie::ObjAffect>& af
     const QSignalBlocker blocker(affect_list_);
     affect_list_->clear();
     for (const auto& affect : affects) {
-        const QString label = QString("%1 %+2")
-                                  .arg(QString::fromStdString(nebbie::obj_apply_type_name(affect.location)))
-                                  .arg(affect.modifier);
-        auto* item = new QListWidgetItem(label);
-        item->setData(Qt::UserRole, affect.location);
-        item->setData(Qt::UserRole + 1, affect.modifier);
+        auto* item = new QListWidgetItem;
+        writeAffectListItem(item, affect.location, affect.modifier);
         affect_list_->addItem(item);
     }
-    syncSpellpowerShortcutsFromList();
-}
-
-void ObjEditorWidget::syncSpellpowerShortcutsFromList() {
-    const auto affects = affectsFromList();
-    const QSignalBlocker b_sp(spellpower_);
-    const QSignalBlocker b_hn(hit_nsp_);
-    spellpower_->setValue(nebbie::sum_obj_affect_modifier(affects, nebbie::APPLY_SPELLPOWER));
-    hit_nsp_->setValue(nebbie::sum_obj_affect_modifier(affects, nebbie::APPLY_HITNSP));
-}
-
-void ObjEditorWidget::applyAffectLocationShortcut(const int location, const int modifier) {
-    auto affects = affectsFromList();
-    nebbie::set_obj_affect_modifier(affects, location, modifier);
-    replaceAffectList(affects);
+    if (affect_list_->count() > 0) {
+        affect_list_->setCurrentRow(0);
+    } else {
+        refreshAffectForm();
+    }
 }
 
 void ObjEditorWidget::refreshAffectForm() {
@@ -613,8 +799,10 @@ void ObjEditorWidget::refreshAffectForm() {
     if (!item) {
         return;
     }
+    const QSignalBlocker location_block(affect_location_);
     setComboIntValue(affect_location_, item->data(Qt::UserRole).toInt());
-    affect_modifier_->setValue(item->data(Qt::UserRole + 1).toInt());
+    updateAffectModifierEditor();
+    writeAffectModifierToEditor(item->data(Qt::UserRole + 1).toInt());
 }
 
 void ObjEditorWidget::fillValueEnumCombo(const int slot_index, const nebbie::ObjValueEditorKind kind) {

@@ -116,6 +116,7 @@ private slots:
     void normalizeRoomMudAscii();
     void findDuplicateEntityVnums();
     void editSpecialProcCatalog();
+    void syncZoneResetComments();
     void checkForUpdates();
     void onUpdateCheckFinished(const nebbie::qt::ReleaseUpdateInfo& info);
     void toggleCheckUpdatesOnStartup(bool enabled);

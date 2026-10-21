@@ -29,6 +29,7 @@
 #include "nebbie/special_proc_catalog.hpp"
 #include "nebbie/validate.hpp"
 #include "nebbie/world_index.hpp"
+#include "nebbie/zon_comment_sync.hpp"
 #include "nebbie/zone_graph.hpp"
 
 #include <QAbstractItemView>
@@ -168,13 +169,18 @@ nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
     return qobject_cast<nebbie::qt::MudColorListDelegate*>(list->itemDelegate());
 }
 
+constexpr int kAreeColName = 0;
+constexpr int kAreeColZone = 1;
+constexpr int kAreeColRooms = 2;
+constexpr int kAreeColFolder = 3;
+
 std::optional<nebbie::AreeAreaInfo> selectedAreeArea(const QTableWidget* table,
                                                      const std::vector<nebbie::AreeAreaInfo>& areas) {
     const int row = table->currentRow();
     if (row < 0 || !table) {
         return std::nullopt;
     }
-    const QTableWidgetItem* folder_item = table->item(row, 0);
+    const QTableWidgetItem* folder_item = table->item(row, kAreeColFolder);
     if (!folder_item) {
         return std::nullopt;
     }
@@ -639,11 +645,12 @@ void MainWindow::setupAreeDock() {
     aree_table_->verticalHeader()->setVisible(false);
     aree_table_->horizontalHeader()->setSectionsClickable(true);
     aree_table_->horizontalHeader()->setSortIndicatorShown(true);
+    aree_table_->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     aree_table_->horizontalHeader()->setStretchLastSection(true);
-    aree_table_->setColumnWidth(0, 100);
-    aree_table_->setColumnWidth(1, 52);
-    aree_table_->setColumnWidth(2, 120);
-    aree_table_->setColumnWidth(3, 110);
+    aree_table_->setColumnWidth(kAreeColName, 140);
+    aree_table_->setColumnWidth(kAreeColZone, 64);
+    aree_table_->setColumnWidth(kAreeColRooms, 100);
+    aree_table_->setColumnWidth(kAreeColFolder, 110);
     layout->addWidget(aree_table_, 1);
 
     auto* buttons = new QHBoxLayout;
@@ -723,6 +730,9 @@ void MainWindow::setupMenus() {
     auto* align_all_exits_action = tools_menu->addAction(appTr("menu.align_exits"));
     align_all_exits_action->setToolTip(appTr("menu.align_exits_tip"));
     connect(align_all_exits_action, &QAction::triggered, this, &MainWindow::alignAllInboundExitDescriptions);
+    auto* sync_zon_comments_action = tools_menu->addAction(appTr("menu.sync_zon_comments"));
+    sync_zon_comments_action->setToolTip(appTr("menu.sync_zon_comments_tip"));
+    connect(sync_zon_comments_action, &QAction::triggered, this, &MainWindow::syncZoneResetComments);
     tools_menu->addSeparator();
     auto* fix_ascii_field_action = tools_menu->addAction(appTr("menu.fix_mud_ascii_field"));
     fix_ascii_field_action->setToolTip(appTr("menu.fix_mud_ascii_field_tip"));
@@ -857,8 +867,8 @@ void MainWindow::retranslateUi() {
     }
     if (aree_dock_) {
         aree_dock_->setWindowTitle(appTr("aree.dock_title"));
-        const QStringList headers = {appTr("aree.col_folder"), appTr("aree.col_zone"), appTr("aree.col_name"),
-                                     appTr("aree.col_range")};
+        const QStringList headers = {appTr("aree.col_name"), appTr("aree.col_zone"), appTr("aree.col_range"),
+                                     appTr("aree.col_folder")};
         aree_table_->setHorizontalHeaderLabels(headers);
         aree_open_button_->setText(appTr("aree.open_area"));
         if (aree_archive_button_) {
@@ -1043,6 +1053,136 @@ void MainWindow::normalizeRoomMudAscii() {
         setStatus(appTr("status.mud_ascii_fixed"));
     } else {
         setStatus(appTr("status.mud_ascii_unchanged"));
+    }
+}
+
+void MainWindow::syncZoneResetComments() {
+    if (lib_path_.empty() || !context_.has_zon || world_.zones.empty()) {
+        QMessageBox::information(this, appTr("tools.zon_sync.title"), appTr("tools.zon_sync.need_lib"));
+        return;
+    }
+
+    const auto confirm = QMessageBox::question(this, appTr("tools.zon_sync.title"),
+                                               appTr("tools.zon_sync.confirm"),
+                                               QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    if (confirm != QMessageBox::Yes) {
+        return;
+    }
+
+    if (!maybeArchiveAreeBeforeFirstSave()) {
+        return;
+    }
+
+    try {
+        flushPendingEditorChanges();
+
+        std::map<std::filesystem::path, std::string> zon_file_backup;
+        const auto capture_zon = [&](const std::filesystem::path& path) {
+            if (zon_file_backup.count(path) != 0 || !std::filesystem::exists(path)) {
+                return;
+            }
+            std::ifstream in(path, std::ios::binary);
+            if (!in) {
+                return;
+            }
+            zon_file_backup[path] =
+                std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+        };
+        if (context_.zone_sources.empty()) {
+            const std::filesystem::path primary =
+                context_.zon_path.empty() ? std::filesystem::path(nebbie::ZONE_FILE) : context_.zon_path;
+            capture_zon(lib_path_ / primary);
+        } else {
+            for (const auto& entry : context_.zone_sources) {
+                capture_zon(lib_path_ / entry.second);
+            }
+        }
+        if (zon_file_backup.empty()) {
+            throw std::runtime_error("nessun file .zon trovato su disco da cui fare rollback");
+        }
+
+        std::unordered_set<int> zones_to_touch;
+        for (const nebbie::Zone& zone : world_.zones) {
+            if (nebbie::zone_reset_comments_need_sync(zone, world_)) {
+                zones_to_touch.insert(zone.num);
+            }
+        }
+        if (zones_to_touch.empty()) {
+            QMessageBox::information(this, appTr("tools.zon_sync.title"), appTr("tools.zon_sync.noop"));
+            return;
+        }
+
+        const std::vector<nebbie::Zone> zones_backup = world_.zones;
+        std::size_t cmds_before = 0;
+        for (const nebbie::Zone& zone : world_.zones) {
+            cmds_before += zone.commands.size();
+        }
+
+        nebbie::sync_all_zone_reset_comments(world_);
+
+        std::size_t cmds_after = 0;
+        for (const nebbie::Zone& zone : world_.zones) {
+            cmds_after += zone.commands.size();
+        }
+        const std::size_t removed =
+            cmds_before > cmds_after ? (cmds_before - cmds_after) : std::size_t{0};
+
+        nebbie::LibContext save_ctx = context_;
+        save_ctx.root = lib_path_;
+        save_ctx.dirty_room_vnums.clear();
+        save_ctx.dirty_mobile_vnums.clear();
+        save_ctx.dirty_object_vnums.clear();
+        save_ctx.dirty_zone_nums = zones_to_touch;
+        nebbie::save_lib(world_, save_ctx, {});
+        context_.zon_file_snapshot_by_leaf = save_ctx.zon_file_snapshot_by_leaf;
+
+        for (const int zone_num : zones_to_touch) {
+            dirty_zone_nums_.erase(zone_num);
+        }
+        if (dirty_room_vnums_.empty() && dirty_mobile_vnums_.empty() && dirty_object_vnums_.empty()
+            && dirty_zone_nums_.empty()) {
+            dirty_ = false;
+            updateBranding();
+        }
+
+        refreshZoneList();
+
+        QMessageBox box(this);
+        box.setIcon(QMessageBox::Question);
+        box.setWindowTitle(appTr("tools.zon_sync.title"));
+        box.setText(appTr("tools.zon_sync.done", QString::number(static_cast<qulonglong>(cmds_before)),
+                          QString::number(static_cast<qulonglong>(cmds_after)),
+                          QString::number(static_cast<qulonglong>(removed)),
+                          QString::number(static_cast<int>(zones_to_touch.size()))));
+        auto* keep_button = box.addButton(appTr("tools.zon_sync.keep"), QMessageBox::AcceptRole);
+        auto* undo_button = box.addButton(appTr("tools.zon_sync.undo"), QMessageBox::RejectRole);
+        box.setDefaultButton(keep_button);
+        box.exec();
+
+        if (box.clickedButton() == undo_button) {
+            world_.zones = zones_backup;
+            for (const auto& [path, bytes] : zon_file_backup) {
+                std::ofstream out(path, std::ios::binary | std::ios::trunc);
+                if (!out) {
+                    throw std::runtime_error("impossibile ripristinare " + path.string());
+                }
+                out.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+                if (!out) {
+                    throw std::runtime_error("scrittura rollback fallita: " + path.string());
+                }
+                context_.zon_file_snapshot_by_leaf[path.filename().string()] = bytes;
+            }
+            refreshZoneList();
+            setStatus(appTr("tools.zon_sync.undone"));
+            QMessageBox::information(this, appTr("tools.zon_sync.title"),
+                                     appTr("tools.zon_sync.undone"));
+            return;
+        }
+
+        setStatus(appTr("tools.zon_sync.kept"));
+    } catch (const std::exception& ex) {
+        QMessageBox::critical(this, appTr("tools.zon_sync.title"),
+                              appTr("tools.zon_sync.failed", QString::fromUtf8(ex.what())));
     }
 }
 
@@ -1526,16 +1666,31 @@ void MainWindow::refreshAreeAreaList() {
     const bool was_sorting = aree_table_->isSortingEnabled();
     aree_table_->setSortingEnabled(false);
     aree_table_->setRowCount(static_cast<int>(aree_areas_.size()));
+    const auto align_left = [](QTableWidgetItem* item) {
+        if (item) {
+            item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        }
+    };
     for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
         const nebbie::AreeAreaInfo& area = aree_areas_[static_cast<std::size_t>(row)];
-        auto* folder_item = makeSortableTextItem(QString::fromStdString(area.folder_name));
-        folder_item->setData(Qt::UserRole, QString::fromStdString(area.folder_name));
-        aree_table_->setItem(row, 0, folder_item);
-        aree_table_->setItem(row, 1, makeSortableNumericItem(area.zone_num, QString::number(area.zone_num)));
-        aree_table_->setItem(row, 2, makeSortableTextItem(QString::fromStdString(area.zone_name)));
+        auto* name_item = makeSortableTextItem(QString::fromStdString(area.zone_name));
+        align_left(name_item);
+        aree_table_->setItem(row, kAreeColName, name_item);
+
+        auto* zone_item = makeSortableNumericItem(area.zone_num, QString::number(area.zone_num));
+        align_left(zone_item);
+        aree_table_->setItem(row, kAreeColZone, zone_item);
+
         const QString range_text =
             QStringLiteral("%1-%2").arg(area.bottom_vnum).arg(area.top_vnum);
-        aree_table_->setItem(row, 3, makeSortableNumericItem(area.bottom_vnum, range_text));
+        auto* rooms_item = makeSortableNumericItem(area.bottom_vnum, range_text);
+        align_left(rooms_item);
+        aree_table_->setItem(row, kAreeColRooms, rooms_item);
+
+        auto* folder_item = makeSortableTextItem(QString::fromStdString(area.folder_name));
+        folder_item->setData(Qt::UserRole, QString::fromStdString(area.folder_name));
+        align_left(folder_item);
+        aree_table_->setItem(row, kAreeColFolder, folder_item);
     }
     aree_table_->resizeColumnsToContents();
     aree_table_->setSortingEnabled(was_sorting);
@@ -1587,7 +1742,8 @@ void MainWindow::openAreeWorkspaceFromPath(const QString& dir, const QString& se
     }
     if (!area_to_select.isEmpty()) {
         for (int row = 0; row < static_cast<int>(aree_areas_.size()); ++row) {
-            if (aree_table_->item(row, 0)->text() == area_to_select) {
+            const QTableWidgetItem* folder_item = aree_table_->item(row, kAreeColFolder);
+            if (folder_item && folder_item->text() == area_to_select) {
                 aree_table_->selectRow(row);
                 break;
             }

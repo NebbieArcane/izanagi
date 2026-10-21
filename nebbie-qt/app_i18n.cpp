@@ -85,6 +85,48 @@ constexpr TranslationEntry kTranslations[] = {
      "Preserva description vuote, formato [vnum (nome)] e testi di look personalizzati.",
      "Normalize descriptions that differ from the destination name only by trailing "
      "spaces/newlines. Preserves empty descriptions, [vnum (name)] format, and custom look text."},
+    {"menu.sync_zon_comments", "Allinea commenti reset (.zon)...",
+     "Align reset comments (.zon)..."},
+    {"menu.sync_zon_comments_tip",
+     "Rimuove i commenti legacy del .zon e rigenera i *! in stile Castelli dai nomi "
+     "attuali di mob, oggetti e stanze. Dopo l'applicazione puoi annullare subito "
+     "e ripristinare il file precedente.",
+     "Strips legacy .zon comments and regenerates Castelli-style *! notes from current "
+     "mob, object and room names. After applying you can undo immediately and restore "
+     "the previous file."},
+    {"tools.zon_sync.title", "Allinea commenti reset", "Align reset comments"},
+    {"tools.zon_sync.need_lib",
+     "Apri prima un'area (workspace Aree) o una libreria con file .zon.",
+     "Open an area (Aree workspace) or a library with a .zon file first."},
+    {"tools.zon_sync.confirm",
+     "Allineare i commenti reset del .zon a mob/oggetti/stanze aperti adesso?\n\n"
+     "Vengono tolti i commenti legacy (*O:, * Door, * *M:, …) e riscritti i *! "
+     "in stile Castelli. Il file .zon viene salvato subito; subito dopo puoi "
+     "scegliere Annulla per ripristinare la versione precedente.",
+     "Align reset comments in the .zon to the currently open mobs/objects/rooms?\n\n"
+     "Legacy comments (*O:, * Door, * *M:, …) are removed and Castelli-style *! "
+     "notes are rewritten. The .zon is saved immediately; right after you can "
+     "choose Undo to restore the previous version."},
+    {"tools.zon_sync.noop",
+     "I commenti del .zon sono gia' allineati: nessuna modifica.",
+     "The .zon comments are already aligned: nothing to change."},
+    {"tools.zon_sync.done",
+     "Commenti aggiornati e salvati sul .zon.\n\n"
+     "Comandi reset: %1 → %2 (rimossi %3 commenti/righe legacy o ridondanti).\n"
+     "Zone toccate: %4.\n\n"
+     "Vuoi mantenere il risultato o annullare e ripristinare il file precedente?",
+     "Comments updated and saved to the .zon.\n\n"
+     "Reset commands: %1 → %2 (removed %3 legacy/redundant comment lines).\n"
+     "Zones touched: %4.\n\n"
+     "Keep the result, or undo and restore the previous file?"},
+    {"tools.zon_sync.keep", "Mantieni", "Keep"},
+    {"tools.zon_sync.undo", "Annulla (ripristina)", "Undo (restore)"},
+    {"tools.zon_sync.kept", "Commenti .zon allineati e mantenuti.",
+     "Aligned .zon comments kept."},
+    {"tools.zon_sync.undone", "Allineamento .zon annullato: file precedente ripristinato.",
+     "Aligned .zon undone: previous file restored."},
+    {"tools.zon_sync.failed", "Allineamento commenti .zon fallito:\n%1",
+     "Reset comment alignment failed:\n%1"},
     {"menu.fix_mud_ascii_field", "Correggi non-ASCII nel campo...",
      "Fix non-ASCII in field..."},
     {"menu.fix_mud_ascii_field_tip",
@@ -385,6 +427,11 @@ QString appTr(const char* key, const QString& arg1, const QString& arg2) {
 
 QString appTr(const char* key, const QString& arg1, const QString& arg2, const QString& arg3) {
     return substituteArgs(appTr(key), {arg1, arg2, arg3});
+}
+
+QString appTr(const char* key, const QString& arg1, const QString& arg2, const QString& arg3,
+              const QString& arg4) {
+    return substituteArgs(appTr(key), {arg1, arg2, arg3, arg4});
 }
 
 QString izanagiDisplayName() {
