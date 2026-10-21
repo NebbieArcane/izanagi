@@ -1297,21 +1297,7 @@ void MainWindow::openLibPath(const QString& path) {
         if (resolved != requested) {
             setStatus(QString("Libreria risolta in: %1").arg(nebbie::qt::qstring_from_path(resolved)));
         }
-        if (!context_.load_warnings.empty()) {
-            QString warning_text;
-            for (const std::string& warning : context_.load_warnings) {
-                if (!warning_text.isEmpty()) {
-                    warning_text += "\n\n";
-                }
-                warning_text += QString::fromUtf8(warning.c_str());
-            }
-            QMessageBox::warning(
-                this,
-                "Avvisi caricamento libreria",
-                QString("La libreria e' stata aperta, ma alcuni file monolitici opzionali "
-                        "non sono stati caricati:\n\n%1")
-                    .arg(warning_text));
-        }
+        showLoadWarningsIfAny();
     } catch (const std::exception& ex) {
         const std::filesystem::path resolved = nebbie::resolve_lib_directory(nebbie::qt::path_from_qstring(path));
         const QString detail = QString::fromUtf8(ex.what())
@@ -1687,6 +1673,25 @@ const nebbie::AreeAreaInfo* MainWindow::findAreeAreaForRoomVnum(const long room_
     return nullptr;
 }
 
+void MainWindow::showLoadWarningsIfAny() {
+    if (context_.load_warnings.empty()) {
+        return;
+    }
+    QString warning_text;
+    for (const std::string& warning : context_.load_warnings) {
+        if (!warning_text.isEmpty()) {
+            warning_text += "\n\n";
+        }
+        warning_text += QString::fromUtf8(warning.c_str());
+    }
+    QMessageBox::warning(
+        this,
+        "Avvisi caricamento",
+        QString("Il caricamento e' riuscito, ma ci sono problemi da controllare "
+                "(alcuni record potrebbero essere stati saltati):\n\n%1")
+            .arg(warning_text));
+}
+
 void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first,
                               const std::string& archive_label, const long select_room_vnum) {
     if (!aree_workspace_) {
@@ -1703,58 +1708,71 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
         return;
     }
 
-    nebbie::World loaded_world;
-    nebbie::LibContext loaded_context;
-    loaded_context.write_eof_markers_on_save = false;
-    nebbie::load_lib(loaded_world, area.path, loaded_context);
+    try {
+        nebbie::World loaded_world;
+        nebbie::LibContext loaded_context;
+        loaded_context.write_eof_markers_on_save = false;
+        nebbie::load_lib(loaded_world, area.path, loaded_context);
 
-    world_ = std::move(loaded_world);
-    context_ = std::move(loaded_context);
-    context_.write_eof_markers_on_save = false;
-    // Preserve workspace-derived bottoms so suggest/create use the area block, not 0..top.
-    for (nebbie::Zone& zone : world_.zones) {
-        if (zone.num == area.zone_num) {
-            zone.bottom = area.bottom_vnum;
+        world_ = std::move(loaded_world);
+        context_ = std::move(loaded_context);
+        context_.write_eof_markers_on_save = false;
+        // Preserve workspace-derived bottoms so suggest/create use the area block, not 0..top.
+        for (nebbie::Zone& zone : world_.zones) {
+            if (zone.num == area.zone_num) {
+                zone.bottom = area.bottom_vnum;
+            }
         }
-    }
-    lib_path_ = area.path;
-    session_storage_path_ = nebbie::aree_session_storage_root(*aree_workspace_, area.folder_name);
-    aree_area_folder_ = area.folder_name;
-    aree_pending_session_archive_ = app_config_.aree_archive_on_first_save;
+        lib_path_ = area.path;
+        session_storage_path_ = nebbie::aree_session_storage_root(*aree_workspace_, area.folder_name);
+        aree_area_folder_ = area.folder_name;
+        aree_pending_session_archive_ = app_config_.aree_archive_on_first_save;
 
-    app_config_.aree_last_area = QString::fromStdString(area.folder_name);
-    nebbie::qt::write_config(app_config_);
+        app_config_.aree_last_area = QString::fromStdString(area.folder_name);
+        nebbie::qt::write_config(app_config_);
 
-    room_filter_.clear();
-    mob_filter_.clear();
-    object_filter_.clear();
-    room_search_->clear();
-    mob_search_->clear();
-    obj_search_->clear();
-    markClean();
-    refreshRoomList();
-    refreshMobList();
-    refreshObjectList();
-    refreshZoneList();
-    refreshZoneMap();
-    refreshWorldZoneMap();
-    zone_editor_->setWorld(&world_);
-    refreshWorldDataEditors();
-    onAreeAreaActivated();
+        room_filter_.clear();
+        mob_filter_.clear();
+        object_filter_.clear();
+        room_search_->clear();
+        mob_search_->clear();
+        obj_search_->clear();
+        markClean();
+        refreshRoomList();
+        refreshMobList();
+        refreshObjectList();
+        refreshZoneList();
+        refreshZoneMap();
+        refreshWorldZoneMap();
+        zone_editor_->setWorld(&world_);
+        refreshWorldDataEditors();
+        onAreeAreaActivated();
 
-    if (select_room_vnum > 0) {
-        selectRoomByVnum(select_room_vnum);
-        if (tabs_) {
-            tabs_->setCurrentIndex(0);
+        if (select_room_vnum > 0) {
+            selectRoomByVnum(select_room_vnum);
+            if (tabs_) {
+                tabs_->setCurrentIndex(0);
+            }
         }
-    }
 
-    const QString label = appTr("aree.status_loaded", nebbie::qt::qstring_from_path(area.path),
-                                QString::number(world_.zones.size()), QString::number(world_.rooms.size()));
-    lib_label_->setText(label);
-    last_version_time_ = std::chrono::system_clock::now();
-    autosave_timer_->start();
-    setStatus(label);
+        const QString label = appTr("aree.status_loaded", nebbie::qt::qstring_from_path(area.path),
+                                    QString::number(world_.zones.size()),
+                                    QString::number(world_.rooms.size()));
+        lib_label_->setText(label);
+        last_version_time_ = std::chrono::system_clock::now();
+        autosave_timer_->start();
+        setStatus(label);
+        showLoadWarningsIfAny();
+    } catch (const std::exception& ex) {
+        QMessageBox::critical(
+            this,
+            appTr("aree.dock_title"),
+            QString("Impossibile aprire l'area \"%1\":\n\n%2\n\n"
+                    "Percorso: %3")
+                .arg(QString::fromStdString(area.folder_name))
+                .arg(QString::fromUtf8(ex.what()))
+                .arg(nebbie::qt::qstring_from_path(area.path)));
+    }
 }
 
 void MainWindow::openAreeArea() {

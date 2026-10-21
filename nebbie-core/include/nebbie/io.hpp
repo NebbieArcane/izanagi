@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace nebbie {
 
@@ -29,7 +30,8 @@ void load_myst_wld(World& world, const std::filesystem::path& path, ProgressCall
 void load_myst_mob(World& world,
                    const std::filesystem::path& path,
                    ProgressCallback progress = {},
-                   bool clear_existing = true);
+                   bool clear_existing = true,
+                   std::vector<std::string>* load_warnings = nullptr);
 void load_myst_obj(World& world,
                    const std::filesystem::path& path,
                    ProgressCallback progress = {},
@@ -63,7 +65,7 @@ void load_lib(World& world, const std::filesystem::path& lib_root, LibContext& c
               ProgressCallback progress = {});
 std::filesystem::path resolve_lib_directory(const std::filesystem::path& path);
 bool directory_has_lib_files(const std::filesystem::path& dir);
-void save_lib(const World& world, LibContext& context, ProgressCallback progress = {});
+void save_lib(World& world, LibContext& context, ProgressCallback progress = {});
 
 void refresh_captured_source_blocks(LibContext& context);
 

@@ -160,7 +160,9 @@ void save_snapshot(const World& world,
     snapshot_context.root = destination;
     std::error_code ec;
     std::filesystem::create_directories(destination, ec);
-    save_lib(world, snapshot_context);
+    // Mutable copy so Castelli-style *! sync can run without touching the live World.
+    World synced = world;
+    save_lib(synced, snapshot_context);
     copy_overlay_directories(context.root, destination);
     if (!label.empty()) {
         write_version_meta(destination, label);
@@ -258,7 +260,7 @@ AutosaveResult run_autosave(const World& world,
     return result;
 }
 
-void save_lib_with_backup(const World& world,
+void save_lib_with_backup(World& world,
                           LibContext& context,
                           const std::filesystem::path& lib_root,
                           ProgressCallback progress,

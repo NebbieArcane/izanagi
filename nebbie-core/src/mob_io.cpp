@@ -129,6 +129,32 @@ void parse_combat_line(const std::string& combat_line, Mobile& mob) {
     }
 }
 
+/** True if the next non-whitespace character can start a mob numeric field. */
+bool peek_starts_mob_number(FILE* fp) {
+    const long pos = std::ftell(fp);
+    int c = std::fgetc(fp);
+    while (c != EOF && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {
+        c = std::fgetc(fp);
+    }
+    const bool ok = (c == '+' || c == '-' || (c >= '0' && c <= '9'));
+    std::fseek(fp, pos, SEEK_SET);
+    return ok;
+}
+
+/**
+ * When sex>=3, NebbieArcane reads immune/M_immune/susc with fread_number across
+ * newlines. Some area files put those three values on the line after "pos pos sex".
+ */
+void append_extended_sex_immunities(FILE* fp, Mobile& mob, std::vector<long> values) {
+    while (values.size() < 3 && !peek_is_mob_boundary(fp) && peek_starts_mob_number(fp)) {
+        const auto more = parse_mob_numbers(mob, fread_line(fp), "immunities");
+        values.insert(values.end(), more.begin(), more.end());
+    }
+    mob.immune = values.size() > 0 ? values[0] : 0;
+    mob.meta_immune = values.size() > 1 ? values[1] : 0;
+    mob.susceptible = values.size() > 2 ? values[2] : 0;
+}
+
 void read_new_mob_stats(FILE* fp, Mobile& mob) {
     const std::string combat_line = trim_combat_line(fread_line(fp));
     try {
@@ -168,15 +194,23 @@ void read_new_mob_stats(FILE* fp, Mobile& mob) {
     if (sex_field < 3) {
         mob.sex = static_cast<int>(sex_field);
         mob.extended_sex = false;
+        mob.immune = 0;
+        mob.meta_immune = 0;
+        mob.susceptible = 0;
     } else if (sex_field < 6) {
         mob.sex = static_cast<int>(sex_field - 3);
         mob.extended_sex = true;
-        mob.immune = pos_line.size() > 3 ? pos_line[3] : 0;
-        mob.meta_immune = pos_line.size() > 4 ? pos_line[4] : 0;
-        mob.susceptible = pos_line.size() > 5 ? pos_line[5] : 0;
+        std::vector<long> immune_vals;
+        for (std::size_t i = 3; i < pos_line.size(); ++i) {
+            immune_vals.push_back(pos_line[i]);
+        }
+        append_extended_sex_immunities(fp, mob, std::move(immune_vals));
     } else {
         mob.sex = 0;
         mob.extended_sex = false;
+        mob.immune = 0;
+        mob.meta_immune = 0;
+        mob.susceptible = 0;
     }
 
     read_trailing_sound_strings(fp, mob);
@@ -251,13 +285,66 @@ long read_mob_number(FILE* fp, const Mobile& mob, const char* field) {
     }
 }
 
-void read_mobile_entry(FILE* fp, Mobile& mob) {
+/** Skip accidental extra empty "~" after the four text fields (e.g. "....~\n~\nflags"). */
+int skip_spurious_empty_tildes(FILE* fp) {
+    int skipped = 0;
+    while (true) {
+        const long pos = std::ftell(fp);
+        int c = std::fgetc(fp);
+        while (c != EOF && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {
+            c = std::fgetc(fp);
+        }
+        if (c == '~') {
+            ++skipped;
+            continue;
+        }
+        std::fseek(fp, pos, SEEK_SET);
+        return skipped;
+    }
+}
+
+/** Rewind to the next "#<digits>" mob header. Returns false at EOF. */
+bool skip_to_next_mob_record(FILE* fp) {
+    while (true) {
+        const int c = std::fgetc(fp);
+        if (c == EOF) {
+            return false;
+        }
+        if (c != '#') {
+            continue;
+        }
+        const long after_hash = std::ftell(fp);
+        if (fread_peek_is_number(fp)) {
+            std::fseek(fp, after_hash - 1, SEEK_SET);
+            return true;
+        }
+    }
+}
+
+void read_mobile_entry(FILE* fp, Mobile& mob, std::vector<std::string>* load_warnings = nullptr) {
     mob.name = fread_string(fp);
     mob.short_descr = fread_string(fp);
     mob.long_descr = fread_string(fp);
     mob.description = fread_string(fp);
 
-    mob.act = read_mob_number(fp, mob, "act");
+    const int extra_tildes = skip_spurious_empty_tildes(fp);
+    if (extra_tildes > 0 && load_warnings != nullptr) {
+        load_warnings->push_back(
+            mob_context(mob) + ": ignored " + std::to_string(extra_tildes)
+            + " extra empty '~' before act flags (check description terminator)");
+    }
+
+    try {
+        mob.act = read_mob_number(fp, mob, "act");
+    } catch (const ParseError& ex) {
+        const std::string detail = ex.what();
+        if (detail.find("'~'") != std::string::npos || detail.find("found '~'") != std::string::npos) {
+            throw ParseError(mob_context(mob)
+                             + ": invalid act (" + detail
+                             + ") — likely an extra '~' in/after the description");
+        }
+        throw;
+    }
     mob.affected_by = read_mob_number(fp, mob, "affected_by");
     mob.alignment = read_mob_number(fp, mob, "alignment");
 
@@ -308,11 +395,9 @@ void write_new_mob_stats(FILE* fp, const Mobile& mob) {
     }
 
     if (mob.extended_gold) {
-        if (mob.race != 0 || mob.exp != 0) {
-            std::fprintf(fp, "-1 %ld %ld %ld\n", mob.gold, mob.exp, mob.race);
-        } else {
-            std::fprintf(fp, "-1 %ld\n", mob.gold);
-        }
+        // Server always fread_number gold, exp/XPBONUS, race after the -1 sentinel.
+        // Omitting trailing zeros made loaders eat the next line (pos/sex) as race.
+        std::fprintf(fp, "-1 %ld %ld %ld\n", mob.gold, mob.exp, mob.race);
     } else {
         std::fprintf(fp, "%ld %ld\n", mob.gold, mob.exp);
     }
@@ -393,7 +478,7 @@ std::string peek_file_line(FILE* fp) {
 } // namespace
 
 void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCallback progress,
-                   bool clear_existing) {
+                   bool clear_existing, std::vector<std::string>* load_warnings) {
     if (clear_existing) {
         world.mobiles.clear();
     }
@@ -407,6 +492,7 @@ void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCall
 
     long last_loaded_vnum = -1;
     std::size_t loaded_count = 0;
+    std::size_t skipped_count = 0;
 
     while (true) {
         const char marker = read_mob_marker(fp);
@@ -436,6 +522,11 @@ void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCall
                 message += " near line: \"" + context + "\"";
             }
             message += hint;
+            if (load_warnings != nullptr && skip_to_next_mob_record(fp)) {
+                load_warnings->push_back(message + " — skipped ahead to next mob header");
+                ++skipped_count;
+                continue;
+            }
             throw ParseError(message);
         }
 
@@ -458,19 +549,34 @@ void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCall
                 message += " near line: \"" + nearby + "\"";
             }
             message += ": " + std::string(ex.what());
+            if (load_warnings != nullptr && skip_to_next_mob_record(fp)) {
+                load_warnings->push_back(message + " — skipped ahead to next mob header");
+                ++skipped_count;
+                continue;
+            }
             throw ParseError(message);
         }
         if (mob.vnum >= 99999) {
             break;
         }
         try {
-            read_mobile_entry(fp, mob);
+            read_mobile_entry(fp, mob, load_warnings);
         } catch (const ParseError& ex) {
-            const std::string detail = ex.what();
+            std::string detail = ex.what();
             if (detail.find("mob #") == std::string::npos) {
-                throw ParseError(mob_context(mob) + ": " + detail);
+                detail = mob_context(mob) + ": " + detail;
             }
-            throw;
+            if (load_warnings != nullptr) {
+                if (skip_to_next_mob_record(fp)) {
+                    load_warnings->push_back(detail + " — mob skipped, continued with next record");
+                    ++skipped_count;
+                    continue;
+                }
+                load_warnings->push_back(detail + " — mob skipped (end of file)");
+                ++skipped_count;
+                break;
+            }
+            throw ParseError(detail);
         }
         const long saved_vnum = mob.vnum;
         world.mobiles.emplace(mob.vnum, std::move(mob));
@@ -479,6 +585,11 @@ void load_myst_mob(World& world, const std::filesystem::path& path, ProgressCall
     }
 
     std::fclose(fp);
+
+    if (loaded_count == 0 && skipped_count > 0) {
+        throw ParseError("No mobiles loaded from " + path.filename().string()
+                         + " (" + std::to_string(skipped_count) + " record(s) skipped due to errors)");
+    }
 }
 
 void save_myst_mob(const World& world, const std::filesystem::path& path, ProgressCallback progress,

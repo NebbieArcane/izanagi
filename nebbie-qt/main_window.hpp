@@ -133,6 +133,7 @@ private:
     void updateBranding();
     void scheduleStartupUpdateCheck();
     void loadLib(const std::filesystem::path& path);
+    void showLoadWarningsIfAny();
     void loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_first = false,
                       const std::string& archive_label = {}, long select_room_vnum = 0);
     void clearAreeMode();

@@ -1,5 +1,6 @@
 #include "nebbie/io.hpp"
 #include "nebbie/overlay_io.hpp"
+#include "nebbie/zon_comment_sync.hpp"
 
 #include "nebbie/constants.hpp"
 #include "nebbie/file_io.hpp"
@@ -266,6 +267,10 @@ World make_zone_subset(const World& world, const std::vector<int>& zone_nums) {
             }
         }
     }
+    // Needed so Castelli-style *! sync can resolve short names when writing.
+    subset.mobiles = world.mobiles;
+    subset.objects = world.objects;
+    subset.rooms = world.rooms;
     return subset;
 }
 
@@ -612,7 +617,7 @@ void load_lib(World& world,
         context.mob_path,
         [&](const std::filesystem::path& path, bool clear_existing) {
             const std::vector<long> vnums = scan_hash_vnums(path);
-            load_myst_mob(world, path, progress, clear_existing);
+            load_myst_mob(world, path, progress, clear_existing, &context.load_warnings);
             track_mobile_sources(context, path.filename(), vnums);
             if (const auto blocks = capture_vnum_hash_file(path)) {
                 context.mob_source_blocks_by_file[path.filename().string()] = *blocks;
@@ -728,8 +733,21 @@ void load_lib(World& world,
     }
 }
 
-void save_lib(const World& world, LibContext& context, ProgressCallback progress) {
+void save_lib(World& world, LibContext& context, ProgressCallback progress) {
     if (context.has_zon) {
+        // Sync Castelli-style *! notes when something in the lib is dirty (or full
+        // monolite rewrite). Clean Aree preserve saves keep the .zon snapshot.
+        const bool should_sync_comments =
+            context.write_eof_markers_on_save || !context.dirty_zone_nums.empty()
+            || !context.dirty_room_vnums.empty() || !context.dirty_mobile_vnums.empty()
+            || !context.dirty_object_vnums.empty();
+        if (should_sync_comments) {
+            for (Zone& zone : world.zones) {
+                if (sync_zone_reset_comments(zone, world)) {
+                    context.dirty_zone_nums.insert(zone.num);
+                }
+            }
+        }
         save_tracked_zones(world, context, progress);
     }
     if (context.has_wld) {

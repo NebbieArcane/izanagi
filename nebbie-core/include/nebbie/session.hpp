@@ -62,7 +62,7 @@ AutosaveResult run_autosave(const World& world,
                             std::chrono::system_clock::time_point last_version_time,
                             const std::filesystem::path& session_root = {});
 
-void save_lib_with_backup(const World& world,
+void save_lib_with_backup(World& world,
                           LibContext& context,
                           const std::filesystem::path& lib_root,
                           ProgressCallback progress = {},

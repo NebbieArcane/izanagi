@@ -93,11 +93,8 @@ std::string format_mobile_block(const Mobile& mob) {
     }
 
     if (mob.extended_gold) {
-        if (mob.race != 0 || mob.exp != 0) {
-            out << "-1 " << mob.gold << ' ' << mob.exp << ' ' << mob.race << '\n';
-        } else {
-            out << "-1 " << mob.gold << '\n';
-        }
+        // Always four fields: -1 gold exp/XPBONUS race (matches NebbieArcane fread).
+        out << "-1 " << mob.gold << ' ' << mob.exp << ' ' << mob.race << '\n';
     } else {
         out << mob.gold << ' ' << mob.exp << '\n';
     }

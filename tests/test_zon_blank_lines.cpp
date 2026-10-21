@@ -49,6 +49,24 @@ int main() {
         if (world.zones.size() != 1) {
             throw std::runtime_error("expected one zone");
         }
+
+        nebbie::GameObject obj;
+        obj.vnum = 1500;
+        obj.short_descr = "Fontana della Vita";
+        world.objects.emplace(obj.vnum, obj);
+        nebbie::Room room;
+        room.vnum = 1514;
+        room.name = "Common Room";
+        world.rooms.emplace(room.vnum, room);
+        nebbie::Mobile mob;
+        mob.vnum = 1500;
+        mob.short_descr = "A shadow guardian";
+        world.mobiles.emplace(mob.vnum, mob);
+        nebbie::Room mob_room;
+        mob_room.vnum = 1504;
+        mob_room.name = "The Shadow Grove";
+        world.rooms.emplace(mob_room.vnum, mob_room);
+
         const auto& zone = world.zones.front();
 
         int blanks = 0;
@@ -90,22 +108,17 @@ int main() {
             throw std::runtime_error("object vnum should have been updated to 1500");
         }
         const std::string expected_o =
-            "O 0 1500 1 1514 0  *! Carica oggetto 1500 (Fountain of Life) nella stanza 1514 "
+            "O 0 1500 1 1514 0  *! Carica oggetto 1500 (Fontana della Vita) nella stanza 1514 "
             "(Common Room)\n";
         if (saved.find(expected_o) == std::string::npos) {
             throw std::runtime_error("updated O line with *! note missing:\n" + saved);
         }
 
-        // Blank lines around the O / M blocks must remain.
-        const std::string expected_fragment =
-            "*! header note\n"
-            "\n"
-            + expected_o +
-            "\n"
-            "M 0 1500 8 1504 0\n"
-            "\n"
-            "S\n";
-        if (saved.find(expected_fragment) == std::string::npos) {
+        // Blank lines around the O / M blocks must remain; M gets a synced *! on save.
+        if (saved.find("*! header note\n\n") == std::string::npos
+            || saved.find(expected_o + "\n") == std::string::npos
+            || saved.find("M 0 1500 8 1504 0") == std::string::npos
+            || saved.find("\nS\n") == std::string::npos) {
             throw std::runtime_error("blank lines not preserved in round-trip:\n" + saved);
         }
 

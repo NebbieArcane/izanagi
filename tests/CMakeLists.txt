@@ -12,6 +12,10 @@ add_executable(nebbie-zon-blank-lines-tests test_zon_blank_lines.cpp)
 target_link_libraries(nebbie-zon-blank-lines-tests PRIVATE nebbie-core)
 add_test(NAME zon-blank-lines-roundtrip COMMAND nebbie-zon-blank-lines-tests)
 
+add_executable(nebbie-zon-comment-sync-tests test_zon_comment_sync.cpp)
+target_link_libraries(nebbie-zon-comment-sync-tests PRIVATE nebbie-core)
+add_test(NAME zon-comment-sync COMMAND nebbie-zon-comment-sync-tests)
+
 find_package(Qt6 QUIET COMPONENTS Core)
 if(Qt6_FOUND)
     add_executable(nebbie-release-update-tests test_release_update.cpp
@@ -78,6 +82,14 @@ add_test(NAME obj-spellpower-affect-tests COMMAND nebbie-obj-spellpower-affect-t
 add_executable(nebbie-mob-combat-tests test_mob_combat.cpp)
 target_link_libraries(nebbie-mob-combat-tests PRIVATE nebbie-core)
 add_test(NAME mob-combat-validation COMMAND nebbie-mob-combat-tests)
+
+add_executable(nebbie-mob-extended-fields-tests test_mob_extended_fields.cpp)
+target_link_libraries(nebbie-mob-extended-fields-tests PRIVATE nebbie-core)
+add_test(NAME mob-extended-fields COMMAND nebbie-mob-extended-fields-tests)
+
+add_executable(nebbie-mob-load-skip-tests test_mob_load_skip.cpp)
+target_link_libraries(nebbie-mob-load-skip-tests PRIVATE nebbie-core)
+add_test(NAME mob-load-skip COMMAND nebbie-mob-load-skip-tests)
 
 add_executable(nebbie-mob-damage-estimate-tests test_mob_damage_estimate.cpp)
 target_link_libraries(nebbie-mob-damage-estimate-tests PRIVATE nebbie-core)

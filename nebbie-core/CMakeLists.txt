@@ -3,6 +3,7 @@ add_library(nebbie-core
     src/file_io.cpp
     src/world.cpp
     src/zon_io.cpp
+    src/zon_comment_sync.cpp
     src/wld_io.cpp
     src/mob_io.cpp
     src/obj_io.cpp

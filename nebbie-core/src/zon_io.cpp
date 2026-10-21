@@ -1,6 +1,7 @@
 #include "nebbie/io.hpp"
 #include "nebbie/edit.hpp"
 #include "nebbie/overlay_io.hpp"
+#include "nebbie/zon_comment_sync.hpp"
 
 #include "nebbie/fread.hpp"
 #include "nebbie/file_io.hpp"
@@ -227,10 +228,12 @@ void save_myst_zon(const World& world, const std::filesystem::path& path, Progre
     std::sort(zones.begin(), zones.end(),
               [](const Zone* a, const Zone* b) { return a->num < b->num; });
     for (const Zone* zone : zones) {
-        std::fprintf(fp, "#%d\n", zone->num);
-        std::fprintf(fp, "%s~\n", zone->name.c_str());
-        std::fprintf(fp, "%d %d %d\n", zone->top, zone->lifespan, zone->reset_mode);
-        write_zone_reset_commands(fp, *zone);
+        Zone synced = *zone;
+        sync_zone_reset_comments(synced, world);
+        std::fprintf(fp, "#%d\n", synced.num);
+        std::fprintf(fp, "%s~\n", synced.name.c_str());
+        std::fprintf(fp, "%d %d %d\n", synced.top, synced.lifespan, synced.reset_mode);
+        write_zone_reset_commands(fp, synced);
     }
     if (options.write_eof_markers) {
         std::fprintf(fp, "#$\n");
@@ -239,6 +242,7 @@ void save_myst_zon(const World& world, const std::filesystem::path& path, Progre
 }
 
 void save_zone_reset_overlay(const Zone& zone, const std::filesystem::path& path) {
+    // Overlay save has no World context for name lookup; write as-is.
     FILE* fp = open_file_write(path, "zone file");
     write_zone_reset_commands(fp, zone);
     std::fclose(fp);
