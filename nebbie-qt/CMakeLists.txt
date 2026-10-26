@@ -63,6 +63,8 @@ add_executable(nebbieedit
     validation_report_ui.hpp
     special_proc_catalog_dialog.cpp
     special_proc_catalog_dialog.hpp
+    entity_picker_dialog.cpp
+    entity_picker_dialog.hpp
     nebbieedit.qrc
 )
 

@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QStyle>
 #include <QListWidgetItem>
+#include <QTreeWidgetItem>
 
 namespace nebbie::qt {
 
@@ -81,6 +82,13 @@ void MudColorListDelegate::setShowColorCodes(bool show) {
 void MudColorListDelegate::paint(QPainter* painter,
                                  const QStyleOptionViewItem& option,
                                  const QModelIndex& index) const {
+    const long vnum = index.data(Qt::UserRole).toLongLong();
+    const QString storage_q = index.data(kMudStorageTextRole).toString();
+    if (vnum <= 0 || storage_q.isNull()) {
+        QStyledItemDelegate::paint(painter, option, index);
+        return;
+    }
+
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
     opt.text.clear();
@@ -88,12 +96,6 @@ void MudColorListDelegate::paint(QPainter* painter,
     const QWidget* widget = opt.widget;
     QStyle* style = widget ? widget->style() : QApplication::style();
     style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
-
-    const long vnum = index.data(Qt::UserRole).toLongLong();
-    const QString storage_q = index.data(kMudStorageTextRole).toString();
-    if (vnum <= 0 || storage_q.isNull()) {
-        return;
-    }
 
     painter->save();
     painter->setFont(opt.font);
@@ -133,6 +135,19 @@ void setRoomListItemData(QListWidgetItem* item, long vnum, const std::string& st
 
 void refreshRoomListItemData(QListWidgetItem* item, long vnum, const std::string& storage_name) {
     setRoomListItemData(item, vnum, storage_name);
+}
+
+void setRoomTreeItemData(QTreeWidgetItem* item, long vnum, const std::string& storage_name) {
+    if (item == nullptr) {
+        return;
+    }
+    item->setData(0, Qt::UserRole, static_cast<qlonglong>(vnum));
+    item->setData(0, kMudStorageTextRole, QString::fromStdString(storage_name));
+    item->setText(0, mud_entity_list_label(vnum, storage_name));
+}
+
+void refreshRoomTreeItemData(QTreeWidgetItem* item, long vnum, const std::string& storage_name) {
+    setRoomTreeItemData(item, vnum, storage_name);
 }
 
 } // namespace nebbie::qt

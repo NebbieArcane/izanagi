@@ -273,7 +273,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     economy_row->addStretch();
     economy_layout->addLayout(economy_row);
     text_layout->addWidget(economy_box);
-    tabs->addTab(text_tab, "Testo e prezzi");
+    tabs->addTab(text_tab, QStringLiteral("Name"));
 
     auto* type_tab = new QWidget;
     auto* type_layout = new QVBoxLayout(type_tab);
@@ -346,17 +346,20 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     type_layout->addWidget(values_box);
     type_layout->addStretch(1);
-    tabs->addTab(type_tab, "Tipo / Valori");
+    tabs->addTab(type_tab, QStringLiteral("Stats"));
 
     auto* flags_tab = new QWidget;
     auto* flags_layout = new QVBoxLayout(flags_tab);
-    wear_flags_ = new FlagGroupWidget(nebbie::obj_wear_flags(), flags_tab, 3);
-    extra_flags_ = new FlagGroupWidget(nebbie::obj_extra_flags(), flags_tab, 3);
+    wear_flags_ = new FlagGroupWidget(nebbie::obj_wear_flags(), flags_tab, 3,
+                                      FlagGroupWidget::Mode::DualList);
+    extra_flags_ = new FlagGroupWidget(nebbie::obj_extra_flags(), flags_tab, 3,
+                                       FlagGroupWidget::Mode::DualList);
     has_extra_flags2_ = new QCheckBox("Abilita flag extra 2 (sezione F)");
     extra_flags2_panel_ = new QWidget(flags_tab);
     auto* extra_flags2_layout = new QVBoxLayout(extra_flags2_panel_);
     extra_flags2_layout->setContentsMargins(0, 0, 0, 0);
-    extra_flags2_ = new FlagGroupWidget(nebbie::obj_extra_flags2(), extra_flags2_panel_, 3);
+    extra_flags2_ = new FlagGroupWidget(nebbie::obj_extra_flags2(), extra_flags2_panel_, 3,
+                                        FlagGroupWidget::Mode::DualList);
     extra_flags2_layout->addWidget(extra_flags2_);
 
     flags_layout->addWidget(new QLabel("Dove si puo' indossare (wear)"));
@@ -390,7 +393,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     forbidden_layout->addLayout(forbidden_form);
     flags_layout->addWidget(forbidden_box);
     flags_layout->addStretch();
-    tabs->addTab(wrapFlagsInScroll(flags_tab), "Flag");
+    tabs->addTab(wrapFlagsInScroll(flags_tab), QStringLiteral("Wear / Extra"));
 
     auto* affect_tab = new QWidget;
     auto* affect_layout = new QVBoxLayout(affect_tab);
@@ -440,15 +443,18 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     // Flag bit: 3 colonne. Scroll solo dove la lista e' lunga (AFF ~32); gli altri
     // restano a altezza naturale cosi' non resta uno "scatolone" mezzo vuoto.
-    affect_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), nullptr, 3);
+    affect_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), nullptr, 3,
+                                               FlagGroupWidget::Mode::DualList);
     affect_stack_immune_ =
         affect_modifier_stack_->addWidget(wrapFlagGroupCompact(affect_immune_flags_, affect_editor));
 
-    affect_spell_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect_flags(), nullptr, 3);
+    affect_spell_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect_flags(), nullptr, 3,
+                                              FlagGroupWidget::Mode::DualList);
     affect_stack_spell_ =
         affect_modifier_stack_->addWidget(wrapFlagGroup(affect_spell_flags_, affect_editor, 168));
 
-    affect_spell2_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect2_flags(), nullptr, 3);
+    affect_spell2_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect2_flags(), nullptr, 3,
+                                               FlagGroupWidget::Mode::DualList);
     affect_stack_spell2_ =
         affect_modifier_stack_->addWidget(wrapFlagGroupCompact(affect_spell2_flags_, affect_editor));
 
@@ -489,7 +495,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     affect_split->setStretchFactor(0, 2);
     affect_split->setStretchFactor(1, 3);
     affect_layout->addWidget(affect_split, 1);
-    tabs->addTab(affect_tab, "Affect");
+    tabs->addTab(affect_tab, QStringLiteral("Affects"));
 
     auto* extra_tab = new QWidget;
     auto* extra_layout = new QVBoxLayout(extra_tab);
@@ -521,7 +527,7 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_layout->addWidget(extra_desc_list_, 1);
     extra_layout->addLayout(extra_desc_form);
     extra_layout->addLayout(extra_desc_buttons);
-    tabs->addTab(extra_tab, "Descrizioni extra");
+    tabs->addTab(extra_tab, QStringLiteral("Extras"));
 
     root->addWidget(tabs);
 

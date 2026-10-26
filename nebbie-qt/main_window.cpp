@@ -64,6 +64,9 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QStackedWidget>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPlainTextEdit>
@@ -72,7 +75,6 @@
 #include <QSpinBox>
 #include <QSplitter>
 #include <QStatusBar>
-#include <QTabWidget>
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -90,47 +92,64 @@ using nebbie::qt::appTr;
 
 namespace {
 
-struct EntityPageWidgets {
-    QWidget* page = nullptr;
-    QLineEdit* search = nullptr;
-    QPushButton* create_button = nullptr;
-    QListWidget* list = nullptr;
+constexpr int kNavKindRole = Qt::UserRole + 10;
+constexpr int kStackRooms = 0;
+constexpr int kStackMobs = 1;
+constexpr int kStackObjects = 2;
+constexpr int kStackZones = 3;
+constexpr int kStackShops = 4;
+constexpr int kStackSpecials = 5;
+constexpr int kStackGlobal = 6;
+constexpr int kStackMap = 7;
+constexpr int kStackValidation = 8;
+
+enum class NavKind : int {
+    Root = 0,
+    CatRooms,
+    CatMobs,
+    CatObjects,
+    CatZones,
+    CatWorld,
+    Room,
+    RoomExit,
+    Mob,
+    Object,
+    Zone,
+    PageShops,
+    PageSpecials,
+    PageGlobal,
+    PageMap,
+    PageValidation,
 };
 
-EntityPageWidgets makeEntityPage(QWidget* editor, const QString& create_label) {
-    EntityPageWidgets widgets;
-    widgets.page = new QWidget;
-    auto* layout = new QVBoxLayout(widgets.page);
-
-    auto* top = new QHBoxLayout;
-    widgets.search = new QLineEdit;
-    widgets.search->setPlaceholderText(nebbie::qt::appTr("ui.search_vnum"));
-    widgets.create_button = new QPushButton(create_label);
-    top->addWidget(widgets.search, 1);
-    top->addWidget(widgets.create_button);
-    layout->addLayout(top);
-
-    auto* splitter = new QSplitter;
-    widgets.list = new QListWidget;
-    widgets.list->setMinimumWidth(180);
-    splitter->addWidget(widgets.list);
-    splitter->addWidget(editor);
-    splitter->setStretchFactor(0, 1);
-    splitter->setStretchFactor(1, 4);
-    splitter->setSizes({220, 680});
-    layout->addWidget(splitter, 1);
-    return widgets;
+void setNavKind(QTreeWidgetItem* item, NavKind kind) {
+    if (item) {
+        item->setData(0, kNavKindRole, static_cast<int>(kind));
+    }
 }
 
-void addListItem(QListWidget* list, long vnum, const QString& label) {
-    list->addItem(label);
-    list->item(list->count() - 1)->setData(Qt::UserRole, static_cast<qlonglong>(vnum));
+NavKind navKindOf(const QTreeWidgetItem* item) {
+    if (!item) {
+        return NavKind::Root;
+    }
+    return static_cast<NavKind>(item->data(0, kNavKindRole).toInt());
 }
 
-void addRoomListItem(QListWidget* list, long vnum, const std::string& storage_name) {
-    auto* item = new QListWidgetItem;
-    nebbie::qt::setRoomListItemData(item, vnum, storage_name);
-    list->addItem(item);
+QTreeWidgetItem* makeCategoryItem(QTreeWidgetItem* parent, const QString& label, NavKind kind) {
+    auto* item = new QTreeWidgetItem(parent);
+    item->setText(0, label);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    setNavKind(item, kind);
+    item->setExpanded(kind == NavKind::CatRooms || kind == NavKind::CatWorld);
+    return item;
+}
+
+QTreeWidgetItem* makeLeafPageItem(QTreeWidgetItem* parent, const QString& label, NavKind kind) {
+    auto* item = new QTreeWidgetItem(parent);
+    item->setText(0, label);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    setNavKind(item, kind);
+    return item;
 }
 
 bool room_editor_snapshot_matches(const nebbie::Room& before, const nebbie::Room& after) {
@@ -165,8 +184,8 @@ bool room_editor_snapshot_matches(const nebbie::Room& before, const nebbie::Room
     return true;
 }
 
-nebbie::qt::MudColorListDelegate* roomListDelegate(QListWidget* list) {
-    return qobject_cast<nebbie::qt::MudColorListDelegate*>(list->itemDelegate());
+nebbie::qt::MudColorListDelegate* roomNavDelegate(QTreeWidget* tree) {
+    return qobject_cast<nebbie::qt::MudColorListDelegate*>(tree->itemDelegate());
 }
 
 constexpr int kAreeColName = 0;
@@ -239,11 +258,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupMenus();
     retranslateUi();
     applyTextEditorSettings();
-    if (auto* delegate = roomListDelegate(room_list_)) {
+    if (auto* delegate = roomNavDelegate(nav_tree_)) {
         delegate->setShowColorCodes(app_config_.show_color_codes);
     }
     setWindowIcon(QIcon(QStringLiteral(":/app-icon.png")));
-    resize(1100, 720);
+    resize(1200, 760);
     scheduleStartupUpdateCheck();
 }
 
@@ -255,22 +274,63 @@ void MainWindow::setupUi() {
     lib_label_->setWordWrap(true);
     root_layout->addWidget(lib_label_);
 
-    tabs_ = new QTabWidget;
+    auto* main_splitter = new QSplitter;
+    main_splitter->setObjectName(QStringLiteral("mainNavSplitter"));
 
-    auto* room_scroll = new QScrollArea;
-    room_scroll->setWidgetResizable(true);
+    auto* nav_panel = new QWidget;
+    auto* nav_layout = new QVBoxLayout(nav_panel);
+    nav_layout->setContentsMargins(0, 0, 0, 0);
+
+    auto* nav_toolbar = new QWidget;
+    nav_toolbar->setObjectName(QStringLiteral("navToolbar"));
+    auto* nav_top = new QHBoxLayout(nav_toolbar);
+    nav_top->setContentsMargins(4, 4, 4, 4);
+    nav_top->setSpacing(4);
+    entity_search_ = new QLineEdit;
+    entity_search_->setPlaceholderText(appTr("ui.search_vnum"));
+    entity_create_button_ = new QPushButton;
+    nav_top->addWidget(entity_search_, 1);
+    nav_top->addWidget(entity_create_button_);
+    nav_layout->addWidget(nav_toolbar);
+
+    nav_tree_ = new QTreeWidget;
+    nav_tree_->setObjectName(QStringLiteral("navTree"));
+    nav_tree_->setHeaderHidden(true);
+    nav_tree_->setUniformRowHeights(true);
+    nav_tree_->setAnimated(false);
+    nav_tree_->setIndentation(16);
+    nav_tree_->setRootIsDecorated(true);
+    nav_tree_->setItemsExpandable(true);
+    nav_tree_->setExpandsOnDoubleClick(true);
+    nav_tree_->setMinimumWidth(260);
+    nav_tree_->setItemDelegate(new nebbie::qt::MudColorListDelegate(nav_tree_));
+    nav_layout->addWidget(nav_tree_, 1);
+
+    // Flat top-level categories (no useless "Area" folder for a single area).
+    nav_root_ = nullptr;
+    nav_rooms_ = makeCategoryItem(nav_tree_->invisibleRootItem(), QString(), NavKind::CatRooms);
+    nav_mobs_ = makeCategoryItem(nav_tree_->invisibleRootItem(), QString(), NavKind::CatMobs);
+    nav_objects_ = makeCategoryItem(nav_tree_->invisibleRootItem(), QString(), NavKind::CatObjects);
+    nav_zones_ = makeCategoryItem(nav_tree_->invisibleRootItem(), QString(), NavKind::CatZones);
+    nav_world_ = makeCategoryItem(nav_tree_->invisibleRootItem(), QStringLiteral("World"), NavKind::CatWorld);
+    nav_shops_ = makeLeafPageItem(nav_world_, QString(), NavKind::PageShops);
+    nav_specials_ = makeLeafPageItem(nav_world_, QString(), NavKind::PageSpecials);
+    nav_global_ = makeLeafPageItem(nav_world_, QString(), NavKind::PageGlobal);
+    nav_map_ = makeLeafPageItem(nav_tree_->invisibleRootItem(), QString(), NavKind::PageMap);
+    nav_validation_ = makeLeafPageItem(nav_tree_->invisibleRootItem(), QString(), NavKind::PageValidation);
+    nav_rooms_->setExpanded(true);
+
+    editor_stack_ = new QStackedWidget;
+
     room_editor_ = new RoomEditorWidget;
-    room_scroll->setWidget(room_editor_);
     auto* room_panel = new QWidget;
     auto* room_panel_layout = new QVBoxLayout(room_panel);
     room_panel_layout->setContentsMargins(0, 0, 0, 0);
-    room_panel_layout->addWidget(room_scroll, 1);
+    room_panel_layout->addWidget(room_editor_, 1);
     auto* room_buttons = new QHBoxLayout;
     auto* room_apply = new QPushButton;
     auto* room_sync_exits = new QPushButton;
-    room_sync_exits->setToolTip(QString());
     auto* room_align_all_exits = new QPushButton;
-    room_align_all_exits->setToolTip(QString());
     auto* room_goto_exit = new QPushButton;
     room_apply_button_ = room_apply;
     room_sync_exits_button_ = room_sync_exits;
@@ -282,12 +342,7 @@ void MainWindow::setupUi() {
     room_buttons->addWidget(room_goto_exit);
     room_buttons->addStretch();
     room_panel_layout->addLayout(room_buttons);
-    const EntityPageWidgets room_page = makeEntityPage(room_panel, QString());
-    room_search_ = room_page.search;
-    room_list_ = room_page.list;
-    room_create_button_ = room_page.create_button;
-    room_list_->setItemDelegate(new nebbie::qt::MudColorListDelegate(room_list_));
-    tabs_->addTab(room_page.page, QString());
+    editor_stack_->addWidget(room_panel);
 
     auto* mob_scroll = new QScrollArea;
     mob_scroll->setWidgetResizable(true);
@@ -300,11 +355,7 @@ void MainWindow::setupUi() {
     auto* mob_apply = new QPushButton;
     mob_apply_button_ = mob_apply;
     mob_panel_layout->addWidget(mob_apply);
-    const EntityPageWidgets mob_page = makeEntityPage(mob_panel, QString());
-    mob_search_ = mob_page.search;
-    mob_list_ = mob_page.list;
-    mob_create_button_ = mob_page.create_button;
-    tabs_->addTab(mob_page.page, QString());
+    editor_stack_->addWidget(mob_panel);
 
     auto* obj_scroll = new QScrollArea;
     obj_scroll->setWidgetResizable(true);
@@ -317,11 +368,7 @@ void MainWindow::setupUi() {
     auto* obj_apply = new QPushButton;
     obj_apply_button_ = obj_apply;
     obj_panel_layout->addWidget(obj_apply);
-    const EntityPageWidgets obj_page = makeEntityPage(obj_panel, QString());
-    obj_search_ = obj_page.search;
-    obj_list_ = obj_page.list;
-    obj_create_button_ = obj_page.create_button;
-    tabs_->addTab(obj_page.page, QString());
+    editor_stack_->addWidget(obj_panel);
 
     auto* zone_scroll = new QScrollArea;
     zone_scroll->setWidgetResizable(true);
@@ -337,52 +384,21 @@ void MainWindow::setupUi() {
     zone_buttons->addWidget(zone_apply);
     zone_buttons->addStretch();
     zone_panel_layout->addLayout(zone_buttons);
-
-    auto* zone_page = new QWidget;
-    auto* zone_layout = new QVBoxLayout(zone_page);
-    auto* zone_splitter = new QSplitter;
-
-    auto* zone_left = new QWidget;
-    auto* zone_left_layout = new QVBoxLayout(zone_left);
-    auto* zone_top = new QHBoxLayout;
-    zone_top->addWidget(new QLabel("Zone"), 1);
-    zone_create_button_ = new QPushButton;
-    zone_top->addWidget(zone_create_button_);
-    zone_left_layout->addLayout(zone_top);
-    // Columns mirror mud "show zones": Zone (num) + name + rooms; skip lifespan/age/reset.
-    zone_list_ = new QTableWidget(0, 3);
-    zone_list_->setMinimumWidth(280);
-    zone_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
-    zone_list_->setSelectionMode(QAbstractItemView::SingleSelection);
-    zone_list_->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    zone_list_->setSortingEnabled(true);
-    zone_list_->verticalHeader()->setVisible(false);
-    zone_list_->horizontalHeader()->setSectionsClickable(true);
-    zone_list_->horizontalHeader()->setSortIndicatorShown(true);
-    zone_list_->horizontalHeader()->setStretchLastSection(true);
-    zone_list_->setColumnWidth(0, 64);
-    zone_list_->setColumnWidth(1, 140);
-    zone_left_layout->addWidget(zone_list_);
-    zone_splitter->addWidget(zone_left);
-    zone_splitter->addWidget(zone_panel);
-    zone_splitter->setStretchFactor(0, 1);
-    zone_splitter->setStretchFactor(1, 3);
-    zone_layout->addWidget(zone_splitter);
-    zone_tab_ = zone_page;
-    tabs_->addTab(zone_page, QString());
+    zone_tab_ = zone_panel;
+    editor_stack_->addWidget(zone_panel);
 
     shops_editor_ = new WorldDataEditorWidget(WorldDataScope::Shops);
     shops_editor_->setLibContext(&context_);
     shops_tab_ = shops_editor_;
-    tabs_->addTab(shops_tab_, QString());
+    editor_stack_->addWidget(shops_tab_);
     specials_editor_ = new WorldDataEditorWidget(WorldDataScope::Specials);
     specials_editor_->setLibContext(&context_);
     specials_tab_ = specials_editor_;
-    tabs_->addTab(specials_tab_, QString());
+    editor_stack_->addWidget(specials_tab_);
     global_tables_editor_ = new WorldDataEditorWidget(WorldDataScope::GlobalTables);
     global_tables_editor_->setLibContext(&context_);
     global_tables_tab_ = global_tables_editor_;
-    tabs_->addTab(global_tables_tab_, QString());
+    editor_stack_->addWidget(global_tables_tab_);
     connect(shops_editor_, &WorldDataEditorWidget::modified, this, [this]() {
         if (!world_.shops.empty()) {
             context_.has_shp = true;
@@ -447,7 +463,7 @@ void MainWindow::setupUi() {
     auto* map_world_page = new QWidget;
     auto* map_world_layout = new QVBoxLayout(map_world_page);
     map_world_layout->addWidget(
-        new QLabel("Collegamenti tra zone (non stanze). U=vnum usati, L=vnum liberi nel range. Clic seleziona, doppio clic apre tab Zone."));
+        new QLabel("Collegamenti tra zone (non stanze). U=vnum usati, L=vnum liberi nel range. Clic seleziona, doppio clic apre Zone."));
     auto* world_top = new QHBoxLayout;
     world_map_broken_only_ = new QCheckBox("Solo link rotti");
     auto* world_refresh = new QPushButton("Aggiorna");
@@ -478,7 +494,7 @@ void MainWindow::setupUi() {
     map_tabs->addTab(map_world_page, QString());
 
     map_layout->addWidget(map_tabs, 1);
-    tabs_->addTab(map_tab_, QString());
+    editor_stack_->addWidget(map_tab_);
 
     validation_tab_ = new QWidget;
     auto* validation_layout = new QVBoxLayout(validation_tab_);
@@ -493,20 +509,23 @@ void MainWindow::setupUi() {
 
     validation_list_ = new QListWidget;
     validation_layout->addWidget(validation_list_, 1);
-    tabs_->addTab(validation_tab_, QString());
+    editor_stack_->addWidget(validation_tab_);
 
-    root_layout->addWidget(tabs_);
+    main_splitter->addWidget(nav_panel);
+    main_splitter->addWidget(editor_stack_);
+    main_splitter->setStretchFactor(0, 1);
+    main_splitter->setStretchFactor(1, 4);
+    main_splitter->setSizes({280, 820});
+    root_layout->addWidget(main_splitter, 1);
     setCentralWidget(central);
 
-    connect(room_list_, &QListWidget::currentItemChanged, this,
-            [this](QListWidgetItem* /*current*/, QListWidgetItem* previous) {
-                if (previous) {
+    connect(nav_tree_, &QTreeWidget::currentItemChanged, this,
+            [this](QTreeWidgetItem* /*current*/, QTreeWidgetItem* previous) {
+                if (previous && navKindOf(previous) == NavKind::Room) {
                     persistRoomEditorState(previous);
                 }
-                onRoomSelected();
+                onNavTreeSelectionChanged();
             });
-    connect(mob_list_, &QListWidget::currentRowChanged, this, [this](int) { onMobSelected(); });
-    connect(obj_list_, &QListWidget::currentRowChanged, this, [this](int) { onObjSelected(); });
     connect(room_apply, &QPushButton::clicked, this, &MainWindow::applyRoomChanges);
     connect(room_sync_exits, &QPushButton::clicked, this, &MainWindow::syncInboundExitLabels);
     connect(room_align_all_exits, &QPushButton::clicked, this, &MainWindow::alignAllInboundExitDescriptions);
@@ -514,14 +533,8 @@ void MainWindow::setupUi() {
     connect(room_editor_, &RoomEditorWidget::alignExitLabelRequested, this, &MainWindow::alignCurrentExitLabel);
     connect(mob_apply, &QPushButton::clicked, this, &MainWindow::applyMobChanges);
     connect(obj_apply, &QPushButton::clicked, this, &MainWindow::applyObjChanges);
-    connect(room_page.create_button, &QPushButton::clicked, this, &MainWindow::createRoom);
-    connect(mob_page.create_button, &QPushButton::clicked, this, &MainWindow::createMob);
-    connect(obj_page.create_button, &QPushButton::clicked, this, &MainWindow::createObject);
-    connect(zone_create_button_, &QPushButton::clicked, this, &MainWindow::createZone);
-    connect(room_search_, &QLineEdit::textChanged, this, &MainWindow::onRoomSearchChanged);
-    connect(mob_search_, &QLineEdit::textChanged, this, &MainWindow::onMobSearchChanged);
-    connect(obj_search_, &QLineEdit::textChanged, this, &MainWindow::onObjSearchChanged);
-    connect(zone_list_, &QTableWidget::itemSelectionChanged, this, [this]() { onZoneSelected(); });
+    connect(entity_create_button_, &QPushButton::clicked, this, &MainWindow::onEntityCreateClicked);
+    connect(entity_search_, &QLineEdit::textChanged, this, &MainWindow::onEntitySearchChanged);
     connect(zone_apply, &QPushButton::clicked, this, &MainWindow::applyZoneChanges);
     connect(zone_editor_, &ZoneEditorWidget::zoneModified, this, [this]() {
         markDirty();
@@ -561,7 +574,6 @@ void MainWindow::setupUi() {
         updateMapStats();
     });
     connect(map_view_, &ZoneMapWidget::roomActivated, this, [this](long vnum) {
-        tabs_->setCurrentIndex(0);
         selectRoomByVnum(vnum);
         setStatus(QString("Mappa: selezionata stanza #%1.").arg(vnum));
     });
@@ -623,6 +635,25 @@ void MainWindow::setupUi() {
         exportMapPng(world_map_view_, QStringLiteral("mondo-zone.png"));
     });
     zone_editor_->setWorld(&world_);
+    room_editor_->setWorld(&world_);
+    connect(room_editor_, &RoomEditorWidget::gotoRoomRequested, this, [this](long vnum) {
+        selectRoomByVnum(vnum);
+    });
+    connect(room_editor_, &RoomEditorWidget::gotoMobRequested, this, [this](long vnum) {
+        selectMobByVnum(vnum);
+    });
+    connect(room_editor_, &RoomEditorWidget::gotoObjectRequested, this, [this](long vnum) {
+        selectObjectByVnum(vnum);
+    });
+    connect(room_editor_, &RoomEditorWidget::zoneResetsModified, this, [this](int zone_num) {
+        markDirty();
+        if (zone_num > 0) {
+            dirty_zone_nums_.insert(zone_num);
+        }
+        if (zone_editor_ && currentZoneNum() == zone_num) {
+            onZoneSelected();
+        }
+    });
 
     autosave_timer_ = new QTimer(this);
     autosave_timer_->setInterval(session_config_.autosave_interval_sec * 1000);
@@ -832,13 +863,9 @@ void MainWindow::retranslateUi() {
         lib_label_->setText(appTr("status.no_lib"));
         setStatus(appTr("status.open_lib_to_start"));
     }
-    room_search_->setPlaceholderText(appTr("ui.search_vnum"));
-    mob_search_->setPlaceholderText(appTr("ui.search_vnum"));
-    obj_search_->setPlaceholderText(appTr("ui.search_vnum"));
-    room_create_button_->setText(appTr("ui.new_room"));
-    mob_create_button_->setText(appTr("ui.new_mob"));
-    obj_create_button_->setText(appTr("ui.new_object"));
-    zone_create_button_->setText(appTr("ui.new_zone"));
+    if (entity_search_) {
+        entity_search_->setPlaceholderText(appTr("ui.search_vnum"));
+    }
     room_apply_button_->setText(appTr("ui.apply_changes_en"));
     room_sync_exits_button_->setText(appTr("ui.sync_exit_desc"));
     room_sync_exits_button_->setToolTip(appTr("ui.sync_exit_desc_tip"));
@@ -848,19 +875,8 @@ void MainWindow::retranslateUi() {
     mob_apply_button_->setText(appTr("ui.apply_changes"));
     obj_apply_button_->setText(appTr("ui.apply_changes"));
     zone_apply_button_->setText(appTr("ui.apply_changes_en"));
-    tabs_->setTabText(0, appTr("tab.rooms"));
-    tabs_->setTabText(1, appTr("tab.mob"));
-    tabs_->setTabText(2, appTr("tab.objects"));
-    tabs_->setTabText(3, appTr("tab.zone"));
-    tabs_->setTabText(4, appTr("tab.shops"));
-    tabs_->setTabText(5, appTr("tab.specials"));
-    tabs_->setTabText(6, appTr("tab.global_tables"));
-    tabs_->setTabText(7, appTr("tab.map"));
-    tabs_->setTabText(8, appTr("tab.validation"));
-    if (zone_list_) {
-        zone_list_->setHorizontalHeaderLabels(
-            {appTr("zone.col_num"), appTr("zone.col_name"), appTr("zone.col_rooms")});
-    }
+    rebuildNavCategoryLabels();
+    updateNavCreateAction();
     if (map_tabs_) {
         map_tabs_->setTabText(0, appTr("tab.map_zone"));
         map_tabs_->setTabText(1, appTr("tab.map_world"));
@@ -1001,9 +1017,9 @@ void MainWindow::toggleExtendedColorView(bool enabled) {
     app_config_.show_color_codes = enabled;
     nebbie::qt::write_config(app_config_);
     applyTextEditorSettings();
-    if (auto* delegate = roomListDelegate(room_list_)) {
+    if (auto* delegate = roomNavDelegate(nav_tree_)) {
         delegate->setShowColorCodes(enabled);
-        room_list_->viewport()->update();
+        nav_tree_->viewport()->update();
     }
     if (enabled) {
         setStatus(appTr("status.extended_on"));
@@ -1609,12 +1625,13 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     context_ = std::move(loaded_context);
     lib_path_ = path;
     session_storage_path_ = path;
+    if (entity_search_) {
+        entity_search_->clear();
+    }
     room_filter_.clear();
     mob_filter_.clear();
     object_filter_.clear();
-    room_search_->clear();
-    mob_search_->clear();
-    obj_search_->clear();
+    zone_filter_.clear();
     markClean();
     for (nebbie::Zone& zone : world_.zones) {
         if (nebbie::sync_zone_reset_comments(zone, world_)) {
@@ -1629,6 +1646,7 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     refreshZoneMap();
     refreshWorldZoneMap();
     zone_editor_->setWorld(&world_);
+    room_editor_->setWorld(&world_);
     refreshWorldDataEditors();
 
     const QString label = QString("Libreria: %1 — %2 zone, %3 stanze, %4 mob, %5 oggetti, %6 negozi")
@@ -1893,12 +1911,13 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
         app_config_.aree_last_area = QString::fromStdString(area.folder_name);
         nebbie::qt::write_config(app_config_);
 
+        if (entity_search_) {
+            entity_search_->clear();
+        }
         room_filter_.clear();
         mob_filter_.clear();
         object_filter_.clear();
-        room_search_->clear();
-        mob_search_->clear();
-        obj_search_->clear();
+        zone_filter_.clear();
         markClean();
         // Refresh *! notes (names + MW/MR from .zon args). If they change, mark zone dirty
         // so the next save writes the updated comments.
@@ -1915,14 +1934,12 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
         refreshZoneMap();
         refreshWorldZoneMap();
         zone_editor_->setWorld(&world_);
+        room_editor_->setWorld(&world_);
         refreshWorldDataEditors();
         onAreeAreaActivated();
 
         if (select_room_vnum > 0) {
             selectRoomByVnum(select_room_vnum);
-            if (tabs_) {
-                tabs_->setCurrentIndex(0);
-            }
         }
 
         const QString label = appTr("aree.status_loaded", nebbie::qt::qstring_from_path(area.path),
@@ -2055,73 +2072,239 @@ void MainWindow::restoreAreeArchive() {
     QMessageBox::information(this, appTr("aree.restore_title"), appTr("aree.restore_ok"));
 }
 
+void MainWindow::rebuildNavCategoryLabels() {
+    if (nav_rooms_) {
+        nav_rooms_->setText(0, appTr("tab.rooms"));
+    }
+    if (nav_mobs_) {
+        nav_mobs_->setText(0, appTr("tab.mob"));
+    }
+    if (nav_objects_) {
+        nav_objects_->setText(0, appTr("tab.objects"));
+    }
+    if (nav_zones_) {
+        nav_zones_->setText(0, appTr("tab.zone"));
+    }
+    if (nav_world_) {
+        nav_world_->setText(0, appTr("nav.world"));
+    }
+    if (nav_shops_) {
+        nav_shops_->setText(0, appTr("tab.shops"));
+    }
+    if (nav_specials_) {
+        nav_specials_->setText(0, appTr("tab.specials"));
+    }
+    if (nav_global_) {
+        nav_global_->setText(0, appTr("tab.global_tables"));
+    }
+    if (nav_map_) {
+        nav_map_->setText(0, appTr("tab.map"));
+    }
+    if (nav_validation_) {
+        nav_validation_->setText(0, appTr("tab.validation"));
+    }
+}
+
+void MainWindow::showEditorPage(const int stack_index) {
+    if (editor_stack_ && stack_index >= 0 && stack_index < editor_stack_->count()) {
+        editor_stack_->setCurrentIndex(stack_index);
+    }
+    updateNavCreateAction();
+}
+
+void MainWindow::updateNavCreateAction() {
+    if (!entity_create_button_) {
+        return;
+    }
+    QTreeWidgetItem* item = nav_tree_ ? nav_tree_->currentItem() : nullptr;
+    NavKind kind = navKindOf(item);
+    if (kind == NavKind::Room || kind == NavKind::CatRooms) {
+        entity_create_button_->setEnabled(true);
+        entity_create_button_->setText(appTr("ui.new_room"));
+    } else if (kind == NavKind::Mob || kind == NavKind::CatMobs) {
+        entity_create_button_->setEnabled(true);
+        entity_create_button_->setText(appTr("ui.new_mob"));
+    } else if (kind == NavKind::Object || kind == NavKind::CatObjects) {
+        entity_create_button_->setEnabled(true);
+        entity_create_button_->setText(appTr("ui.new_object"));
+    } else if (kind == NavKind::Zone || kind == NavKind::CatZones) {
+        entity_create_button_->setEnabled(true);
+        entity_create_button_->setText(appTr("ui.new_zone"));
+    } else {
+        entity_create_button_->setEnabled(false);
+        entity_create_button_->setText(appTr("ui.new_room"));
+    }
+}
+
+QTreeWidgetItem* MainWindow::findEntityTreeItem(QTreeWidgetItem* category, const long id) const {
+    if (!category) {
+        return nullptr;
+    }
+    for (int i = 0; i < category->childCount(); ++i) {
+        QTreeWidgetItem* child = category->child(i);
+        if (child && child->data(0, Qt::UserRole).toLongLong() == id) {
+            return child;
+        }
+    }
+    return nullptr;
+}
+
+void MainWindow::selectNavCategory(QTreeWidgetItem* category) {
+    if (!category || !nav_tree_) {
+        return;
+    }
+    category->setExpanded(true);
+    nav_tree_->setCurrentItem(category);
+}
+
 void MainWindow::refreshRoomList() {
+    if (!nav_rooms_) {
+        return;
+    }
     const long selected = currentRoomVnum();
-    room_list_->clear();
+    const QSignalBlocker blocker(nav_tree_);
+    while (nav_rooms_->childCount() > 0) {
+        delete nav_rooms_->takeChild(0);
+    }
     const std::string query = room_filter_.toStdString();
     for (const auto& [vnum, room] : world_.rooms) {
         if (!nebbie::entity_matches(vnum, room.name, query)) {
             continue;
         }
-        addRoomListItem(room_list_, vnum, room.name);
+        auto* item = new QTreeWidgetItem(nav_rooms_);
+        setNavKind(item, NavKind::Room);
+        nebbie::qt::setRoomTreeItemData(item, vnum, room.name);
+        for (const auto& exit : room.exits) {
+            const nebbie::Room* dest = world_.find_room(exit.to_room);
+            const QString dest_name =
+                dest ? QString::fromStdString(dest->name) : QStringLiteral("?");
+            auto* exit_item = new QTreeWidgetItem(item);
+            setNavKind(exit_item, NavKind::RoomExit);
+            exit_item->setData(0, Qt::UserRole, static_cast<qlonglong>(exit.to_room));
+            exit_item->setData(0, Qt::UserRole + 1, exit.direction);
+            exit_item->setText(
+                0, QStringLiteral("%1 to #%2 (%3)")
+                       .arg(QString::fromUtf8(nebbie::exit_direction_name(exit.direction)))
+                       .arg(exit.to_room)
+                       .arg(dest_name));
+        }
     }
+    nav_rooms_->setExpanded(true);
     if (selected > 0) {
-        selectRoomByVnum(selected);
+        if (QTreeWidgetItem* item = findEntityTreeItem(nav_rooms_, selected)) {
+            nav_tree_->setCurrentItem(item);
+            selected_room_item_ = item;
+            onRoomSelected();
+        }
     }
 }
 
 void MainWindow::refreshMobList() {
-    mob_list_->clear();
+    if (!nav_mobs_) {
+        return;
+    }
+    const long selected = selected_mob_item_
+                              ? selected_mob_item_->data(0, Qt::UserRole).toLongLong()
+                              : 0;
+    const QSignalBlocker blocker(nav_tree_);
+    while (nav_mobs_->childCount() > 0) {
+        delete nav_mobs_->takeChild(0);
+    }
     const std::string query = mob_filter_.toStdString();
     for (const auto& [vnum, mob] : world_.mobiles) {
         if (!nebbie::entity_matches(vnum, mob.short_descr, query)) {
             continue;
         }
-        addListItem(mob_list_, vnum,
-                    QString("#%1 %2").arg(vnum).arg(QString::fromStdString(mob.short_descr)));
+        auto* item = new QTreeWidgetItem(nav_mobs_);
+        setNavKind(item, NavKind::Mob);
+        item->setData(0, Qt::UserRole, static_cast<qlonglong>(vnum));
+        item->setText(0, QString("#%1 %2").arg(vnum).arg(QString::fromStdString(mob.short_descr)));
+    }
+    nav_mobs_->setExpanded(true);
+    if (selected > 0) {
+        if (QTreeWidgetItem* item = findEntityTreeItem(nav_mobs_, selected)) {
+            selected_mob_item_ = item;
+            nav_tree_->setCurrentItem(item);
+            onMobSelected();
+        } else {
+            selected_mob_item_ = nullptr;
+        }
     }
 }
 
 void MainWindow::refreshObjectList() {
-    obj_list_->clear();
+    if (!nav_objects_) {
+        return;
+    }
+    const long selected = selected_obj_item_
+                              ? selected_obj_item_->data(0, Qt::UserRole).toLongLong()
+                              : 0;
+    const QSignalBlocker blocker(nav_tree_);
+    while (nav_objects_->childCount() > 0) {
+        delete nav_objects_->takeChild(0);
+    }
     const std::string query = object_filter_.toStdString();
     for (const auto& [vnum, obj] : world_.objects) {
         if (!nebbie::entity_matches(vnum, obj.short_descr, query)) {
             continue;
         }
-        addListItem(obj_list_, vnum,
-                    QString("#%1 %2").arg(vnum).arg(QString::fromStdString(obj.short_descr)));
+        auto* item = new QTreeWidgetItem(nav_objects_);
+        setNavKind(item, NavKind::Object);
+        item->setData(0, Qt::UserRole, static_cast<qlonglong>(vnum));
+        item->setText(0, QString("#%1 %2").arg(vnum).arg(QString::fromStdString(obj.short_descr)));
+    }
+    nav_objects_->setExpanded(true);
+    if (selected > 0) {
+        if (QTreeWidgetItem* item = findEntityTreeItem(nav_objects_, selected)) {
+            selected_obj_item_ = item;
+            nav_tree_->setCurrentItem(item);
+            onObjSelected();
+        } else {
+            selected_obj_item_ = nullptr;
+        }
     }
 }
 
 void MainWindow::refreshZoneList() {
+    if (!nav_zones_) {
+        return;
+    }
     const int previous_selected = currentZoneNum();
-    const bool was_sorting = zone_list_->isSortingEnabled();
-    const QSignalBlocker blocker(zone_list_);
-    zone_list_->setSortingEnabled(false);
-    zone_list_->setRowCount(static_cast<int>(world_.zones.size()));
-    for (int row = 0; row < static_cast<int>(world_.zones.size()); ++row) {
-        const auto& zone = world_.zones[static_cast<std::size_t>(row)];
-        auto* num_item = makeSortableNumericItem(zone.num, QString::number(zone.num));
-        num_item->setData(Qt::UserRole, static_cast<qlonglong>(zone.num));
-        zone_list_->setItem(row, 0, num_item);
-        zone_list_->setItem(row, 1, makeSortableTextItem(QString::fromStdString(zone.name)));
-        const QString rooms = QStringLiteral("%1-%2").arg(zone.bottom).arg(zone.top);
-        zone_list_->setItem(row, 2, makeSortableNumericItem(zone.bottom, rooms));
+    const QSignalBlocker blocker(nav_tree_);
+    while (nav_zones_->childCount() > 0) {
+        delete nav_zones_->takeChild(0);
     }
-    zone_list_->setSortingEnabled(was_sorting);
-    if (zone_list_->rowCount() > 0) {
-        int restore_row = -1;
-        for (int row = 0; row < zone_list_->rowCount(); ++row) {
-            const auto* item = zone_list_->item(row, 0);
-            if (item && item->data(Qt::UserRole).toLongLong() == previous_selected) {
-                restore_row = row;
-                break;
-            }
+    const std::string query = zone_filter_.toStdString();
+    for (const auto& zone : world_.zones) {
+        if (!query.empty()
+            && !nebbie::entity_matches(zone.num, zone.name, query)) {
+            continue;
         }
-        zone_list_->selectRow(restore_row >= 0 ? restore_row : 0);
+        auto* item = new QTreeWidgetItem(nav_zones_);
+        setNavKind(item, NavKind::Zone);
+        item->setData(0, Qt::UserRole, static_cast<qlonglong>(zone.num));
+        item->setText(0,
+                      QString("#%1 %2 [%3-%4]")
+                          .arg(zone.num)
+                          .arg(QString::fromStdString(zone.name))
+                          .arg(zone.bottom)
+                          .arg(zone.top));
     }
-    // Signals were blocked during rebuild; sync the editor for the restored row.
+    nav_zones_->setExpanded(true);
+    if (previous_selected > 0) {
+        if (QTreeWidgetItem* item = findEntityTreeItem(nav_zones_, previous_selected)) {
+            selected_zone_item_ = item;
+            nav_tree_->setCurrentItem(item);
+        } else if (nav_zones_->childCount() > 0) {
+            selected_zone_item_ = nav_zones_->child(0);
+            nav_tree_->setCurrentItem(selected_zone_item_);
+        } else {
+            selected_zone_item_ = nullptr;
+        }
+    } else if (nav_zones_->childCount() > 0) {
+        selected_zone_item_ = nav_zones_->child(0);
+        nav_tree_->setCurrentItem(selected_zone_item_);
+    }
     onZoneSelected();
 
     const int previous_zone = map_zone_->currentData().toInt();
@@ -2139,8 +2322,9 @@ void MainWindow::refreshZoneList() {
 }
 
 void MainWindow::openZoneRoomMap(int zone_num) {
-    if (map_tab_) {
-        tabs_->setCurrentWidget(map_tab_);
+    showEditorPage(kStackMap);
+    if (nav_map_) {
+        nav_tree_->setCurrentItem(nav_map_);
     }
     if (map_tabs_) {
         map_tabs_->setCurrentIndex(0);
@@ -2402,21 +2586,14 @@ void MainWindow::applyZoneChanges() {
     nebbie::assign_zone_fields(*zone, updated);
     nebbie::recompute_zone_bottoms(world_);
 
-    for (int row = 0; row < zone_list_->rowCount(); ++row) {
-        const auto* item = zone_list_->item(row, 0);
-        if (item && item->data(Qt::UserRole).toLongLong() == zone_num) {
-            zone_list_->item(row, 0)->setText(QString::number(zone->num));
-            zone_list_->item(row, 0)->setData(Qt::UserRole + 1, static_cast<qlonglong>(zone->num));
-            if (auto* name_item = zone_list_->item(row, 1)) {
-                name_item->setText(QString::fromStdString(zone->name));
-                name_item->setData(Qt::UserRole + 1, QString::fromStdString(zone->name).toLower());
-            }
-            if (auto* rooms_item = zone_list_->item(row, 2)) {
-                rooms_item->setText(QStringLiteral("%1-%2").arg(zone->bottom).arg(zone->top));
-                rooms_item->setData(Qt::UserRole + 1, static_cast<qlonglong>(zone->bottom));
-            }
-            break;
-        }
+    if (QTreeWidgetItem* item = findEntityTreeItem(nav_zones_, zone_num)) {
+        item->setText(0,
+                      QString("#%1 %2 [%3-%4]")
+                          .arg(zone->num)
+                          .arg(QString::fromStdString(zone->name))
+                          .arg(zone->bottom)
+                          .arg(zone->top));
+        selected_zone_item_ = item;
     }
     zone_editor_->loadFromZone(*zone);
     markDirty();
@@ -2425,25 +2602,25 @@ void MainWindow::applyZoneChanges() {
 }
 
 int MainWindow::currentZoneNum() const {
-    const int row = zone_list_->currentRow();
-    if (row < 0) {
-        return 0;
+    if (selected_zone_item_) {
+        return static_cast<int>(selected_zone_item_->data(0, Qt::UserRole).toLongLong());
     }
-    const auto* item = zone_list_->item(row, 0);
-    if (!item) {
-        return 0;
+    if (nav_tree_) {
+        if (QTreeWidgetItem* item = nav_tree_->currentItem()) {
+            if (navKindOf(item) == NavKind::Zone) {
+                return static_cast<int>(item->data(0, Qt::UserRole).toLongLong());
+            }
+        }
     }
-    return static_cast<int>(item->data(Qt::UserRole).toLongLong());
+    return 0;
 }
 
 void MainWindow::selectZoneByNum(const int zone_num) {
-    for (int row = 0; row < zone_list_->rowCount(); ++row) {
-        const auto* item = zone_list_->item(row, 0);
-        if (item && item->data(Qt::UserRole).toLongLong() == zone_num) {
-            zone_list_->selectRow(row);
-            tabs_->setCurrentWidget(zone_tab_);
-            return;
-        }
+    if (QTreeWidgetItem* item = findEntityTreeItem(nav_zones_, zone_num)) {
+        selected_zone_item_ = item;
+        showEditorPage(kStackZones);
+        nav_tree_->setCurrentItem(item);
+        onZoneSelected();
     }
 }
 
@@ -2462,14 +2639,14 @@ int MainWindow::preferredZoneNum() const {
             return world_.zones[static_cast<std::size_t>(room->zone_index)].num;
         }
     }
-    if (const auto* mob_item = mob_list_->currentItem()) {
-        const long mob_vnum = mob_item->data(Qt::UserRole).toLongLong();
+    if (selected_mob_item_) {
+        const long mob_vnum = selected_mob_item_->data(0, Qt::UserRole).toLongLong();
         if (const nebbie::Zone* zone = world_.zone_for_vnum(mob_vnum)) {
             return zone->num;
         }
     }
-    if (const auto* obj_item = obj_list_->currentItem()) {
-        const long obj_vnum = obj_item->data(Qt::UserRole).toLongLong();
+    if (selected_obj_item_) {
+        const long obj_vnum = selected_obj_item_->data(0, Qt::UserRole).toLongLong();
         if (const nebbie::Zone* zone = world_.zone_for_vnum(obj_vnum)) {
             return zone->num;
         }
@@ -2895,56 +3072,164 @@ void MainWindow::reserveVnums() {
 }
 
 long MainWindow::currentRoomVnum() const {
-    const auto* item = room_list_->currentItem();
-    if (!item) {
-        return 0;
+    if (selected_room_item_) {
+        return static_cast<long>(selected_room_item_->data(0, Qt::UserRole).toLongLong());
     }
-    return static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    if (nav_tree_) {
+        if (QTreeWidgetItem* item = nav_tree_->currentItem()) {
+            if (navKindOf(item) == NavKind::Room) {
+                return static_cast<long>(item->data(0, Qt::UserRole).toLongLong());
+            }
+        }
+    }
+    return 0;
 }
 
 void MainWindow::selectRoomByVnum(const long vnum) {
-    for (int i = 0; i < room_list_->count(); ++i) {
-        if (room_list_->item(i)->data(Qt::UserRole).toLongLong() == vnum) {
-            room_list_->setCurrentRow(i);
-            tabs_->setCurrentIndex(0);
-            return;
-        }
+    if (QTreeWidgetItem* item = findEntityTreeItem(nav_rooms_, vnum)) {
+        selected_room_item_ = item;
+        showEditorPage(kStackRooms);
+        nav_tree_->setCurrentItem(item);
+        onRoomSelected();
     }
 }
 
 void MainWindow::selectMobByVnum(const long vnum) {
-    for (int i = 0; i < mob_list_->count(); ++i) {
-        if (mob_list_->item(i)->data(Qt::UserRole).toLongLong() == vnum) {
-            mob_list_->setCurrentRow(i);
-            tabs_->setCurrentIndex(1);
-            return;
-        }
+    if (QTreeWidgetItem* item = findEntityTreeItem(nav_mobs_, vnum)) {
+        selected_mob_item_ = item;
+        showEditorPage(kStackMobs);
+        nav_tree_->setCurrentItem(item);
+        onMobSelected();
     }
 }
 
 void MainWindow::selectObjectByVnum(const long vnum) {
-    for (int i = 0; i < obj_list_->count(); ++i) {
-        if (obj_list_->item(i)->data(Qt::UserRole).toLongLong() == vnum) {
-            obj_list_->setCurrentRow(i);
-            tabs_->setCurrentIndex(2);
-            return;
-        }
+    if (QTreeWidgetItem* item = findEntityTreeItem(nav_objects_, vnum)) {
+        selected_obj_item_ = item;
+        showEditorPage(kStackObjects);
+        nav_tree_->setCurrentItem(item);
+        onObjSelected();
     }
 }
 
-void MainWindow::onRoomSearchChanged(const QString& text) {
-    room_filter_ = text.trimmed();
-    refreshRoomList();
+void MainWindow::onEntitySearchChanged(const QString& text) {
+    const QString query = text.trimmed();
+    QTreeWidgetItem* item = nav_tree_ ? nav_tree_->currentItem() : nullptr;
+    NavKind kind = navKindOf(item);
+    if (item && item->parent()) {
+        const NavKind parent_kind = navKindOf(item->parent());
+        if (parent_kind == NavKind::CatRooms || parent_kind == NavKind::CatMobs
+            || parent_kind == NavKind::CatObjects || parent_kind == NavKind::CatZones) {
+            kind = parent_kind;
+        }
+    }
+    if (kind == NavKind::Room || kind == NavKind::CatRooms) {
+        room_filter_ = query;
+        refreshRoomList();
+    } else if (kind == NavKind::Mob || kind == NavKind::CatMobs) {
+        mob_filter_ = query;
+        refreshMobList();
+    } else if (kind == NavKind::Object || kind == NavKind::CatObjects) {
+        object_filter_ = query;
+        refreshObjectList();
+    } else if (kind == NavKind::Zone || kind == NavKind::CatZones) {
+        zone_filter_ = query;
+        refreshZoneList();
+    }
 }
 
-void MainWindow::onMobSearchChanged(const QString& text) {
-    mob_filter_ = text.trimmed();
-    refreshMobList();
+void MainWindow::onEntityCreateClicked() {
+    QTreeWidgetItem* item = nav_tree_ ? nav_tree_->currentItem() : nullptr;
+    NavKind kind = navKindOf(item);
+    if (item && item->parent()) {
+        const NavKind parent_kind = navKindOf(item->parent());
+        if (parent_kind == NavKind::CatRooms || parent_kind == NavKind::CatMobs
+            || parent_kind == NavKind::CatObjects || parent_kind == NavKind::CatZones) {
+            kind = parent_kind;
+        }
+    }
+    if (kind == NavKind::Room || kind == NavKind::CatRooms) {
+        createRoom();
+    } else if (kind == NavKind::Mob || kind == NavKind::CatMobs) {
+        createMob();
+    } else if (kind == NavKind::Object || kind == NavKind::CatObjects) {
+        createObject();
+    } else if (kind == NavKind::Zone || kind == NavKind::CatZones) {
+        createZone();
+    }
 }
 
-void MainWindow::onObjSearchChanged(const QString& text) {
-    object_filter_ = text.trimmed();
-    refreshObjectList();
+void MainWindow::onNavTreeSelectionChanged() {
+    QTreeWidgetItem* item = nav_tree_ ? nav_tree_->currentItem() : nullptr;
+    if (!item) {
+        return;
+    }
+    switch (navKindOf(item)) {
+    case NavKind::CatRooms:
+        showEditorPage(kStackRooms);
+        break;
+    case NavKind::Room:
+        selected_room_item_ = item;
+        showEditorPage(kStackRooms);
+        onRoomSelected();
+        break;
+    case NavKind::RoomExit: {
+        if (item->parent()) {
+            selected_room_item_ = item->parent();
+            showEditorPage(kStackRooms);
+            onRoomSelected();
+            const int direction = item->data(0, Qt::UserRole + 1).toInt();
+            room_editor_->focusExitTab(direction);
+        }
+        break;
+    }
+    case NavKind::CatMobs:
+        showEditorPage(kStackMobs);
+        break;
+    case NavKind::Mob:
+        selected_mob_item_ = item;
+        showEditorPage(kStackMobs);
+        onMobSelected();
+        break;
+    case NavKind::CatObjects:
+        showEditorPage(kStackObjects);
+        break;
+    case NavKind::Object:
+        selected_obj_item_ = item;
+        showEditorPage(kStackObjects);
+        onObjSelected();
+        break;
+    case NavKind::CatZones:
+        showEditorPage(kStackZones);
+        break;
+    case NavKind::Zone:
+        selected_zone_item_ = item;
+        showEditorPage(kStackZones);
+        onZoneSelected();
+        break;
+    case NavKind::CatWorld:
+    case NavKind::PageShops:
+        showEditorPage(kStackShops);
+        if (nav_shops_ && navKindOf(item) == NavKind::CatWorld) {
+            nav_tree_->setCurrentItem(nav_shops_);
+        }
+        break;
+    case NavKind::PageSpecials:
+        showEditorPage(kStackSpecials);
+        break;
+    case NavKind::PageGlobal:
+        showEditorPage(kStackGlobal);
+        break;
+    case NavKind::PageMap:
+        showEditorPage(kStackMap);
+        break;
+    case NavKind::PageValidation:
+        showEditorPage(kStackValidation);
+        break;
+    default:
+        break;
+    }
+    updateNavCreateAction();
 }
 
 void MainWindow::onRoomSelected() {
@@ -2959,11 +3244,11 @@ void MainWindow::onRoomSelected() {
     room_editor_->loadFromRoom(*room);
 }
 
-void MainWindow::persistRoomEditorState(QListWidgetItem* item) {
+void MainWindow::persistRoomEditorState(QTreeWidgetItem* item) {
     if (!item) {
         return;
     }
-    const long vnum = static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    const long vnum = static_cast<long>(item->data(0, Qt::UserRole).toLongLong());
     nebbie::Room* room = world_.find_room(vnum);
     if (!room) {
         return;
@@ -2977,16 +3262,15 @@ void MainWindow::persistRoomEditorState(QListWidgetItem* item) {
 
     nebbie::assign_room_fields(*room, updated);
     dirty_room_vnums_.insert(vnum);
-    nebbie::qt::refreshRoomListItemData(item, vnum, room->name);
+    nebbie::qt::refreshRoomTreeItemData(item, vnum, room->name);
     markDirty();
 }
 
 void MainWindow::onMobSelected() {
-    const auto* item = mob_list_->currentItem();
-    if (!item) {
+    if (!selected_mob_item_) {
         return;
     }
-    const long vnum = static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    const long vnum = static_cast<long>(selected_mob_item_->data(0, Qt::UserRole).toLongLong());
     const nebbie::Mobile* mob = world_.find_mobile(vnum);
     if (!mob) {
         return;
@@ -2995,11 +3279,10 @@ void MainWindow::onMobSelected() {
 }
 
 void MainWindow::onObjSelected() {
-    const auto* item = obj_list_->currentItem();
-    if (!item) {
+    if (!selected_obj_item_) {
         return;
     }
-    const long vnum = static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    const long vnum = static_cast<long>(selected_obj_item_->data(0, Qt::UserRole).toLongLong());
     const nebbie::GameObject* obj = world_.find_object(vnum);
     if (!obj) {
         return;
@@ -3066,12 +3349,12 @@ void MainWindow::goToExitTarget() {
 }
 
 void MainWindow::applyRoomChanges() {
-    auto* item = room_list_->currentItem();
+    QTreeWidgetItem* item = selected_room_item_;
     if (!item) {
         QMessageBox::information(this, "Rooms", "Select a room.");
         return;
     }
-    const long vnum = static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    const long vnum = static_cast<long>(item->data(0, Qt::UserRole).toLongLong());
 
     nebbie::Room* room = world_.find_room(vnum);
     if (!room) {
@@ -3105,7 +3388,7 @@ void MainWindow::applyRoomChanges() {
         }
     }
 
-    nebbie::qt::refreshRoomListItemData(item, vnum, room->name);
+    nebbie::qt::refreshRoomTreeItemData(item, vnum, room->name);
     markDirty();
     dirty_room_vnums_.insert(vnum);
     if (aligned > 0) {
@@ -3278,7 +3561,6 @@ void MainWindow::navigateToRoomExit(const long vnum, const int direction) {
         setStatus(QString("Stanza #%1 non trovata nella libreria.").arg(vnum));
         return;
     }
-    tabs_->setCurrentIndex(0);
     selectRoomByVnum(vnum);
     room_editor_->focusExitTab(direction);
 }
@@ -3342,24 +3624,24 @@ void MainWindow::refreshRoomEditorIfInboundExitsChanged(long target_vnum) {
 }
 
 void MainWindow::flushPendingEditorChanges() {
-    if (room_list_->currentItem()) {
+    if (selected_room_item_) {
         applyRoomChanges();
     }
-    if (mob_list_->currentItem()) {
+    if (selected_mob_item_) {
         applyMobChanges();
     }
-    if (obj_list_->currentItem()) {
+    if (selected_obj_item_) {
         applyObjChanges();
     }
 }
 
 void MainWindow::applyMobChanges() {
-    auto* item = mob_list_->currentItem();
+    QTreeWidgetItem* item = selected_mob_item_;
     if (!item) {
         QMessageBox::information(this, "Mob", "Seleziona un mobile.");
         return;
     }
-    const long vnum = static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    const long vnum = static_cast<long>(item->data(0, Qt::UserRole).toLongLong());
 
     nebbie::Mobile* mob = world_.find_mobile(vnum);
     if (!mob) {
@@ -3371,19 +3653,19 @@ void MainWindow::applyMobChanges() {
     mob_editor_->saveToMobile(updated);
     nebbie::assign_mobile_fields(*mob, updated);
 
-    item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(mob->short_descr)));
+    item->setText(0, QString("#%1 %2").arg(vnum).arg(QString::fromStdString(mob->short_descr)));
     markDirty();
     dirty_mobile_vnums_.insert(vnum);
     setStatus(QString("Mobile %1 aggiornato in memoria.").arg(vnum));
 }
 
 void MainWindow::applyObjChanges() {
-    auto* item = obj_list_->currentItem();
+    QTreeWidgetItem* item = selected_obj_item_;
     if (!item) {
         QMessageBox::information(this, "Oggetti", "Seleziona un oggetto.");
         return;
     }
-    const long vnum = static_cast<long>(item->data(Qt::UserRole).toLongLong());
+    const long vnum = static_cast<long>(item->data(0, Qt::UserRole).toLongLong());
 
     nebbie::GameObject* obj = world_.find_object(vnum);
     if (!obj) {
@@ -3395,7 +3677,7 @@ void MainWindow::applyObjChanges() {
     obj_editor_->saveToObject(updated);
     nebbie::assign_object_fields(*obj, updated);
 
-    item->setText(QString("#%1 %2").arg(vnum).arg(QString::fromStdString(obj->short_descr)));
+    item->setText(0, QString("#%1 %2").arg(vnum).arg(QString::fromStdString(obj->short_descr)));
     markDirty();
     dirty_object_vnums_.insert(vnum);
     setStatus(QString("Oggetto %1 aggiornato in memoria.").arg(vnum));
@@ -3612,7 +3894,10 @@ void MainWindow::showValidation(const nebbie::ValidationReport& report, const QS
         }
     }
 
-    tabs_->setCurrentWidget(validation_tab_);
+    showEditorPage(kStackValidation);
+    if (nav_validation_) {
+        nav_tree_->setCurrentItem(nav_validation_);
+    }
 
     if (report.issues.empty() && context.isEmpty()) {
         return;
@@ -3634,29 +3919,24 @@ void MainWindow::showValidation(const nebbie::ValidationReport& report, const QS
 void MainWindow::navigateToIssue(const nebbie::ValidationIssue& issue) {
     switch (issue.target) {
     case nebbie::ValidationTarget::room:
-        tabs_->setCurrentIndex(0);
         selectRoomByVnum(issue.target_vnum);
         break;
     case nebbie::ValidationTarget::mob:
-        tabs_->setCurrentIndex(1);
         selectMobByVnum(issue.target_vnum);
         break;
     case nebbie::ValidationTarget::object:
-        tabs_->setCurrentIndex(2);
         selectObjectByVnum(issue.target_vnum);
         break;
     case nebbie::ValidationTarget::zone:
-        if (zone_tab_) {
-            tabs_->setCurrentWidget(zone_tab_);
-        }
         selectZoneByNum(issue.zone_num);
         if (issue.reset_index >= 0 && zone_editor_) {
             zone_editor_->selectResetIndex(issue.reset_index);
         }
         break;
     case nebbie::ValidationTarget::shop:
-        if (shops_tab_) {
-            tabs_->setCurrentWidget(shops_tab_);
+        showEditorPage(kStackShops);
+        if (nav_shops_) {
+            nav_tree_->setCurrentItem(nav_shops_);
         }
         if (shops_editor_) {
             shops_editor_->selectShop(issue.target_vnum);

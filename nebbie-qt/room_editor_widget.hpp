@@ -1,16 +1,23 @@
 #pragma once
 
 #include "nebbie/types.hpp"
+#include "nebbie/world.hpp"
 
 #include <QWidget>
+
+#include <optional>
+#include <vector>
 
 class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QListWidgetItem;
+class QPushButton;
 class QSpinBox;
 class QFrame;
+class QTabWidget;
 class FlagGroupWidget;
 
 namespace nebbie::qt {
@@ -24,11 +31,13 @@ public:
     explicit RoomEditorWidget(QWidget* parent = nullptr);
     ~RoomEditorWidget() override;
 
+    void setWorld(nebbie::World* world);
     void loadFromRoom(const nebbie::Room& room);
     void saveToRoom(nebbie::Room& room);
     void setMaxLineLength(int max_length);
     void setShowColorCodes(bool show);
     bool showColorCodes() const { return show_color_codes_; }
+    void refreshSummaryFromWorld();
 
     nebbie::qt::MudColorTextEdit* focusedMudField() const;
     /** Accents/curly apostrophes → mud ASCII in all room text fields. Returns true if anything changed. */
@@ -37,9 +46,14 @@ public:
     long selectedExitToRoom() const;
     int selectedExitDirection() const;
     void focusExitTab(int direction);
+    long currentRoomVnum() const { return current_vnum_; }
 
 signals:
     void alignExitLabelRequested();
+    void gotoRoomRequested(long vnum);
+    void gotoMobRequested(long vnum);
+    void gotoObjectRequested(long vnum);
+    void zoneResetsModified(int zone_num);
 
 private slots:
     void onExtraDescSelected();
@@ -50,6 +64,14 @@ private slots:
     void addOrUpdateExit();
     void removeExit();
     void updateTextMonitors();
+    void onEnteredFromGoto();
+    void onReferenceGoto();
+    void onAddExitFromSummary();
+    void onAddMobReset();
+    void onAddObjectReset();
+    void onRemoveReset();
+    void onEquipMob();
+    void onGiveToMob();
 
 private:
     void updateConditionalFields();
@@ -61,16 +83,41 @@ private:
     void applyColorSettingsToFields();
     void hookMudField(nebbie::qt::MudColorTextEdit* field);
     void scrollToSection(QWidget* section);
+    void rebuildSummaryLists();
+    void syncSummaryHeaderFromEditors();
+    int currentZoneNum() const;
+    std::optional<std::size_t> selectedResetIndex() const;
+    std::optional<std::size_t> selectedMobResetIndex() const;
 
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
     bool loading_ = false;
+    long current_vnum_ = 0;
+    nebbie::World* world_ = nullptr;
+
+    QTabWidget* room_tabs_ = nullptr;
+    QWidget* summary_section_ = nullptr;
     QWidget* text_section_ = nullptr;
     QWidget* sector_section_ = nullptr;
     QWidget* teleport_section_ = nullptr;
     QWidget* environment_section_ = nullptr;
     QWidget* extra_section_ = nullptr;
     QWidget* exits_section_ = nullptr;
+
+    QLineEdit* summary_vnum_ = nullptr;
+    QLineEdit* summary_type_ = nullptr;
+    QLineEdit* summary_name_ = nullptr;
+    QLineEdit* summary_flags_ = nullptr;
+    QListWidget* entered_from_list_ = nullptr;
+    QListWidget* references_list_ = nullptr;
+    QPushButton* entered_goto_button_ = nullptr;
+    QPushButton* add_exit_button_ = nullptr;
+    QPushButton* ref_goto_button_ = nullptr;
+    QPushButton* add_mob_button_ = nullptr;
+    QPushButton* add_object_button_ = nullptr;
+    QPushButton* remove_reset_button_ = nullptr;
+    QPushButton* equip_button_ = nullptr;
+    QPushButton* give_button_ = nullptr;
 
     nebbie::qt::MudColorTextEdit* name_ = nullptr;
     QLabel* name_line_info_ = nullptr;

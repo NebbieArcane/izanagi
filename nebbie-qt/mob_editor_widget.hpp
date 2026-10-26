@@ -11,6 +11,7 @@ class QCheckBox;
 class QComboBox;
 class QGroupBox;
 class QLabel;
+class QPlainTextEdit;
 class QSpinBox;
 class FlagGroupWidget;
 
@@ -38,6 +39,7 @@ private:
     void updateDamageEstimate();
     void updateEnglishLexiconBanner();
     void updateTildeNewlineHints();
+    void updateSummaryView();
     void migrateCombatFieldsForTypeChange(char from_type, char to_type);
 
     char last_mobtype_ = 'A';
@@ -47,6 +49,7 @@ private:
     int max_line_length_ = 0;
     bool show_color_codes_ = false;
 
+    QPlainTextEdit* summary_view_ = nullptr;
     QLabel* english_lexicon_banner_ = nullptr;
     nebbie::qt::MudColorTextEdit* name_ = nullptr;
     nebbie::qt::MudColorTextEdit* short_descr_ = nullptr;

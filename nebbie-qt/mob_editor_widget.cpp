@@ -14,6 +14,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPlainTextEdit>
 #include <QRegularExpression>
 #include <QScrollArea>
 #include <QSizePolicy>
@@ -169,7 +170,18 @@ void setComboTypeValue(QComboBox* combo, char mobtype) {
 MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
     auto* tabs = new QTabWidget;
+    tabs->setObjectName(QStringLiteral("smaugStyleTabs"));
 
+    // --- Summary (SMAUG-like read-only overview) ---
+    auto* summary_tab = new QWidget;
+    auto* summary_layout = new QVBoxLayout(summary_tab);
+    summary_view_ = new QPlainTextEdit(summary_tab);
+    summary_view_->setReadOnly(true);
+    summary_view_->setLineWrapMode(QPlainTextEdit::WidgetWidth);
+    summary_layout->addWidget(summary_view_);
+    tabs->addTab(summary_tab, QStringLiteral("Summary"));
+
+    // --- Name ---
     auto* text_tab = new QWidget;
     auto* text_form = new QFormLayout(text_tab);
     english_lexicon_banner_ = nebbie::qt::makeTextMonitorLabel();
@@ -187,6 +199,10 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     description_->setRequireTrailingNewline(false);
     description_->refreshTrailingNewlineToolTip();
     description_tilde_hint_ = nebbie::qt::makeTextMonitorLabel();
+    sex_ = new QComboBox;
+    fillCombo(sex_, nebbie::mob_sex_choices());
+    level_ = new QSpinBox;
+    level_->setRange(0, 200);
     text_form->addRow(makeLegend(
         "Marker \u21b5: verde = Invio finale corretto (~ sotto nel file); "
         "rosso in coda = togli l'Invio (~ sulla stessa riga). "
@@ -194,14 +210,22 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
         "Description a una riga: niente Invio finale; se ha piu' paragrafi, ne serve uno.",
         text_tab));
     text_form->addRow(english_lexicon_banner_);
+    auto* name_top = new QHBoxLayout;
+    name_top->addWidget(new QLabel(QStringLiteral("Level:")));
+    name_top->addWidget(level_);
+    name_top->addWidget(new QLabel(QStringLiteral("Sex:")));
+    name_top->addWidget(sex_);
+    name_top->addStretch();
+    text_form->addRow(name_top);
     text_form->addRow("Name (keywords~):", name_);
     text_form->addRow("Short description:", short_descr_);
     text_form->addRow("Long description:", long_descr_);
     text_form->addRow("", long_descr_tilde_hint_);
     text_form->addRow("Description:", description_);
     text_form->addRow("", description_tilde_hint_);
-    tabs->addTab(text_tab, "Text");
+    tabs->addTab(text_tab, QStringLiteral("Name"));
 
+    // --- Stats (combat) ---
     auto* combat_tab = new QWidget;
     auto* combat_layout = new QVBoxLayout(combat_tab);
     combat_layout->addWidget(makeLegend(
@@ -213,8 +237,6 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     fillTypeCombo(mobtype_);
     mult_att_ = new QSpinBox;
     mult_att_->setRange(1, 20);
-    level_ = new QSpinBox;
-    level_->setRange(0, 200);
     hitroll_ = new QSpinBox;
     hitroll_->setRange(-50, 50);
     ac_ = new QSpinBox;
@@ -231,7 +253,6 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
 
     combat_form->addRow("Mob type:", mobtype_);
     combat_form->addRow("Number of attacks (mult_att):", mult_att_);
-    combat_form->addRow("Level:", level_);
     combat_form->addRow("Hitroll:", hitroll_);
     combat_form->addRow("Armor class:", ac_);
     combat_form->addRow("Hit dice (type S):", hit_dice_row_);
@@ -247,8 +268,31 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     damage_estimate_->setTextInteractionFlags(Qt::TextSelectableByMouse);
     sim_layout->addWidget(damage_estimate_);
     combat_layout->addWidget(damage_sim_box_);
-    tabs->addTab(combat_tab, "Combat");
+    tabs->addTab(combat_tab, QStringLiteral("Stats"));
 
+    // --- Actions ---
+    auto* actions_tab = new QWidget;
+    auto* actions_layout = new QVBoxLayout(actions_tab);
+    act_flags_ = new FlagGroupWidget(nebbie::mob_act_flags(), actions_tab, 3,
+                                     FlagGroupWidget::Mode::DualList);
+    actions_layout->addWidget(act_flags_, 1);
+    auto* actions_scroll = new QScrollArea;
+    actions_scroll->setWidgetResizable(true);
+    actions_scroll->setWidget(actions_tab);
+    tabs->addTab(actions_scroll, QStringLiteral("Actions"));
+
+    // --- Affected by ---
+    auto* affected_tab = new QWidget;
+    auto* affected_layout = new QVBoxLayout(affected_tab);
+    affected_flags_ = new FlagGroupWidget(nebbie::mob_affected_flags(), affected_tab, 3,
+                                          FlagGroupWidget::Mode::DualList);
+    affected_layout->addWidget(affected_flags_, 1);
+    auto* affected_scroll = new QScrollArea;
+    affected_scroll->setWidgetResizable(true);
+    affected_scroll->setWidget(affected_tab);
+    tabs->addTab(affected_scroll, QStringLiteral("Affected by"));
+
+    // --- Economy ---
     auto* economy_tab = new QWidget;
     auto* economy_layout = new QVBoxLayout(economy_tab);
     economy_legend_ = makeLegend(
@@ -285,62 +329,47 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     economy_form->addRow("Race:", race_row_);
     exp_warning_ = new QLabel(economy_tab);
     exp_warning_->setWordWrap(true);
-    exp_warning_->setStyleSheet("color: #c0392b; font-weight: bold;");
+    exp_warning_->setStyleSheet("color: #ff6666; font-weight: bold;");
     exp_warning_->hide();
     economy_layout->addLayout(economy_form);
     economy_layout->addWidget(exp_warning_);
-    tabs->addTab(economy_tab, "Economy");
+    tabs->addTab(economy_tab, QStringLiteral("Economy"));
 
-    auto* behavior_tab = new QWidget;
-    auto* behavior_layout = new QVBoxLayout(behavior_tab);
-    act_flags_ = new FlagGroupWidget(nebbie::mob_act_flags(), behavior_tab, 3);
-    affected_flags_ = new FlagGroupWidget(nebbie::mob_affected_flags(), behavior_tab, 3);
-    behavior_layout->addWidget(new QLabel("Action flags (act)"));
-    behavior_layout->addWidget(act_flags_);
-    behavior_layout->addWidget(new QLabel("Affect flags (affected_by)"));
-    behavior_layout->addWidget(affected_flags_);
-    tabs->addTab(new QScrollArea, "Behavior");
-    {
-        auto* scroll = qobject_cast<QScrollArea*>(tabs->widget(3));
-        scroll->setWidgetResizable(true);
-        scroll->setWidget(behavior_tab);
-    }
-
+    // --- Resistant / Immune / Susceptible ---
     auto* resist_tab = new QWidget;
     auto* resist_layout = new QVBoxLayout(resist_tab);
     position_ = new QComboBox;
     default_pos_ = new QComboBox;
     fillCombo(position_, nebbie::mob_position_choices());
     fillCombo(default_pos_, nebbie::mob_position_choices());
-    sex_ = new QComboBox;
-    fillCombo(sex_, nebbie::mob_sex_choices());
     extended_sex_ = new QCheckBox("Extended line with immune / M_immune / susceptible");
     immunity_panel_ = new QWidget(resist_tab);
     auto* immunity_layout = new QVBoxLayout(immunity_panel_);
-    immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3);
-    meta_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3);
-    susceptible_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3);
-    immunity_layout->addWidget(new QLabel("Resistances (immune)"));
+    immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3,
+                                        FlagGroupWidget::Mode::DualList);
+    meta_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3,
+                                             FlagGroupWidget::Mode::DualList);
+    susceptible_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3,
+                                             FlagGroupWidget::Mode::DualList);
+    immunity_layout->addWidget(new QLabel("Resistant (immune)"));
     immunity_layout->addWidget(immune_flags_);
-    immunity_layout->addWidget(new QLabel("Immunities (M_immune)"));
+    immunity_layout->addWidget(new QLabel("Immune (M_immune)"));
     immunity_layout->addWidget(meta_immune_flags_);
-    immunity_layout->addWidget(new QLabel("Susceptibilities"));
+    immunity_layout->addWidget(new QLabel("Susceptible"));
     immunity_layout->addWidget(susceptible_flags_);
 
     auto* resist_form = new QFormLayout;
     resist_form->addRow("Position:", position_);
     resist_form->addRow("Default position:", default_pos_);
-    resist_form->addRow("Sex:", sex_);
     resist_form->addRow(extended_sex_);
     resist_layout->addLayout(resist_form);
     resist_layout->addWidget(immunity_panel_);
-    tabs->addTab(new QScrollArea, "Position / Resistances");
-    {
-        auto* scroll = qobject_cast<QScrollArea*>(tabs->widget(4));
-        scroll->setWidgetResizable(true);
-        scroll->setWidget(resist_tab);
-    }
+    auto* resist_scroll = new QScrollArea;
+    resist_scroll->setWidgetResizable(true);
+    resist_scroll->setWidget(resist_tab);
+    tabs->addTab(resist_scroll, QStringLiteral("Resistant"));
 
+    // --- Sounds ---
     auto* sound_tab = new QWidget;
     auto* sound_form = new QFormLayout(sound_tab);
     sounds_ = new nebbie::qt::MudColorTextEdit;
@@ -354,7 +383,7 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     sound_form->addRow("Distant sounds:", distant_sounds_);
     sound_form->addRow("Extra sounds:", extra_sounds_);
     sounds_panel_ = sound_tab;
-    tabs->addTab(sound_tab, "Sounds");
+    tabs->addTab(sound_tab, QStringLiteral("Sounds"));
 
     root->addWidget(tabs);
 
@@ -392,6 +421,57 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
         });
     }
     updateTildeNewlineHints();
+}
+
+
+void MobEditorWidget::updateSummaryView() {
+    if (!summary_view_) {
+        return;
+    }
+    auto flag_labels = [](FlagGroupWidget* flags, const std::vector<nebbie::MobFlagDef>& defs) {
+        if (!flags) {
+            return QString();
+        }
+        const long value = flags->value();
+        QStringList parts;
+        for (const auto& def : defs) {
+            if ((value & def.value) != 0) {
+                parts << QString::fromUtf8(def.label);
+            }
+        }
+        return parts.isEmpty() ? QStringLiteral("(none)") : parts.join(QStringLiteral(" "));
+    };
+
+    QString text;
+    text += QStringLiteral("Level: %1\n").arg(level_ ? level_->value() : 0);
+    text += QStringLiteral("Sex: %1\n").arg(sex_ ? sex_->currentText() : QString());
+    text += QStringLiteral("Name: %1\n").arg(name_ ? name_->storageText() : QString());
+    text += QStringLiteral("Short description: %1\n")
+                .arg(short_descr_ ? short_descr_->storageText() : QString());
+    text += QStringLiteral("Long description: %1\n")
+                .arg(long_descr_ ? long_descr_->storageText().trimmed() : QString());
+    text += QStringLiteral("Actions: %1\n")
+                .arg(flag_labels(act_flags_, nebbie::mob_act_flags()));
+    text += QStringLiteral("Affected by: %1\n")
+                .arg(flag_labels(affected_flags_, nebbie::mob_affected_flags()));
+    text += QStringLiteral("Stats: type %1, hitroll %2, AC %3, dam %4d%5+%6\n")
+                .arg(mobtype_ ? mobtype_->currentText() : QString())
+                .arg(hitroll_ ? hitroll_->value() : 0)
+                .arg(ac_ ? ac_->value() : 0)
+                .arg(dam_num_ ? dam_num_->value() : 0)
+                .arg(dam_size_ ? dam_size_->value() : 0)
+                .arg(dam_plus_ ? dam_plus_->value() : 0);
+    text += QStringLiteral("Resistant: %1\n")
+                .arg(flag_labels(immune_flags_, nebbie::mob_immunity_flags()));
+    text += QStringLiteral("Immune: %1\n")
+                .arg(flag_labels(meta_immune_flags_, nebbie::mob_immunity_flags()));
+    text += QStringLiteral("Susceptible: %1\n")
+                .arg(flag_labels(susceptible_flags_, nebbie::mob_immunity_flags()));
+    text += QStringLiteral("Gold: %1   Exp/bonus: %2   Align: %3\n")
+                .arg(gold_ ? gold_->value() : 0)
+                .arg(exp_ ? exp_->value() : 0)
+                .arg(alignment_ ? alignment_->value() : 0);
+    summary_view_->setPlainText(text);
 }
 
 void MobEditorWidget::updateEnglishLexiconBanner() {
@@ -648,6 +728,7 @@ void MobEditorWidget::loadFromMobile(const nebbie::Mobile& mob) {
     updateDamageEstimate();
     updateEnglishLexiconBanner();
     updateTildeNewlineHints();
+    updateSummaryView();
 }
 
 void MobEditorWidget::saveToMobile(nebbie::Mobile& mob) const {

@@ -33,6 +33,9 @@ class QNetworkAccessManager;
 class QTabWidget;
 class QListWidget;
 class QListWidgetItem;
+class QTreeWidget;
+class QTreeWidgetItem;
+class QStackedWidget;
 class QLineEdit;
 class QTextEdit;
 class QSpinBox;
@@ -97,9 +100,9 @@ private slots:
     void createObject();
     void createZone();
     void refreshWorldDataEditors();
-    void onRoomSearchChanged(const QString& text);
-    void onMobSearchChanged(const QString& text);
-    void onObjSearchChanged(const QString& text);
+    void onEntitySearchChanged(const QString& text);
+    void onNavTreeSelectionChanged();
+    void onEntityCreateClicked();
     void goToExitTarget();
     void onZoneSelected();
     void configureCoordinator();
@@ -163,8 +166,13 @@ private:
     int currentZoneNum() const;
     void selectZoneByNum(int zone_num);
     void reloadRoomEditor(long vnum);
-    void persistRoomEditorState(QListWidgetItem* item);
+    void persistRoomEditorState(QTreeWidgetItem* item);
     void refreshRoomEditorIfInboundExitsChanged(long target_vnum);
+    void showEditorPage(int stack_index);
+    void updateNavCreateAction();
+    QTreeWidgetItem* findEntityTreeItem(QTreeWidgetItem* category, long id) const;
+    void selectNavCategory(QTreeWidgetItem* category);
+    void rebuildNavCategoryLabels();
     void selectRoomByVnum(long vnum);
     void selectMobByVnum(long vnum);
     void selectObjectByVnum(long vnum);
@@ -212,12 +220,24 @@ private:
     QString room_filter_;
     QString mob_filter_;
     QString object_filter_;
+    QString zone_filter_;
 
     QLabel* lib_label_ = nullptr;
-    QTabWidget* tabs_ = nullptr;
-    QPushButton* room_create_button_ = nullptr;
-    QPushButton* mob_create_button_ = nullptr;
-    QPushButton* obj_create_button_ = nullptr;
+    QTreeWidget* nav_tree_ = nullptr;
+    QStackedWidget* editor_stack_ = nullptr;
+    QTreeWidgetItem* nav_root_ = nullptr;
+    QTreeWidgetItem* nav_rooms_ = nullptr;
+    QTreeWidgetItem* nav_mobs_ = nullptr;
+    QTreeWidgetItem* nav_objects_ = nullptr;
+    QTreeWidgetItem* nav_zones_ = nullptr;
+    QTreeWidgetItem* nav_world_ = nullptr;
+    QTreeWidgetItem* nav_shops_ = nullptr;
+    QTreeWidgetItem* nav_specials_ = nullptr;
+    QTreeWidgetItem* nav_global_ = nullptr;
+    QTreeWidgetItem* nav_map_ = nullptr;
+    QTreeWidgetItem* nav_validation_ = nullptr;
+    QLineEdit* entity_search_ = nullptr;
+    QPushButton* entity_create_button_ = nullptr;
     QPushButton* room_apply_button_ = nullptr;
     QPushButton* room_sync_exits_button_ = nullptr;
     QPushButton* room_align_all_exits_button_ = nullptr;
@@ -225,22 +245,15 @@ private:
     QPushButton* mob_apply_button_ = nullptr;
     QPushButton* obj_apply_button_ = nullptr;
     QPushButton* zone_apply_button_ = nullptr;
-    QPushButton* zone_create_button_ = nullptr;
 
-    QListWidget* room_list_ = nullptr;
-    QLineEdit* room_search_ = nullptr;
     RoomEditorWidget* room_editor_ = nullptr;
-
-    QListWidget* mob_list_ = nullptr;
-    QLineEdit* mob_search_ = nullptr;
     MobEditorWidget* mob_editor_ = nullptr;
-
-    QListWidget* obj_list_ = nullptr;
-    QLineEdit* obj_search_ = nullptr;
     ObjEditorWidget* obj_editor_ = nullptr;
-
-    QTableWidget* zone_list_ = nullptr;
     ZoneEditorWidget* zone_editor_ = nullptr;
+    QTreeWidgetItem* selected_room_item_ = nullptr;
+    QTreeWidgetItem* selected_mob_item_ = nullptr;
+    QTreeWidgetItem* selected_obj_item_ = nullptr;
+    QTreeWidgetItem* selected_zone_item_ = nullptr;
 
     nebbie::SessionConfig session_config_;
     std::chrono::system_clock::time_point last_version_time_{};

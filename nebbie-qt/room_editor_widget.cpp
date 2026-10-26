@@ -1,6 +1,11 @@
 #include "room_editor_widget.hpp"
 
 #include "flag_group_widget.hpp"
+#include <QInputDialog>
+#include <QMessageBox>
+#include "nebbie/zone_catalog.hpp"
+#include "nebbie/edit.hpp"
+#include "entity_picker_dialog.hpp"
 #include "mud_color_widgets.hpp"
 #include "nebbie/mob_catalog.hpp"
 #include "nebbie/mud_text.hpp"
@@ -14,6 +19,7 @@
 #include <QComboBox>
 #include <QFormLayout>
 #include <QFrame>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -23,6 +29,7 @@
 #include <QSignalBlocker>
 #include <QSizePolicy>
 #include <QSpinBox>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 namespace {
@@ -116,6 +123,21 @@ QFrame* makeSectionSeparator() {
     return line;
 }
 
+QLineEdit* makeReadonlySummaryField(QWidget* parent) {
+    auto* field = new QLineEdit(parent);
+    field->setReadOnly(true);
+    field->setFocusPolicy(Qt::ClickFocus);
+    return field;
+}
+
+QLabel* makeSectionTitle(const QString& text, QWidget* parent) {
+    auto* label = new QLabel(text, parent);
+    QFont font = label->font();
+    font.setBold(true);
+    label->setFont(font);
+    return label;
+}
+
 } // namespace
 
 void RoomEditorWidget::setComboIntValue(QComboBox* combo, const int value) const {
@@ -125,15 +147,100 @@ void RoomEditorWidget::setComboIntValue(QComboBox* combo, const int value) const
 
 RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* root = new QVBoxLayout(this);
+    root->setContentsMargins(4, 4, 4, 4);
+    root->setSpacing(4);
+    auto* tabs = new QTabWidget;
+    tabs->setObjectName(QStringLiteral("smaugStyleTabs"));
 
+    // --- Summary (layout mirrors Area Editor IDD_ROOM_SUMMARY) ---
+    summary_section_ = new QWidget;
+    auto* summary_layout = new QVBoxLayout(summary_section_);
+    summary_layout->setContentsMargins(8, 6, 8, 6);
+    summary_layout->setSpacing(4);
+
+    auto* header = new QGridLayout;
+    header->setHorizontalSpacing(8);
+    header->setVerticalSpacing(4);
+    summary_vnum_ = makeReadonlySummaryField(summary_section_);
+    summary_vnum_->setMaximumWidth(80);
+    summary_vnum_->setAlignment(Qt::AlignRight);
+    summary_type_ = makeReadonlySummaryField(summary_section_);
+    summary_name_ = makeReadonlySummaryField(summary_section_);
+    summary_flags_ = makeReadonlySummaryField(summary_section_);
+    auto* vnum_label = new QLabel(QStringLiteral("Vnum:"), summary_section_);
+    vnum_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    auto* type_label = new QLabel(QStringLiteral("Type:"), summary_section_);
+    type_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    auto* name_label = new QLabel(QStringLiteral("Name:"), summary_section_);
+    name_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    auto* flags_label = new QLabel(QStringLiteral("Flags:"), summary_section_);
+    flags_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    header->addWidget(vnum_label, 0, 0);
+    header->addWidget(summary_vnum_, 0, 1);
+    header->addWidget(type_label, 0, 2);
+    header->addWidget(summary_type_, 0, 3);
+    header->addWidget(name_label, 1, 0);
+    header->addWidget(summary_name_, 1, 1, 1, 3);
+    header->addWidget(flags_label, 2, 0);
+    header->addWidget(summary_flags_, 2, 1, 1, 3);
+    header->setColumnStretch(3, 1);
+    summary_layout->addLayout(header);
+
+    summary_layout->addWidget(new QLabel(QStringLiteral("Entered from:"), summary_section_));
+    auto* entered_row = new QHBoxLayout;
+    entered_row->setSpacing(6);
+    entered_from_list_ = new QListWidget(summary_section_);
+    entered_from_list_->setMinimumHeight(80);
+    entered_from_list_->setMaximumHeight(110);
+    entered_row->addWidget(entered_from_list_, 1);
+    auto* entered_buttons = new QVBoxLayout;
+    entered_buttons->setSpacing(4);
+    entered_goto_button_ = new QPushButton(QStringLiteral("Go to"), summary_section_);
+    add_exit_button_ = new QPushButton(QStringLiteral("Add exit..."), summary_section_);
+    entered_goto_button_->setFixedWidth(96);
+    add_exit_button_->setFixedWidth(96);
+    entered_buttons->addWidget(entered_goto_button_);
+    entered_buttons->addWidget(add_exit_button_);
+    entered_buttons->addStretch();
+    entered_row->addLayout(entered_buttons);
+    summary_layout->addLayout(entered_row);
+
+    summary_layout->addWidget(new QLabel(QStringLiteral("References:"), summary_section_));
+    auto* refs_row = new QHBoxLayout;
+    refs_row->setSpacing(6);
+    references_list_ = new QListWidget(summary_section_);
+    references_list_->setMinimumHeight(180);
+    refs_row->addWidget(references_list_, 1);
+    auto* refs_buttons = new QVBoxLayout;
+    refs_buttons->setSpacing(4);
+    ref_goto_button_ = new QPushButton(QStringLiteral("Go to"), summary_section_);
+    add_mob_button_ = new QPushButton(QStringLiteral("Add mob..."), summary_section_);
+    add_object_button_ = new QPushButton(QStringLiteral("Add object..."), summary_section_);
+    remove_reset_button_ = new QPushButton(QStringLiteral("Remove..."), summary_section_);
+    equip_button_ = new QPushButton(QStringLiteral("Equip..."), summary_section_);
+    give_button_ = new QPushButton(QStringLiteral("Give..."), summary_section_);
+    for (QPushButton* button : {ref_goto_button_, add_mob_button_, add_object_button_, remove_reset_button_,
+                                equip_button_, give_button_}) {
+        button->setFixedWidth(96);
+        refs_buttons->addWidget(button);
+    }
+    refs_buttons->addStretch();
+    refs_row->addLayout(refs_buttons);
+    summary_layout->addLayout(refs_row, 1);
+    tabs->addTab(summary_section_, QStringLiteral("Summary"));
+
+    // --- Name (SMAUG Name page + Nebbie Teleport/Environment/Extras folded in) ---
     text_section_ = new QWidget;
     auto* text_layout = new QVBoxLayout(text_section_);
+    text_layout->setContentsMargins(8, 6, 8, 6);
+    text_layout->setSpacing(6);
     text_layout->addWidget(makeLegend(
-        "Nome e descrizione mostrati all'ingresso. Il client legge solo testo ASCII "
-        "(usa e', a', o', u' al posto delle lettere accentate). "
-        "Descrizione: dopo l'ultima riga premi Invio una volta (\u21b5 verde; nel file ~ sotto). "
-        "Nome: niente Invio finale.",
+        "Nome e descrizione (ASCII). Teleport, ambiente e extra descriptions sono sotto. "
+        "Descrizione: Invio finale una volta; nome senza Invio finale.",
         text_section_));
+
+    sector_type_ = new QComboBox(text_section_);
+    fillCombo(sector_type_, nebbie::room_sector_choices());
     name_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(name_);
     name_line_info_ = nebbie::qt::makeTextMonitorLabel();
@@ -145,53 +252,36 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     description_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
     description_english_info_ = nebbie::qt::makeTextMonitorLabel();
     auto* text_form = new QFormLayout;
-    text_form->addRow("Nome:", name_);
-    text_form->addRow("", name_line_info_);
-    text_form->addRow("", name_ascii_info_);
-    text_form->addRow("", name_english_info_);
-    text_form->addRow("Descrizione:", description_);
-    text_form->addRow("", description_line_info_);
-    text_form->addRow("", description_ascii_info_);
-    text_form->addRow("", description_english_info_);
+    text_form->addRow(QStringLiteral("Type:"), sector_type_);
+    text_form->addRow(QStringLiteral("Name:"), name_);
+    text_form->addRow(QString(), name_line_info_);
+    text_form->addRow(QString(), name_ascii_info_);
+    text_form->addRow(QString(), name_english_info_);
+    text_form->addRow(QStringLiteral("Description:"), description_);
+    text_form->addRow(QString(), description_line_info_);
+    text_form->addRow(QString(), description_ascii_info_);
+    text_form->addRow(QString(), description_english_info_);
     text_layout->addLayout(text_form);
-    auto* fix_ascii_btn = new QPushButton("Correggi non-ASCII (accenti e apostrofi)");
+    auto* fix_ascii_btn = new QPushButton(QStringLiteral("Correggi non-ASCII (accenti e apostrofi)"));
     fix_ascii_btn->setToolTip(
         "Sostituisce a'/e'/i'/o'/u' (e maiuscole) e gli apostrofi tipografici con l'apice ASCII '. "
         "Vale per nome, descrizione, extra, uscite e campi luce di questa stanza.");
     text_layout->addWidget(fix_ascii_btn);
     connect(fix_ascii_btn, &QPushButton::clicked, this, [this]() { normalizeMudAsciiAllFields(); });
-    root->addWidget(text_section_);
-    root->addWidget(makeSectionSeparator());
 
-    sector_section_ = new QWidget;
-    auto* sector_layout = new QVBoxLayout(sector_section_);
-    sector_layout->addWidget(makeLegend(
-        "Settore e flag stanza. TUNNEL abilita moblim; i settori acqua usano i campi fiume "
-        "nella sezione Ambiente.",
-        sector_section_));
-    auto* sector_form = new QFormLayout;
-    sector_type_ = new QComboBox;
-    fillCombo(sector_type_, nebbie::room_sector_choices());
-    room_flags_ = new FlagGroupWidget(nebbie::room_flag_defs(), sector_section_, 3);
-    sector_form->addRow("Sector type:", sector_type_);
-    sector_layout->addLayout(sector_form);
-    sector_layout->addWidget(new QLabel("Room flags"));
-    sector_layout->addWidget(room_flags_);
-    root->addWidget(sector_section_);
-    root->addWidget(makeSectionSeparator());
-
-    teleport_section_ = new QWidget;
+    text_layout->addWidget(makeSectionSeparator());
+    teleport_section_ = new QWidget(text_section_);
     auto* tele_layout = new QVBoxLayout(teleport_section_);
+    tele_layout->setContentsMargins(0, 0, 0, 0);
+    tele_layout->setSpacing(4);
+    tele_layout->addWidget(makeSectionTitle(QStringLiteral("Teleport"), teleport_section_));
     tele_layout->addWidget(makeLegend(
-        "Teleport solo se abilitato qui sotto. Con la rotella dello scroll i valori non "
-        "cambiano finché non clicchi sullo spin (evita modifiche accidentali). "
-        "Nel .wld: sector -1 + tele_time / tele_targ / tele_mask; con bit TELE_COUNT, anche tele_cnt.",
+        "Attiva solo per stanze teleport. Nel .wld: sector -1 + tele_time / tele_targ / tele_mask; "
+        "con TELE_COUNT anche tele_cnt.",
         teleport_section_));
-    teleport_enabled_ = new QCheckBox(QStringLiteral("Stanza teleport (scrive sector -1 nel .wld)"));
-    teleport_enabled_->setToolTip(
-        QStringLiteral("Disattivato: i campi tele_* sono nascosti e a salvataggio restano a 0 "
-                       "(stanza normale). Attivato: puoi impostare destinazione e tempi."));
-    teleport_status_ = new QLabel;
+    teleport_enabled_ = new QCheckBox(QStringLiteral("Stanza teleport (scrive sector -1 nel .wld)"),
+                                      teleport_section_);
+    teleport_status_ = new QLabel(teleport_section_);
     teleport_status_->setWordWrap(true);
     teleport_status_->setTextInteractionFlags(Qt::TextSelectableByMouse);
     teleport_fields_ = new QWidget(teleport_section_);
@@ -204,18 +294,24 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
         spin->setRange(0, 2000000000);
         nebbie::qt::installSpinBoxWheelGuard(spin);
     }
-    tele_form->addRow("tele_time:", tele_time_);
-    tele_form->addRow("tele_targ:", tele_targ_);
-    tele_form->addRow("tele_mask:", tele_mask_);
-    tele_form->addRow("tele_cnt:", tele_cnt_);
+    tele_form->addRow(QStringLiteral("tele_time:"), tele_time_);
+    tele_form->addRow(QStringLiteral("tele_targ:"), tele_targ_);
+    tele_form->addRow(QStringLiteral("tele_mask:"), tele_mask_);
+    tele_form->addRow(QStringLiteral("tele_cnt:"), tele_cnt_);
     tele_layout->addWidget(teleport_enabled_);
     tele_layout->addWidget(teleport_status_);
     tele_layout->addWidget(teleport_fields_);
-    root->addWidget(teleport_section_);
-    root->addWidget(makeSectionSeparator());
+    text_layout->addWidget(teleport_section_);
 
-    environment_section_ = new QWidget;
+    text_layout->addWidget(makeSectionSeparator());
+    environment_section_ = new QWidget(text_section_);
     auto* env_layout = new QVBoxLayout(environment_section_);
+    env_layout->setContentsMargins(0, 0, 0, 0);
+    env_layout->setSpacing(4);
+    env_layout->addWidget(makeSectionTitle(QStringLiteral("Environment"), environment_section_));
+    env_layout->addWidget(makeLegend(
+        "Fiume per settori acqua. moblim con flag TUNNEL. L = stringhe luminosita' opzionali.",
+        environment_section_));
     river_panel_ = new QWidget(environment_section_);
     auto* river_form = new QFormLayout(river_panel_);
     river_speed_ = new QSpinBox;
@@ -225,35 +321,35 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     river_dir_->setToolTip("River direction 0=north .. 5=down (Arcane redit).");
     nebbie::qt::installSpinBoxWheelGuard(river_speed_);
     nebbie::qt::installSpinBoxWheelGuard(river_dir_);
-    river_form->addRow("River speed:", river_speed_);
-    river_form->addRow("River direction (0-5):", river_dir_);
+    river_form->addRow(QStringLiteral("River speed:"), river_speed_);
+    river_form->addRow(QStringLiteral("River direction (0-5):"), river_dir_);
     moblim_panel_ = new QWidget(environment_section_);
     auto* moblim_form = new QFormLayout(moblim_panel_);
     moblim_ = new QSpinBox;
     moblim_->setRange(1, 2000000000);
     nebbie::qt::installSpinBoxWheelGuard(moblim_);
-    moblim_form->addRow("moblim (TUNNEL):", moblim_);
+    moblim_form->addRow(QStringLiteral("moblim (TUNNEL):"), moblim_);
     bright_at_night_ = new nebbie::qt::MudColorTextEdit;
     bright_at_day_ = new nebbie::qt::MudColorTextEdit;
     nebbie::qt::configureMudSingleLineField(bright_at_night_);
     nebbie::qt::configureMudSingleLineField(bright_at_day_);
     auto* bright_form = new QFormLayout;
-    bright_form->addRow("Bright at night (L):", bright_at_night_);
-    bright_form->addRow("Bright at day (L):", bright_at_day_);
-    env_layout->addWidget(makeLegend(
-        "Fiume per settori acqua. moblim con flag TUNNEL. L = stringhe luminosità opzionali.",
-        environment_section_));
+    bright_form->addRow(QStringLiteral("Bright at night (L):"), bright_at_night_);
+    bright_form->addRow(QStringLiteral("Bright at day (L):"), bright_at_day_);
     env_layout->addWidget(river_panel_);
     env_layout->addWidget(moblim_panel_);
     env_layout->addLayout(bright_form);
-    root->addWidget(environment_section_);
-    root->addWidget(makeSectionSeparator());
+    text_layout->addWidget(environment_section_);
 
-    extra_section_ = new QWidget;
+    text_layout->addWidget(makeSectionSeparator());
+    extra_section_ = new QWidget(text_section_);
     auto* extra_layout = new QVBoxLayout(extra_section_);
-    extra_desc_list_ = new QListWidget;
-    extra_desc_list_->setMaximumHeight(140);
-    extra_desc_keyword_ = new QLineEdit;
+    extra_layout->setContentsMargins(0, 0, 0, 0);
+    extra_layout->setSpacing(4);
+    extra_layout->addWidget(makeSectionTitle(QStringLiteral("Extra descriptions"), extra_section_));
+    extra_desc_list_ = new QListWidget(extra_section_);
+    extra_desc_list_->setMaximumHeight(120);
+    extra_desc_keyword_ = new QLineEdit(extra_section_);
     configureLineField(extra_desc_keyword_);
     extra_desc_description_ = new nebbie::qt::MudColorTextEdit;
     configureExtraDescriptionField(extra_desc_description_);
@@ -262,26 +358,45 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     extra_desc_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
     extra_desc_english_info_ = nebbie::qt::makeTextMonitorLabel();
     auto* extra_desc_form = new QFormLayout;
-    extra_desc_form->addRow("Keyword:", extra_desc_keyword_);
-    extra_desc_form->addRow("", extra_desc_keyword_english_info_);
-    extra_desc_form->addRow("Description:", extra_desc_description_);
-    extra_desc_form->addRow("", extra_desc_line_info_);
-    extra_desc_form->addRow("", extra_desc_ascii_info_);
-    extra_desc_form->addRow("", extra_desc_english_info_);
+    extra_desc_form->addRow(QStringLiteral("Keyword:"), extra_desc_keyword_);
+    extra_desc_form->addRow(QString(), extra_desc_keyword_english_info_);
+    extra_desc_form->addRow(QStringLiteral("Description:"), extra_desc_description_);
+    extra_desc_form->addRow(QString(), extra_desc_line_info_);
+    extra_desc_form->addRow(QString(), extra_desc_ascii_info_);
+    extra_desc_form->addRow(QString(), extra_desc_english_info_);
     auto* extra_desc_buttons = new QHBoxLayout;
-    auto* extra_desc_add = new QPushButton("Add");
-    auto* extra_desc_update = new QPushButton("Update");
-    auto* extra_desc_remove = new QPushButton("Remove");
+    auto* extra_desc_add = new QPushButton(QStringLiteral("Add"));
+    auto* extra_desc_update = new QPushButton(QStringLiteral("Update"));
+    auto* extra_desc_remove = new QPushButton(QStringLiteral("Remove"));
     extra_desc_buttons->addWidget(extra_desc_add);
     extra_desc_buttons->addWidget(extra_desc_update);
     extra_desc_buttons->addWidget(extra_desc_remove);
     extra_desc_buttons->addStretch();
-    extra_layout->addWidget(new QLabel("Extra descriptions (section E)"));
     extra_layout->addWidget(extra_desc_list_);
     extra_layout->addLayout(extra_desc_form);
     extra_layout->addLayout(extra_desc_buttons);
-    root->addWidget(extra_section_);
-    root->addWidget(makeSectionSeparator());
+    text_layout->addWidget(extra_section_);
+    text_layout->addStretch(1);
+
+    auto* name_scroll = new QScrollArea;
+    name_scroll->setWidgetResizable(true);
+    name_scroll->setWidget(text_section_);
+    tabs->addTab(name_scroll, QStringLiteral("Name"));
+
+    // --- Flags (dual-list only; sector lives on Name like SMAUG) ---
+    sector_section_ = new QWidget;
+    auto* sector_layout = new QVBoxLayout(sector_section_);
+    sector_layout->setContentsMargins(8, 6, 8, 6);
+    sector_layout->addWidget(makeLegend(
+        "Flag stanza. TUNNEL abilita moblim (campo in Name / Environment).",
+        sector_section_));
+    room_flags_ = new FlagGroupWidget(nebbie::room_flag_defs(), sector_section_, 3,
+                                      FlagGroupWidget::Mode::DualList);
+    sector_layout->addWidget(room_flags_, 1);
+    auto* flags_scroll = new QScrollArea;
+    flags_scroll->setWidgetResizable(true);
+    flags_scroll->setWidget(sector_section_);
+    tabs->addTab(flags_scroll, QStringLiteral("Flags"));
 
     exits_section_ = new QWidget;
     auto* exit_layout = new QVBoxLayout(exits_section_);
@@ -343,11 +458,41 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_layout->addWidget(exit_list_);
     exit_layout->addLayout(exit_form);
     exit_layout->addLayout(exit_buttons);
-    root->addWidget(exits_section_, 1);
+    auto* exits_scroll = new QScrollArea;
+    exits_scroll->setWidgetResizable(true);
+    exits_scroll->setWidget(exits_section_);
+    tabs->addTab(exits_scroll, QStringLiteral("Exits"));
+    root->addWidget(tabs, 1);
+    room_tabs_ = tabs;
 
-    connect(sector_type_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [this](int) { updateConditionalFields(); });
-    connect(room_flags_, &FlagGroupWidget::valueChanged, this, [this]() { updateConditionalFields(); });
+    connect(entered_goto_button_, &QPushButton::clicked, this, &RoomEditorWidget::onEnteredFromGoto);
+    connect(add_exit_button_, &QPushButton::clicked, this, &RoomEditorWidget::onAddExitFromSummary);
+    connect(ref_goto_button_, &QPushButton::clicked, this, &RoomEditorWidget::onReferenceGoto);
+    connect(add_mob_button_, &QPushButton::clicked, this, &RoomEditorWidget::onAddMobReset);
+    connect(add_object_button_, &QPushButton::clicked, this, &RoomEditorWidget::onAddObjectReset);
+    connect(remove_reset_button_, &QPushButton::clicked, this, &RoomEditorWidget::onRemoveReset);
+    connect(equip_button_, &QPushButton::clicked, this, &RoomEditorWidget::onEquipMob);
+    connect(give_button_, &QPushButton::clicked, this, &RoomEditorWidget::onGiveToMob);
+    connect(entered_from_list_, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem*) {
+        onEnteredFromGoto();
+    });
+    connect(references_list_, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem*) {
+        onReferenceGoto();
+    });
+
+    connect(sector_type_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        updateConditionalFields();
+        syncSummaryHeaderFromEditors();
+    });
+    connect(room_flags_, &FlagGroupWidget::valueChanged, this, [this]() {
+        updateConditionalFields();
+        syncSummaryHeaderFromEditors();
+    });
+    connect(name_, &nebbie::qt::MudColorTextEdit::storageTextChanged, this, [this]() {
+        if (!loading_) {
+            syncSummaryHeaderFromEditors();
+        }
+    });
     connect(teleport_enabled_, &QCheckBox::toggled, this, [this](bool enabled) {
         if (!enabled && !loading_) {
             const QSignalBlocker b0(tele_time_);
@@ -422,7 +567,16 @@ int RoomEditorWidget::selectedExitDirection() const {
 }
 
 void RoomEditorWidget::focusExitTab(const int direction) {
-    scrollToSection(exits_section_);
+    if (room_tabs_) {
+        for (int i = 0; i < room_tabs_->count(); ++i) {
+            if (room_tabs_->tabText(i) == QStringLiteral("Exits")) {
+                room_tabs_->setCurrentIndex(i);
+                break;
+            }
+        }
+    } else {
+        scrollToSection(exits_section_);
+    }
     for (int i = 0; i < exit_list_->count(); ++i) {
         auto* item = exit_list_->item(i);
         if (item->data(Qt::UserRole).toInt() == direction) {
@@ -456,8 +610,386 @@ void RoomEditorWidget::updateConditionalFields() {
     teleport_status_->setStyleSheet(QStringLiteral("color: #c9a227; font-weight: 600;"));
 }
 
+void RoomEditorWidget::setWorld(nebbie::World* world) {
+    world_ = world;
+    refreshSummaryFromWorld();
+}
+
+void RoomEditorWidget::refreshSummaryFromWorld() {
+    syncSummaryHeaderFromEditors();
+    rebuildSummaryLists();
+}
+
+void RoomEditorWidget::syncSummaryHeaderFromEditors() {
+    if (!summary_vnum_) {
+        return;
+    }
+    summary_vnum_->setText(current_vnum_ > 0 ? QString::number(current_vnum_) : QStringLiteral("-"));
+    summary_type_->setText(sector_type_ ? sector_type_->currentText() : QString());
+    summary_name_->setText(name_ ? name_->storageText() : QString());
+    if (room_flags_) {
+        const long flags = room_flags_->value();
+        QStringList parts;
+        for (const auto& def : nebbie::room_flag_defs()) {
+            if ((flags & def.value) != 0) {
+                parts << QString::fromUtf8(def.label);
+            }
+        }
+        summary_flags_->setText(parts.isEmpty() ? QStringLiteral("(none)") : parts.join(QLatin1Char(' ')));
+    }
+}
+
+void RoomEditorWidget::onAddExitFromSummary() {
+    if (!world_ || current_vnum_ <= 0) {
+        return;
+    }
+    QStringList labels;
+    std::vector<int> values;
+    for (const auto& [value, label] : nebbie::exit_direction_choices()) {
+        labels << QString::fromStdString(label);
+        values.push_back(value);
+    }
+    bool ok = false;
+    const QString chosen =
+        QInputDialog::getItem(this, QStringLiteral("Add exit"), QStringLiteral("Direction:"), labels, 0,
+                              false, &ok);
+    if (!ok) {
+        return;
+    }
+    const int dir_index = labels.indexOf(chosen);
+    if (dir_index < 0 || dir_index >= static_cast<int>(values.size())) {
+        return;
+    }
+    const int direction = values[static_cast<std::size_t>(dir_index)];
+
+    for (int i = 0; i < exit_list_->count(); ++i) {
+        if (readExitItem(exit_list_->item(i)).direction == direction) {
+            if (QMessageBox::question(
+                    this, QStringLiteral("Add exit"),
+                    QStringLiteral("C'e' gia' un'uscita in direzione %1.\nAggiungere comunque?")
+                        .arg(chosen))
+                != QMessageBox::Yes) {
+                return;
+            }
+            break;
+        }
+    }
+
+    EntityPickerDialog picker(EntityPickerKind::Room, *world_, this);
+    if (picker.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto to_room = picker.selectedVnum();
+    if (!to_room || *to_room <= 0) {
+        return;
+    }
+
+    nebbie::Exit exit;
+    exit.direction = direction;
+    exit.to_room = *to_room;
+    exit.key = -1;
+    exit.open_cmd = -1;
+    auto* item = new QListWidgetItem;
+    writeExitItem(item, exit);
+    exit_list_->addItem(item);
+    exit_list_->setCurrentItem(item);
+    focusExitTab(direction);
+}
+
+void RoomEditorWidget::rebuildSummaryLists() {
+    if (!entered_from_list_ || !references_list_) {
+        return;
+    }
+    entered_from_list_->clear();
+    references_list_->clear();
+    if (!world_ || current_vnum_ <= 0) {
+        return;
+    }
+
+    for (const auto& [from_vnum, room] : world_->rooms) {
+        for (const auto& exit : room.exits) {
+            if (exit.to_room != current_vnum_) {
+                continue;
+            }
+            const QString label =
+                QStringLiteral("%1 from #%2 (%3)")
+                    .arg(QString::fromUtf8(nebbie::exit_direction_name(exit.direction)))
+                    .arg(from_vnum)
+                    .arg(QString::fromStdString(room.name));
+            auto* item = new QListWidgetItem(label);
+            item->setData(Qt::UserRole, static_cast<qlonglong>(from_vnum));
+            entered_from_list_->addItem(item);
+        }
+    }
+
+    const nebbie::Zone* zone = world_->zone_for_vnum(current_vnum_);
+    if (!zone) {
+        return;
+    }
+    long last_mob_in_room = 0;
+    std::size_t last_mob_index = static_cast<std::size_t>(-1);
+    for (std::size_t i = 0; i < zone->commands.size(); ++i) {
+        const auto& cmd = zone->commands[i];
+        if (cmd.command == 'M' && cmd.arg3 == current_vnum_) {
+            last_mob_in_room = cmd.arg1;
+            last_mob_index = i;
+            const nebbie::Mobile* mob = world_->find_mobile(cmd.arg1);
+            const QString name = mob ? QString::fromStdString(mob->short_descr) : QStringLiteral("?");
+            auto* item = new QListWidgetItem(QStringLiteral("Mobile: #%1 %2").arg(cmd.arg1).arg(name));
+            item->setData(Qt::UserRole, QStringLiteral("M"));
+            item->setData(Qt::UserRole + 1, static_cast<qlonglong>(i));
+            item->setData(Qt::UserRole + 2, static_cast<qlonglong>(cmd.arg1));
+            references_list_->addItem(item);
+        } else if (cmd.command == 'O' && cmd.arg3 == current_vnum_) {
+            last_mob_in_room = 0;
+            last_mob_index = static_cast<std::size_t>(-1);
+            const nebbie::GameObject* obj = world_->find_object(cmd.arg1);
+            const QString name = obj ? QString::fromStdString(obj->short_descr) : QStringLiteral("?");
+            auto* item = new QListWidgetItem(QStringLiteral("Object: #%1 %2").arg(cmd.arg1).arg(name));
+            item->setData(Qt::UserRole, QStringLiteral("O"));
+            item->setData(Qt::UserRole + 1, static_cast<qlonglong>(i));
+            item->setData(Qt::UserRole + 2, static_cast<qlonglong>(cmd.arg1));
+            references_list_->addItem(item);
+        } else if ((cmd.command == 'E' || cmd.command == 'G') && last_mob_in_room > 0
+                   && last_mob_index != static_cast<std::size_t>(-1)) {
+            const nebbie::GameObject* obj = world_->find_object(cmd.arg1);
+            const QString name = obj ? QString::fromStdString(obj->short_descr) : QStringLiteral("?");
+            const QString kind = cmd.command == 'E' ? QStringLiteral("Equip") : QStringLiteral("Give");
+            auto* item =
+                new QListWidgetItem(QStringLiteral("-- %1: #%2 %3").arg(kind).arg(cmd.arg1).arg(name));
+            item->setData(Qt::UserRole, QString(QLatin1Char(cmd.command)));
+            item->setData(Qt::UserRole + 1, static_cast<qlonglong>(i));
+            item->setData(Qt::UserRole + 2, static_cast<qlonglong>(cmd.arg1));
+            item->setData(Qt::UserRole + 3, static_cast<qlonglong>(last_mob_index));
+            references_list_->addItem(item);
+        } else if (cmd.command == 'M' || cmd.command == 'O') {
+            last_mob_in_room = 0;
+            last_mob_index = static_cast<std::size_t>(-1);
+        }
+    }
+}
+
+int RoomEditorWidget::currentZoneNum() const {
+    if (!world_ || current_vnum_ <= 0) {
+        return 0;
+    }
+    const nebbie::Zone* zone = world_->zone_for_vnum(current_vnum_);
+    return zone ? zone->num : 0;
+}
+
+std::optional<std::size_t> RoomEditorWidget::selectedResetIndex() const {
+    const QListWidgetItem* item = references_list_ ? references_list_->currentItem() : nullptr;
+    if (!item) {
+        return std::nullopt;
+    }
+    return static_cast<std::size_t>(item->data(Qt::UserRole + 1).toULongLong());
+}
+
+std::optional<std::size_t> RoomEditorWidget::selectedMobResetIndex() const {
+    const QListWidgetItem* item = references_list_ ? references_list_->currentItem() : nullptr;
+    if (!item) {
+        return std::nullopt;
+    }
+    const QString kind = item->data(Qt::UserRole).toString();
+    if (kind == QLatin1String("M")) {
+        return static_cast<std::size_t>(item->data(Qt::UserRole + 1).toULongLong());
+    }
+    if (kind == QLatin1String("E") || kind == QLatin1String("G")) {
+        return static_cast<std::size_t>(item->data(Qt::UserRole + 3).toULongLong());
+    }
+    return std::nullopt;
+}
+
+void RoomEditorWidget::onEnteredFromGoto() {
+    const QListWidgetItem* item = entered_from_list_ ? entered_from_list_->currentItem() : nullptr;
+    if (!item) {
+        return;
+    }
+    emit gotoRoomRequested(static_cast<long>(item->data(Qt::UserRole).toLongLong()));
+}
+
+void RoomEditorWidget::onReferenceGoto() {
+    const QListWidgetItem* item = references_list_ ? references_list_->currentItem() : nullptr;
+    if (!item) {
+        return;
+    }
+    const QString kind = item->data(Qt::UserRole).toString();
+    const long vnum = static_cast<long>(item->data(Qt::UserRole + 2).toLongLong());
+    if (kind == QLatin1String("M")) {
+        emit gotoMobRequested(vnum);
+    } else {
+        emit gotoObjectRequested(vnum);
+    }
+}
+
+void RoomEditorWidget::onAddMobReset() {
+    if (!world_ || current_vnum_ <= 0) {
+        return;
+    }
+    const int zone_num = currentZoneNum();
+    nebbie::Zone* zone = nebbie::find_zone(*world_, zone_num);
+    if (!zone) {
+        QMessageBox::warning(this, QStringLiteral("Room"), QStringLiteral("Nessuna zona per questa stanza."));
+        return;
+    }
+    EntityPickerDialog dialog(EntityPickerKind::Mobile, *world_, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto mob = dialog.selectedVnum();
+    if (!mob) {
+        return;
+    }
+    nebbie::ResetCommand cmd = nebbie::default_zone_reset('M', *zone, *world_);
+    cmd.arg1 = static_cast<int>(*mob);
+    cmd.arg3 = static_cast<int>(current_vnum_);
+    if (!nebbie::add_zone_reset(*world_, zone_num, cmd)) {
+        QMessageBox::warning(this, QStringLiteral("Room"), QStringLiteral("Impossibile aggiungere il reset mob."));
+        return;
+    }
+    rebuildSummaryLists();
+    emit zoneResetsModified(zone_num);
+}
+
+void RoomEditorWidget::onAddObjectReset() {
+    if (!world_ || current_vnum_ <= 0) {
+        return;
+    }
+    const int zone_num = currentZoneNum();
+    nebbie::Zone* zone = nebbie::find_zone(*world_, zone_num);
+    if (!zone) {
+        QMessageBox::warning(this, QStringLiteral("Room"), QStringLiteral("Nessuna zona per questa stanza."));
+        return;
+    }
+    EntityPickerDialog dialog(EntityPickerKind::Object, *world_, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto obj = dialog.selectedVnum();
+    if (!obj) {
+        return;
+    }
+    nebbie::ResetCommand cmd = nebbie::default_zone_reset('O', *zone, *world_);
+    cmd.arg1 = static_cast<int>(*obj);
+    cmd.arg3 = static_cast<int>(current_vnum_);
+    if (!nebbie::add_zone_reset(*world_, zone_num, cmd)) {
+        QMessageBox::warning(this, QStringLiteral("Room"), QStringLiteral("Impossibile aggiungere il reset oggetto."));
+        return;
+    }
+    rebuildSummaryLists();
+    emit zoneResetsModified(zone_num);
+}
+
+void RoomEditorWidget::onRemoveReset() {
+    if (!world_) {
+        return;
+    }
+    const auto index = selectedResetIndex();
+    const int zone_num = currentZoneNum();
+    if (!index || zone_num <= 0) {
+        QMessageBox::information(this, QStringLiteral("Room"), QStringLiteral("Seleziona un riferimento da rimuovere."));
+        return;
+    }
+    if (!nebbie::remove_zone_reset(*world_, zone_num, *index)) {
+        QMessageBox::warning(this, QStringLiteral("Room"), QStringLiteral("Impossibile rimuovere il reset."));
+        return;
+    }
+    rebuildSummaryLists();
+    emit zoneResetsModified(zone_num);
+}
+
+void RoomEditorWidget::onEquipMob() {
+    if (!world_) {
+        return;
+    }
+    const auto mob_index = selectedMobResetIndex();
+    const int zone_num = currentZoneNum();
+    nebbie::Zone* zone = nebbie::find_zone(*world_, zone_num);
+    if (!mob_index || !zone) {
+        QMessageBox::information(this, QStringLiteral("Room"),
+                                 QStringLiteral("Seleziona un mobile nella lista References."));
+        return;
+    }
+    EntityPickerDialog dialog(EntityPickerKind::Object, *world_, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto obj = dialog.selectedVnum();
+    if (!obj) {
+        return;
+    }
+    const auto positions = nebbie::zone_equip_position_choices();
+    QStringList labels;
+    for (const auto& [value, label] : positions) {
+        labels << QString::fromStdString(label);
+    }
+    bool ok = false;
+    const QString chosen = QInputDialog::getItem(this, QStringLiteral("Equip"), QStringLiteral("Wear position:"),
+                                                 labels, 0, false, &ok);
+    if (!ok) {
+        return;
+    }
+    int wear = 0;
+    for (const auto& [value, label] : positions) {
+        if (QString::fromStdString(label) == chosen) {
+            wear = value;
+            break;
+        }
+    }
+    nebbie::ResetCommand cmd = nebbie::default_zone_reset('E', *zone, *world_);
+    cmd.arg1 = static_cast<int>(*obj);
+    cmd.arg3 = wear;
+    // Insert after the selected mob reset so E attaches to that M.
+    if (!nebbie::add_zone_reset(*world_, zone_num, cmd)) {
+        QMessageBox::warning(this, QStringLiteral("Room"), QStringLiteral("Impossibile aggiungere Equip."));
+        return;
+    }
+    // Move newly appended E right after the mob line.
+    const std::size_t last = zone->commands.size() - 1;
+    if (last > *mob_index + 1) {
+        nebbie::move_zone_reset(*world_, zone_num, last, *mob_index + 1);
+    }
+    rebuildSummaryLists();
+    emit zoneResetsModified(zone_num);
+}
+
+void RoomEditorWidget::onGiveToMob() {
+    if (!world_) {
+        return;
+    }
+    const auto mob_index = selectedMobResetIndex();
+    const int zone_num = currentZoneNum();
+    nebbie::Zone* zone = nebbie::find_zone(*world_, zone_num);
+    if (!mob_index || !zone) {
+        QMessageBox::information(this, QStringLiteral("Room"),
+                                 QStringLiteral("Seleziona un mobile nella lista References."));
+        return;
+    }
+    EntityPickerDialog dialog(EntityPickerKind::Object, *world_, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto obj = dialog.selectedVnum();
+    if (!obj) {
+        return;
+    }
+    nebbie::ResetCommand cmd = nebbie::default_zone_reset('G', *zone, *world_);
+    cmd.arg1 = static_cast<int>(*obj);
+    if (!nebbie::add_zone_reset(*world_, zone_num, cmd)) {
+        QMessageBox::warning(this, QStringLiteral("Room"), QStringLiteral("Impossibile aggiungere Give."));
+        return;
+    }
+    const std::size_t last = zone->commands.size() - 1;
+    if (last > *mob_index + 1) {
+        nebbie::move_zone_reset(*world_, zone_num, last, *mob_index + 1);
+    }
+    rebuildSummaryLists();
+    emit zoneResetsModified(zone_num);
+}
+
 void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
     loading_ = true;
+    current_vnum_ = room.vnum;
 
     int preferred_exit_direction = -1;
     if (const auto* current_exit = exit_list_->currentItem()) {
@@ -545,6 +1077,10 @@ void RoomEditorWidget::loadFromRoom(const nebbie::Room& room) {
     refreshExtraDescForm();
     refreshExitForm(selected_exit_row);
     updateTextMonitors();
+    refreshSummaryFromWorld();
+    if (room_tabs_) {
+        room_tabs_->setCurrentIndex(0); // Summary
+    }
 }
 
 void RoomEditorWidget::setMaxLineLength(int max_length) {

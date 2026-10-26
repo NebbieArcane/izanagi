@@ -3,6 +3,7 @@
 #include <QStyledItemDelegate>
 
 class QListWidgetItem;
+class QTreeWidgetItem;
 
 namespace nebbie::qt {
 
@@ -26,5 +27,7 @@ private:
 
 void setRoomListItemData(QListWidgetItem* item, long vnum, const std::string& storage_name);
 void refreshRoomListItemData(QListWidgetItem* item, long vnum, const std::string& storage_name);
+void setRoomTreeItemData(QTreeWidgetItem* item, long vnum, const std::string& storage_name);
+void refreshRoomTreeItemData(QTreeWidgetItem* item, long vnum, const std::string& storage_name);
 
 } // namespace nebbie::qt
