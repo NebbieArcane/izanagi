@@ -2,12 +2,40 @@
 
 #include <QCheckBox>
 #include <QGridLayout>
+#include <QHBoxLayout>
+#include <QSizePolicy>
+#include <algorithm>
 
-FlagGroupWidget::FlagGroupWidget(const std::vector<nebbie::MobFlagDef>& defs, QWidget* parent)
+FlagGroupWidget::FlagGroupWidget(const std::vector<nebbie::MobFlagDef>& defs,
+                                 QWidget* parent,
+                                 const int columns)
     : QWidget(parent), defs_(defs) {
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+
+    // Tiny sets (align slayer, …) or explicit columns<=0 → one readable row.
+    const bool use_row = columns <= 0 || defs_.size() <= 4;
+
+    if (use_row) {
+        auto* layout = new QHBoxLayout(this);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(16);
+        for (const auto& def : defs_) {
+            auto* box = new QCheckBox(QString::fromUtf8(def.label));
+            box->setToolTip(QString::fromUtf8(def.name));
+            layout->addWidget(box);
+            boxes_.push_back(box);
+            connect(box, &QCheckBox::toggled, this, [this](bool) { emit valueChanged(); });
+        }
+        layout->addStretch(1);
+        return;
+    }
+
     auto* layout = new QGridLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setHorizontalSpacing(12);
+    layout->setVerticalSpacing(4);
 
+    const int cols = std::max(1, columns);
     int row = 0;
     int col = 0;
     for (const auto& def : defs_) {
@@ -17,7 +45,7 @@ FlagGroupWidget::FlagGroupWidget(const std::vector<nebbie::MobFlagDef>& defs, QW
         boxes_.push_back(box);
         connect(box, &QCheckBox::toggled, this, [this](bool) { emit valueChanged(); });
         ++col;
-        if (col >= 2) {
+        if (col >= cols) {
             col = 0;
             ++row;
         }

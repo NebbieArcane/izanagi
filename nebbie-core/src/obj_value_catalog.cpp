@@ -26,20 +26,23 @@ constexpr int kItemFood = 19;
 constexpr int kItemMoney = 20;
 constexpr int kItemClanSymbol = 31;
 
+/** Slot label style: "value[N]  EnglishName" (matches OLC / stat wording). */
+std::string value_label(const int index, const char* english_name) {
+    return "value[" + std::to_string(index) + "]  " + english_name;
+}
+
 ObjValueSlotSchema unused_slot(const int index) {
     ObjValueSlotSchema s;
-    s.label_it = "value[" + std::to_string(index) + "] — non usato";
-    s.tooltip_it =
-        "Per questo tipo di oggetto il server non interpreta value[" + std::to_string(index) +
-        "]. Lasciare 0 salvo documentazione interna.";
+    s.label_it = value_label(index, "unused");
+    s.tooltip_it = "Value not used for this item type (leave 0).";
     s.editor = ObjValueEditorKind::unused;
     return s;
 }
 
-ObjValueSlotSchema int_slot(const int index, const std::string& label, const std::string& tooltip,
+ObjValueSlotSchema int_slot(const int index, const char* english_name, const std::string& tooltip,
                             const int min_v = 0, const int max_v = 2000000000) {
     ObjValueSlotSchema s;
-    s.label_it = label;
+    s.label_it = value_label(index, english_name);
     s.tooltip_it = tooltip;
     s.editor = ObjValueEditorKind::integer;
     s.min_value = min_v;
@@ -47,13 +50,23 @@ ObjValueSlotSchema int_slot(const int index, const std::string& label, const std
     return s;
 }
 
-ObjValueSlotSchema yes_no_slot(const int index, const std::string& label, const std::string& tooltip) {
+ObjValueSlotSchema yes_no_slot(const int index, const char* english_name, const std::string& tooltip) {
     ObjValueSlotSchema s;
-    s.label_it = label;
-    s.tooltip_it = tooltip + " Valori: 0 = no, 1 = sì (come OLC NebbieArcane/Server).";
+    s.label_it = value_label(index, english_name);
+    s.tooltip_it = tooltip + " 0 = No, 1 = Yes (OLC).";
     s.editor = ObjValueEditorKind::yes_no;
     s.min_value = 0;
     s.max_value = 1;
+    return s;
+}
+
+ObjValueSlotSchema spell_slot(const int index, const char* english_name, const std::string& tooltip) {
+    ObjValueSlotSchema s;
+    s.label_it = value_label(index, english_name);
+    s.tooltip_it = tooltip;
+    s.editor = ObjValueEditorKind::spell_number;
+    s.min_value = 0;
+    s.max_value = 999;
     return s;
 }
 
@@ -71,9 +84,10 @@ const char* kWeaponTypes[] = {
     "CLAW", "BITE", "STING", "PIERCE", "BLAST", "RANGE_WEAPON",
 };
 
-const char* kLiquidNamesIt[] = {
-    "acqua", "birra", "vino", "birra chiara", "birra scura", "whisky", "limonata", "acquavite",
-    "vodka", "succo di melma", "latte", "tè", "caffè", "sangue", "acqua salata", "coca cola",
+/** English drink names aligned with Server drinks[] / OLC list. */
+const char* kLiquidNamesEn[] = {
+    "water", "beer", "wine", "ale", "dark ale", "whisky", "lemonade", "firebreather",
+    "speciality", "slime mold juice", "milk", "tea", "coffee", "blood", "salt water", "coca cola",
 };
 
 struct SpellEntry {
@@ -99,9 +113,9 @@ std::vector<std::pair<int, std::string>> obj_weapon_damage_type_choices() {
 
 std::vector<std::pair<int, std::string>> obj_liquid_type_choices() {
     std::vector<std::pair<int, std::string>> out;
-    const std::size_t count = sizeof(kLiquidNamesIt) / sizeof(kLiquidNamesIt[0]);
+    const std::size_t count = sizeof(kLiquidNamesEn) / sizeof(kLiquidNamesEn[0]);
     for (std::size_t i = 0; i < count; ++i) {
-        std::string label = std::to_string(static_cast<int>(i)) + " — " + kLiquidNamesIt[i];
+        std::string label = std::to_string(static_cast<int>(i)) + " — " + kLiquidNamesEn[i];
         out.emplace_back(static_cast<int>(i), label);
     }
     return out;
@@ -109,7 +123,7 @@ std::vector<std::pair<int, std::string>> obj_liquid_type_choices() {
 
 std::vector<std::pair<int, std::string>> obj_spell_number_choices() {
     std::vector<std::pair<int, std::string>> out;
-    out.emplace_back(0, "0 — (nessuno)");
+    out.emplace_back(0, "0 — (none)");
     for (const SpellEntry& spell : kSpells) {
         if (spell.number <= 0 || spell.name == nullptr || spell.name[0] == '\0') {
             continue;
@@ -122,7 +136,7 @@ std::vector<std::pair<int, std::string>> obj_spell_number_choices() {
 
 std::string obj_spell_name(const int spell_number) {
     if (spell_number <= 0) {
-        return "(nessuno)";
+        return "(none)";
     }
     for (const SpellEntry& spell : kSpells) {
         if (spell.number == spell_number) {
@@ -136,15 +150,15 @@ std::string obj_weapon_damage_type_name(const int type_index) {
     if (type_index >= 0 && static_cast<std::size_t>(type_index) < sizeof(kWeaponTypes) / sizeof(kWeaponTypes[0])) {
         return kWeaponTypes[type_index];
     }
-    return "tipo #" + std::to_string(type_index);
+    return "type #" + std::to_string(type_index);
 }
 
 std::string obj_liquid_type_name(const int liquid_index) {
     if (liquid_index >= 0
-        && static_cast<std::size_t>(liquid_index) < sizeof(kLiquidNamesIt) / sizeof(kLiquidNamesIt[0])) {
-        return kLiquidNamesIt[liquid_index];
+        && static_cast<std::size_t>(liquid_index) < sizeof(kLiquidNamesEn) / sizeof(kLiquidNamesEn[0])) {
+        return kLiquidNamesEn[liquid_index];
     }
-    return "liquido #" + std::to_string(liquid_index);
+    return "liquid #" + std::to_string(liquid_index);
 }
 
 std::string obj_value_slot_display_hint(const int type_flag, const int slot_index, const int value) {
@@ -160,7 +174,7 @@ std::string obj_value_slot_display_hint(const int type_flag, const int slot_inde
     case ObjValueEditorKind::spell_number:
         return obj_spell_name(value);
     case ObjValueEditorKind::yes_no:
-        return value != 0 ? "sì" : "no";
+        return value != 0 ? "Yes" : "No";
     default:
         return {};
     }
@@ -172,170 +186,169 @@ ObjValueTypeSchema obj_value_schema_for_type(const int type_flag) {
 
     switch (type_flag) {
     case kItemLight:
-        schema.legend_it =
-            "LIGHT: fonte di luce. Riferimento server: create.obj / stat oggetto.";
-        schema.value_slots[0] = int_slot(0, "value[0] — colore", "Colore della luce (OLC: Value1).");
-        schema.value_slots[1] = int_slot(1, "value[1] — tipo", "Tipo/sottotipo luce (OLC: Value2).");
-        schema.value_slots[2] = int_slot(2, "value[2] — ore durata", "Ore di durata della fonte (OLC: Value3).");
+        schema.legend_it = "LIGHT — Colour / Type / Hours (OLC Value1..3).";
+        schema.value_slots[0] = int_slot(0, "Colour", "Colour of the light source (OLC Value1).");
+        schema.value_slots[1] = int_slot(1, "Type", "Light subtype (OLC Value2).");
+        schema.value_slots[2] =
+            int_slot(2, "Hours", "Hours the light source will last (OLC Value3).", 0, 9999);
         schema.value_slots[3] = unused_slot(3);
         break;
     case kItemScroll:
         schema.legend_it =
-            "SCROLL: pergamena. value[0] livello di lancio; value[1..3] incantesimi (#spell). "
-            "Non usare numeri skill 45–52, 120–127, … (il server li rifiuta in OLC).";
+            "SCROLL — casting level + up to 3 spells (#spell). Do not use skill numbers "
+            "(45–52, 120–127, …): OLC rejects them.";
         schema.value_slots[0] =
-            int_slot(0, "value[0] — livello", "Livello di lancio della pergamena (OLC: Value1).", 0, 125);
-        schema.value_slots[1] = {"value[1] — incantesimo 2", "Secondo incantesimo (#spell, OLC Value2).",
-                           ObjValueEditorKind::spell_number, 0, 999};
-        schema.value_slots[2] = {"value[2] — incantesimo 3", "Terzo incantesimo (#spell, OLC Value3).",
-                           ObjValueEditorKind::spell_number, 0, 999};
-        schema.value_slots[3] = {"value[3] — incantesimo 4", "Quarto incantesimo (#spell, OLC Value4).",
-                           ObjValueEditorKind::spell_number, 0, 999};
+            int_slot(0, "Level", "Level of casting this scroll casts (OLC Value1).", 0, 125);
+        schema.value_slots[1] = spell_slot(1, "Spell 2", "Second spell this scroll casts (OLC Value2).");
+        schema.value_slots[2] = spell_slot(2, "Spell 3", "Third spell this scroll casts (OLC Value3).");
+        schema.value_slots[3] = spell_slot(3, "Spell 4", "Fourth spell this scroll casts (OLC Value4).");
         break;
     case kItemWand:
-        schema.legend_it =
-            "WAND: bacchetta. Livello, mana per uso, cariche; value[3] = incantesimo (come stat server).";
-        schema.value_slots[0] = int_slot(0, "value[0] — livello", "Livello di lancio (OLC: Value1).", 0, 125);
-        schema.value_slots[1] = int_slot(1, "value[1] — mana per uso", "Mana consumato ad ogni uso (OLC: Value2).", 0, 9999);
+        schema.legend_it = "WAND — Level, mana/use, Charges; Spell in value[3] (as in `stat`).";
+        schema.value_slots[0] =
+            int_slot(0, "Level", "Level of casting this wand casts (OLC Value1).", 0, 125);
+        schema.value_slots[1] =
+            int_slot(1, "Mana", "Mana the wand takes to use each time (OLC Value2).", 0, 9999);
         schema.value_slots[2] =
-            int_slot(2, "value[2] — cariche", "Cariche rimanenti (OLC: Value3; stat: Charges).", 0, 9999);
-        schema.value_slots[3] = {"value[3] — incantesimo", "Numero incantesimo (#spell). Stat server: Spell.",
-                           ObjValueEditorKind::spell_number, 0, 999};
+            int_slot(2, "Charges", "Number of charges the wand has (OLC Value3).", 0, 9999);
+        schema.value_slots[3] = spell_slot(3, "Spell", "Spell number (#spell). Shown as Spell in `stat`.");
         break;
     case kItemStaff:
-        schema.legend_it = "STAFF: bastone magico. Stessa semantica della WAND.";
-        schema.value_slots[0] = int_slot(0, "value[0] — livello", "Livello di lancio (OLC: Value1).", 0, 125);
-        schema.value_slots[1] = int_slot(1, "value[1] — mana per uso", "Mana consumato ad ogni uso (OLC: Value2).", 0, 9999);
-        schema.value_slots[2] = int_slot(2, "value[2] — cariche", "Cariche rimanenti (OLC: Value3).", 0, 9999);
-        schema.value_slots[3] = {"value[3] — incantesimo", "Numero incantesimo (#spell). Stat server: Spell.",
-                           ObjValueEditorKind::spell_number, 0, 999};
+        schema.legend_it = "STAFF — same fields as WAND (Level / Mana / Charges / Spell).";
+        schema.value_slots[0] =
+            int_slot(0, "Level", "Level of casting this staff casts (OLC Value1).", 0, 125);
+        schema.value_slots[1] =
+            int_slot(1, "Mana", "Mana the staff takes to use each time (OLC Value2).", 0, 9999);
+        schema.value_slots[2] =
+            int_slot(2, "Charges", "Number of charges the staff has (OLC Value3).", 0, 9999);
+        schema.value_slots[3] = spell_slot(3, "Spell", "Spell number (#spell). Shown as Spell in `stat`.");
         break;
     case kItemWeapon:
         schema.legend_it =
-            "WEAPON: arma. Danno value[1]dvalue[2]; value[3] = tipo danno (tabella aszWeaponType, indice 0-based). "
-            "OLC elenca tipi 1–12 corrispondenti agli indici 1–12 (0 riservato).";
+            "WEAPON — Todam = value[1]dvalue[2]; Damage type = value[3] (aszWeaponType index).";
         schema.value_slots[0] =
-            int_slot(0, "value[0] — riservato", "Riservato (OLC: Value1). Lasciare 0 salvo uso interno.", 0, 999);
+            int_slot(0, "Reserved", "Reserved for now (OLC Value1). Leave 0 unless documented.", 0, 999);
         schema.value_slots[1] =
-            int_slot(1, "value[1] — numero dadi", "Quante volte si tira il dado danno (OLC: Value2).", 0, 99);
+            int_slot(1, "Todam dice", "Number of times the damage dice is rolled (OLC Value2).", 0, 99);
         schema.value_slots[2] =
-            int_slot(2, "value[2] — facce dado", "Facce del dado danno (OLC: Value3).", 1, 99);
-        schema.value_slots[3] = {"value[3] — tipo danno", "Tipo colpo (indice in aszWeaponType / OLC 1=stab …).",
-                           ObjValueEditorKind::weapon_damage_type, 0, 20};
+            int_slot(2, "Todam sides", "Number of sides the damage dice has (OLC Value3).", 1, 99);
+        schema.value_slots[3] = {"value[3]  Damage type",
+                                 "Type of weapon damage (aszWeaponType / OLC 1=stab …).",
+                                 ObjValueEditorKind::weapon_damage_type, 0, 20};
         break;
     case kItemFireweapon:
         schema.legend_it =
-            "FIRE WEAPON: arma da fuoco. value[4] deve combaciare con value[4] del proiettile (MISSILE).";
+            "FIRE WEAPON — Min Strength / Max range / Bonus range / Type "
+            "(Type must match MISSILE value[3]).";
         schema.value_slots = {
-            int_slot(0, "value[0] — forza minima", "Forza minima per armare (OLC: Value1).", 0, 25),
-            int_slot(1, "value[1] — gittata max", "Gittata massima in stanze (OLC: Value2).", 0, 50),
-            int_slot(2, "value[2] — bonus gittata", "Bonus gittata in stanze (OLC: Value3).", 0, 50),
-            int_slot(3, "value[3] — tipo proiettile", "Tipo munizione (deve matchare MISSILE value[3]).", 0, 99),
+            int_slot(0, "Min Strength", "Strength required to draw (OLC Value1).", 0, 25),
+            int_slot(1, "Max range", "Max range in rooms (OLC Value2).", 0, 50),
+            int_slot(2, "Bonus range", "Bonus range in rooms (OLC Value3).", 0, 50),
+            int_slot(3, "Type", "Missile type (must match MISSILE value[3]).", 0, 99),
         };
         break;
     case kItemMissile:
-        schema.legend_it = "MISSILE: munizione. value[4] deve matchare FIRE WEAPON value[3].";
+        schema.legend_it =
+            "MISSILE — % to break / Todam / Type (Type must match FIRE WEAPON value[3]).";
         schema.value_slots = {
-            int_slot(0, "value[0] — %% rottura", "Probabilità % che si rompa (OLC: Value1).", 0, 100),
-            int_slot(1, "value[1] — facce dado", "Facce del dado danno (OLC: Value2).", 1, 99),
-            int_slot(2, "value[2] — numero dadi", "Numero di dadi danno (OLC: Value3).", 0, 99),
-            int_slot(3, "value[3] — tipo arma", "Tipo arma compatibile (OLC: Value4).", 0, 99),
+            int_slot(0, "% to break", "% chance that the missile will break (OLC Value1).", 0, 100),
+            int_slot(1, "Todam sides", "Number of sides on the damage die (OLC Value2).", 1, 99),
+            int_slot(2, "Todam dice", "Times the damage die is rolled (OLC Value3).", 0, 99),
+            int_slot(3, "Type", "Weapon type that can load this missile (OLC Value4).", 0, 99),
         };
         break;
     case kItemArmor:
-        schema.legend_it = "ARMOR: armatura. AC-apply in value[0] (valore positivo = protezione).";
+        schema.legend_it = "ARMOR — AC-apply and Full Strength (as in `stat`).";
         schema.value_slots = {
-            int_slot(0, "value[0] — AC apply", "Modificatore AC applicato (OLC: Armor Class Apply).", -100, 100),
-            int_slot(1, "value[1] — full strength", "Integrità massima armatura (OLC: Full Strength).", 0, 100),
+            int_slot(0, "AC-apply", "Armor Class Apply (OLC Value1). Positive = protection.", -100, 100),
+            int_slot(1, "Full Strength", "Full Strength of the armor (OLC Value2).", 0, 100),
             unused_slot(2),
             unused_slot(3),
         };
         break;
     case kItemPotion:
-        schema.legend_it = "POTION: pozione. value[0] livello; value[1..3] incantesimi (#spell).";
-        schema.value_slots[0] = int_slot(0, "value[0] — livello", "Livello incantesimi (OLC: Value1).", 0, 125);
-        schema.value_slots[1] = {"value[1] — incantesimo 2", "Secondo incantesimo (#spell).", ObjValueEditorKind::spell_number,
-                           0, 999};
-        schema.value_slots[2] = {"value[2] — incantesimo 3", "Terzo incantesimo (#spell).", ObjValueEditorKind::spell_number,
-                           0, 999};
-        schema.value_slots[3] = {"value[3] — incantesimo 4", "Quarto incantesimo (#spell).", ObjValueEditorKind::spell_number,
-                           0, 999};
+        schema.legend_it = "POTION — Level + up to 3 spells (#spell).";
+        schema.value_slots[0] =
+            int_slot(0, "Level", "Level of the spells this potion casts (OLC Value1).", 0, 125);
+        schema.value_slots[1] = spell_slot(1, "Spell 2", "Second spell this potion casts (OLC Value2).");
+        schema.value_slots[2] = spell_slot(2, "Spell 3", "Third spell this potion casts (OLC Value3).");
+        schema.value_slots[3] = spell_slot(3, "Spell 4", "Fourth spell this potion casts (OLC Value4).");
         break;
     case kItemTrap:
         schema.legend_it =
-            "TRAP: trappola. value[2] di solito 80 (OLC). value[1] tipo attacco (es. 67 acido, 327 gelo…).";
+            "TRAP — damage level / attack type / constant 80 / charges. "
+            "Attack types: 10 blasted, 26 seared, 67 corroded, 327 frozen, 331 pounded, "
+            "332 pierced, 333 sliced.";
         schema.value_slots = {
-            int_slot(0, "value[0] — livello danno", "Livello danno trappola (OLC: Value1).", 0, 125),
-            int_slot(1, "value[1] — tipo attacco",
-                      "Tipo attacco (OLC: 10 blasted, 26 seared, 67 corroded, 327 frozen, 331 pounded, 332 pierced, "
-                      "333 sliced).",
-                      0, 999),
-            int_slot(2, "value[2] — costante", "Impostare a 80 (OLC: Value3).", 0, 999),
-            int_slot(3, "value[3] — cariche", "Cariche trappola rimanenti (OLC: Value4).", 0, 9999),
+            int_slot(0, "Dam level", "Trap damage level (OLC Value1).", 0, 125),
+            int_slot(1, "Attack type", "Attack type of the trap (OLC Value2).", 0, 999),
+            int_slot(2, "Constant", "Should be set to 80 (OLC Value3).", 0, 999),
+            int_slot(3, "Charges", "Number of trap charges left (OLC Value4).", 0, 9999),
         };
         break;
     case kItemContainer:
-        schema.legend_it = "CONTAINER: contenitore. value[3]=1 se corpo (corpse).";
+        schema.legend_it = "CONTAINER — Max-contains / Locktype / reserved / Corpse.";
         schema.value_slots = {
-            int_slot(0, "value[0] — capienza", "Numero massimo oggetti contenibili.", 0, 9999),
-            int_slot(1, "value[1] — locktype", "Tipo di serratura (chiave/lock).", 0, 9999),
-            int_slot(2, "value[2] — riservato", "Riservato (OLC). Lasciare 0.", 0, 9999),
-            yes_no_slot(3, "value[3] — corpo", "1 se il contenitore è un corpo (corpse)."),
+            int_slot(0, "Max-contains", "Max number of items that can fit.", 0, 9999),
+            int_slot(1, "Locktype", "Lock type for the container.", 0, 9999),
+            int_slot(2, "Reserved", "Reserved (OLC). Leave 0.", 0, 9999),
+            yes_no_slot(3, "Corpse", "Whether the container is a corpse."),
         };
         break;
     case kItemDrinkcon:
-        schema.legend_it = "LIQUID CONTAINER: contenitore bevande.";
-        schema.value_slots[0] = int_slot(0, "value[0] — capienza", "Quantità massima di liquido.", 0, 9999);
-        schema.value_slots[1] = int_slot(1, "value[1] — contenuto", "Quantità attuale di liquido.", 0, 9999);
-        schema.value_slots[2] = {"value[2] — tipo liquido", "Tipo liquido (tabella drinks server, 0=acqua …).",
-                           ObjValueEditorKind::liquid_type, 0, 15};
-        schema.value_slots[3] = yes_no_slot(3, "value[3] — avvelenato", "Liquido avvelenato.");
+        schema.legend_it = "LIQUID CONTAINER — Max-contains / Contains / Liquid / Poisoned.";
+        schema.value_slots[0] =
+            int_slot(0, "Max-contains", "Amount of fluid the container can hold.", 0, 9999);
+        schema.value_slots[1] =
+            int_slot(1, "Contains", "Amount of fluid left.", 0, 9999);
+        schema.value_slots[2] = {"value[2]  Liquid",
+                                 "Type of liquid (Server drinks table / OLC list).",
+                                 ObjValueEditorKind::liquid_type, 0, 15};
+        schema.value_slots[3] = yes_no_slot(3, "Poisoned", "Whether the liquid is poisoned.");
         break;
     case kItemNote:
-        schema = schema_all_unused("NOTE: value non usati dal server per questo tipo.");
+        schema = schema_all_unused("NOTE — values not used for this item type.");
         break;
     case kItemKey:
-        schema.legend_it = "KEY: chiave. Solo value[0] = keytype.";
+        schema.legend_it = "KEY — Keytype in value[0].";
         schema.value_slots = {
-            int_slot(0, "value[0] — keytype", "Tipo chiave (locktype associato).", 0, 99999),
+            int_slot(0, "Keytype", "Key type (associated locktype).", 0, 99999),
             unused_slot(1),
             unused_slot(2),
             unused_slot(3),
         };
         break;
     case kItemFood:
-        schema.legend_it = "FOOD: cibo. value[0] sazietà; value[3] avvelenato.";
+        schema.legend_it = "FOOD — Makes full / Poisoned.";
         schema.value_slots = {
-            int_slot(0, "value[0] — sazietà", "Quanto riempie mangiando (OLC: Makes full).", 0, 999),
+            int_slot(0, "Makes full", "How full you get from eating the food (OLC Value1).", 0, 999),
             unused_slot(1),
             unused_slot(2),
-            yes_no_slot(3, "value[3] — avvelenato", "Cibo avvelenato."),
+            yes_no_slot(3, "Poisoned", "Whether the food is poisoned."),
         };
         break;
     case kItemMoney:
-        schema.legend_it = "MONEY: monete. value[0] = quantità oro.";
+        schema.legend_it = "MONEY — gold amount in value[0].";
         schema.value_slots = {
-            int_slot(0, "value[0] — quantità oro", "Importo in monete.", 0, 2000000000),
+            int_slot(0, "Gold", "Amount of gold coins.", 0, 2000000000),
             unused_slot(1),
             unused_slot(2),
             unused_slot(3),
         };
         break;
     case kItemClanSymbol:
-        schema.legend_it =
-            "CLAN SYMBOL: value[0] = toon_id del principe (MySQL toon.id). Altri value a 0.";
+        schema.legend_it = "CLAN SYMBOL — Prince toon_id in value[0] (MySQL toon.id). V1–V3 unused.";
         schema.value_slots = {
-            int_slot(0, "value[0] — toon_id principe", "ID personaggio principe della casata.", 0, 2000000000),
+            int_slot(0, "Prince toon_id", "Prince toon_id (MySQL toon.id) for the clan.", 0, 2000000000),
             unused_slot(1),
             unused_slot(2),
             unused_slot(3),
         };
         break;
     default:
-        schema = schema_all_unused(
-            "Tipo " + type_name +
-            ": nessuna legenda specifica in OLC server. I value sono di solito 0; verificare su NebbieArcane/Server "
-            "prima di usare valori non standard.");
+        schema = schema_all_unused("Type " + type_name
+                                   + ": no OLC legend. Values are usually 0 — check Server before "
+                                     "using non-standard numbers.");
         break;
     }
 

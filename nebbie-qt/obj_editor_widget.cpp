@@ -1,5 +1,6 @@
 #include "obj_editor_widget.hpp"
 
+#include "combo_group_util.hpp"
 #include "flag_group_widget.hpp"
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
@@ -29,6 +30,7 @@
 #include <QVBoxLayout>
 
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -65,8 +67,74 @@ void fillCombo(QComboBox* combo, const std::vector<std::pair<int, std::string>>&
     }
 }
 
+void fillAffectTypeCombo(QComboBox* combo) {
+    const std::vector<nebbie::qt::ComboIntSection> sections = {
+        {"Attributi", {1, 2, 3, 4, 5, 6}},
+        {"Vitalita' e regen", {12, 13, 14, 50, 51, 52}},
+        {"Combattimento (hit/dam/SP)", {17, 18, 19, 40, 65, 66, 41, 42, 43}},
+        {"Salvezze", {20, 21, 22, 23, 24, 25}},
+        {"Difese e affect (bit)", {26, 27, 28, 29}},
+        {"Incantesimi su oggetto", {30, 31}},
+        {"Skill %", {32, 33, 34, 35, 36, 37, 38, 39, 47}},
+        {"Slayer", {48, 49}},
+        {"Fisico (raro)", {9, 10, 11}},
+    };
+    nebbie::qt::fillGroupedIntCombo(combo, sections, [](const int location) {
+        return QString::fromStdString(nebbie::obj_apply_type_label(location));
+    });
+}
+
+void fillObjTypeCombo(QComboBox* combo) {
+    const std::vector<nebbie::qt::ComboIntSection> sections = {
+        {"Luce / scritto / chiave", {1, 2, 16, 18, 21, 24}},
+        {"Armi e proiettili", {5, 6, 7}},
+        {"Armature e indossabili", {9, 11}},
+        {"Pozioni / cibo / bevande", {10, 19, 17}},
+        {"Contenitori e denaro", {15, 20}},
+        {"Ambiente / risorse", {23, 25, 26, 27, 28, 29, 30}},
+        {"Altro", {0, 3, 4, 8, 12, 13, 14, 22}},
+    };
+    nebbie::qt::fillGroupedIntCombo(combo, sections, [](const int type_flag) {
+        return QString::fromStdString(nebbie::obj_type_name(type_flag));
+    });
+}
+
+void fillRaceCombo(QComboBox* combo) {
+    // Indici allineati a kRaceNames in mob_catalog.cpp.
+    const std::vector<nebbie::qt::ComboIntSection> sections = {
+        {"Umanoidi base", {0, 1, 2, 3, 4, 5, 36, 74, 75, 76, 77, 79, 80, 82, 83, 84, 85}},
+        {"Mostri e creature",
+         {6, 7, 8, 11, 12, 13, 14, 15, 16, 18, 19, 20, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 37,
+          38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 78, 81}},
+        {"Giganti", {17, 50, 51, 52, 53, 54, 55}},
+        {"Draghi", {9, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65}},
+        {"Non-morti", {10, 66, 67, 68, 69, 70, 71, 72, 73}},
+        {"Planari / elementali / divini", {21, 26, 27, 28, 29, 48, 49}},
+    };
+    const auto races = nebbie::mob_race_choices();
+    nebbie::qt::fillGroupedIntCombo(combo, sections, [&races](const int race) {
+        for (const auto& [value, label] : races) {
+            if (value == race) {
+                return QString::fromStdString(label);
+            }
+        }
+        return QStringLiteral("race #%1").arg(race);
+    });
+}
+
 int comboIntValue(QComboBox* combo) {
-    return combo->currentData().toInt();
+    const QVariant data = combo->currentData();
+    if (!data.isValid()) {
+        // Skip section headers / separators if somehow selected.
+        for (int i = 0; i < combo->count(); ++i) {
+            if (combo->itemData(i).isValid()) {
+                combo->setCurrentIndex(i);
+                return combo->itemData(i).toInt();
+            }
+        }
+        return 0;
+    }
+    return data.toInt();
 }
 
 QScrollArea* wrapFlagsInScroll(QWidget* content) {
@@ -77,18 +145,29 @@ QScrollArea* wrapFlagsInScroll(QWidget* content) {
     return scroll;
 }
 
-QWidget* wrapFlagGroup(FlagGroupWidget* flags, QWidget* parent) {
+QWidget* wrapFlagGroup(FlagGroupWidget* flags, QWidget* parent, const int viewport_height = 140) {
     auto* wrap = new QWidget(parent);
     auto* layout = new QVBoxLayout(wrap);
     layout->setContentsMargins(0, 0, 0, 0);
     auto* scroll = new QScrollArea(wrap);
     scroll->setWidgetResizable(true);
-    scroll->setFixedHeight(160);
+    scroll->setFixedHeight(viewport_height);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scroll->setFrameShape(QFrame::StyledPanel);
     scroll->setWidget(flags);
     layout->addWidget(scroll);
     wrap->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    return wrap;
+}
+
+/** Compact wrap for small flag sets (e.g. Align slayer): no tall empty scroll box. */
+QWidget* wrapFlagGroupCompact(FlagGroupWidget* flags, QWidget* parent) {
+    auto* wrap = new QWidget(parent);
+    auto* layout = new QVBoxLayout(wrap);
+    layout->setContentsMargins(0, 2, 0, 2);
+    layout->setSpacing(0);
+    layout->addWidget(flags);
+    wrap->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     return wrap;
 }
 
@@ -117,7 +196,20 @@ void shrinkStackedWidgetToCurrent(QStackedWidget* stack) {
 
 void ObjEditorWidget::setComboIntValue(QComboBox* combo, const int value) const {
     const int index = combo->findData(value);
-    combo->setCurrentIndex(index >= 0 ? index : 0);
+    if (index >= 0) {
+        combo->setCurrentIndex(index);
+        nebbie::qt::syncGroupedComboEditText(combo);
+        return;
+    }
+    // Prefer first item with valid userData (skip Affect section headers).
+    for (int i = 0; i < combo->count(); ++i) {
+        if (combo->itemData(i).isValid()) {
+            combo->setCurrentIndex(i);
+            nebbie::qt::syncGroupedComboEditText(combo);
+            return;
+        }
+    }
+    combo->setCurrentIndex(0);
 }
 
 ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
@@ -185,35 +277,66 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* type_tab = new QWidget;
     auto* type_layout = new QVBoxLayout(type_tab);
-    value_legend_ = makeLegend(
-        "I quattro valori (value[0..3]) dipendono dal tipo oggetto. Legenda allineata a "
-        "NebbieArcane/Server (create.obj / stat). Il prezzo negozio e' nel tab «Testo e prezzi» (Valore = cost).",
-        type_tab);
-    type_layout->addWidget(value_legend_);
-    auto* type_form = new QFormLayout;
-    type_flag_ = new QComboBox;
-    fillCombo(type_flag_, nebbie::obj_type_choices());
-    type_form->addRow("Tipo oggetto:", type_flag_);
+    type_layout->setSpacing(10);
 
-    auto make_value_row = [&](int index, QSpinBox*& spin, QComboBox*& combo, QLabel*& hint, QLabel*& row_label) {
-        row_label = new QLabel(QString("value[%1]:").arg(index), type_tab);
-        auto* row = new QWidget(type_tab);
-        auto* row_layout = new QVBoxLayout(row);
+    auto* type_header = new QHBoxLayout;
+    type_header->addWidget(new QLabel(QStringLiteral("Type:"), type_tab));
+    type_flag_ = new QComboBox(type_tab);
+    type_flag_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    type_flag_->setMinimumContentsLength(24);
+    type_flag_->setMaximumWidth(420);
+    fillObjTypeCombo(type_flag_);
+    nebbie::qt::enableGroupedComboSearch(type_flag_, QStringLiteral("Search object type…"));
+    type_header->addWidget(type_flag_, 1);
+    type_header->addStretch();
+    type_layout->addLayout(type_header);
+
+    value_legend_ = new QLabel(type_tab);
+    value_legend_->setWordWrap(true);
+    value_legend_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    value_legend_->setStyleSheet(
+        QStringLiteral("QLabel { padding: 8px 10px; background: palette(base); "
+                       "border: 1px solid palette(mid); border-radius: 4px; }"));
+    value_legend_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+    type_layout->addWidget(value_legend_);
+
+    auto* values_box = new QGroupBox(QStringLiteral("Values (value[0..3])"), type_tab);
+    auto* values_layout = new QVBoxLayout(values_box);
+    values_layout->setSpacing(6);
+
+    auto make_value_row = [&](int index, QSpinBox*& spin, QComboBox*& combo, QLabel*& hint,
+                              QLabel*& row_label) {
+        auto* row = new QWidget(values_box);
+        row->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+        auto* row_layout = new QHBoxLayout(row);
         row_layout->setContentsMargins(0, 0, 0, 0);
-        auto* editors = new QHBoxLayout;
+        row_layout->setSpacing(8);
+
+        row_label = new QLabel(QStringLiteral("value[%1]").arg(index), row);
+        row_label->setMinimumWidth(168);
+        row_label->setMaximumWidth(200);
+        row_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+
         spin = new QSpinBox(row);
         spin->setRange(-2000000000, 2000000000);
+        spin->setMinimumWidth(100);
+        spin->setMaximumWidth(140);
+        spin->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
         combo = new QComboBox(row);
-        combo->setMinimumWidth(280);
+        combo->setMinimumWidth(200);
         combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        editors->addWidget(spin);
-        editors->addWidget(combo, 1);
-        row_layout->addLayout(editors);
-        hint = new QLabel(type_tab);
-        hint->setWordWrap(true);
-        hint->setStyleSheet("color: palette(mid);");
+
+        hint = new QLabel(row);
+        hint->setMinimumWidth(72);
+        hint->setStyleSheet(QStringLiteral("color: palette(mid);"));
+        hint->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
+        row_layout->addWidget(row_label);
+        row_layout->addWidget(spin);
+        row_layout->addWidget(combo, 1);
         row_layout->addWidget(hint);
-        type_form->addRow(row_label, row);
+        values_layout->addWidget(row);
     };
 
     make_value_row(0, value0_, value_combo0_, value_hint0_, value_label0_);
@@ -221,18 +344,19 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     make_value_row(2, value2_, value_combo2_, value_hint2_, value_label2_);
     make_value_row(3, value3_, value_combo3_, value_hint3_, value_label3_);
 
-    type_layout->addLayout(type_form);
+    type_layout->addWidget(values_box);
+    type_layout->addStretch(1);
     tabs->addTab(type_tab, "Tipo / Valori");
 
     auto* flags_tab = new QWidget;
     auto* flags_layout = new QVBoxLayout(flags_tab);
-    wear_flags_ = new FlagGroupWidget(nebbie::obj_wear_flags(), flags_tab);
-    extra_flags_ = new FlagGroupWidget(nebbie::obj_extra_flags(), flags_tab);
+    wear_flags_ = new FlagGroupWidget(nebbie::obj_wear_flags(), flags_tab, 3);
+    extra_flags_ = new FlagGroupWidget(nebbie::obj_extra_flags(), flags_tab, 3);
     has_extra_flags2_ = new QCheckBox("Abilita flag extra 2 (sezione F)");
     extra_flags2_panel_ = new QWidget(flags_tab);
     auto* extra_flags2_layout = new QVBoxLayout(extra_flags2_panel_);
     extra_flags2_layout->setContentsMargins(0, 0, 0, 0);
-    extra_flags2_ = new FlagGroupWidget(nebbie::obj_extra_flags2(), extra_flags2_panel_);
+    extra_flags2_ = new FlagGroupWidget(nebbie::obj_extra_flags2(), extra_flags2_panel_, 3);
     extra_flags2_layout->addWidget(extra_flags2_);
 
     flags_layout->addWidget(new QLabel("Dove si puo' indossare (wear)"));
@@ -272,16 +396,27 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* affect_layout = new QVBoxLayout(affect_tab);
     affect_layout->addWidget(makeLegend(
         "Affect (sezione A): lista a sinistra, editor a destra. "
-        "Aggiungi = nuova riga dai campi sotto; Aggiorna = modifica la riga selezionata "
-        "(senza Aggiorna le modifiche ai campi non toccano le altre righe). "
-        "Tipi limitati a quelli usati nelle Aree (max 5 per oggetto).",
+        "Filtra la lista o cerca nel tipo di bonus. "
+        "Aggiungi = nuova riga; Aggiorna = modifica la riga selezionata "
+        "(senza Aggiorna le bozze a destra non toccano le altre righe). "
+        "Max 5 affect per oggetto.",
         affect_tab));
 
     auto* affect_split = new QSplitter(Qt::Horizontal, affect_tab);
-    affect_list_ = new QListWidget;
+
+    auto* affect_list_panel = new QWidget(affect_tab);
+    auto* affect_list_layout = new QVBoxLayout(affect_list_panel);
+    affect_list_layout->setContentsMargins(0, 0, 0, 0);
+    affect_list_layout->setSpacing(4);
+    affect_list_filter_ = new QLineEdit(affect_list_panel);
+    affect_list_filter_->setPlaceholderText(QStringLiteral("Filtra lista affect…"));
+    affect_list_filter_->setClearButtonEnabled(true);
+    affect_list_ = new QListWidget(affect_list_panel);
     affect_list_->setMinimumWidth(220);
     affect_list_->setAlternatingRowColors(true);
-    affect_split->addWidget(affect_list_);
+    affect_list_layout->addWidget(affect_list_filter_);
+    affect_list_layout->addWidget(affect_list_, 1);
+    affect_split->addWidget(affect_list_panel);
 
     auto* affect_editor = new QWidget;
     auto* affect_editor_layout = new QVBoxLayout(affect_editor);
@@ -290,7 +425,9 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     affect_location_ = new QComboBox;
     affect_location_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     affect_location_->setMinimumContentsLength(28);
-    fillCombo(affect_location_, nebbie::obj_apply_type_choices_ui());
+    fillAffectTypeCombo(affect_location_);
+    nebbie::qt::enableGroupedComboSearch(affect_location_,
+                                         QStringLiteral("Cerca tipo di bonus…"));
     affect_form->addRow("Tipo di bonus:", affect_location_);
     affect_modifier_hint_ = makeLegend("", affect_editor);
     affect_form->addRow("", affect_modifier_hint_);
@@ -301,14 +438,19 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     affect_modifier_->setRange(-2000000000, 2000000000);
     affect_stack_integer_ = affect_modifier_stack_->addWidget(affect_modifier_);
 
-    affect_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags());
-    affect_stack_immune_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_immune_flags_, affect_editor));
+    // Flag bit: 3 colonne. Scroll solo dove la lista e' lunga (AFF ~32); gli altri
+    // restano a altezza naturale cosi' non resta uno "scatolone" mezzo vuoto.
+    affect_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), nullptr, 3);
+    affect_stack_immune_ =
+        affect_modifier_stack_->addWidget(wrapFlagGroupCompact(affect_immune_flags_, affect_editor));
 
-    affect_spell_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect_flags());
-    affect_stack_spell_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_spell_flags_, affect_editor));
+    affect_spell_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect_flags(), nullptr, 3);
+    affect_stack_spell_ =
+        affect_modifier_stack_->addWidget(wrapFlagGroup(affect_spell_flags_, affect_editor, 168));
 
-    affect_spell2_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect2_flags());
-    affect_stack_spell2_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_spell2_flags_, affect_editor));
+    affect_spell2_flags_ = new FlagGroupWidget(nebbie::obj_spell_affect2_flags(), nullptr, 3);
+    affect_stack_spell2_ =
+        affect_modifier_stack_->addWidget(wrapFlagGroupCompact(affect_spell2_flags_, affect_editor));
 
     affect_spell_combo_ = new QComboBox;
     affect_spell_combo_->setEditable(true);
@@ -316,15 +458,19 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     affect_stack_spell_num_ = affect_modifier_stack_->addWidget(affect_spell_combo_);
 
     affect_race_combo_ = new QComboBox;
-    fillCombo(affect_race_combo_, nebbie::mob_race_choices());
+    affect_race_combo_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    affect_race_combo_->setMinimumContentsLength(22);
+    fillRaceCombo(affect_race_combo_);
+    nebbie::qt::enableGroupedComboSearch(affect_race_combo_, QStringLiteral("Cerca razza…"));
     affect_stack_race_ = affect_modifier_stack_->addWidget(affect_race_combo_);
 
     affect_sex_combo_ = new QComboBox;
     fillCombo(affect_sex_combo_, nebbie::mob_sex_choices());
     affect_stack_sex_ = affect_modifier_stack_->addWidget(affect_sex_combo_);
 
-    affect_align_flags_ = new FlagGroupWidget(nebbie::obj_align_slayer_flags());
-    affect_stack_align_ = affect_modifier_stack_->addWidget(wrapFlagGroup(affect_align_flags_, affect_editor));
+    affect_align_flags_ = new FlagGroupWidget(nebbie::obj_align_slayer_flags(), nullptr, 0);
+    affect_stack_align_ =
+        affect_modifier_stack_->addWidget(wrapFlagGroupCompact(affect_align_flags_, affect_editor));
 
     affect_form->addRow("Valore:", affect_modifier_stack_);
     affect_editor_layout->addLayout(affect_form);
@@ -385,6 +531,18 @@ ObjEditorWidget::ObjEditorWidget(QWidget* parent) : QWidget(parent) {
     connect(extra_desc_update, &QPushButton::clicked, this, &ObjEditorWidget::updateExtraDesc);
     connect(extra_desc_remove, &QPushButton::clicked, this, &ObjEditorWidget::removeExtraDesc);
     connect(affect_list_, &QListWidget::currentRowChanged, this, [this](int) { onAffectSelected(); });
+    connect(affect_list_filter_, &QLineEdit::textChanged, this, [this](const QString& text) {
+        const QString needle = text.trimmed();
+        for (int i = 0; i < affect_list_->count(); ++i) {
+            QListWidgetItem* item = affect_list_->item(i);
+            if (!item) {
+                continue;
+            }
+            const bool visible =
+                needle.isEmpty() || item->text().contains(needle, Qt::CaseInsensitive);
+            item->setHidden(!visible);
+        }
+    });
     connect(affect_location_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this](int) { onAffectLocationChanged(); });
     connect(affect_add, &QPushButton::clicked, this, &ObjEditorWidget::addAffect);
@@ -651,8 +809,11 @@ void ObjEditorWidget::ensureAffectLocationInCombo(const int location) {
     if (affect_location_->findData(location) >= 0) {
         return;
     }
-    affect_location_->addItem(
-        QString::fromStdString(nebbie::obj_apply_type_label(location) + " (raro)"), location);
+    const QString clean =
+        QString::fromStdString(nebbie::obj_apply_type_label(location) + " (raro)");
+    const int row = affect_location_->count();
+    affect_location_->addItem(QStringLiteral("    ") + clean, location);
+    affect_location_->setItemData(row, clean, Qt::UserRole + 1);
 }
 
 void ObjEditorWidget::updateAffectModifierEditor() {
@@ -877,8 +1038,8 @@ void ObjEditorWidget::fillValueEnumCombo(const int slot_index, const nebbie::Obj
     combo->setEditable(false);
     switch (kind) {
     case nebbie::ObjValueEditorKind::yes_no:
-        combo->addItem("0 — no", 0);
-        combo->addItem("1 — sì", 1);
+        combo->addItem("0 — No", 0);
+        combo->addItem("1 — Yes", 1);
         break;
     case nebbie::ObjValueEditorKind::weapon_damage_type:
         for (const auto& [value, label] : nebbie::obj_weapon_damage_type_choices()) {
@@ -969,9 +1130,10 @@ void ObjEditorWidget::updateObjectValueFields() {
     const bool type_changed = type_flag != last_value_type_flag_;
     last_value_type_flag_ = type_flag;
 
-    value_legend_->setText(
-        QString::fromStdString(schema.legend_it + "\n\nTipo: " + nebbie::obj_type_name(type_flag) + " (#"
-                               + std::to_string(type_flag) + ")."));
+    value_legend_->setText(QStringLiteral("%1\n%2 (#%3)")
+                               .arg(QString::fromStdString(schema.legend_it))
+                               .arg(QString::fromStdString(nebbie::obj_type_name(type_flag)))
+                               .arg(type_flag));
 
     struct SlotWidgets {
         QLabel* label;
@@ -990,6 +1152,7 @@ void ObjEditorWidget::updateObjectValueFields() {
         const nebbie::ObjValueSlotSchema& slot_schema = schema.value_slots[i];
         SlotWidgets& ui = value_ui[i];
         ui.label->setText(QString::fromStdString(slot_schema.label_it));
+        ui.label->setToolTip(QString::fromStdString(slot_schema.tooltip_it));
         ui.spin->setToolTip(QString::fromStdString(slot_schema.tooltip_it));
         ui.combo->setToolTip(QString::fromStdString(slot_schema.tooltip_it));
 
@@ -1011,13 +1174,12 @@ void ObjEditorWidget::updateObjectValueFields() {
         }
 
         const std::string hint = nebbie::obj_value_slot_display_hint(type_flag, i, ui.spin->value());
-        if (!hint.empty() && slot_schema.editor != nebbie::ObjValueEditorKind::integer
-            && slot_schema.editor != nebbie::ObjValueEditorKind::unused) {
-            ui.hint->setText(QString::fromUtf8("→ ") + QString::fromStdString(hint));
-        } else if (!used) {
-            ui.hint->setText(QString::fromUtf8("Non usato per questo tipo."));
+        if (!hint.empty() && show_combo) {
+            ui.hint->setText(QStringLiteral("= %1").arg(QString::fromStdString(hint)));
+            ui.hint->show();
         } else {
             ui.hint->clear();
+            ui.hint->hide();
         }
     }
 }

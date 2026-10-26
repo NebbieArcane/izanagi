@@ -1,5 +1,6 @@
 #include "zone_editor_widget.hpp"
 
+#include "combo_group_util.hpp"
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
 #include "nebbie/edit.hpp"
@@ -43,6 +44,24 @@ void fillIntCombo(QComboBox* combo, const std::vector<std::pair<int, std::string
     }
 }
 
+void fillEquipPositionCombo(QComboBox* combo) {
+    const std::vector<nebbie::qt::ComboIntSection> sections = {
+        {"Luce / dita / collo", {0, 1, 2, 3, 4}},
+        {"Corpo / testa / gambe / piedi", {5, 6, 7, 8}},
+        {"Mani / braccia / scudo / about / waist", {9, 10, 11, 12, 13}},
+        {"Polsi / arma / hold / inventario", {14, 15, 16, 17, 18}},
+    };
+    const auto positions = nebbie::zone_equip_position_choices();
+    nebbie::qt::fillGroupedIntCombo(combo, sections, [&positions](const int pos) {
+        for (const auto& [value, label] : positions) {
+            if (value == pos) {
+                return QString::fromStdString(label);
+            }
+        }
+        return QStringLiteral("pos #%1").arg(pos);
+    });
+}
+
 void fillCharCombo(QComboBox* combo, const std::vector<std::pair<char, std::string>>& choices) {
     combo->clear();
     for (const auto& [value, label] : choices) {
@@ -51,14 +70,36 @@ void fillCharCombo(QComboBox* combo, const std::vector<std::pair<char, std::stri
 }
 
 int comboIntValue(QComboBox* combo) {
-    return combo->currentData().toInt();
+    const QVariant data = combo->currentData();
+    if (!data.isValid()) {
+        for (int i = 0; i < combo->count(); ++i) {
+            if (combo->itemData(i).isValid()) {
+                combo->setCurrentIndex(i);
+                return combo->itemData(i).toInt();
+            }
+        }
+        return 0;
+    }
+    return data.toInt();
 }
 
 } // namespace
 
 void ZoneEditorWidget::setComboIntValue(QComboBox* combo, const int value) const {
     const int index = combo->findData(value);
-    combo->setCurrentIndex(index >= 0 ? index : 0);
+    if (index >= 0) {
+        combo->setCurrentIndex(index);
+        nebbie::qt::syncGroupedComboEditText(combo);
+        return;
+    }
+    for (int i = 0; i < combo->count(); ++i) {
+        if (combo->itemData(i).isValid()) {
+            combo->setCurrentIndex(i);
+            nebbie::qt::syncGroupedComboEditText(combo);
+            return;
+        }
+    }
+    combo->setCurrentIndex(0);
 }
 
 ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
@@ -107,17 +148,39 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* reset_tab = new QWidget;
     auto* reset_layout = new QVBoxLayout(reset_tab);
     reset_layout->addWidget(makeLegend(
-        "Reset commands run in order when the zone resets.\n"
+        "Comandi di reset (.zon) — eseguiti in ordine al reset della zona.\n"
         "\n"
-        "if_flag:\n"
-        "  0 = always execute\n"
-        "  1 = only if the previous command succeeded\n"
+        "if_flag: 0 = sempre; 1 = solo se il comando precedente e' riuscito.\n"
+        "G / E / P usano l'ultimo M (o O) riuscito. Se la M fallisce\n"
+        "(es. mob gia' al max mondo), gli E successivi con if_flag=1 non partono.\n"
         "\n"
-        "G / E / P depend on the last M or O command.\n"
-        "Trailing note (*!) is written on the same line, e.g.\n"
-        "  O 0 1500 1 1514 0  *! Carica oggetto 1500 ...\n"
-        "Comment lines (*) and blank lines are preserved and editable here.\n"
-        "The table ends with S in myst.zon.",
+        "Presenza oggetti/mob (Server; 0 = senza limite):\n"
+        "  M  … max MONDO (arg2) + max STANZA (arg4)\n"
+        "  O  … max MONDO (arg2) + max STANZA (arg4); arg2 vale anche come\n"
+        "       tetto stanza. Max mondo = copie LIVE (stanze, inventari PG\n"
+        "       online, equip, contenitori).\n"
+        "  G/E/P … solo max MONDO (arg2).\n"
+        "  NICE_LIMITED: il server raddoppia il solo max mondo degli oggetti.\n"
+        "\n"
+        "Cosa NON e' il max mondo:\n"
+        "  Non e' un tetto \"per sempre nel mud\". Se i player lootano e i pezzi\n"
+        "  escono dal contatore live (tipico: rent di oggetti non rari,\n"
+        "  costo < 20000), al reset successivo ne puo' spawnare un altro.\n"
+        "  Per questo in produzione possono esserci tanti kris/vesti anche\n"
+        "  con E ... 1 ... : il 1 limita le copie live al momento del reset,\n"
+        "  non il totale storico.\n"
+        "  Oggetti rari (costo >= 20000): in rent restano contati, cosi' non\n"
+        "  ripoppano finche' qualcuno li ha in rent (ego/rent, non .zon).\n"
+        "\n"
+        "Tetti alti = ripop frequente (es. E ... 10 ... fino a ~20 con\n"
+        "NICE_LIMITED): ogni reset puo' ricaricare finche' non si raggiunge\n"
+        "il tetto live.\n"
+        "\n"
+        "Esempio O: O 0 1500 1 1514 0  *! nota\n"
+        "  → al reset, se live < 1, mette l'oggetto in 1514.\n"
+        "\n"
+        "Nota (*!) sulla stessa riga; commenti * e blank si preservano.\n"
+        "La tabella finisce con S.",
         reset_tab));
     reset_list_ = new QListWidget;
     reset_list_->setMinimumHeight(140);
@@ -150,7 +213,10 @@ ZoneEditorWidget::ZoneEditorWidget(QWidget* parent) : QWidget(parent) {
     equip_panel_ = new QWidget(reset_tab);
     auto* equip_form = new QFormLayout(equip_panel_);
     equip_position_ = new QComboBox;
-    fillIntCombo(equip_position_, nebbie::zone_equip_position_choices());
+    equip_position_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    equip_position_->setMinimumContentsLength(22);
+    fillEquipPositionCombo(equip_position_);
+    nebbie::qt::enableGroupedComboSearch(equip_position_, QStringLiteral("Cerca posizione…"));
     equip_form->addRow("equip position:", equip_position_);
     door_state_panel_ = new QWidget(reset_tab);
     auto* door_form = new QFormLayout(door_state_panel_);

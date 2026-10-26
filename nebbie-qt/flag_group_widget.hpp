@@ -11,7 +11,14 @@ class FlagGroupWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit FlagGroupWidget(const std::vector<nebbie::MobFlagDef>& defs, QWidget* parent = nullptr);
+    /**
+     * @param columns Grid columns for checkboxes. Use 0 (or negative) to put
+     *        every flag on a single horizontal row (compact UX for small sets).
+     *        Default 2 matches the historical two-column layout.
+     */
+    explicit FlagGroupWidget(const std::vector<nebbie::MobFlagDef>& defs,
+                             QWidget* parent = nullptr,
+                             int columns = 2);
 
     void setValue(long flags);
     long value() const;

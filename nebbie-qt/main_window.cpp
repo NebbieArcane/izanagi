@@ -1616,6 +1616,12 @@ void MainWindow::loadLib(const std::filesystem::path& path) {
     mob_search_->clear();
     obj_search_->clear();
     markClean();
+    for (nebbie::Zone& zone : world_.zones) {
+        if (nebbie::sync_zone_reset_comments(zone, world_)) {
+            dirty_zone_nums_.insert(zone.num);
+            markDirty();
+        }
+    }
     refreshRoomList();
     refreshMobList();
     refreshObjectList();
@@ -1894,6 +1900,14 @@ void MainWindow::loadAreeArea(const nebbie::AreeAreaInfo& area, bool archive_fir
         mob_search_->clear();
         obj_search_->clear();
         markClean();
+        // Refresh *! notes (names + MW/MR from .zon args). If they change, mark zone dirty
+        // so the next save writes the updated comments.
+        for (nebbie::Zone& zone : world_.zones) {
+            if (nebbie::sync_zone_reset_comments(zone, world_)) {
+                dirty_zone_nums_.insert(zone.num);
+                markDirty();
+            }
+        }
         refreshRoomList();
         refreshMobList();
         refreshObjectList();

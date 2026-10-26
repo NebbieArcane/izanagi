@@ -172,7 +172,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     auto* sector_form = new QFormLayout;
     sector_type_ = new QComboBox;
     fillCombo(sector_type_, nebbie::room_sector_choices());
-    room_flags_ = new FlagGroupWidget(nebbie::room_flag_defs(), sector_section_);
+    room_flags_ = new FlagGroupWidget(nebbie::room_flag_defs(), sector_section_, 3);
     sector_form->addRow("Sector type:", sector_type_);
     sector_layout->addLayout(sector_form);
     sector_layout->addWidget(new QLabel("Room flags"));
@@ -305,7 +305,7 @@ RoomEditorWidget::RoomEditorWidget(QWidget* parent) : QWidget(parent) {
     exit_ascii_info_ = nebbie::qt::makeTextMonitorLabel();
     exit_english_info_ = nebbie::qt::makeTextMonitorLabel();
     exit_keyword_english_info_ = nebbie::qt::makeTextMonitorLabel();
-    exit_flags_ = new FlagGroupWidget(nebbie::exit_flag_defs(), exits_section_);
+    exit_flags_ = new FlagGroupWidget(nebbie::exit_flag_defs(), exits_section_, 3);
     exit_key_ = new QSpinBox;
     exit_key_->setRange(-1, 999999);
     exit_key_->setValue(-1);

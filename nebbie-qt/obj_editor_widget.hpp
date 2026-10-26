@@ -110,6 +110,7 @@ private:
     QSpinBox* cost_per_day_ = nullptr;
 
     QListWidget* affect_list_ = nullptr;
+    QLineEdit* affect_list_filter_ = nullptr;
     QComboBox* affect_location_ = nullptr;
     QLabel* affect_modifier_hint_ = nullptr;
     QStackedWidget* affect_modifier_stack_ = nullptr;

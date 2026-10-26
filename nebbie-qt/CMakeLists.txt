@@ -37,6 +37,8 @@ add_executable(nebbieedit
     release_update_util.hpp
     flag_group_widget.cpp
     flag_group_widget.hpp
+    combo_group_util.cpp
+    combo_group_util.hpp
     mob_editor_widget.cpp
     mob_editor_widget.hpp
     room_editor_widget.cpp

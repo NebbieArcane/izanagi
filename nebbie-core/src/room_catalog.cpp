@@ -1,5 +1,7 @@
 #include "nebbie/room_catalog.hpp"
 
+#include <cstring>
+
 namespace nebbie {
 
 namespace {
@@ -50,7 +52,22 @@ std::vector<std::pair<int, std::string>> room_sector_choices() {
 }
 
 std::vector<MobFlagDef> room_flag_defs() {
-    return make_bit_flags(kRoomBits, sizeof(kRoomBits) / sizeof(kRoomBits[0]));
+    // Omit RESERVED placeholder bits from the editor UI; unknown bits still
+    // round-trip via FlagGroupWidget::preserved_bits_.
+    std::vector<MobFlagDef> defs;
+    const std::size_t count = sizeof(kRoomBits) / sizeof(kRoomBits[0]);
+    defs.reserve(count);
+    for (std::size_t i = 0; i < count; ++i) {
+        if (std::strcmp(kRoomBits[i], "RESERVED") == 0) {
+            continue;
+        }
+        MobFlagDef def;
+        def.value = 1L << i;
+        def.name = kRoomBits[i];
+        def.label = kRoomBits[i];
+        defs.push_back(def);
+    }
+    return defs;
 }
 
 std::vector<MobFlagDef> exit_flag_defs() {

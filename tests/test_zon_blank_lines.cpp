@@ -109,7 +109,7 @@ int main() {
         }
         const std::string expected_o =
             "O 0 1500 1 1514 0  *! Carica oggetto 1500 (Fontana della Vita) nella stanza 1514 "
-            "(Common Room)\n";
+            "(Common Room) MW:1 MR:0\n";
         if (saved.find(expected_o) == std::string::npos) {
             throw std::runtime_error("updated O line with *! note missing:\n" + saved);
         }

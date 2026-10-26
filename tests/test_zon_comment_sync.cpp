@@ -204,12 +204,17 @@ int main() {
 
         expect(found_mob.find("Un guardiano dell'ombra") != std::string::npos, found_mob);
         expect(found_mob.find("Il Bosco delle Ombre") != std::string::npos, found_mob);
+        expect(found_mob.find("MW:8") != std::string::npos, found_mob);
+        expect(found_mob.find("MR:0") != std::string::npos, found_mob);
         expect(found_obj.find("Carica oggetto 1499") != std::string::npos, found_obj);
         expect(found_obj.find("Fontana della Vita") != std::string::npos, found_obj);
         expect(found_obj.find("La sala comune") != std::string::npos, found_obj);
         expect(found_obj.find("1500 (Fountain") == std::string::npos, found_obj);
+        expect(found_obj.find("MW:1") != std::string::npos, found_obj);
+        expect(found_obj.find("MR:0") != std::string::npos, found_obj);
         expect(found_put.find("Un forno") != std::string::npos, found_put);
         expect(found_put.find("Una fetta di pizza") != std::string::npos, found_put);
+        expect(found_put.find("MW:20") != std::string::npos, found_put);
         expect(found_door.find("la cucina") != std::string::npos, found_door);
 
         expect(!nebbie::sync_zone_reset_comments(zone, world), "second sync must be idempotent");
@@ -225,6 +230,8 @@ int main() {
         expect(saved.find("O:An oven") == std::string::npos, saved);
         expect(saved.find("A shadow guardian") == std::string::npos, saved);
         expect(saved.find("Carica oggetto 1499 (Fontana della Vita)") != std::string::npos, saved);
+        expect(saved.find("MW:8 MR:0") != std::string::npos, saved);
+        expect(saved.find("MW:1 MR:0") != std::string::npos, saved);
 
         std::cout << "OK\n";
         return 0;

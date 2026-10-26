@@ -1,5 +1,6 @@
 #include "mob_editor_widget.hpp"
 
+#include "combo_group_util.hpp"
 #include "flag_group_widget.hpp"
 #include "mud_color_widgets.hpp"
 #include "mud_editor_fields.hpp"
@@ -94,6 +95,28 @@ void fillCombo(QComboBox* combo, const std::vector<std::pair<int, std::string>>&
     }
 }
 
+void fillRaceCombo(QComboBox* combo) {
+    const std::vector<nebbie::qt::ComboIntSection> sections = {
+        {"Umanoidi base", {0, 1, 2, 3, 4, 5, 36, 74, 75, 76, 77, 79, 80, 82, 83, 84, 85}},
+        {"Mostri e creature",
+         {6, 7, 8, 11, 12, 13, 14, 15, 16, 18, 19, 20, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 37,
+          38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 78, 81}},
+        {"Giganti", {17, 50, 51, 52, 53, 54, 55}},
+        {"Draghi", {9, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65}},
+        {"Non-morti", {10, 66, 67, 68, 69, 70, 71, 72, 73}},
+        {"Planari / elementali / divini", {21, 26, 27, 28, 29, 48, 49}},
+    };
+    const auto races = nebbie::mob_race_choices();
+    nebbie::qt::fillGroupedIntCombo(combo, sections, [&races](const int race) {
+        for (const auto& [value, label] : races) {
+            if (value == race) {
+                return QString::fromStdString(label);
+            }
+        }
+        return QStringLiteral("race #%1").arg(race);
+    });
+}
+
 void fillTypeCombo(QComboBox* combo) {
     combo->clear();
     for (const auto& [value, label] : nebbie::mob_type_choices()) {
@@ -102,7 +125,17 @@ void fillTypeCombo(QComboBox* combo) {
 }
 
 int comboIntValue(QComboBox* combo) {
-    return combo->currentData().toInt();
+    const QVariant data = combo->currentData();
+    if (!data.isValid()) {
+        for (int i = 0; i < combo->count(); ++i) {
+            if (combo->itemData(i).isValid()) {
+                combo->setCurrentIndex(i);
+                return combo->itemData(i).toInt();
+            }
+        }
+        return 0;
+    }
+    return data.toInt();
 }
 
 char comboTypeValue(QComboBox* combo) {
@@ -111,7 +144,19 @@ char comboTypeValue(QComboBox* combo) {
 
 void setComboIntValue(QComboBox* combo, int value) {
     const int index = combo->findData(value);
-    combo->setCurrentIndex(index >= 0 ? index : 0);
+    if (index >= 0) {
+        combo->setCurrentIndex(index);
+        nebbie::qt::syncGroupedComboEditText(combo);
+        return;
+    }
+    for (int i = 0; i < combo->count(); ++i) {
+        if (combo->itemData(i).isValid()) {
+            combo->setCurrentIndex(i);
+            nebbie::qt::syncGroupedComboEditText(combo);
+            return;
+        }
+    }
+    combo->setCurrentIndex(0);
 }
 
 void setComboTypeValue(QComboBox* combo, char mobtype) {
@@ -224,7 +269,10 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     exp_label_ = new QLabel("Exp:");
     extended_gold_ = new QCheckBox("Extended gold line (-1 gold exp race)");
     race_ = new QComboBox;
-    fillCombo(race_, nebbie::mob_race_choices());
+    race_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    race_->setMinimumContentsLength(22);
+    fillRaceCombo(race_);
+    nebbie::qt::enableGroupedComboSearch(race_, QStringLiteral("Cerca razza…"));
     race_row_ = new QWidget(economy_tab);
     auto* race_layout = new QHBoxLayout(race_row_);
     race_layout->setContentsMargins(0, 0, 0, 0);
@@ -245,8 +293,8 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
 
     auto* behavior_tab = new QWidget;
     auto* behavior_layout = new QVBoxLayout(behavior_tab);
-    act_flags_ = new FlagGroupWidget(nebbie::mob_act_flags(), behavior_tab);
-    affected_flags_ = new FlagGroupWidget(nebbie::mob_affected_flags(), behavior_tab);
+    act_flags_ = new FlagGroupWidget(nebbie::mob_act_flags(), behavior_tab, 3);
+    affected_flags_ = new FlagGroupWidget(nebbie::mob_affected_flags(), behavior_tab, 3);
     behavior_layout->addWidget(new QLabel("Action flags (act)"));
     behavior_layout->addWidget(act_flags_);
     behavior_layout->addWidget(new QLabel("Affect flags (affected_by)"));
@@ -269,9 +317,9 @@ MobEditorWidget::MobEditorWidget(QWidget* parent) : QWidget(parent) {
     extended_sex_ = new QCheckBox("Extended line with immune / M_immune / susceptible");
     immunity_panel_ = new QWidget(resist_tab);
     auto* immunity_layout = new QVBoxLayout(immunity_panel_);
-    immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_);
-    meta_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_);
-    susceptible_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_);
+    immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3);
+    meta_immune_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3);
+    susceptible_flags_ = new FlagGroupWidget(nebbie::mob_immunity_flags(), immunity_panel_, 3);
     immunity_layout->addWidget(new QLabel("Resistances (immune)"));
     immunity_layout->addWidget(immune_flags_);
     immunity_layout->addWidget(new QLabel("Immunities (M_immune)"));

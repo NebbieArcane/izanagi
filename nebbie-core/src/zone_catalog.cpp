@@ -82,59 +82,75 @@ std::string zone_reset_mode_label(const int reset_mode) {
 std::string zone_reset_command_legend(const char command) {
     switch (command) {
     case 'M':
-        return "Load mobile: if_flag | mob vnum | max in room | room vnum | max global";
+        return "Carica mob: if_flag | mob vnum | max MONDO | room vnum | max STANZA\n"
+               "0 = senza limite. Max mondo = quante copie del mob esistono in tutto "
+               "il mud; max stanza = quante in quella room.";
     case 'O':
-        return "Load object: if_flag | obj vnum | max in room | room vnum | max global";
+        return "Carica oggetto a terra: if_flag | obj vnum | max MONDO | room vnum | max STANZA\n"
+               "0 = senza limite. Max mondo = copie LIVE (non il totale storico). "
+               "Max stanza = solo a terra in quella room. NICE_LIMITED raddoppia il "
+               "max mondo. Arg2 vale anche come tetto stanza. Tetto alto = puo' "
+               "ripoppare spesso finche' non si raggiunge il limite live.";
     case 'G':
-        return "Give object to last loaded mob: if_flag | obj vnum | max global";
+        return "Dai oggetto all'ultimo mob caricato (M): if_flag | obj vnum | max MONDO\n"
+               "0 = senza limite. Solo pezzi live; loot/rent possono liberare slot "
+               "e far ripoppare al reset successivo.";
     case 'E':
-        return "Equip last loaded mob: if_flag | obj vnum | max global | equip position (0-18)";
+        return "Equipaggia l'ultimo mob caricato (M): if_flag | obj vnum | max MONDO | "
+               "posizione (0-18)\n"
+               "0 = senza limite. Serve M riuscita (se il mob e' gia' al max, gli E "
+               "con if_flag=1 non partono). Max mondo = live; tetto alto (es. 10) = "
+               "ripop frequente. Pos 16=wield, 17=hold.";
     case 'P':
-        return "Put in container: if_flag | obj vnum | max global | container obj vnum";
+        return "Metti oggetto in contenitore: if_flag | obj vnum | max MONDO | "
+               "container obj vnum\n"
+               "0 = senza limite. Il contenitore deve gia' esistere (ultimo O/E/G). "
+               "Stesse regole di presenza live del max mondo.";
     case 'D':
-        return "Door state: if_flag | room vnum | exit direction (0-5) | state (0=open, 1=closed, 2=locked)";
+        return "Stato porta: if_flag | room vnum | direzione (0-5) | "
+               "stato (0=aperta, 1=chiusa, 2=chiusa+serratura)";
     case 'C':
-        return "Mob command: if_flag | mob vnum | command number";
+        return "Comando mob: if_flag | mob vnum | numero comando";
     case 'H':
-        return "Hour trigger: if_flag | room vnum | hour/time value";
+        return "Trigger orario: if_flag | room vnum | ora/valore tempo";
     case '*':
-        return "Comment line written as *<text> in the .zon file (not executed by the server).";
+        return "Riga commento *<testo> nel .zon (il server non la esegue).";
     default:
-        return "Select a reset command";
+        return "Seleziona un comando di reset";
     }
 }
 
 ResetArgLabels zone_reset_arg_labels(const char command) {
     ResetArgLabels labels;
-    labels.if_flag = "if_flag (0=always, 1=if previous ok)";
+    labels.if_flag = "if_flag (0=sempre, 1=solo se il comando precedente e' riuscito)";
     switch (command) {
     case 'M':
         labels.arg1 = "mob vnum";
-        labels.arg2 = "max in room";
+        labels.arg2 = "max mondo (0=illimitato)";
         labels.arg3 = "room vnum";
-        labels.arg4 = "max global";
+        labels.arg4 = "max stanza (0=illimitato)";
         break;
     case 'O':
         labels.arg1 = "obj vnum";
-        labels.arg2 = "max in room";
+        labels.arg2 = "max mondo (0=illimitato; conta anche come tetto stanza)";
         labels.arg3 = "room vnum";
-        labels.arg4 = "max global";
+        labels.arg4 = "max stanza (0=illimitato)";
         break;
     case 'G':
         labels.arg1 = "obj vnum";
-        labels.arg2 = "max global";
+        labels.arg2 = "max mondo (0=illimitato)";
         labels.arg3 = "(unused)";
         labels.arg4 = "(unused)";
         break;
     case 'E':
         labels.arg1 = "obj vnum";
-        labels.arg2 = "max global";
+        labels.arg2 = "max mondo (0=illimitato)";
         labels.arg3 = "equip position";
         labels.arg4 = "(unused)";
         break;
     case 'P':
         labels.arg1 = "obj vnum";
-        labels.arg2 = "max global";
+        labels.arg2 = "max mondo (0=illimitato)";
         labels.arg3 = "container obj vnum";
         labels.arg4 = "(unused)";
         break;

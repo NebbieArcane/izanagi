@@ -207,39 +207,55 @@ std::string hate_fear_note(const char command, const int op_type, const int valu
     }
 }
 
+/** MW / MR from the numeric fields already on the reset line (arg2 / arg4). */
+std::string max_world_room_suffix(const int max_world, const int max_room) {
+    return " MW:" + std::to_string(max_world) + " MR:" + std::to_string(max_room);
+}
+
+std::string max_world_suffix(const int max_world) {
+    return " MW:" + std::to_string(max_world);
+}
+
 std::string build_inline_note(const ResetCommand& cmd, const World& world) {
     switch (cmd.command) {
     case 'M': {
+        // M: if_flag mob_vnum max_world room_vnum max_room
         const long mob_vnum = cmd.arg1;
         const long room_vnum = cmd.arg3;
         return "Mob " + std::to_string(mob_vnum) + " (" + lookup_mob_short(world, mob_vnum)
                + ") nella stanza " + std::to_string(room_vnum) + " ("
-               + lookup_room_name(world, room_vnum) + ")";
+               + lookup_room_name(world, room_vnum) + ")"
+               + max_world_room_suffix(cmd.arg2, cmd.arg4);
     }
     case 'O': {
+        // O: if_flag obj_vnum max_world room_vnum max_room
         const long obj_vnum = cmd.arg1;
         const long room_vnum = cmd.arg3;
         return "Carica oggetto " + std::to_string(obj_vnum) + " ("
                + lookup_obj_short(world, obj_vnum) + ") nella stanza "
-               + std::to_string(room_vnum) + " (" + lookup_room_name(world, room_vnum) + ")";
+               + std::to_string(room_vnum) + " (" + lookup_room_name(world, room_vnum) + ")"
+               + max_world_room_suffix(cmd.arg2, cmd.arg4);
     }
     case 'E': {
+        // E: if_flag obj_vnum max_world equip_pos
         const long obj_vnum = cmd.arg1;
         const int slot = cmd.arg3;
         return equip_slot_label(slot) + ": " + padded_obj_vnum(obj_vnum) + " ("
-               + lookup_obj_short(world, obj_vnum) + ")";
+               + lookup_obj_short(world, obj_vnum) + ")" + max_world_suffix(cmd.arg2);
     }
     case 'G': {
+        // G: if_flag obj_vnum max_world
         const long obj_vnum = cmd.arg1;
         return "In inventario: " + padded_obj_vnum(obj_vnum) + " ("
-               + lookup_obj_short(world, obj_vnum) + ")";
+               + lookup_obj_short(world, obj_vnum) + ")" + max_world_suffix(cmd.arg2);
     }
     case 'P': {
+        // P: if_flag obj_vnum max_world container_vnum
         const long obj_vnum = cmd.arg1;
         const long container_vnum = cmd.arg3;
         return "Dentro " + padded_obj_vnum(container_vnum) + " ("
                + lookup_obj_short(world, container_vnum) + "): " + padded_obj_vnum(obj_vnum)
-               + " (" + lookup_obj_short(world, obj_vnum) + ")";
+               + " (" + lookup_obj_short(world, obj_vnum) + ")" + max_world_suffix(cmd.arg2);
     }
     case 'D': {
         const long room_vnum = cmd.arg1;
