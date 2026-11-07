@@ -1,0 +1,42 @@
+#0
+La Valle Desolata~
+99 20 1
+*! Inizializzazione della zona 0
+
+M 0 0 1 19  *! Mob 0 (Il Capo Gnomo) nella stanza 19 (Capanna del Capo gnomo)
+H 1 2 11  *! Odio verso la razza Orc
+H 1 2 3  *! Odio verso la razza Dwarf
+H 1 2 31  *! Odio verso la razza Troll
+
+M 0 1 1 4  *! Mob 1 (un cinghiale) nella stanza 4 (sentiero nel bosco)
+
+M 0 2 1 6  *! Mob 2 (un fagiano) nella stanza 6 (sentiero nel bosco)
+
+M 0 3 1 30  *! Mob 3 (L'Elementale dell' Acqua) nella stanza 30 (Trono delle stalattiti)
+
+M 0 4 1 27  *! Mob 4 (Il Verme sotterraneo) nella stanza 27 (Grotta)
+H 1 1 0  *! Odio verso il sesso Neutro
+
+M 0 5 1 14  *! Mob 5 (uno gnomo) nella stanza 14 (case e gnomi)
+H 1 2 3  *! Odio verso la razza Dwarf
+H 1 2 4  *! Odio verso la razza Halfling
+H 1 2 31  *! Odio verso la razza Troll
+
+M 0 6 1 17  *! Mob 6 (uno gnomo) nella stanza 17 (case e gnomi)
+H 1 2 3  *! Odio verso la razza Dwarf
+H 1 2 4  *! Odio verso la razza Halfling
+H 1 2 31  *! Odio verso la razza Troll
+
+M 0 7 1 8  *! Mob 7 (La Strega) nella stanza 8 (In Cima all' Albero)
+H 1 6 0  *! Odio verso pc/mob con allineamento superiore o uguale a 0
+H 1 1 1  *! Odio verso il sesso Maschile
+
+O 0 0 1 31 1  *! Carica oggetto 0 (trappola delle stalattiti) nella stanza 31 (la stanza dei tesori sotterranei)
+
+O 0 1 1 19 1  *! Carica oggetto 1 (La spada Gnomica) nella stanza 19 (Capanna del Capo gnomo)
+
+O 0 2 1 30 1  *! Carica oggetto 2 (L'anello dell'acqua) nella stanza 30 (Trono delle stalattiti)
+
+
+*! Fine dell'inizializzazione della zona 0
+S

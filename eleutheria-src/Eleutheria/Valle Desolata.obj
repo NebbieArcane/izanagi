@@ -1,0 +1,44 @@
+#0
+trappola~
+trappola delle stalattiti~
+~
+~
+14 0 0
+5 208 50 50 
+100 0 0
+#1
+spada gnomica~
+La spada Gnomica~
+una piccola spada intarsiata e' caduta a qualcuno~
+~
+5 4|64|256|1024|4194304|33554432|67108864 1|8192
+0 3 7 3 
+10 50000 7500
+E
+La spada Gnomica~
+Una piccola spada ben intarsiata
+~
+A
+40 3
+A
+48 11
+A
+48 31
+#2
+anello~
+L'anello dell'acqua~
+un cerchiettino di acqua da infilare nelle dita~
+~
+9 1|2|4|64|256|512|2048|16384|32768|262144|4194304|8388608|33554432|67108864|134217728 1|2
+1 1 0 0 
+2 65000 15000
+E
+L'anello dell'acqua~
+e' fatto di acqua!!!
+~
+A
+41 -5
+A
+30 68
+A
+12 10

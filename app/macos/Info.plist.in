@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>it</string>
+	<key>CFBundleExecutable</key>
+	<string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.nebbiearcane.eleutheria</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Eleutheria</string>
+	<key>CFBundleDisplayName</key>
+	<string>Eleutheria</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>${PROJECT_VERSION}</string>
+	<key>CFBundleVersion</key>
+	<string>${PROJECT_VERSION}</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSSupportsAutomaticGraphicsSwitching</key>
+	<true/>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Eleutheria apre e salva aree del mondo sulla Scrivania.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Eleutheria apre e salva aree del mondo in Documenti.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Eleutheria apre e salva aree del mondo in Download.</string>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string>Eleutheria apre file area dal disco locale.</string>
+</dict>
+</plist>

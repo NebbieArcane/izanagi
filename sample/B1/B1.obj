@@ -1,0 +1,1033 @@
+#8101
+ebano tree albero~
+l'Ebano~
+Un enorme albero.~
+~
+25 16 0
+0 0 0 0
+99999 0 0
+#8102
+sciarpa puzzola~
+una sciarpa di puzzola~
+Una puzzolentissima sciarpa e' stata dimenticata qua .~
+Una forte puzza ti toglie il respiro.~
+23 16 1|4
+30 4 0 0
+1 5525 0
+E
+scritta~
+Forza Juve!!!!!!!
+~
+A
+12 10
+A
+17 -5
+#8103
+zanne cinghiale~
+zanne del cinghiale~
+Alcune zanne di animale sono qui per terra.~
+~
+9 16 1|4096
+4 4 0 0
+3 550 0
+A
+19 1
+A
+51 1
+#8104
+arigli orso~
+artigli dell'orso~
+Degli artigli affilati sono qui per terra.~
+~
+5 16 1|8192|16384
+0 2 4 8
+3 5000 0
+A
+19 4
+A
+5 1
+#8105
+ragnatela~
+una ragnatela~
+Un mucchio di tele di ragno sono qui per terra.~
+~
+9 16|65536 1|512
+6 6 0 0
+1 750 0
+A
+17 -10
+A
+25 -1
+A
+41 -2
+#8106
+pelle serpente~
+pelle di serpente~
+La pelle conciata di un serpente e' qui per terra.~
+~
+9 16 1|1024
+4 4 0 0
+10 950 0
+A
+17 -10
+#8107
+pelle lupo~
+pelle di lupo~
+Una pelliccia di lupo e' stata lasciata qui.~
+~
+9 16 1|1024
+7 7 0 0
+12 11000 0
+A
+17 -15
+#8108
+aculeo~
+un aculeo~
+Un aculeo e' qui per terra.~
+~
+5 16 1|8192|16384|32768
+0 1 5 10
+1 30 0
+A
+40 2
+#8109
+ali falena~
+ali di falena~
+Delle piccole ali sono qui per terra.~
+~
+9 16|512|2048|65536 1|256
+1 1 0 0
+1 55 0
+A
+29 2048
+#8110
+pungiglione~
+un pungiglione~
+Un pungiglione e' qui per terra.~
+~
+5 16 1|8192|16384
+0 1 4 10
+1 1700 0
+A
+30 33
+A
+18 3
+#8111
+ali farfalla~
+ali di farfalla~
+Delle piccole ali sono qui per terra.~
+~
+9 16|1024|2048|65536 1|256
+1 1 0 0
+1 55 0
+A
+29 2048
+#8112
+ali libellula~
+ali di libellula~
+Delle piccole ali sono qui per terra.~
+~
+9 16|512|1024|65536 1|256
+1 1 0 0
+1 55 0
+A
+29 2048
+#8113
+stivali lucertola~
+stivali di lucertola~
+Degli stivali di pelle di lucertola sono stati lasciati qui.~
+~
+9 16 1|64
+4 4 0 0
+3 780 0
+A
+2 1
+#8114
+mollica pane~
+una mollica di pane~
+Una mollica di pane e' stata dimenticata qui.~
+~
+19 16 1
+24 0 0 0
+1 15 0
+A
+31 39
+#8115
+conchiglia~
+una conchiglia~
+Una conchiglia e' qui per terra.~
+~
+9 16 1|16
+9 9 0 0
+5 50 0
+#8116
+occhi gufo~
+gli occhi del gufo~
+Due strane palline sono qui per terra.~
+~
+12 16|64 1|524288
+0 0 0 0
+2 4000 0
+A
+4 1
+A
+29 32768
+#8117
+ali pipistrello~
+ali di pipistrello~
+Delle piccole ali nere sono state dimenticate qua.~
+~
+9 16 1|256
+4 4 0 0
+3 450 0
+A
+29 33556481
+#8118
+carapace~
+la carapace~
+La corazza di una tartaruga e' qui per terra.~
+~
+9 16|4096|8192|16384|131072|16777216|33554432|134217728 1|8
+7 7 0 0
+20 12000 0
+A
+17 -25
+#8119
+clava~
+una clava~
+Una grossa clava e' stata dimenticata qua.~
+~
+5 16|512|2048|32768|268435456 1|8192
+0 7 2 7
+38 700 0
+A
+19 4
+#8120
+mucchio soldi gold coin~
+un piccolo mucchio di soldi~
+Un piccolo mucchio di soldi e' stato dimenticato qui.~
+~
+20 8 1
+4256 0 0 0
+1 1 0
+#8121
+pelle orso~
+la pelle d'orso~
+Un enorme pelliccia d'orso e' qui per terra.~
+~
+9 0 1|1024
+10 10 0 0
+5 15000 0
+A
+17 -30
+A
+25 -2
+#8122
+monete gold coin~
+alcune monete~
+Alcune monete sono state dimenticate qui.~
+~
+20 8 1
+2877 0 0 0
+1 1 0
+#8123
+lama insanguinata~
+la Lama Insanguinata~
+Una lama sporca di sangue e' qui per terra.~
+~
+5 4|64|512|2048 1|8192
+1 1 9 3
+7 28500 -1
+A
+48 1
+A
+40 3
+#8124
+spada corta~
+una spada corta~
+Una piccola spada e' stata lasciata qui.~
+~
+5 4|67108864 1|8192
+0 1 6 1
+2 550 0
+A
+19 2
+#8125
+erba pipa~
+erba pipa~
+Delle strane foglioline di tabacco sono state smarrite qui.~
+~
+19 16|65536 1|16384
+7 0 0 1
+1 1000 0
+A
+31 19
+A
+31 85
+#8126
+scudo piccolo~
+un piccolo scudo~
+Un piccolo scudo di legno e' stato lasciato qui.~
+~
+9 16|256|67108864 1|512
+5 5 0 0
+4 500 0
+A
+17 -8
+#8127
+giubbotto pelle~
+un giubbotto di pelle~
+Un giubbotto di pelle e' stato lasciato qui.~
+~
+9 16 1|8
+4 4 0 0
+5 85 0
+A
+17 -3
+#8128
+pantaloni stoffa~
+un paio di pantaloni di stoffa~
+Dei pantaloni sono stati lasciati qui.~
+~
+15 16|67108864 1|32
+100 0 -1 0
+5 250 0
+A
+17 -5
+#8129
+sacchetto~
+un sacchetto~
+Un sacchetto e' stato smarrito qui.~
+~
+20 4 1
+10000 0 0 0
+15 6250 0
+#8130
+sacco~
+un grosso sacco~
+Un sacco e' stato smarrito qui.~
+~
+20 4 1
+32500 0 0 0
+28 8000 0
+#8131
+braccialetto argento~
+braccialetto d'argento~
+Un braccialetto d'argento e' stato lasciato qui.~
+~
+9 1|8|64|256|4096|268435456 1|4096
+5 5 0 0
+3 19500 0
+A
+12 15
+A
+50 3
+#8132
+braccialetto zinco~
+braccialetto di zinco~
+Un braccialetto di zinco e' stato lasciato qui.~
+~
+9 1|8|64|8192|268435456 1|4096
+5 5 0 0
+3 19500 0
+A
+12 8
+A
+50 6
+#8133
+braccialetto legno nero~
+braccialetto di legno nero~
+Un braccialetto di legno e' stato lasciato qui.~
+~
+9 1|16|64|512|1024|134217728|268435456 1|4096
+3 3 0 0
+3 19500 0
+A
+12 10
+A
+50 4
+A
+4 1
+#8134
+bastone infucato~
+il Bastone Infuocato~
+Un bastone rosso fuoco con incise strane rune e' stato dimenticato qui.~
+~
+4 16|64|4096|8192|134217728|268435456 1|16384
+40 15 8 26
+10 30000 5000
+A
+12 20
+#8135
+corona rami~
+la Corona di Rami~
+Una grossa corona fatta di rami intracciati e' qui per terra.~
+~
+9 16|4096|8192|131072|4194304|33554432|67108864|134217728 1|16
+10 10 0 0
+35 28000 0
+A
+4 1
+A
+1 1
+#8136
+pietra conoscenza~
+la Pietra della Conoscenza~
+Una grossa pietra e' qui per terra.~
+~
+8 1|8|16384|32768|4194304|8388608|16777216|67108864 1|16384
+0 0 0 0
+15 15000 0
+A
+29 33587260
+#8137
+ramo sequoia~
+un Ramo di Sequoia~
+Un grosso ramo e' qui per terra.~
+~
+5 16|64|1024|2048|32768|131072|268435456 1|8192
+0 1 35 7
+50 48000 15000
+A
+18 2
+A
+19 4
+#8138
+ascia~
+un'ascia~
+Una robusta ascia e' stata lasciata qui.~
+~
+5 4|4096|8192|16384|8388608|16777216|33554432|67108864|134217728 1|8192
+0 2 8 5
+18 3000 0
+A
+1 1
+A
+40 2
+#8139
+pergamena~
+una pergamena~
+Una pergamena e' stata persa qui.~
+~
+12 16|1024|2048|131072 1|16384
+0 0 0 0
+1 50 -1
+E
+pergamena~
+C'e' scritto:
+"Vicino al grande drago Argentato, sotto al suo tesoro,
+  troverai quello che stai cercando."
+~
+#8140
+pantaloni pelle lavorata~
+pantaloni di pelle lavorata~
+Un paio di pantaloni di pelle finemente lavorata sono stati lasciati qui.~
+~
+9 16|1024|2048|131072 1|32
+4 4 0 0
+10 1500 0
+A
+17 -5
+#8141
+giubbotto pelle lavorata~
+un giubbotto di pelle lavorata~
+Un giubbotto di pelle finemente lavorata e' stato dimenticato qui.~
+~
+9 16|1024|2048 1|8
+4 4 0 0
+9 1850 0
+A
+6 1
+A
+17 -10
+#8142
+cintura cuoio~
+una cintura di cuoio~
+Una cintura e' stata lasciata qui.~
+~
+15 16|1024|2048 1|2048
+400 0 -1 0
+25 1250 0
+A
+17 -8
+#8143
+simbolo galadriel anello~
+il Simbolo di dama Galadriel~
+Un piccolo anello e' stato dimenticato qui.~
+~
+9 1|64|256|1024|2048|4096|8192|65536|4194304|33554432|67108864|134217728 1|2
+1 1 0 0
+1 50 100
+A
+19 2
+#8144
+cappuccio stoffa~
+un cappuccio di stoffa~
+Un cappuccio finemente lavorato e' qui per terra.~
+~
+9 16|1024|2048 1|16
+4 4 0 0
+3 50 0
+A
+17 -3
+#8145
+arco ranger~
+l'arco del ranger~
+Un arco corto e' qui per terra.~
+~
+6 16|256|1024|2048|4096|8192|16384|32768|131072|2097152|4194304|16777216|33554432|67108864|134217728 1|8192
+12 10 2 0
+7 4200 0
+A
+1 2
+#8146
+freccia~
+una freccia~
+Una freccia e' qui per terra~
+~
+7 16|256 1|32768
+15 2 4 0
+2 500 0
+A
+18 4
+#8147
+stivali elfici~
+un paio di stivali elfici~
+Un paio di comodi stivali sono stati dimenticati qui.~
+~
+9 16|256|1024|2048 1|64
+4 4 0 0
+3 850 0
+A
+14 10
+A
+52 3
+#8148
+spada lunga~
+una spada lunga~
+Una spada di chiara fattura elfica e' stata lasciata qui.~
+~
+5 1|256|1024|2048|4096|8192|16384|33554432|67108864|134217728 1|8192
+0 3 6 3
+8 5400 0
+A
+40 3
+#8149
+pugnale dentellato~
+un pugnale dentellato~
+Un pugnale dalla lama dentellata e' stato dimenticato qui.~
+~
+5 1|4|64|256|1024|2048|4096|8192|16384|32768|4194304|16777216|33554432|67108864|134217728 1|8192|16384
+0 1 8 0
+2 9850 0
+A
+40 3
+#8150
+zaino~
+uno zaino~
+Uno zaino pieno di tasche e' qui per terra.~
+~
+15 16|131072 1|131072
+850 1 -1 0
+30 7000 0
+A
+13 2
+#8151
+nunchaku~
+un Nunchaku~
+Due pezzi di legno attaccati fra di loro con una catena sono qui per terra.~
+~
+5 32768|268435456 1|8192|16384
+0 1 12 2
+6 18500 0
+A
+40 4
+#8152
+bo bastone~
+un Bo~
+Uno strano bastone e' qui per terra.~
+~
+5 16|4194304|268435456 1|8192
+0 4 4 7
+8 18500 0
+A
+2 1
+#8153
+sai~
+un Sai~
+Un oggetto a tre punte e' qui per terra.~
+~
+12 4|67108864|268435456 1|8192|16384
+0 0 0 0
+3 18500 0
+A
+19 2
+#8154
+to spada~
+un To~
+Una spada e' qui per terra.~
+~
+5 8388608|268435456 1|8192
+0 1 20 3
+3 18500 0
+A
+40 3
+#8155
+zaino pelle lavorata~
+uno zaino di pelle lavorata~
+Uno zaino di pelle finemente lavorata e' qui per terra.~
+~
+15 16|131072 1|131072
+999 0 -1 0
+38 6550 0
+#8156
+mantello~
+un mantello~
+Un semplice mantello e' stato lasciato qui.~
+~
+9 16 1|1024
+4 4 0 0
+8 50 0
+#8157
+braccialetto rame~
+un braccialetto di rame~
+Un braccialetto di rame e' stato dimenticato qui.~
+~
+9 4|64|512|1024 1|4096
+5 5 0 0
+3 5000 0
+A
+17 -10
+#8158
+braccialetto bronzo~
+un braccialetto di bronzo~
+Un braccialetto color bronzo e' qui per terra.~
+~
+9 4|512|1024 1|4096
+5 5 0 0
+2 500 0
+A
+17 -5
+#8159
+scudo noce~
+lo scudo di noce~
+Un grosso scudo e' qui per terra.~
+~
+9 1|16|256|512|1024|131072|134217728|268435456 1|512
+9 9 0 0
+10 15500 0
+A
+17 -20
+#8160
+anello vaire~
+anello di Vaire~
+Un piccolo anello e' stato dimenticato qui.~
+~
+9 1|256|512|1024|134217728|268435456 1|2
+2 2 0 0
+2 9850 0
+A
+50 5
+#8161
+anello smeraldo~
+anello di Smeraldo~
+Un anello con una pietra verde e' qui per terra.~
+~
+12 512|1024|4096|8192|33554432|134217728|268435456 1|2
+0 0 0 0
+2 12000 0
+A
+12 12
+A
+50 2
+#8162
+borraccia~
+una borraccia~
+Una borraccia e' qui per terra.~
+~
+17 0 1|16384
+12 10 5 0
+3 550 0
+E
+borraccia~
+C'e' una grossa S incisa nel tappo.
+~
+#8163
+armatura cuoio rinforzato~
+armatura di cuoio rinforzato~
+Un'armatura di cuoio e' qui per terra.~
+~
+9 512|1024|8388608|16777216 1|8
+5 5 0 0
+9 9850 0
+A
+41 -5
+A
+17 -10
+#8164
+stivali~
+un paio di stivali~
+Un paio di stivali sono stati dimenticati qui.~
+~
+9 16 1|64
+2 2 0 0
+3 450 0
+#8165
+martello mithril guerra~
+un martello da guerra~
+Un martello in mithril e' qui per terra.~
+~
+5 4|1024|4096|8192|16384|131072|33554432|67108864 1|8192
+0 1 12 6
+15 25000 0
+A
+48 31
+A
+40 4
+#8166
+gylvir dose~
+una dose di Gylvir~
+Una strana alga e' stata dimenticata qui.~
+~
+19 16 1
+2 0 0 0
+1 4400 0
+A
+31 68
+#8167
+elmo cuoio~
+un elmo di cuoio~
+Un elmo di cuoio e' stato lasciato qui.~
+~
+9 16 1|16
+4 4 0 0
+2 140 0
+#8168
+klagul infuso~
+un infuso di Klagul~
+Un infuso di erbe e' stato dimenticato qui.~
+~
+10 65536 1|16384
+12 54 0 0
+3 450 0
+#8169
+runa rapidita~
+una runa di rapidita'~
+Una runa e' stata dimenticata qui.~
+~
+2 16|64 1|16384
+30 155 0 0
+1 8600 0
+#8170
+runa bianca~
+una runa bianca~
+Una runa e' stata dimenticata qui.~
+~
+2 16|64 1|16384
+22 72 0 0
+1 5400 0
+#8171
+runa rosso fuoco~
+una runa rosso fuoco~
+Una runa e' stata dimenticata qui.~
+~
+2 16|64 1|16384
+25 26 0 0
+1 9500 0
+#8172
+runa nera~
+una runa nera~
+Una runa e' stata dimenticata qui.~
+~
+2 16|64 1|16384
+10 23 0 0
+1 750 0
+#8173
+runa invisibilita~
+una runa dell'invisibilita'~
+Una runa e' stata dimenticata qui.~
+~
+2 16|64 1|16384
+28 29 0 0
+1 1200 0
+#8174
+runa fulmini~
+una runa dei fulmini~
+Una runa e' stata dimenticata qui.~
+~
+2 16|64 1|16384
+18 30 0 0
+1 1255 0
+#8175
+pugnale mithril~
+pugnale di mithril~
+Un pugnale di mithril e' stato dimenticato qui.~
+~
+5 64|16384|131072|268435456 1|8192
+0 1 10 11
+3 18500 0
+A
+40 4
+#8176
+arco corto~
+un arco corto~
+Un arco corto e' qui per terra.~
+~
+6 16 1|8192
+14 5 2 0
+2 1890 0
+#8177
+buckler scudo~
+un buckler~
+Un piccolo scudo rotondo e' qui per terra.~
+~
+9 4|256|1024|2048|4096|8192|33554432|134217728 1|512
+7 7 0 0
+7 4300 0
+A
+17 -5
+A
+19 1
+#8178
+armatura assassino~
+l'Armatura dell'Assassino~
+Un'armatura di metallo e' qui per terra.~
+~
+9 4|64|16384|268435456 1|8
+8 8 0 0
+12 18500 0
+A
+17 -15
+A
+25 -1
+#8179
+freccia~
+una freccia~
+Una freccia e' qui per terra.~
+~
+7 16 1|32768
+25 3 5 0
+1 850 0
+A
+18 2
+#8180
+dose gariig~
+una dose di Gariig~
+Una foglia di cactus e' qui per terra.~
+~
+19 16 1|16384
+4 0 0 0
+0 0 0
+A
+31 15
+A
+31 16
+#8181
+foglia athelas~
+una foglia di Athelas~
+Una piccola foglia e' qui per terra.~
+~
+19 16|1024|2048|65536 1|16384
+4 0 0 0
+1 14000 0
+A
+31 36
+#8182
+stivali mark~
+gli stivali del Mark~
+Un paio di stivali sono stati dimenticati qui.~
+~
+9 16|1024|2048 1|64
+4 4 0 0
+3 25000 0
+A
+29 16777472
+#8183
+mantello lino~
+un mantello di lino~
+Un mantello di soffice lino e' qui per terra.~
+~
+9 16|1024|2048|8388608|268435456 1|1024
+7 7 0 0
+4 10000 0
+A
+34 15
+A
+35 10
+#8184
+mappa brea~
+la mappa della Terra di Brea~
+Una pergamena e' stata dimenticata qui.~
+~
+12 16|65536 1|16384
+0 0 0 0
+1 10 -1
+E
+mappa terra brea~
+C'e' disegnata tutta Brea e dintorni. Noti un grosso teschio disegnato
+in alto a destra di Bosco Cet.
+~
+#8185
+armatura cuoio rinforzato~
+un'armatura di cuoio rinforzato~
+Un'armatura di cuoio e' qui per terra.~
+~
+9 64|256|1024|2048|4096|8192|16384|33554432|67108864|134217728 1|8
+9 9 0 0
+8 12000 0
+A
+17 -10
+A
+51 2
+#8186
+attrezzi scasso~
+degli attrezzi da scasso~
+Alcuni strani attrezzi sono stati dimenticati qui.~
+~
+12 4|1024|2048 1|16384
+0 0 0 0
+2 4000 0
+A
+37 18
+#8187
+spada mithril~
+una spada in mithril~
+Una meravigliosa spada di mithril e' stata lasciata qui.~
+~
+5 1|64|256|1024|2048|4096|8192|16384|33554432|67108864|134217728|268435456 1|8192
+0 3 8 3
+20 35000 7500
+A
+17 -5
+A
+27 4
+A
+40 3
+A
+26 2
+#8188
+balestra~
+una balestra~
+Una balestra e' qui per terra.~
+~
+6 1024 1|8192
+16 10 5 1
+10 6500 0
+A
+18 3
+A
+19 2
+#8189
+dardo~
+un dardo~
+Un dardo per balestra e' stato dimenticato qui per terra.~
+~
+7 16 1|32768
+2 4 3 1
+1 550 0
+#8190
+dardo appuntito~
+un dardo appuntito~
+C'e' un dardo qui per terra.~
+~
+7 16 1|32768
+20 10 2 1
+1 1250 0
+A
+18 1
+A
+19 3
+#8191
+anello verde~
+un anello verde~
+Un piccolo anello verde e' stato dimenticato qui.~
+~
+9 64|256|1024|2048|4194304|134217728 1|2
+1 1 0 0
+1 5000 0
+A
+24 -1
+#8192
+pozione ghiacciata~
+una pozione ghiacciata~
+Una pozione e' stata dimenticata qui.~
+~
+10 65536 1|16384
+25 14 3 0
+3 3880 0
+#8193
+anello precisione~
+Anello della Precisione~
+Un anello ornato da tante piccole pietre e' stato dimenticato qui.~
+~
+9 1|64|4096|8192|4194304|33554432|134217728 1|2
+2 2 0 0
+1 35000 -1
+A
+18 4
+#8194
+dose katchusa foglia~
+una dose di Katchusa~
+Una foglia e' qui per terra.~
+~
+19 16|65536 1|16384
+18 0 0 0
+1 7000 0
+A
+31 118
+A
+31 39
+#8195
+scudo mark~
+Scudo del Mark~
+Un robusto scudo con un cavallo bianco in campo verde e' qui per terra.~
+~
+9 1|64|256|1024|2048|4096|8192|16384|4194304|33554432|67108864|134217728 1|512
+9 9 0 0
+10 20000 0
+A
+6 1
+A
+17 -15
+#8196
+dose zulsendura muschio~
+una dose di Zulsendura~
+C'e' un po' di muschio qui per terra.~
+~
+19 16|65536 1|16384
+2 0 0 0
+2 1650 0
+A
+31 155
+#8197
+dose genful muschio~
+una dose di Genful~
+Del muschio e' qui per terra.~
+~
+19 16|65536 1|16384
+3 0 0 0
+2 7550 0
+A
+31 28
+#8198
+mantello lana merinos~
+mantello di merinos~
+Un mantello di lana di pecora e' stato dimenticato qui.~
+~
+9 16|64|4194304 1|1024
+3 3 0 0
+6 8500 0
+A
+29 2
+#8199
+cotta maglia armatura~
+una cotta di maglia~
+Una robusta armatura di acciaio e' qui per terra.~
+~
+9 4|4096|8192|16384|33554432|67108864|134217728 1|8
+5 5 0 0
+15 20000 0
+A
+17 -30
+A
+25 -2

@@ -1,0 +1,39 @@
+#60000
+Ingresso alla Casa Chiusa~
+Il sontuoso ingresso brilla di luci variopinte, e strani paletti appuntiti circondano il piccolo sentiero che 
+conduce dentro la casa chiusa. Strane grida provengono dal suo interno, quali immensi pericoli dovrai 
+affrontare in questa tua visita?
+~
+-1 8388608 1 
+D1
+~
+porta portone~
+1 0 60001 -1
+E
+paletto paletti~
+In cima a ciascuno di questi paletti sembra esserci una specie di guantone di pelle trasparente per un solo dito, forse il pollice. Fa troppo schifo pero' per poterlo toccare.
+~
+S
+#60001
+L'Atrio della Casa Chiusa~
+~
+-1 8|16|64|128|32768 0 
+D2
+~
+~
+0 0 60002 -1
+D3
+Ci sono strani contorsionisti immortalati su questo portone. Boh!
+~
+porta portone~
+1 0 60000 -1
+S
+#60002
+Il Negozio di Accessori~
+~
+-1 8|16|64|128|32768 0 
+D0
+~
+~
+0 0 60001 -1
+S

@@ -1,0 +1,173 @@
+Eleutheria - Informazioni su nuove features e bug fix
+----------------------------------------------------------------------
+
+Novità della versione 3.10d:
+
+- È ora possibile personalizzare il font usato nelle descrizioni
+  delle entità (attraverso l'apposita voce in Preferenze->Desktop);
+
+- Corretto un bug nella visualizzazione del riquadro della descrizione
+  delle stanze;
+
+Novità della versione 3.10c:
+
+- Corretti i file di descrizione del mud Tempora Sanguinis;
+
+- Corretto 'Ord' in 'Orc' nei file di descrizione delle razze;
+
+- Corretto un bug che portava alla cancellazione dei flag di zona;
+
+Novità della versione 3.10b:
+
+- Risolte alcune incompatibilità minori di Eleutheria sotto Windows NT
+  4.0;
+
+- Ora il report uscite segnala anche eventuali uscite che conducono a
+  stanze non esistenti (permettendo così di identificare i
+  collegamenti fra le varie aree);
+
+- Tramite il report dei riferimenti esterni (Strumenti->Report
+  riferimenti esterni) è possibile verificare l'autosufficienza delle
+  aree;
+
+Novità della versione 3.10a:
+
+- Introdotto il supporto MultiMud (la documentazione relativa si
+  trova nel file multimud.txt): le finestre di Eleutheria cambiano
+  automaticamente i loro contenuti in funzione del mud su cui operano,
+  ed in ogni istante può essere attivo un numero qualsiasi di aree,
+  anche per mud differenti;
+
+- Estesa ed aggiornata la funzione di valutazione dei mob, per tener
+  conto delle particolarità di alcuni mud;
+
+- Ora ogni area, oltre ai file .wld, .obj, .shp, .mob, .zon, .txt (in
+  cui vengono memorizzate le note, stilate tramite Visualizza->Note),
+  possiede anche un file .ele, in cui Eleutheria memorizza
+  informazioni addizionali sull'area stessa;
+
+- Il mud associato ad un'area (che viene deciso al momento della sua
+  creazione, o, nel caso di aree preesistenti, al suo caricamento) può
+  essere cambiato tramite Strumenti->Converti area;
+
+- Ogni area dispone di due nuovi attributi (modificabili tramite
+  Visualizza->Informazioni), vale a dire il suo 'nome completo', ed il
+  nome del suo autore;
+
+- I mob di tipo D (obsoleti) non possono più, correttamente, avere
+  né resistenze, né immunità, né suscettibilità;
+
+- I mob di tipo S (obsoleti) da ora possono, correttamente, avere
+  resistenze, immunità e suscettibilità;
+
+- Corretta la gestione delle reazioni dei mob relativamente all'odio/
+  paura verso determinati sessi;
+
+Novità della versione 3.00c:
+
+- Modificati alcuni form, specie quelli di mob ed oggetti, per
+  renderli più utilizzabili alle basse risoluzioni;
+
+- Gli oggetti vengono creati con il Wear flag take attivo di default
+  (ammesso che il Mud lo supporti);
+
+- Aggiunto il tasto 'Segui uscita' nella finestra delle stanze, che
+  permette di attraversare un'uscita; ora, il doppio click all'
+  interno della lista di uscite attiva tale tasto;
+
+- Nella lista delle uscite presente nella finestra delle stanze, ora
+  le finte uscite vengono correttamente segnalate come tali;
+
+- Dalla finestra degli errori è possibile zoomare sulle entità
+  rovinate;
+
+- Gli errori nelle sequenze di inizializzazione della zone vengono
+  inseriti nella finestra degli errori, ed anche nei loro confronti
+  risulta attivo lo zoom;
+
+- Il menu completo di Eleutheria è ora accessibile qualunque sia la
+  finestra attiva;
+
+- È ora possibile associare delle note ad ogni area; esse vengono
+  caricate e salvate automaticamente assieme agli altri file, e sono
+  accessibili da Visualizza->Note, oppure tramite l'apposito tasto
+  nella barra strumenti; le note vengono salvate in un file con lo
+  stesso nome dell'area, ed estensione .txt;
+
+- Ora il bottone 'Aggancia la mappa a questa finestra', presente nelle
+  finestre delle stanze, attiva e porta automaticamente in primo piano
+  la mappa;
+
+- Ridimensionata la finestra di mappa, così da essere utilizzabile
+  anche a basse risoluzioni;
+
+- Sempre nella finestra della mappa, nella descrizione della stanza
+  corrente è stato disabilitato il word wrap, di modo che sia
+  possibile leggerla con agio;
+
+- Ripristinata la voce di menu File->Esporta area, e corretto un bug
+  nella selezione del formato di esportazione;
+
+- Corretto il bug che impediva ad Eleutheria di gestire correttamente
+  le associazioni dei file;
+
+----------------------------------------------------------------------
+
+Novità della versione 3.00b:
+
+- Ripristinate le corrette dimensioni delle finestre;
+
+----------------------------------------------------------------------
+
+Novità della versione 3.00a:
+
+- Da questa versione cessa il supporto per Windows 3.1: tutte le nuove
+  release di Eleutheria saranno per Win95/NT;
+
+- Modifiche al look & feel del programma;
+
+- Le opzioni di configurazione vengono settate tramite Strumenti->
+  Opzioni (e non più File->Preferenze);
+
+- Le opzioni di configurazione non vengono più memorizzate in
+  eleuther.ini (che potete tranquillamente cancellare), ma nel
+  registry di sistema;
+
+- La barra di stato, per default, è ora fissa; per ritornare alla
+  vecchia barra di stato a scomparsa, selezionate l'apposita opzione
+  da Strumenti-> Opzioni->Desktop;
+
+- Eleutheria tiene traccia degli ultimi documenti aperti nel menu
+  File->Riapri (Benem);
+
+- Ora Eleutheria, correttamente, prevede che i negozianti acquistino
+  tipi di oggetti (e non più oggetti tout court) (bug segnalato da un
+  po' tutti i bt);
+
+- L'export delle aree nei formati DBase ed ASCII viene ora gestito
+  dalla voce di menu 'File->Salva come...'; la vecchia 'File->
+  Esporta come...', non più necessaria, è stata eliminata;
+
+- Le sequenze di inizializzazione di mob ed oggetti possono essere
+  duplicate con il tasto clona;
+
+- La barra degli strumenti è ora dockable e floating: vale a dire, può
+  essere agganciata ai quattro angoli dello schermo, o lasciata
+  'volante' in qualsiasi punto della finestra; inoltre, per
+  risparmiare spazio, può venir nascosta (con l'apposito gadget di
+  chiusura, o tramite Visualizza->Barra degli strumenti);
+
+- Il formato dei file ASCII e Dbf prodotti da Eleutheria è cambiato;
+  la documentazione relativa è, al solito, disponibile in export.txt;
+
+- Corretto un bug che causava dei crash quando Eleutheria veniva usata
+  con le finestre di area e di entità massimizzate;
+
+----------------------------------------------------------------------
+
+Ciao :-)
+
+Il rachitico Kwhune
+
+                                                  Lavinio Cerquetti
+                                                  lavinio@poboxes.com

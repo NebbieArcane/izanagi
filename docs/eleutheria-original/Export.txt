@@ -1,0 +1,368 @@
+Formato dei file esportati da Eleutheria
+
+1. Preambolo
+
+Eleutheria può esportare i campi piu' significativi dei file Diku sia in
+formato DBaseIII che ASCII delimitato, cosi' da permettere agli utenti la
+realizzazione di proprie procedure di rapporto ed analisi, oltreche' l'in-
+terfacciamento ad altri programmi o ambienti di gestione dati; per l'esat-
+tezza, ogni 'categoria di entità' dei file Diku viene esportata in una ta-
+bella differente.
+Cio' significa che l'export di un'area genera tipicamente 5 cinque tabelle:
+stanze, oggetti, mob, negozi e zone.
+Se un'area e' priva di una qualche categoria, per essa non viene generata
+alcuna tabella (dunque, un'area senza negozi sarà esportata in quattro
+sole tabelle: stanze,oggetti, mob e zone).
+Il termine tabella, riferito ad un file ASCII delimitato, indica semplice-
+mente un file in cui ogni riga corrisponde ad un record (cioe', ad una
+singola stanza, oggetto, mob, negozio o zona), e i cui campi sono separati
+da un simbolo di pipe (|).
+Eventuali simboli di pipe presenti nelle aree (magari in qualche descrizio-
+ne) vengono scritti come una i maiuscola (I).
+Nota: questa conversione riguarda solo l'export in formato ASCII; le de-
+scrizioni originali non vengono *mai* alterate.
+Ad esempio, una ipotetica riga di un file ASCII delimitato composta da
+due campi, aventi rispettivamente valore 4 e 'Ciao|come stai' avrebbe
+questo aspetto:
+
+4|CiaoIcome stai
+
+I campi possono essere di quattro tipi: alfanumerici (piu' tecnicamente
+detti stringhe di caratteri), interi corti, interi lunghi e reali.
+Gli interi corti sono dei numeri compresi tra -32768 e +32767; gli interi
+lunghi sono compresi tra -2147483648 e 2147483647; i reali per Eleutheria
+sono sempre composti da una parte intera di 7 cifre, e da una frazionaria
+di 3 (il loro intervallo va quindi da -9999999.000 a 9999999.999).
+La dimensione delle stringhe varia da campo a campo (ed e' segnalata as-
+sieme al campo stesso).
+Se per la conversione in ASCII non ci sono problemi (viene semplicemente
+scritto il valore dei campi), tranne l'avvertenza che la virgola decimale
+viene sempre scritta come un punto (.), indipendentemente dalle impostazio-
+ni nazionali di Windows, per quella in DBase ho dovuto inventare una corri-
+spondenza tra i suoi tipi di campi e quelli di Eleutheria.
+Ho adottato questa ovvia convenzione:
+
+intero corto -> campo numerico di cinque cifre (senza parte frazionaria)
+intero lungo -> campo numerico di dieci cifre (senza parte frazionaria)
+reale        -> campo numerico di 11 caratteri (vale a dire: 7 di parte in-
+  tera, 3 di parte frazionaria ed uno per la virgola)
+stringa      -> stringa (vabbe', questo era lapalissiano :-))
+
+Che nomi hanno i file delle tabelle ? Semplicemente, i primi sei caratteri
+del nome del file dell'area, seguiti da un underscore (_) e da un carattere
+che identifica la 'categoria di entità', e che puo' essere:
+
+r per le stanze,
+o per gli oggetti,
+m per i mob,
+s per i negozi,
+z per le zone
+
+Le estensioni delle tabelle sono dbf per i file DBaseIII ed asc per i file
+ASCII.
+Cosi', un'ipotetica area 'alma', verrebbe esportata in formato DBaseIII nei
+seguenti file:
+
+alma_r.dbf, alma_o.dbf, alma_m.dbf, alma_s.dbf, alma_z.dbf
+
+ed invece in questi file in seguito ad una conversione ASCII:
+
+alma_r.asc, alma_o.asc, alma_m.asc, alma_s.asc, alma_z.asc
+
+Come ho già detto, la prima parte del nome consta dei primi sei caratteri
+del nome dell'area; quindi, un'area con un nome piu' lungo, ad esempio
+syracusa, verrebbe esportata nei seguenti file DBaseIII:
+
+syracu_r.dbf, syracu_o.dbf, syracu_m.dbf, syracu_s.dbf, syracu_z.dbf
+
+ed ovviamente nel caso di export in formato ASCII i nomi sarebbero gli
+stessi, con estensione asc anziche' dbf.
+
+2. Il formato delle tabelle
+
+Per ogni tabella, indichero' nome e tipo di ogni campo, assieme ad un
+breve commento esplicativo.
+I tipi dei campi saranno:
+
+C(n) -> stringa di n caratteri
+S    -> intero corto
+L    -> intero lungo
+R    -> numero reale
+
+Ogni campo flag (per esempio, l'indicazione se la stanza e' no mob, etc.)
+viene convertito in due campi, posti consecutivamente.
+Il primo contiene il valore del campo in binario, il secondo in decimale.
+I campi con rappresentazione binaria sono stringhe lunghe 32 caratteri;
+ogni carattere puo' valere o 0 o 1 (non ci possono essere spazi, ne' il
+campo puo' mancare di alcune cifre), ed il bit meno significativo e' l'ul-
+timo a destra.
+Il valore in binario serve a facilitare l'analisi del campo a delle proce-
+dure scritte dagli utenti (infatti alcuni ambienti di gestione di database
+non posseggono gli operatori a livello di bit, ed a quel punto diventa dif-
+ficile e tedioso analizzare i campi flag a partire dalla loro sola rappre-
+sentazione decimale); ad esempio, una stanza e' no mob se la terza cifra
+del campo a partire da destra vale 1 (che, appunto, corrisponde ad un AND
+4 sul valore del campo decimale).
+I valori dei flag per i vari campi, oltre al significato ed alle relazioni
+reciproche (che non ripetero' nell'elenco dei campi) sono elencati o nel
+file di help, o nel file HandBook di LeU (handbook.txt).
+
+2.1 Tabella stanze
+
+Nome campo          Tipo           Commento
+
+VNumber             L              Se davvero non sapete cos'e', non saro'
+                                   certo io a rovinarvi la vita svelandove-
+                                   lo :-)
+ShortDesc           C(80)          Nome della stanza
+Flags0              C(32)          Primo campo binario dei flag della stan-
+                                   za (no mob, etc.)
+LongFlags0          L              Primo campo dei flag della stanza in
+                                   formato decimale
+Flags1              C(32)          Secondo campo binario dei flag della
+                                   stanza (no mob, etc.)
+LongFlags1          L              Secondo campo dei flag della stanza in
+                                   formato decimale
+North               L              Stanza a nord di questa (-1 se a nord
+                                   non ci sono uscite)
+East                L              Stanza ad est di questa (-1 se ad est
+                                   non ci sono uscite)
+South               L              Stanza a sud di questa (-1 se a sud non
+                                   ci sono uscite)
+West                L              Stanza ad ovest di questa (-1 se ad
+                                   ovest non ci sono uscite)
+Up                  L              Stanza sopra di questa (-1 se verso su
+                                   non ci sono uscite)
+Down                L              Stanza sotto di questa (-1 se verso giu'
+                                   non ci sono uscite)
+SectorType          I              Tipo di questa stanza (foresta, etc.)
+TunLimit            I              Numero di persone che possono al piu'
+                                   entrare insieme in questa stanza
+TPortTime           I              Tempo di attivazione del teleport
+TPortRoom           L              Destinazione del teleport
+TPortFlags          C(32)          Campo binario dei flag del teleport
+TPortLFlgs          L              Campo decimale dei flag del teleport
+TPortCount          I              Numero di istanti da quando un giocato-
+                                   re entra nella stanza dopo i quali vie-
+                                   ne attivato il teleport
+TPSecType           I              Tipo reale di questa stanza
+RiverDir            I              Direzione in cui scorre l'acqua
+RiverSpeed          I              Velocità a cui scorre l'acqua
+
+2.2 Tabella oggetti
+
+Nome campo          Tipo           Commento
+
+VNumber             L
+ShortDesc           C(80)          Nome dell'oggetto
+Keywords            C(80)          Parole chiave con cui ci si puo' riferi-
+                                   re all'oggetto
+Category            I              Tipo dell'oggetto (armatura, etc.)
+Extras0             C(32)          Primo campo binario dei flag dell'ogget-
+                                   to (magic, etc.)
+LongExtrs0          L              Primo campo decimale dei flag dell'og-
+                                   getto
+Extras1             C(32)          Secondo campo binario dei flag dell'og-
+                                   getto (magic, etc.)
+LongExtrs1          L              Secondo campo decimale dei flag dell'og-
+                                   getto
+Wear0               C(32)          Primo campo binario della posizionabili-
+                                   tà dell'oggetto (sulle braccia, etc.)
+LongWear0           L              Primo campo decimale della posizionabi-
+                                   lità dell'oggetto
+Wear1               C(32)          Secondo campo binario della posizionabi-
+                                   lità dell'oggetto (sulle braccia, etc.)
+LongWear1           L              Secondo campo decimale della posiziona-
+                                   bilità dell'oggetto
+Value0              C(32)          Primo campo binario value (il significa-
+                                   to e' funzione del tipo dell'oggetto)
+LongValue0          L              Primo campo decimale value
+Value1              C(32)          Secondo campo binario value (il signifi-
+                                   cato e' funzione del tipo dell'oggetto)
+LongValue1          L              Secondo campo decimale value
+Value2              C(32)          Terzo campo binario value (il significa-
+                                   to e' funzione del tipo dell'oggetto)
+LongValue2          L              Terzo campo decimale value
+Value3              C(32)          Quarto campo binario value (il signifi-
+                                   cato e' funzione del tipo dell'oggetto)
+LongValue3          L              Quarto campo decimale value
+Weight              L              Peso dell'oggetto
+Value               L              Valore dell'oggetto
+Rent                L              Costo di rent dell'oggetto
+ApplyTo0            L              Tipo del primo apply (-1 se non esisten-
+                                   te)
+Modifier0           C(32)          Valore binario del primo apply
+LongModfr0          L              Valore decimale del primo apply
+ApplyTo1            L              Tipo del secondo apply (-1 se non esi-
+                                   stente)
+Modifier1           C(32)          Valore binario del secondo apply
+LongModfr1          L              Valore decimale del secondo apply
+ApplyTo2            L              Tipo del terzo apply (-1 se non esisten-
+                                   te)
+Modifier2           C(32)          Valore binario del terzo apply
+LongModfr2          L              Valore decimale del terzo apply
+ApplyTo3            L              Tipo del quarto apply (-1 se non esi-
+                                   stente)
+Modifier3           C(32)          Valore binario del quarto apply
+LongModfr3          L              Valore decimale del quarto apply
+ApplyTo4            L              Tipo del quinto apply (-1 se non esi-
+                                   stente)
+Modifier4           C(32)          Valore binario del quinto apply
+LongModfr4          L              Valore decimale del quinto apply
+
+2.3 Tabella mob
+
+Nome campo          Tipo           Commento
+
+VNumber             L
+ShortDesc           C(80)          Nome del mob
+Keywords            C(80)          Parole chiave con cui ci si puo' riferi-
+                                   re al mob
+Action0             C(32)          Primo campo binario dei flag del mob (
+                                   sentinel, etc.)
+LongActn0           L              Primo campo decimale dei flag del mob
+Action1             C(32)          Secondo campo binario dei flag del mob (
+                                   sentinel, etc.)
+LongActn1           L              Secondo campo decimale dei flag del mob
+Affection0          C(32)          Primo campo binario degli spell del mob
+                                   (invisible, etc.)
+LongAffn0           L              Primo campo decimale degli spell del mob
+Affection1          C(32)          Secondo campo binario degli spell del
+                                   mob (invisible, etc.)
+LongAffn1           L              Secondo campo decimale degli spell del
+                                   mob
+Alignment           I              Allineamento del mob
+MobType             C(1)           Tipo del mob
+Attacks             I              Numero di attacchi del mob
+Level               I              
+THAC0               I
+AC                  I
+Damage              C(20)          Danni del mob (ad esempio, 2d8+4)
+HPBonus             C(20)          Bonus di punti ferita, oppure numero
+                                   totale di punti ferita (in funzione del
+                                   tipo del mob)
+Gold                L              Monete d'oro di cui dispone il mob
+XPBonus             I              Numero di abilità speciali, oppure
+                                   (se negativo) totale di xp assegnati
+                                   dal mob
+Race                I              Razza del mob (Human, etc.)
+LoadingPos          I              Posizione iniziale del mob (sleeping,
+                                   etc.)
+DefaultPos          I              Posizione in cui il mob ritorna dopo
+                                   aver combattuto (sleeping, etc.)
+Gender              I              Sesso del mob
+Resist              C(32)          Campo binario delle resistenze del mob
+                                   (fire, etc.)
+LongResist          L              Campo decimale delle resistenze del mob
+Immnty              C(32)          Campo binario delle immunità del mob
+                                   (fire, etc.)
+LongImmnty          L              Campo decimale delle immunità del mob
+Susc                C(32)          Campo binario delle suscettibilità del
+                                   mob (fire, etc.)
+LongSusc            L              Campo decimale delle suscettibilità del
+                                   mob
+Str                 I              Questo, e tutti i campi seguenti fino
+                                   ad AutoHP escluso, sono utilizzati solo
+                                   per i mob di tipo D (peraltro ormai ob-
+                                   soleti)
+Int                 I
+Wis                 I
+Dex                 I
+Con                 I
+HitLow              I
+Mana                I
+Movement            I
+MobClass            I
+Age                 I
+Weight              I
+Height              I
+Condition0          I
+Condition1          I
+Condition2          I
+Armor               I
+SvngThrow0          I
+SvngThrow1          I
+SvngThrow2          I
+SvngThrow3          I
+SvngThrow4          I
+HitHigh             I
+XP                  L
+AutoHP              L              HP medi di questo mob
+AutoXP              L              XP medi di questo mob
+Power               R              Stima della forza del mob (piu' e' alta,
+                                   piu' il mob e' forte)
+CX                  R              Coefficiente di equilibrio (per l'appo-
+                                   sita tabella di riferimento, si consul-
+                                   ti il file di help); in linea di massi-
+                                   ma, un valore alto implica che il mob
+                                   assegna troppi XP rispetto alla sua for-
+                                   za
+SpellPower          L              Fattore di potenziamento degl'
+                                   incantesimi
+AbsDam              L              Fattore di assorbimento del danno
+
+2.4 Tabella shop
+
+Nome campo          Tipo           Commento
+
+VNumber             L
+SellItem0           L              Primo oggetto che questo negozio acqui-
+                                   sta (0 o -1 se non usato)
+SellItem1           L              Secondo oggetto che questo negozio
+                                   acquista (0 o -1 se non usato)
+SellItem2           L              Terzo oggetto che questo negozio acqui-
+                                   sta (0 o -1 se non usato)
+SellItem3           L              Quarto oggetto che questo negozio acqui-
+                                   sta (0 o -1 se non usato)
+SellItem4           L              Quinto oggetto che questo negozio acqui-
+                                   sta (0 o -1 se non usato)
+BuyItemTp0          I              Primo tipo di oggetto che questo negozio
+                                   vende (0 se non usato)
+BuyItemTp1          I              Secondo tipo di oggetto che questo negozio
+                                   vende (0 se non usato)
+BuyItemTp2          I              Terzo tipo di oggetto che questo negozio
+                                   vende (0 se non usato)
+BuyItemTp3          I              Quarto tipo di oggetto che questo negozio
+                                   vende (0 se non usato)
+BuyItemTp4          I              Quinto tipo di oggetto che questo negozio
+                                   vende (0 se non usato)
+SellFactor          R              Fattore di moltiplicazione per gli og-
+                                   getti in vendita
+BuyFactor           R              Fattore di moltiplicazione per gli og-
+                                   getti acquistati
+Message0            C(80)          Prima risposta del negoziante
+Message1            C(80)          Seconda risposta del negoziante
+Message2            C(80)          Terza risposta del negoziante
+Message3            C(80)          Quarta risposta del negoziante
+Message4            C(80)          Quinta risposta del negoziante
+Message5            C(80)          Sesta risposta del negoziante
+Message6            C(80)          Settima risposta del negoziante
+Reaction0           I              Reazione all'indigenza
+Reaction1           I              Reazione all'attacco
+MobId               L              Mob negoziante
+RoomId              L              Stanza in cui si trova il negozio
+OpenTime0           I              Orario di apertura mattutino
+CloseTime0          I              Orario di chiusura mattutino
+OpenTime1           I              Orario di apertura pomeridiano
+CloseTime1          I              Orario di chiusura pomeridiano
+
+2.5 Tabella zone
+
+Nome campo          Tipo           Commento
+
+VNumber             L
+ShortDesc           C(80)          Nome della zona
+Top                 L              Ultima stanza della zona
+LifeSpan            I              Intervallo d'inizializzazione
+ResetMode           I              Modalità di reset della zona
+Flags0              C(32)          Primo campo binario dei flag della zona
+LongFlags0          L              Primo campo decimale dei flag della
+                                   zona
+Flags1              C(32)          Secondo campo binario dei flag della
+                                   zona
+LongFlags1          L              Secondo campo decimale dei flag della
+                                   zona
+
+
+                                                 Lavinio Cerquetti
+                                                 lavinio@poboxes.com

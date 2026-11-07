@@ -1,0 +1,36 @@
+#0
+~
+Senza nome~
+~
+~
+9 0 1
+0 0 0 0 
+0 0 0
+#1
+maelstrom, scudo, dannati~
+Maelstrom lo Scudo dei Dannati~
+Lo Scudo dei Dannati~
+~
+9 1|2|4|64|128|256|512|2048|8192|16384|131072|4194304|8388608|16777216|33554432|67108864|134217728 1|512
+9 9 0 0 
+5 45000 30000
+A
+17 -40
+A
+40 2
+A
+26 1
+#2
+cranio, tirannosauro~
+Il cranio di un tirannosauro~
+un enorme cranio di tirannosauro giace al suolo~
+~
+9 16|512|4096|8192|16384|262144|8388608|16777216|33554432|134217728 1|16
+8 8 0 0 
+20 25000 7500
+A
+3 -3
+A
+13 25
+A
+19 2

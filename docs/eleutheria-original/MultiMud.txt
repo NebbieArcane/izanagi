@@ -1,0 +1,586 @@
+Il supporto MultiMud
+
+Questo documento non è rivolto agli autori di aree, ma ai Mud
+implementor che desiderino personalizzare Eleutheria per il proprio
+mud.
+
+1. Struttura generale
+
+Eleutheria può cambiare dinamicamente il contenuto delle sue finestre,
+così da gestire al meglio le particolarità di ogni mud.
+
+Per far ciò, si avvale di un insieme di file di configurazione, in
+formato ASCII, il cui formato è spiegato in questo stesso documento.
+
+La struttura dei file:
+
+All'interno della propria directory, Eleutheria si aspetta l'esistenza
+di una directory denominata 'Muds', contenente un'ulteriore
+sottodirectory per ogni Mud, ed un file di configurazione, denominato
+'Muds.ini'.
+
+Questo file contiene l'elenco dei Mud 'riconosciuti' (uno per riga),
+ed ha questo formato:
+
+<codice mud>|<nome completo>
+
+Come si può notare, i due campi del file sono delimitati dal carattere
+di pipe ('|'): questo carattere verrà usato, sempre con questa
+funzione, nella maggior parte dei file di configurazione che vedremo
+in seguito.
+
+Attualmente, Eleutheria supporta tre mud: Lumen et Umbra, Tempora
+Sanguinis 2, ed un mud Diku 'generico' che può essere usato come base
+di partenza per la configurazione del proprio mud.
+
+Quanto detto si rispecchia nel seguente file Muds.ini (esso fa parte
+della dotazione 'standard' di Eleutheria):
+
+generico|Diku generico
+leu|Lumen et Umbra
+ts2|Tempora Sanguinis 2
+
+Mentre il nome completo del mud può essere liberamente cambiato,
+il codice non può invece essere modificato: Eleutheria ne ha
+bisogno per 'riconoscere' i mud su cui si trova ad operare, e per
+caricare i relativi dati di configurazione (contenuti in una
+directory il cui nome coincide proprio con il codice del Mud).
+Aggiungendo nuovi mud, bisognerà aver cura di attribuire ad ognuno
+un codice univoco.
+
+In virtù di questo file Muds.ini, Eleutheria si aspetta di trovare,
+nella directory Muds, le seguenti tre sottodirectory:
+
+generico
+leu
+ts2
+
+Così, assumendo di avere installato Eleutheria in c:\Eleutheria, con
+un Muds.ini dai contenuti identici a quelli appena visti, la struttura
+di directory sarà la seguente:
+
+C:\Eleutheria\
+            |
+            |---- Muds\
+                     |
+                     |--generico\
+                     |--leu\
+                     |--ts2\
+                     |--Muds.ini
+
+2. I file di configurazione
+
+Ogni directory di Mud contiene un insieme di file di configurazione,
+che esamineremo ora in dettaglio:
+
+Applies.ini
+
+Questo file contiene la lista degli applies applicabili ad un oggetto.
+
+Formato:
+
+<nome apply>|<help>
+
+<nome apply> è il nome dell'apply.
+<help> è la descrizione aggiuntiva dell'apply: se posto uguale a 'R',
+l'apply è da considerarsi riservato.
+
+Aspells.ini
+
+Questo file contiene la lista di tutti gli spell/skill applicabili
+agli oggetti (tramite gli apply weaponspell e eatspell).
+
+Formato:
+
+<nome incantesimo>|<codice>|<flags>|<livello minimo>
+
+<nome incantesimo> è il nome dell'incantesimo.
+<codice> è il codice numerico dell'incantesimo (coincide col valore
+presente nel file spells.h).
+<flags> è formato da quattro lettere, ognuna delle quali può essere
+'y' o 'n':
+  - la prima lettera deve essere 'y' se l'incantesimo può essere
+    attribuito alle pozioni, o 'n' altrimenti;
+  - la seconda lettera deve essere 'y' se l'incantesimo può essere
+    attribuito alle pergamene, o 'n' altrimenti;
+  - la terza lettera deve essere 'y' se l'incantesimo può essere
+    attribuito alle bacchete (wand), o 'n' altrimenti;
+  - la quarta lettera deve essere 'y' se l'incantesimo può essere
+    attribuito ai bastoni (staff), o 'n' altrimenti;
+<livello minimo> è il livello di esperienza minimo per lanciare lo
+spell.
+
+Inoltre, siccome nei Mud lo spell 0 è riservato, la prima riga di
+questo file dovrebbe sempre essere:
+
+[Nessun incantesimo]|0|yyyy|-1
+
+All'interno di questo file, gli spell dovrebbero essere elencati in
+ordine di codice: Eleutheria, comunque, li riordinerà alfabeticamente
+in memoria.
+
+ContainerFlags.ini
+
+Questo file contiene la lista di flag associabili agli oggetti di tipo
+container.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Nei Mud, i flag degli oggetti sono memorizzati in variabili di tipo
+long (interi a 32 bit): Eleutheria, per permettere di superare il
+limite di 32 flag, considera ogni campo flag come un vettore di
+interi.
+<field index> è l'indice all'interno di questo vettore a cui
+appartiene il flag descritto da questa riga (esso varrà quindi,
+normalmente, 0 per i primi 32 flag, 1 per i secondi 32, e così via).
+<bit index> è l'indice del bit all'interno del <field index> corrente
+corrispondente al flag descritto da questa riga (esso varrà quindi,
+normalmente, 0 per il primo flag, 1 per il secondo, e così via sino
+a 31: i bit sono correttamente numerati dal meno al più
+significativo).
+<enabled> vale 1 se il flag deve essere attivabile, o 0 altrimenti
+(in quest'ultimo caso, Eleutheria mostrerà questo flag come
+'disabilitato', non permettendo di modificarlo).
+<name> è il nome che questo flag ha per Eleutheria: esso deve
+rispettare le regole per i nomi di variabile, e deve essere unico
+all'interno dello stesso file; inoltre, alcuni flag, se presenti,
+devono avere dei nomi precisi, così da attivarne la 'gestione
+automatica' da parte di Eleutheria.
+<caption> è il nome che questo flag ha per l'utente (il nome che
+appare a video, in sostanza).
+<hint> è il testo dell'hint help associato a questo flag.
+
+DrinkContainerFlags.ini
+
+Questo file contiene la lista dei flag associabili agli oggetti di
+tipo drink container (contenitori di liquidi).
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+EqPos.ini
+
+Questo file contiene l'elenco delle posizioni in cui i mob possono
+indossare l'equipaggiamento.
+
+Formato:
+
+<descrizione della posizione>
+
+<descrizione della posizione> è la descrizione della parte del corpo
+in cui viene indossato un oggetto.
+
+ExitFlags.ini
+
+Questo file contiene la lista dei flag associabili alle uscite.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+FoodFlags.ini
+
+Questo file contiene la lista dei flag associabili agli oggetti di
+tipo food (cibo).
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+ItemAffections.ini
+
+Questo file contiene la lista delle affection associabili ad un
+oggetto (tramite l'apply spellaffect).
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+ITypes.ini
+
+Questo file contiene l'elenco dei tipi di oggetti.
+
+Formato:
+
+<tipo di oggetto>
+
+<tipo di oggetto> è la descrizione di un particolare tipo di oggetto.
+
+KeyFlags.ini
+
+Questo file contiene la lista dei flag associabili alle chiavi.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+LGrid.ini
+
+Questo file contiene la lista dei tipi di bevande che possono
+essere contenute in un drink container.
+
+Formato:
+
+<nome>|<ebbrezza>|<sazietà>|<sete>
+
+<nome> è il nome della bevanda.
+<ubriachezza> è una stima dell'ebbrezza provocata da questa bevanda:
+a valori più alti corrisponde un'ebbrezza maggiore.
+<sazietà> è una stima della sazietà provocata da questa bevanda: a
+valori più alti corrisponde una sazietà maggiore.
+<sete> è una stima della capacità di dissetare posseduta da questa
+bevanda: a valori più alti corrisponde una maggiore capacità.
+
+La prima riga di questo file deve essere:
+
+Type|Drunkness|Fullness|Thirst
+
+MACs.ini
+
+Questo file contiene una descrizione dei valori più comuni di
+armor class (da -10 a 10).
+
+Formato:
+
+<armor class> <descrizione>
+
+<armor class> è l'armor class (come detto, da -10 a 10).
+<descrizione> è la descrizione di quest'armor class: essa dovrebbe
+venir posta tra parentesi.
+
+Si noti come in questo file il separatore non sia il carattere di pipe
+('|'), ma uno spazio.
+
+MAlign.ini
+
+Questo file contiene una descrizione dei valori più comuni di
+allineamento (da -1000 a 1000).
+
+Formato:
+
+<allineamento> <descrizione>
+
+<allineamento> è l'allineamento (come detto, da -1000 a 1000).
+<descrizione> è la descrizione di quest'allineamento: essa dovrebbe
+venir posta tra parentesi.
+
+Si noti come in questo file il separatore non sia il carattere di pipe
+('|'), ma uno spazio.
+
+MArmors.ini
+
+Questo file contiene una descrizione dei valori più comuni di
+mob armor class (da -100 a 100).
+
+Formato:
+
+<mob armor class> <descrizione>
+
+<armor class> è la mob armor class (come detto, da -100 a 100).
+<descrizione> è la descrizione di quest'armor class: essa dovrebbe
+venir posta tra parentesi.
+
+Si noti come in questo file il separatore non sia il carattere di pipe
+('|'), ma uno spazio.
+
+MClasses.ini
+
+Questo file contiene la lista delle classi gestite dal mud.
+
+Formato:
+
+<nome classe>
+
+<nome classe> è il nome di una classe (al plurale).
+
+MGenders.ini
+
+Questo file contiene la lista dei sessi gestiti dal mud.
+
+Formato:
+
+<nome sesso>
+
+<nome sesso> è il nome di un sesso (al singolare, e sotto forma di
+aggettivo).
+
+MobActions.ini
+
+Questo file contiene la lista dei flag associabili ai mob.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+MobAffections.ini
+
+Questo file contiene la lista delle affection associabili ai mob.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+MPos.ini
+
+Questo file contiene la lista delle posizioni in cui può trovarsi un
+mob.
+
+Formato:
+
+<nome posizione>
+
+<nome posizione> è il nome di una posizione (al singolare).
+
+MRaces.ini
+
+Questo file contiene la lista delle razze gestite dal mud.
+
+Formato:
+
+<nome razza>
+
+<nome razza> è il nome di una razza.
+
+MTypes.ini
+
+Questo file contiene la lista e la descrizione dei tipi di mob gestiti
+dal mud.
+
+Formato:
+
+<mob type> <descrizione>
+
+<mob type> è il tipo del mob (una lettera, normalmente maiuscola).
+<descrizione> è la descrizione di questo tipo di mob: essa dovrebbe
+venir posta tra parentesi.
+
+Si noti come in questo file il separatore non sia il carattere di pipe
+('|'), ma uno spazio.
+
+NShpMsgs.ini
+
+Questo file contiene la lista delle risposte di default dei
+negozianti.
+
+Formato:
+
+<il giocatore vuole acquistare un oggetto che il negoziante non ha>
+<il giocatore vuole vendere un oggetto che non possiede>
+<il negoziante non è interessato ad acquistare quell'oggetto>
+<il negoziante non ha soldi sufficienti per comprare un oggetto>
+<il giocatore non ha soldi sufficienti per comprare un oggetto>
+<il giocatore ha acquistato un oggetto>
+<il giocatore ha venduto un oggetto>
+
+Nel caso delle ultime due risposte, è possibile usare la sequenza di
+caratteri '%d' per riferirsi all'importo monetario oggetto della
+transazione.
+
+ObjFlags.ini
+
+Questo file contiene la lista dei flag associabili agli oggetti.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+ObjWears.ini
+
+Questo file contiene la lista delle posizioni in cui è possibile
+indossare un oggetto.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+OpenCommands.ini
+
+Questo file contiene la lista dei comandi che possono venir usati per
+aprire una pota.
+
+Formato:
+
+<nome comando>|<indice comando>
+
+<nome comando> è il nome del comando.
+<indice comando> è l'indice del comando (lo stesso dichiarato in
+interpreter.c).
+
+Il comando 'standard' (normalmente Open/close) dovrebbe avere come
+indice -1.
+
+ResistanceFlags.ini
+
+Questo file contieng la lista delle resistenze, immunità e
+suscettibilità.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+RoomFlags.ini
+
+Questo file contiene la lista dei flag associabili alle stanze.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+RTypes.ini
+
+Questo file contiene la lista dei tipi di stanza.
+
+Formato:
+
+<nome tipo>
+
+<nome tipo> è il nome di un tipo di stanza.
+
+Il tipo di stanza 'teleport' deve essere l'ultimo di questo file.
+
+ShpMsgs.ini
+
+Descrizioni delle situazioni associate ad ogni risposta dei negozianti.
+
+Formato:
+
+<descrizione situazione>
+
+<descrizione situazione> è la descrizione di una situazione che porta
+un mob negoziante a pronunciare una determinata risposta.
+Esse sono poste nello stesso ordine descritto per il file
+NShpMsgs.ini.
+
+TeleportFlags.ini
+
+Questo file contiene la lista dei flag associabili ai teleport.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+TrapDamageTypes.ini
+
+Questo file contiene la lista e la descrizione dei tipi di danno che
+possono venir inflitti dalle trappole.
+
+Formato:
+
+<nome del danno>|<valore>
+
+<nome del danno> è il nome del tipo di danno.
+<valore> è il codice del tipo di danno: se maggiore di 0, esso
+usualmente è l'indice di uno spell/skill particolare (come definito
+nel file spells.h), viceversa, se minore di 0, esso deve venir gestito
+direttamente in Trap.c.
+
+TrapFlags.ini
+
+Questo file contiene la lista dei flag associabili alle trappole.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+WGrid.ini
+
+Questo file contiene la lista dei tipi di danni che possono venir
+inflitti dalle armi.
+
+Formato:
+
+<nome>|<categoria>|<messaggio>|<in italiano>
+
+<nome> è il nome del danno.
+<categoria> è la categoria generale sotto la quale si sussume questo
+particolare tipo di danno.
+<messaggio> è la categoria di messaggi che appaiono in seguito a
+colpi di questo tipo.
+<in italiano> è semplicemente la traduzione in italiano del nome del
+danno.
+
+La prima riga di questo file deve essere:
+
+Type|Category|Message|In italiano
+
+ZoneFlags.ini
+
+Questo file contiene la lista dei flag associabili alle zone.
+
+Formato:
+
+<field index>|<bit index>|<enabled>|<name>|<caption>|<hint>
+
+Dove i campi hanno il significato già visto.
+
+3. Nomi predefiniti
+
+Alcuni flag, se esistenti, devono possedere un nome preciso, così che
+Eleutheria possa attivare nei loro confronti la sua gestione automatica.
+
+Detti flag sono:
+
+- 'Door': rende un'uscita 'una porta';
+
+- 'Tunnel': attiva il campo Tunnel Limit nel form delle stanze, e
+  ne scrive il valore nel file .wld;
+
+- 'Take': attiva il controllo del flag Take nella finestra degli
+  oggetti, e lo assegna a tutti gli oggetti appena creati;
+
+- 'Count': rende un teleport di tipo count, attivando il campo Count,
+   e la sua lettura/scrittura su file;
+
+- 'Wimpy': il mob e' wimpy;
+- 'Aggressive': il mob e' aggressivo;
+- 'Metaaggressive': il mob e' molto aggressivo;
+- 'Magicuser': il mob e' un mago;
+- 'Cleric': il mob e' un chierico;
+- 'Druid': il mob e' un druido;
+- 'Psionic': il mob e' uno psionico;
+- 'Sentinel': il mob ha il flag sentinel;
+
+- 'Sanctuary': affect Sanctuary;
+- 'Fireshield': affect Fireshield;
+- 'Fire': resistenza/immunita'/suscettibilita'  al fuoco;
+- 'Cold': resistenza/immunita'/suscettibilita' al freddo;
+- 'Electricity': resistenza/immunita'/suscettibilita' all'elettricita';
+- 'Energy': resistenza/immunita'/suscettibilita' all'energia;
+- 'Acid': resistenza/immunita'/suscettibilita' all'acido;
+
+4. Note finali
+
+Se alcune caratteristiche non sono gestite da un mud, i relativi file
+di configurazione devono comunque essere presenti, anche se vuoti.
+
+                                                 Lavinio Cerquetti
+                                                 lavinio@poboxes.com

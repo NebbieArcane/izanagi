@@ -1,0 +1,1141 @@
+			MANUALE/TUTORIAL
+				per
+			ELEUTHERIA 3.10d
+				di:
+                      Andrea Donati (Logan)
+
+(Eleutheria e' opera di: Lavinio Cerquetti (Kwhune))
+
+			PRE-MANUALE D'USO
+	Sai cosa leggi?: Dove sono le uscite di sicurezza?
+
+Premessa:
+	Questo piccolo manuale non ha le pretese di un mattone
+	come possono essere quelli targati Microsoft, ma puo'
+	porre buone basi per la creazione e lo sviluppo di aree
+	di tipo DaleMUD. L'interfaccia semplice creata da Lavinio
+	rendono questo file di testo un punto di riferimento
+	risolutivo per chi non ha mai utilizzato Eleutheria e per
+	chi desidera raffinare le conoscenze su questo programma
+	utilizzando implementazioni importanti ma mai usate
+	precedentemente. Appena la base per la creazione
+	di aree sara' completa, l'importanza di questo file
+	calera' in proporzione all'aumento della vostra velocita'
+	di costruzione.
+
+Installazione:
+	Dunque, innanzi tutto vi consigliamo di installare la
+	nuova versione di Eleutheria su una directory differente
+	dalla vecchia. Questo perche' la nuova versione ha una
+	struttura di file e directory nuova, e alcuni file vecchi
+	rimarrebbero inutilizzati.
+	Con le nuove versioni comunque tutto questo macchinoso
+	comportamento dovrebbe avere termine.
+	Istruzioni per l'installazione praticamente superflue:
+	per la versione con il Setup basta indicare la directory
+	preferita (di solito C:\Programmi\Eleutheria), mentre con
+	il file zippato basta scompattare il tutto nel direttorio
+	creato a mano.
+
+Apertura di Eleutheria:
+	Prima di avviare il programma (Eleutheria.exe) vi
+	consigliamo (odio questi plurali) di leggere attentamente
+	i file readme.txt e whatsnew.txt, per avere maggiori
+	informazioni sul programma.
+	Nella nuova versione questi due file si trovano nel
+	sottodirettorio (wow!) "doc".
+
+Note:
+	Eleutheria 2.00b e' l'ultima versione a 16bit. Il supporto
+	multimud e tutte le nuove funzionalita' (insomma, le nuove
+	versioni) saranno tutte a 32bit. (Windows 95/98/NT.)
+	Eleutheria e' un programma freeware, cioe' gratuito.
+	
+	Prima di utilizzare il programma contattate un implementor
+	del MUD per cui vorreste creare un'area, per chiedergli
+	se ci sono accorgimenti da tener conto nell'utilizzo di
+	Eleutheria.
+
+	Non ho finito: il tutorial prendera' in considerazione la
+	versione 3.10 di Eleutheria, utilizzabile su sistemi
+	Windows 95/98 e Windows NT. Nonostante tutto la semplicita'
+	dei comandi utilizzati e in generale la stesura delle
+	informazioni non daranno problemi (spero) a chi usa
+	ancora la vecchia versione.
+
+	Eleutheria gestisce aree, non file. Questo significa che
+	se cercate di aprire un file .wld, per esempio, Eleutheria
+	cerchera' anche i rispettivi file .zon, .obj, .mob, .shp,
+	.txt (annotazioni all'area) e .ele (dove Eleutheria
+	memorizza il nome completo dell'area, il nome del suo
+	autore e il MUD associato all'area.
+	Creando un collegamento nella directory "\windows\SendTo"
+	si puo' fare in modo di aprire un file clikkandoci sopra
+	con il tasto destro, e selezionando "Invia a" e poi
+	"Eleutheria. Con Windows NT la directory e':
+	\winnt\profiles\<nome-utente>\SendTo
+
+	Altrimenti e' ancora piu' semplice fare in modo di
+	associare tutti i file del mud con Eleutheria facendoci
+	doppio click, ignorando la lista di applicazioni e,
+	sfogliando l'hard disk, scegliendo Eleutheria come
+	programma per aprire quell'estensione.
+
+	Eleutheria inoltre esporta file in formato dbf. Che e'?
+	I file dbf sono un vecchio formato standard di DataBase
+	gestibile da praticamente tutti i programmi piu' moderni
+	(anche Word o Excel, oltre all'Access).
+	Questo formato e' utile per l'analisi dell'area, e per chi
+	sa utilizzare anche il linguaggio SQL, per l'interrogazione
+	di database, il controllo diventa ancora piu' semplice.
+	Non e' finita: Eleutheria puo' generare la stessa cosa
+	anche in formato ASCII. Ulteriori informazioni nel file
+	export.txt contenuto nel sottodirettorio "doc".
+
+			MANUALE D'USO:
+	La Prima Impressione: E' meglio una bella donna?
+
+Appena farete doppio click sull'icona di Eleutheria (premetto che
+sto usando Windows95, ma non credo che l'apertura del programma
+possa causare difficolta' su Windows 3.x, se cosi' fosse ci sono
+sempre altri hobby come i francobolli o le monetine), apparira'
+una schermata completamente grigia, con il solito menu' (File,
+Visualizza, Strumenti, ?), e sotto tanti pulsantini di
+cui spiegheremo piu' tardi l'utilizzo.
+Se avete voglia di premerli un po' a caso vi ricordiamo il
+punto 2 del file doc/readme.txt di Eleutheria.
+Dunque premesso che il miglior modo per imparare ad utilizzare
+un programma sia utilizzare un programma, non vi annoieremo con
+inutili e noiose spiegazioni sui vari comandi e pulsantini ma
+entreremo subito nel corpo di Eleutheria, con la creazione
+guidata di una fantastica area, attrazione di tutti i MUD e,
+perche' no, di vostra proprieta':
+
+La Casa Chiusa.
+
+Sicuri che il vostro interesse sia salito vertiginosamente, non
+perdiamo altro tempo e passiamo subito alla creazione di questa
+zona.
+
+Fase 0) Preparazione - ovvero: Oddio e adesso?
+
+Premesso che ognuno puo' fare quello che vuole, e' bene dare
+qualche consiglio su come creare un'area con Eleutheria.
+
+a) Prendere un bel foglio A4 (meglio A3, ma chi ce l'ha... al
+	limite unite 2 fogli A4).
+b) La vostra area dovra' avere un ingresso. Questo non
+	significa che dovra' per forza avere ponti levatoi,
+	porte, portoni o mura. Un ingresso serve per poter
+	"presentare" la vostra area senza eccessivi sbalzi di
+	ambientazioni che porterebbero, per esempio, ad avere
+	immediatamente ad est di una citta' il centro della
+	terra. Un ingresso puo' essere rappresentato da una
+	strada che lentamente si oscura riempiendosi d'alberi,
+	oppure che sale sempre piu' in alto fino a raggiungere
+	il cielo. Insomma la vostra fantasia deve partire fin
+	dagli albori della vostra area. Tenete conto inoltre
+	che ci potrebbero essere piu' uscite. Fate quindi in
+	modo di mantenere coerente l'ambientazione in cui
+	vorreste implementare la vostra area a quella del MUD.
+c) A questo punto potete iniziare a mettere su carta la mappa
+	della vostra area. Fatelo prima su carta per avere una
+	visione d'insieme.
+	Personalmente vi consiglio di creare quante piu'
+	locazioni possibili, perche' piu' e' lungo il viaggio
+	dei personaggi all'interno e nei dintorni della vostra
+	area, piu' si avra' l'idea di quanto grande e "immenso"
+	sara' il territorio da voi creato (io consiglio un
+	minimo di 200 locazioni, altri 100).
+	Se la vostra zona supera le 100 locazioni, create
+	un'altra zona e via di seguito, perche' e' meglio tante
+	zone con "tot" locazioni piuttosto che una zona sola con
+	centinaia di locazioni... si evita il casino.
+d) Ora tocca ai mob. A seconda del livello dei personaggi cui
+	si desidera destinare l'area, bisogna cercare di
+	bilanciare i relativi mob.
+	Partendo dai giocatori solitari, per loro i mob di
+	basso livello non devono dare piu' di 5mila punti ca.
+	(punteggio relativo al DaleMUD standard), altrimenti
+	diventano bersaglio fisso dei personaggi di medio
+	livello, e il target va a farsi benedire (e che poi
+	nessuno si chieda come mai dal 20esimo al 40esimo tutti
+	fanno xp a manetta). Come potenza e' meglio non
+	esagerare, ma nemmeno trattenersi troppo, e cercare di
+	dosarla in base anche agli xp del mob stesso e in maniera
+	inversamente proporzionale tra potenza stessa e hp.
+	Un buon esempio di bilanciamento di punti e' la
+	"Scacchiera" di Tempora Sanguinis, lo dico non per
+	travaso di modestia ma perche' e' sempre
+	piena di personaggi di basso livello, nessuno se n'e'
+	mai lamentato (se non che i pedoni ogni tanto vanno
+	indietro, sigh) e non regala xp. Un esempio negativo
+	sono invece le trote della foresta elfica, danno tutto
+	fuorche' un po' di emozioni.
+	Per livelli intermedi i mob non devono superare i 30mila
+	punti. Sembrano pochi, ma non lo sono affatto. I mob
+	iniziano a menare forte, possono avere anche due o tre
+	attacchi a round. Gli hp restano pochi, i personaggi
+	ancora non riescono a colpire bene.
+	Questi mob possono anche essere preda di gruppi composti
+	da pg di livello basso.
+	Per i livelli alti i mob non devono superare i 150mila
+	punti. Altrimenti sono mob sprecati. Gli attacchi sono
+	tanti, minimo tre, il male che fanno deve essere alto
+	(non meno di 50 hp a round contro un pg nudo e senza
+	spell), e il numero di HP abbastanza alto.
+	Questi mob possono anche essere preda di gruppi composti
+	da pg di livello intermedio.
+	Per i gruppi di alto livello (saranno questi i principali
+	bersagli delle vostre aree) i mob dovranno essere davvero
+	cattivi, sempre in movimento, si aiuteranno tra loro in
+	caso di difficolta' o per lo minimo assisteranno i loro
+	"simili" in combattimento. Dovranno avere minimo 1500 hp,
+	e fare danni enormi.
+	Queste sono solo indicazioni elementari, tanto per dare
+	un'idea. Ogni mud ha caratteristiche di potenza diverse;
+	per esempio e' abituale vedere dei "very hard" su LeU come
+	e' abituale vedere "devasta" o "polverizza"
+	su Tempora Sanguinis.
+e) Gli oggetti dovranno essere schifosi. Non e' una fesseria,
+	ma provate a pensare a cosa succederebbe con oggetti, per
+	esempio, +2 dam: tutti i ricercatissimi oggetti +1 dam
+	sarebbero totalmente ignorati e la massa si getterebbe su
+	questi nuovi oggetti. Farli maxxati, cioe' limitati,
+	creerebbe soltanto malumori e idee di raccomandazione e
+	"mafia". Gli oggetti potenti dovranno avere dei "malus".
+	Per esempio uno scudo potentissimo e grosso come una porta
+	sarebbe perfetto con un bel -1 di destrezza (un malus
+	tranquillamente RPG, anzi, chi mai si porterebbe dietro una
+	porta senza problemi di destrezza?).
+	Insomma, oggetti potenti si', ma con dei malus. Altrimenti
+	i personaggi continueranno a chiedere sempre di piu'.
+f) Il resto: tutto il resto sara' messo direttamente su computer
+	tramite Eleutheria, in un semplicissimo gioco di pulsanti
+	ed opzioni che andremo tra poco a spiegare.
+
+Quindi, ricapitolando:
+
+a) Pensare ad una bella area, ricca di atmosfera, umorismo o
+	terrore, piena di mob "realistici", cioe' per la maggior
+	parte in movimento, con trappole e non DT, perche' le DT
+	sono frustranti mentre le trappole sono spavento ed
+	emozione (che e' quello che si vuol dare).
+
+b) Scriverne la mappa su carta, per avere una visione d'insieme.
+	Segnarsi anche le posizioni di mob ed eventualmente tesori
+	o trappole.
+
+c) Tramite Eleutheria creare le locazioni.
+
+d) Creare i mob senza posizionarli, crearli e basta. Occhio ai
+	bilanciamenti, bisogna strafare (vd. prima).
+
+e) Creare gli oggetti. Occhio ai bilanciamenti, non bisogna
+	strafare.
+
+f) Posizionare gli oggetti sui mob o eventualmente per terra nelle
+	locazioni.
+
+g) Posizionare i mob nell'area.
+
+h) Verificare il lavoro svolto (tramite, per esempio, i pacchetti
+	per Linux, Amiga e Windows95/NT di Tempora Sanguinis, o
+	tramite MUD non compilati come LeU e Nebbie Arcane).
+
+Fase 1) Glossario - ovvero: Io so che tu sai che lui sa...
+
+MUD: Spiegare cos'e' un MUD non e' compito di questo tutorial.
+	Beh non sto mica dicendo fesserie, se intendete usare
+	Eleutheria dovreste sapere bene, per lo meno, il
+	significato di MUD. Comunque LudItalia e le sue FAQ sono
+	a vostra disposizione per risolvere i vostri quesiti piu'
+	aberranti (http://caristudenti.cs.unibo.it/luditalia).
+Locazione (Stanza, Room): Una locazione e' una stanza.
+	in effetti sembra banale e lo e' davvero.
+	Il file con tutte le locazioni ha estensione .wld
+Mob (Nemico, $?%@#$@!!!): Un mob e' un personaggio generato da
+	voi e gestito dal computer; puo' avere caratteristiche
+	completamente personalizzate, tutte editabili tramite
+	Eleutheria (sono escluse solo le procedure speciali,
+	utilizzabili solo dai veri professionisti; anche locazioni
+	ed oggetti possono supportarle, il loro utilizzo e' pero'
+	piu' raro).
+	Il file con tutti i mob ha estensione .mob
+Oggetto (Obj, Quell'affare):  Un oggetto e' una qualunque "cosa"
+	del MUD: armi, bicchieri, cibo, fontane, armature e
+	tanto altro. Anch'esso ha caratteristiche editabili
+	tramite Eleutheria.
+	Il file con tutti gli oggetti ha estensione .obj
+Negozio (Shop): Il negozio e' stato implementato soltanto nelle
+	ultime versioni di Eleutheria. Viene utilizzato
+	raramente, comunque nel tutorial che seguira' tra poco
+	verra' creato anche questo.
+	Il file con tutti i negozi ha estensione .shp
+Zona (Area): Una zona contiene tutte le informazioni sul
+	posizionamento di mob e oggetti, sulla condizione delle
+	porte (aperte o chiuse), ecc. ecc., appena quella zona
+	viene inizializzata (inizializzarla significa entrarci
+	per primi dopo un reboot o un crash del MUD).
+	Un'area e' un insieme di zone. Spesso si associa la
+	parola "area" con la parola "zona". Questo accade
+	quando un'area e' composta da una sola zona.
+	In questo tutorial accadra' cosi', e quindi
+	non sorprendetevi se utilizzero' entrambi i nomi per
+	riferirmi alla stessa cosa.
+	Il file con tutte le zone ha estensione .zon
+Vnumber (Numero): Il vnumber rappresenta il numero di codice
+	di mob, oggetti ecc. ecc. Non esistono convenzioni
+	precise, per cui per mantenere ordine spesso si fa
+	in modo che il vnumber coincida con il numero della
+	zona*100, per esempio: se la zona e' la numero 0, e il
+	top e' 99, i vnumber (cioe' i numeri relativi agli
+	oggetti, mob, negozi, ecc.) andranno da 0 a 99. Se la
+	zona e' la n. 537, i vnumber andranno da 53700 a 53799.
+
+Fase 2) Si comincia! - ovvero: uccidi o scappa?
+
+*Dunque, clikkate sul pulsantino in fondo a sinistra (quello
+col foglio di carta bianco) oppure nel menu "File/Nuova Area".
+
+Bene, ora scegliete il MUD per il quale desiderate creare una
+nuova area. Se non c'e' nessun MUD scegliete "Diku generico".
+
+*Siamo di parte? Diciamo che i tutorial non sono di parte. E
+quindi clikkate su "Tempora Sanguinis 2" e premete Ok.
+
+Magicamente apparira' una finestra tutta bianca con scritte a
+prima vista completamente incomprensibili. Se avete letto il
+glossario della fase 1 avrete gia' riconosciuto i cinque
+segnalibri (o linguette, fate voi) posti in alto della nuova
+finestra.
+
+Innanzi tutto bisogna creare una zona, cioe' definire alcune
+importanti informazioni base che l'area finita dovra' avere.
+
+*Clikkate quindi sulla finestra "Zone".
+
+A destra di questa finestra troverete 4 semplicissimi pulsanti:
+
+CREA: Crea una nuova zona (se notate siamo nella finestra
+"Zone");
+CLONA: Clona la zona selezionata;
+MODIFICA: Modifica la zona selezionata;
+CANCELLA: Cancella la zona selezionata;
+
+*Creiamo una zona, quindi clikkate su "Crea".
+
+Apparira' una nuova finestra, tanto per incasinarci di piu',
+dove comunque saranno pochissime le cose da fare.
+Il primo menu' dice "Numero". Se non sapete che numero
+metterci lasciate 0, altrimenti, se un implementor vi ha dato
+uno specifico numero utilizzate quello. Il numero ha una
+importanza nulla nell'utilizzo di Eleutheria, mentre risulta
+importante agli implementor per sapere a quale numero e'
+abbinata la vostra zona o viceversa.
+La descrizione non sara' altro che il nome della vostra area.
+
+*Sull'etichetta "Descrizione" scrivete: La Casa Chiusa.
+
+Subito sotto c'e' scritto "Top", che vuol dire? Semplice.
+Provate a modificare il numero della zona. Vedrete magicamente
+il top modificarsi. Il top non e' altro che il vnumber massimo
+che si puo' utilizzare per quella zona.
+Come descritto nel glossario di fase 1, e come convenzione che
+in questo manuale verra' mantenuta per rendere tutto piu'
+facile, dando un numero x alla zona significa fare in modo che
+il vnumber delle stanze, mob, ecc. ecc. vada da x*100 a
+(x*100)+99. Noi facciamo cosi':
+
+*Su "Numero" scrivete: 500 (vnumber modificato: 50099)
+Se la nostra zona avra' piu' di 99 locazioni (non le avra',
+per l'amor del cielo, ma le aree migliori e piu'
+"realistiche" sono quelle con minimo 100 locazioni),
+ne creeremo un'altra (501) con un vnumber massimo di 50199.
+
+Lifespan... che cos'e'? Semplice, sui MUD si chiama REPOP.
+Cerchero' di convincere Lavinio a tradurre da "inglese" a
+"muddarolo" Eleutheria (per esempio traducete "Lifespan" in
+"Repop ogni [  ] tick").
+Il numero di fianco indica i tick (sapete cosa sono, vero?)
+che dovranno passare tra un repop e l'altro. Valore di default
+e' 20.
+
+*Noi mettiamo 10, e' giusto che in una casa chiusa si
+possa avere a disposizione della materia prima quanto piu' in
+fretta possibile.
+
+Subito sotto c'e' una piccola tabella, in cui puo' essere
+scelta una stringa tra:
+Never: I mob non ripopperanno mai, solo ai crash o reboot;
+If Empty: I mob ripopperanno dopo i tick segnati nel lifespan
+e solo se l'area non ha personaggi al suo interno;
+Always: I mob ripopperanno dopo i tick segnati nel lifespan.
+
+Se scegliete "Never" il valore settato nel lifespan sara'
+ignorato.
+
+*Settate If Empty, bisognera' pure tornare a casa dopo il
+lavoro, no? (Prima il piacere, poi il dovere.)
+
+Infine abbiamo alcuni interessanti flag (caratteristiche) da
+scegliere. Se andate con il puntatore del mouse sopra ad ogni
+caratteristica aspettando un secondo, apparira' la sua
+descrizione. Comodo, eh?
+
+*Togliete Rpg boosts e clikkate su Hot, se non e' una zona
+calda questa...
+
+E con questo abbiamo terminato il nostro lavoro sulla finestra
+dedicata al .zon
+
+*Clikkate sul pulsante "Applica", poi su "Yes" e potete
+chiudere la finestra sulle Zone.
+
+(Correggo la frase di prima: cerchero' di convincere Lavinio
+a tradurre prima tutto in italiano e poi da italiano a
+muddarolo). :-)
+
+Fase 3) Le stanze - ovvero: dormi nel mio letto?
+
+*Clikkate sulla linguetta delle Stanze.
+
+Come potete vedere, a destra ci sono sempre i soliti quattro
+pulsanti, come per le zone.
+
+*Clikkate sul pulsante CREA.
+
+A questo punto vi appare una finestra ricca di voci e pulsanti.
+Se non siete svenuti per lo spavento vi ritroverete di fronte
+a tutto quello che avreste voluto sapere su una stanza ma che
+non avete mai osato chiedere.
+Il vnumber della stanza (il primo valore in alto a sinistra)
+dovrebbe essere 50000, il primo disponibile per la zona 500.
+Poi c'e' la short desc. La short desc non e' altro che il nome
+della stanza, colorato diversamente a seconda del MUD in cui
+si gioca. Visto che la prima cosa che si vede entrando in una
+casa chiusa e' l'ingresso...
+
+*Sulla voce "Short desc" scrivete: Ingresso alla Casa Chiusa
+
+Poi possiamo decidere il "tipo di settore", o meglio, il tipo
+di terreno su cui ci troviamo in questo momento. Le voci sono
+in inglese, questo perche' Eleutheria e', tra le altre
+cose, un programma che ai suoi tempi si rivolgeva esclusivamente
+ai costruttori di aree "della prima generazione", che lavoravano
+direttamente sui file di testo e con la guida in inglese sempre
+sotto mano.
+Finche' ci sono, qualcuno convinca Lavinio a dare del TU agli
+utenti e non del LEI oltre che, ricordiamo, alle opere di
+traduzioni sopracitate. :-)
+
+La scelta del tipo di terreno modifichera' il numero di punti
+movimento persi dal giocatore per muoversi da una locazione
+all'altra e, nel caso dell'acqua, se ci sono o meno correnti
+che lo potrebbero spingere in altre direzioni. Visto che una
+casa chiusa dev'essere morbida dentro ma robusta fuori, e
+soprattutto vicina ai nostri luoghi di sonno...
+
+*Alla voce Sector Type scegliete: City streets
+
+Passiamo ai flag. Cos'e' un flag? Semplice, e' una
+caratteristica della stanza in cui si e'. Eleutheria, tramite
+i numerosi flag del DaleMUD, mette a disposizione un sacco
+di caratteristiche, che possono essere esaminate una ad una
+semplicemente puntando il mouse su ogni voce ed attendendo un
+secondo.
+
+*Nella linguetta "Flags 2" scegliete Bright: e' giusto
+illuminare per bene un locale del genere, specialmente di
+notte.
+
+Saltiamo per un momento le uscite e passiamo alla long desc.
+La long desc e' la descrizione della stanza, nel MUD si puo'
+vedere o disabilitare con il comando BRIEF.
+
+*Come long desc mettete:
+Il sontuoso ingresso brilla di luci variopinte, e strani
+paletti appuntiti circondano il piccolo sentiero che conduce
+dentro la casa chiusa. Strane grida provengono dal suo interno,
+quali immensi pericoli dovrai affrontare in questa tua visita?
+
+Ora, in questa descrizione abbiamo accennato a dei paletti. Ad
+alcuni personaggi puo' saltare in mente di fare qualcosa tipo
+"look paletto", e cosi' si possono creare delle descrizioni
+extra per la stanza, tramite la finestrella "Extra Description".
+
+*Clikkate sul primo pulsante di fianco alla finestrella "Extra
+Description" ("aggiungi") ed inserite come parola chiave (cioe'
+l'oggetto del look: look <parola chiave>): paletto paletti
+Cioe' uno puo' leggere una descrizione extra facendo "look
+paletto" o "look paletti".
+*Come descrizione mettete: 
+In cima a ciascuno di questi paletti sembra esserci una specie
+di guantone di pelle trasparente per un solo dito, forse il
+pollice. Fa troppo schifo pero' per poterlo toccare.
+
+La descrizione, come vedete, e' un po' scomoda rispetto alla
+precedente "Long description", perche' non ha un a capo
+automatico. Speriamo in successive versioni. :-)
+
+Dopo aver premuto Ok apparira' la nuova descrizione.
+
+*Premete il pulsante APPLICA e poi CHIUDI.
+
+Complimenti, avete appena creato la prima stanza.
+
+Fase 4) I Mob - ovvero: noooooo! 150 mega di hooole!
+
+Dunque abbiamo creato un ingresso, ora ci pare ovvio costruire
+un mob che faccia la guardia, vi pare?
+A dire il vero e' sempre consigliabile fare prima tutte le
+locazioni, unirle, poi implementare i mob.
+Non faremo tutto questo, tranne che per la costruzione del
+negozio e di un altro paio di locazioni, per evitare di
+annoiarvi troppo ripetendo le solite cose. Rimaniamo nel
+dettaglio delle spiegazioni ora, quando torneremo alle stanze
+vi lasceremo maggiore liberta' di costruzione.
+
+*Clikkate sulla linguetta MOB e poi sul pulsante CREA.
+
+Il casino qui si fa maestoso. Oltretutto con una risoluzione
+bassa non si riesce neanche a vedere tutta la finestra a
+disposizione. Pero' vedrete che, passo dopo passo, tutti
+questi menu' diventeranno semplici e intuitivi.
+Molte cose sono simili alle locazioni, tipo vnumber (50000
+va benissimo), short desc e long desc. Insieme a long desc c'e'
+anche mob desc. Vediamo di preciso la differenza tra queste tre
+descrizioni insieme alla "parola chiave":
+
+short: Il nome del mob quando combatte (Topolino ti graffia con
+	estrema ferocia)
+parola chiave: I nomi da usare "contro" il mob (Topolino Topo
+	Ratto Fumetto...) che rispondono al comando look <mob>
+long: Il nome del mob quando si fa look o si entra nella stanza
+	(Vedi un coso nero e bianco con due orecchie tonde sulla
+	testa.)
+mob: La descrizione del mob (E' basso, strano, diverso dai
+	soliti nani o halfling. Non fosse per il fatto che e'
+	vivo e di fronte a te, penseresti che viene dalle pagine
+	dei fumetti. Ma la domanda e': cos'e' un fumetto?)
+
+*Visto che manteniamo l'rpg scrivete questo:
+short: un buttafuori (mi raccomando la minuscola iniziale, ndLog)
+parola chiave: buttafuori
+long: C'e' un immenso buttafuori davanti alla porta d'ingresso.
+mob: Sembra molto nervoso, e pure allenato a cacciare via i
+clienti indesiderati.
+
+Ora, vediamo che significa quel "Type" di fianco alle parole
+chiave. Dovete usare solo la N, A, B, L, le altre lettere non
+usatele mai, la S crea mob fin troppo semplici e la D fin troppo
+frustranti. Meglio far mob completi ed essenziali allo stesso
+tempo usando una delle seguenti "lettere-combinazioni":
+N: mob semplice, 1 attacco a round, non fa "rumore"
+A: mob semplice, x attacchi a round, non fa "rumore"
+B: mob non bashabile, x attacchi a round, non fa "rumore"
+L: mob semplice, x attacchi a round, fa "rumore"
+
+Che vuol dire "fa rumore"? Lo vedremo subito...
+
+*Mettete "L" come type.
+
+Di fianco a mob desc sono apparse due nuove linguette: Same room
+sound e Adjacent room sound, cioe': Rumore che il mob fa nella
+stanza in cui e', e nelle stanze vicine.
+
+*Nel "same room" mettete: Il buttafuori afferra l'armatura di
+un cliente indesiderato e gliela riduce a brandelli!
+*Nel "adjacent room" mettete: Senti un ringhio pauroso e l'urlo
+di un cliente...
+
+Bene, ora veniamo agli affection e agli action, la parte tra le
+piu' semplici e divertenti di Eleutheria. Queste due finestre
+rappresentano cio' che per una locazione sono i flag, cioe' le
+caratteristiche del mob. Gli affection coprono la parte "magica"
+e di razza del mob, gli action la parte "caratteriale".
+
+*Visto che dev'essere un buttafuori ben allenato, negli
+affection clikkate su: Sanctuary e True Sight.
+negli action su: sentinel, scavenger, greet (e' educato, dai),
+huge e warrior (misto tra bravura e alcool).
+
+Bene, state prendendo un po' la mano? Continuiamo!
+
+*Gia' che ci siete mettete l'align (allineamento) a 100 (un po'
+cattivello ma sostanzialmente un bravo ragazzo), facciamolo
+di 50esimo livello (va'), l'AC (armatura) a -10 (va da -10,
+corazzato come un drago, a +10, nudo come un verme) ed il
+"sex" maschile.
+
+*La THAC0 (possono spiegarvelo in tutte le parole del mondo, ma
+non e' altro che l'HIT di un mob che va al contrario della
+Thac0 stessa, cioe' 20 Thac0 = 0 Hit (MAI, il mob mancherebbe
+tutti gli attacchi), e 0 Thac0 = 20 Hit), dicevo, la THAC0
+mettetela a 0. Credo che Tempora Sanguinis supporti anche le
+Thac0 negative, per ora non rischiamo.
+
+Ripeto:
+ 20 Thac0=  0 HitRoll (= ti manca, ti manca, ti manca...)
+  0 Thac0= 20 HitRoll (= ti devasta, ti devasta, ti devasta...)
+-20 Thac0= 40 HitRoll (= ti polverizza, ti polverizza...) ???
+
+*Ora, visto che "L", nel Type settato precedentemente, prevedeva
+la possibilita' che il mob avesse piu' di un attacco, e visto che
+il mob stesso e' un wa/ba, mettiamogli 4 attacchi a round.
+
+Vi state divertendo? Non abbiamo mica finito. Gli xp bonus non
+metteteli mai negativi, in MUD come TS2 e LeU verrebbero
+probabilmente corretti, ed inoltre non dovete essere voi ma
+il mud a calcolare gli effettivi e giusti xp da attribuire ad
+un mob. Il valore corretto e' quindi 0, ma in caso di
+caratteristiche speciali del mob potete utilizzare valori
+fino a 10. Per esempio un mob come il guardiano ha delle
+caratteristiche particolari come l'essere huge (non bashabile
+da tutti) e il true sight (e quindi vedere anche gli
+invisibili di giorno e di notte) ed altre caratteristiche.
+Potete poi verificare il numero di xp medi sulla relativa
+finestrella poco piu' in basso.
+
+*In generale sugli XP bonus, e anche in questo caso, mettete 0.
+Il danno? Facciamo 5d8+10, un mob da 50esimo livello, insomma.
+
+Bene, ora c'e' discorsino sulle razze. Che diavolo fa ciascuna
+razza?
+...
+...
+...
+Boh, per ora andate a logica, avremo al piu' presto informazioni
+a riguardo.
+
+*Come razza mettete Half Giant, mentre con il numero di
+HP, senza cadere in lunghe spiegazioni molto simili a quelle
+degli XP (se non che valori negativi non esistono), utilizzate
+la finestra degli "HP medi", mentre modificate quella di "HP
+bonus"; noi metteremo 400, 225 sono davvero pochini.
+
+*Siamo generosi, diamogli 1000 monete d'oro.
+Lasciamolo in piedi (standing) sia quando viene caricato la
+prima volta, sia quando ripoppa le successive ("loading pos."
+e "default pos.").
+
+*Ora clikkate su "Extras...".
+Gli extras non sono altro che le caratteristiche fisiche del mob:
+resistenze, immunita', suscettibilita'.
+Visto che un buttafuori e' un bel bestione facciamolo resistente
+ai colpi di mano (poveri monaci) e armi pesanti, quindi:
+
+*Clikkate sulla linguetta "resistance" e su "Blunt".
+Pero' ha anche la fobia dei maghi e magie, quindi andate su
+"Susceptibility" e clikkate su "Electricity" e "Energy".
+
+Ora la parte che si ritiene piu' complessa (ma come vedrete non
+lo e' affatto).
+
+*Clikkate su "Init..."
+Vi appare una finestrella vuota e apparentemente priva di
+significato. In effetti che roba e'?
+E' semplicemente la gestione dell'inizializzazione del mob. E che
+cos'e', insisterete voi (oh che scatole)? Dunque un mob non va
+solo creato, ma anche posizionato in una precisa locazione, e se
+non gli basta il petto villoso va pure vestito. Wow!
+
+*Clikkate sul pulsante "Aggiungi".
+Assegnamoli la zona che stiamo creando ora, cioe' la 500, e lo
+posizioniamo nell'unica stanza disponibile, cioe' la 50000.
+Come "Limit" mettiamo 1.
+Se mettiamo 0 Eleutheria dice che il mob ripoppa all'infinito,
+ma e' abbastanza astrusa come spiegazione, perche' questo
+dovrebbe significare che se mettiamo, chesso', 15, il mob
+ripoppa 15 volte e poi non ripoppa piu'. E' davvero cosi'?
+Beh lasciamo 1. :-)
+
+Ora, tra eq, inventario e ammenicoli non possiamo mettergli
+nulla, non abbiamo ancora creato nessun oggetto.
+
+*Andiamo quindi su "Reazioni". Clikkate sul pulsante "Aggiungi".
+
+Bene, un buttafuori non ha paura di nulla, no? Anzi, al limite
+sara' portato ad odiare certe razze o altro per certi motivi.
+Dunque, innanzi tutto odiera' i barbari, perche' sono piu'
+prestanti di lui:
+
+*Clikkate su: "Disposizione: Odio" e "in base a: Classe" e
+scegliete "Barbarians". Poi si "Ok" e quindi "Chiudi".
+
+Non serve mettere note aggiuntive, a meno che non abbiate cose
+particolari da ricordare a proposito di quel mob.
+
+Bene, ora tocca al CX. Che roba e'?
+Il CX misura il rapporto forza/xp di un mob.
+E' utilissimo per chi non sa dosare i mob.
+Sfido chiunque non sia abbastanza in gamba a smanettare meno di
+un minuto trovando un mob che soddisfi un punto a scelta di
+questa tabella (non ammetto casi di "fortuna dei principianti"):
+
+Livello		CX
+ 1-10		15/30
+11-20		30/45
+21-40		45/60		
+41-50 e oltre	60/90
+
+Questa piccola tabella suggerisce valori per mob di difficolta'
+abbastanza pesante. Mi raccomando, tenete d'occhio il CX solo
+DOPO che avete fatto il mob. E partite dal mob terminato per
+modificarlo e renderlo un po' piu' difficile o facile.
+
+Bene, ora facciamo in modo di bilanciare il nostro buttafiori
+con il coefficiente di equilibrio. Come possiamo vedere il
+valore di equilibrio e' "30", cioe' un mob che volevamo fosse
+per personaggi del 50esimo ca. ha un fattore di equilibrio che
+non esiste. Possiamo agire in due modi: sulla Thac0,
+aumentandola e rendendo quindi piu' semplice il mob, oppure
+sugli xp-bonus, rendendolo quindi piu' remunerativo.
+
+Personalmente non ho mai usato il CX.
+
+*Clikkate quindi su "Applica" e "Chiudi".
+Avete creato il primo mob. Congratulazioni, potete andare
+a fare pipi' salvando il lavoro fin qui svolto, perche' se
+salta la luce vi tocca rifare tutto. =P
+
+Bene, ora vi faccio fare un lavoro veloce:
+
+*Tornate sulle stanze, createne due nuove: ricordatevi di
+andare con calma, quindi prima ne create una e la "plasmate",
+poi tocchera' all'altra. La prima chiamatela: "L'Atrio della
+Casa Chiusa". Lasciate "Inside" (siamo gia' dentro, no?), e
+settate: "Indoors" (la differenza, ripeto, tra "Inside" e
+"Indoors" sta nel fatto che il primo condiziona i punti di
+movimento spesi per passare da una locazione e l'altra, oltre
+eventualmente a obbligare l'uso del fly o dello swim (air o
+water, per es.); il secondo invece condiziona l'uso di
+eventuali spell come il call lightning e il change weather,
+ecc.), peaceful (il sadomasochismo puo' aspettare...),
+no summon, no magic, no mind (tranquillita', ok?).
+Metteteci pure una descrizione ed eventualmente delle
+extra-description.
+
+Attenzione, ora bisognera' unire l'Atrio con l'Ingresso, no?
+Per fare questo usate la finestrella "Uscite".
+Dunque vogliamo che dall'Ingresso si vada nell'Atrio andando
+verso est. Quindi dall'Atrio all'ingresso si andra' ad ovest
+(gne gne).
+
+*Clikkate su "W: nessuna uscita" e sul pulsante di modifica.
+(non fate doppio click o andrete a quell'uscita, anche se
+per ora inesistente.)
+
+*Oh allora, ecco una parte noiosa. Per creare una semplice
+uscita basterebbe selezionare l'Ingresso dal menu "alla stanza",
+al centro/destra della finestra (voi intanto fatelo), e clikkare
+su "Apri uscita inversa" che si sara' evidenziato in basso a
+sinistra. Purtroppo nulla vi dimostrera' che e' stata aperta
+l'uscita inversa, sarebbe stato meglio un check, ma non importa.
+A quel punto bastera' clikkare su OK e il gioco e'
+fatto. Noi pero' vorremmo creare anche una porta tra l'ingresso
+e l'atrio, magari pure chiusa, senno' che Casa Chiusa e'???
+Quindi:
+
+*Nella finestra "Parola chiave", simile alla "short desc" dei
+mob, scrivete: "porta portone". Significa che si puo' aprire
+quella porta usando le parole "porta" oppure "portone".
+*Su "descrizione" (che corrispondera' a "guarda la porta" o
+"guarda il portone"): Ci sono strani contorsionisti immortalati
+su questo portone. Boh!
+
+*Lasciate "key number" a zero, non abbiamo ancora creato delle
+chiavi. In futuro potremmo farlo, darla in mano al buttafuori,
+cosi' se uno lo uccide puo' prendere la chiave ed usarla per
+aprire la casa chiusa. "alla stanza" abbiamo gia' detto (50000),
+mentre su "flags" clikkate su: "door", lasciamo pure "open e
+close", e ovviamente la inizializziamo a "chiusa". Con una
+chiave precedentemente settata sarebbe stato piu' ovvio settare
+"Chiusa a chiave", e magari fare la stessa porta resistente ad
+eventuali spell o skill come "knock" o "doorbash".
+Clikkate su "Apri uscita inversa", in modo da essere certi che
+ci sia la stessa porta con la stessa chiusura da entrambe le
+direzioni di marcia. Clikkate su "OK" e avrete creato la vostra
+prima uscita.
+
+Molti implementor fanno leva sulla descrizione delle uscite.
+Personalmente non me ne frega niente, ma possono risultare
+utilissime in caso di zone pericolose, ricche di trappole,
+Death Trap o porte segrete e quindi anche io mi sono dilettato
+ad utilizzarle.
+Per ricordarsi di scrivere le descrizioni delle uscite (accade
+spesso di dimenticarle) esiste una opzione nel Menu'
+Strumenti che permette di utilizzare descrizioni "promemoria"
+(nel formrato [vnum (nome stanza)] al posto della descrizione
+dell'uscita.
+Altrimenti tra le altre opzioni c'e' quella che fornisce
+descrizioni di default per le uscite (abilita/disabilita la
+creazione automatica delle descrizioni promemoria delle uscite).
+
+Bene, ora ancora piu' velocemente creiamo la seconda stanza
+(ricordatevi di clikkare su "applica" e su "ok", salvando e
+chiudendo la finestra dedicata all'Atrio).
+
+*Chiamate la stanza "il Negozio di Accessori", lasciate inside,
+come flag mettete le stesse cose dell'atrio, aggiungeteci una
+descrizione possibilmente rpg senza porcate (grazie) e create
+una semplice uscita a nord verso l'atrio (ricordatevi di aprire
+anche l'uscita inversa con l'apposito pulsante).
+
+Per andare su e giu' attraverso le uscite potete fare doppio
+click sull'uscita oppure selezionando il tasto "Segui Uscita".
+
+Fase 5) Gli Oggetti - ovvero: Mi hanno scrappato tutto!
+
+Dunque, prima di passare alla creazione di un negozio, facciamo
+mente locale su quello che necessita, per l'appunto, un negozio:
+oggetti e un venditore.
+Partiamo con gli oggetti.
+
+*Clikkate sulla linguetta "Oggetti" e sul pulsante "Crea".
+Bene, vediamo di creare, in questo tutorial, tre oggetti
+diversi tra loro: weapon (arma), armor (armatura) e potion.
+Ciascuno di questi oggetti, come per tutti gli altri, ha una
+sua caratteristica precisa, e Eleutheria utilizza menu' differenti
+per ogni tipo di oggetto. Tutto sommato questi menu' sono molto
+semplici ed intuitivi. Con gli oggetti trattati in questo tutorial
+avrete la base giusta per la creazione di tutti gli altri.
+
+*Molte cose, come vedete, sono simili a stanze ed oggetti, e le
+daro' quindi per scontate, senza guidarvi come all'inizio il
+mouse a destra e sinistra. Il primo oggetto avra' nome:
+"la Spada nella Roccia", parola chiave: "spada", Tipo: weapon.
+Flags: Mineral, Bless, No evil, No thief, Resistant.
+Wear: Take, Wield.
+Mi raccomando il take, Eleutheria vi fara' gentilmente notare che
+non e' il caso di fare un oggetto che non si puo' raccogliere.
+Nonostante tutto questo flag servira' a qualcosa no? Gia', una
+possibile opzione, poco realistica ma comunque utile, e' quella
+di assegnare ad un mob un oggetto molto potente senza il take,
+in modo tale da rendere il mob piu' potente senza sproporzionare
+i personaggi. Personalmente non ve la consiglio, tanto vale fare
+il mob ancora piu' potente, vi pare? Pero' si puo' sempre usare
+il disarm, se entra... fate voi. =)
+
+*Peso: il peso va da 2 ca. per panini e simili a 100 e passa per
+i buongustai del body building. Mettete 60, e' tanto, gia' gia',
+ma oltre alla spada c'e' pure una roccia.
+Il peso originale sarebbe in libbre, alcuni mud l'hanno
+tradotto (non credo convertito) in etti.
+Il valore ha usi differenti a seconda dei mud. Diciamo, in linea
+di massima, che piu' un oggetto ha il valore alto (nell'ordine
+delle migliaia), piu' ci vuole un livello alto per usare tale
+oggetto. Noi mettiamo 50000.
+Come costo per il rent possiamo lasciare 0.
+
+*Long description (se e' nella stanza e fate look, oppure entrate
+nella stanza in cui c'e' quest'oggetto, vi apparira' questa
+descrizione): Una spada luminosa e' infilata in una roccia!".
+L'Action description la lasciamo ai medaglioni a forma di topo
+(vivo) per chi li conosce, alla lunga
+stanca (non so se avete presente lo squittire di topi...);
+comunque sia appare se l'oggetto e' "sound".
+Appare anche quando si utilizza il comando "use <oggetto>"
+se l'oggetto e' di tipo "wand" o "staff".
+
+L'extra description potete metterla se ve la sentite, altrimenti
+non importa (attenti pero' a non essere troppo superficiali).
+Si possono mettere piu' extra-description per ogni oggetto. Se
+ben fatte, aggiungono molta profondita' all'area.
+Un altro piccolo suggerimento: potete usare le extra-description
+per scovare uscite segrete apribili solo con parole chiave.
+
+*Clikkate sul pulsante "aggiungi" di Extra Description e mettete
+come nome "spada roccia" e come descrizione:
+Uhm... ma come si fa ad utilizzare una spada con una roccia
+piantata nella punta?
+
+Entriamo a fondo nell'oggetto: Affections e Applies, cominciamo
+coi primi:
+*Andate su Affections, mettete il n. di dadi a 2, e la dimensione
+a 14; su Weapon type mettete Smash (quindi 2d14 di tipo blunt).
+Clikkate su Applies e su "Aggiungi": quindi mettete: hit roll a
+1 e okkeiate, poi damage roll a 5 e okkeiate. (arma 
+finale: 2d14 +1+5 blunt).
+
+Ora bisogna inizializzare l'arma, cioe' metterla dove meglio
+crediamo. Visto che infilarla in quel posto ai mob e' prerogativa
+dei giocatori, noi la accomodiamo gentilmente in mano ad essi.
+
+*La gestione di inizializzazione degli oggetti che possiedono i
+mob, come abbiamo visto precedentemente, si trova nel menu'
+dei mob. Applichiamo tutto quindi, chiudiamo la finestra e
+modifichiamo il buttafuori.
+(L'alternativa sarebbe la scrittura diretta nella "init
+list" (passando per il tasto "inizializzazione" della finestra
+di zona)... troppo laborioso per ora, Eleutheria ha una gestione
+piu' che soddisfacente.
+
+Inoltre e' importante ricordare che il tasto "init" nella
+finestra degli oggetti si usa solitamente per quegli oggetti
+che devono apparire per terra e non su un mob.
+
+*Clikkate su "init", quindi sull'unica stanza in cui l'avete
+inizializzato, e poi sul pulsante di modifica.
+Cercate "impugnato", e clikkate sulla nostra tanto amata spada.
+Clikkate poi sulla lente di ingrandimento, selezionate la spada,
+mettete il limite a 1, e clikkate: OK, OK, Chiudi, Applica,
+Chiudi. Dovreste essere tornati alla schermata bianca iniziale.
+Salvate che si prosegue, non manca molto alla fine.
+
+N.B. Tutti quei passaggi sono piuttosto macchinosi. Col tempo
+diventeranno familiari, in attesa che Eleutheria abbia una
+procedura di creazione delle aree piu' intuitiva.
+
+Tanto per riepilogare, prima di passare all'armatura:
+abbiamo creato una spada nella roccia: danno 2d14 +1 +5 ed e' in
+possesso di un buttafuori.
+Evidentemente il buttafuori, trovatosi di fronte al mitologico
+tentativo di togliere la spada dalla roccia, ha pensato bene di
+prendere la spada E la roccia. Tutto cio' rende l'arma molto
+pesante (60), dura da armeggiare (+1 hit) ma quando colpisce
+lo fa molto bene (2d14 di dado e +5 di dam). Fosse stata un'arma
+ancora piu' forte si sarebbe potuto aggiungere un malus come
+-1 destrezza, malus richiesto da alcuni mud come TS2 per evitare
+esagerazioni. C'e' anche una incongruenza: l'arma fa meno danno
+del mob senza la stessa arma. Questo portera' il mob a toglierla
+non appena ne avra' la possibilita', in modo da fare piu' male.
+A questo punto o si rende l'arma piu' forte o non gliela si
+mette in mano. Tra le due opzioni puntate decisamente sulla
+seconda, onde evitare di vedere in giro armi che fanno qualcosa
+come 9d9 +10 +20 per far piu' danno dei mob.
+
+Bene, ora velocissimamente creiamo un'armatura e una pozione:
+
+*Tornate nella linguetta "oggetti", clikkate su "Crea...".
+Short desc: un cappuccio
+Parole chiave: cappuccio
+Tipo: Armor
+Wear: Take e Waist
+Long description: C'e' un cappuccio trasparente qui per terra.
+Flags: Organic (ehm), No drop (mai uscire senza), No cleric
+(andate e prolificate!), Resistant (speriamo), No Women
+(ebbe').
+Peso: 1
+Valore: 10000
+Rent: 0
+
+Dunque dunque.
+Ora tocca agli Affections ed Applies
+
+*AC Bonus e Worn index metteteli a 4.
+
+*Questo cappuccio si indossa alla vita... da' molto carisma
+(+1 Charism, YEEE!), affatica (-20 move points) ma nel
+contempo da' effetti simili al berserk (+1 damage roll). Per
+finire ha il brutto difetto di essere suscettibile al
+freddo... ehm (susceptibility -> cold).
+
+Bene, ora clikkate su "Applica" e poi su "Chiudi".
+Di nuovo "Crea..." e via con la pozione!
+
+Short desc: un flacone di Merlingo
+Parole chiave: flacone
+Tipo: potion
+Non settate alcun flag.
+Wear: take e hold
+Su Long description mettete: C'e' un flacone qui per terra,
+e' il segreto dei pornomob!
+
+*Bene, come affection mettete: Livello degli incantesimi: 16
+e Primo incantesimo: Stone Skin (per non cedere mai!)
+
+Ehm... va bene, spero che l'imbarazzo finisca.
+Clikkate su Applica, poi su chiudi e facciamo un negozio.
+
+Fase 6) I Negozi - ovvero: LADROOO!
+
+Dunque creari i negozi e' semplicissimo e divertente, basta
+modificare poche cose e tutto sara' gia' terminato.
+
+Prima di tutto creiamo un mob, e cioe' il negoziante.
+*Facciamo in fretta, dai: andate su Mob e create un mob fatto
+pressappoco cosi':
+Nome: Moano
+
+Long desc: Moano, il passivo.
+
+Mob desc: Parrucca bionda, nudo, unto e flaccido.
+Siamo sicuri che sia lui a creare e vendere il Merlingo?
+
+Caratteristiche: Neutrale, Maschile, Sentinel, Greet, Zone,
+praticamente nudo come un verme, 50esimo livello, hit basso,
+xp bonus -1 (mob inutile, facciamogli fare il suo lavoro) e
+5000 monete d'oro.
+
+Bene, ora create un nuovo negozio.
+
+Allora:
+
+Stanza: Negozio di Accessori (50002)
+Mob: Moano (50001)
+Moltiplicatore: 1,5 (il moltiplicatore * il valore
+dell'oggetto da' il prezzo di vendita).
+Oggetti che il negozio vende: cappuccio e flacone di
+Merlingo.
+Tipi di oggetti che il negozio acquista: nessuno.
+Reazione all'indigenza: sorriso (heheheeeee)
+Reazione all'attacco: Avvertimento (non provocatelo...)
+Lasciate gli orari di apertura cosi' come sono tranne la
+chiusura 2: 23
+
+Modifichiamo alcune frasi:
+Se il pc vende un oggetto a cui non e' interessato:
+"Non mi interessa! Pero' tu..."
+...e memorizzate.
+Quando ha venduto un oggetto:
+"Oh! Le e' caduto! Si chini a 90 gradi per raccoglierlo...
+...e memorizzate.
+
+Se avete voglia di modificarne altre fate pure, vi ricordo
+inoltre l'utilissimo comando di copia/incolla.
+
+
+Fase 7) Controllo - ovvero: limitiamo i bug, per favore...
+
+C'e' da fare ora una considerazione importante.
+Eleutheria non gestisce solo file creati con essa, ma
+riesce ad importare file creati a mano da voi.
+Esiste un utilissimo comando di "diagnostica" in grado
+di rilevare automaticamente eventuali errori che avete
+commesso. Basta poi un semplice doppio click per andare
+a scovare il marrano errore.
+
+Prima di chiudere tutto e spedire l'area ad un implementor,
+quindi, e' bene quantomeno verificarne il suo preciso e corretto
+funzionamento. Se non disponete di un MUD a casa, oppure (piu'
+semplicemente) non possedete gli eseguibili per farlo girare
+sul vostro sistema operativo, sara' bene controllare
+attentamente cio' che avete creato con Eleutheria tramite
+Eleutheria stessa.
+Cominciamo con la mappa.
+
+*Clikkate sulla linguetta "Stanze", sulla prima stanza, la
+50000, e poi sul pulsante per visualizzare la mappa (come
+disegnino c'e' la Terra).
+Vedrete apparire davanti a voi una finestra nuova, con
+al suo interno due celle con i nomi di due locazioni che
+abbiamo creato precedentemente. Con le frecce in basso a
+destra potrete muovervi attraverso le locazioni, in modo da
+verificare la loro esatta collocazione e la gestione delle
+porte.
+La mappa e' molto utile anche nella gestione dei teleport
+e direttamente in quella delle stanze, semplicemente con un
+doppio click.
+
+Passiamo al file .zon, in cui potremo verificare il
+posizionamento di mob, oggetti, porte ecc.
+Ecco cosa vi dovrebbe apparire clikkando la linguetta "Zone",
+modificando l'unica zona esistente e clikkando sul
+pulsante "Init":
+
+*! Inizializzazione della zona 500
+
+M 0 50000 1 50000  *! Mob 50000 (un buttafuori) nella stanza
+50000 (Ingresso alla Casa Chiusa)
+
+E 1 50000 1 16  *! Impugnato: 050000 (la Spada nella Roccia)
+
+H 1 4 6  *! Odio verso la classe Barbarians
+
+D 0 50000 1 1  *! Uscita east della stanza 50000 (Ingresso
+alla Casa Chiusa): chiusa
+
+D 0 50001 3 1  *! Uscita west della stanza 50001 (L'Atrio
+della Casa Chiusa): chiusa
+
+*! Fine dell'inizializzazione della zona 500
+
+Non e' finita. Utilizzate anche la finestra "Informazioni"
+(nel menu' "Visualizza"), che informa (ma guarda un po')
+su quante stanze, oggetti, mob, negozi e zone e' composta
+l'area.
+Non dimenticate i report che verificano l'esistenza di chiavi
+inutili, o porte non apribili da nessuna chiave, oltre che
+le descrizioni delle uscite (comando nel menu' Strumenti).
+
+Bene, ora mettiamo il caso che un implementor vi dica:
+"Brutto puzzone la zona non era la 500, ma la 600!"
+Ora, oltre a placare la vostra ira verso l'implementor, sara'
+bene rinumerare tutto il vostro lavoro.
+Cioe'? Rinumerare la zona, le stanze, gli oggetti, i mob, i
+negozi e tutto il resto per portarlo da 50000 a 60000???
+Aspettate a suicidarvi, Eleutheria risolve questo problema
+con un paio di punta e clikka.
+
+*Prendete una camomilla.
+
+*Clikkate sul menu' "Strumenti/Rinumera Entita'".
+A questo punto potete rinumerare tutte le zone dal v-number
+che desiderate (50000) fino all'ultimo della lista (noi
+possiamo anche mettere 60000) e piazziarli dal 60000 in su.
+A questo punto basta aggiornare la zona, da 500 a 600.
+Un metodo piu' veloce consiste nello spostare fin dal
+principio la zona dalla 500 alla 600, con conseguente
+aggiornamento di tutti i v-number da 50000 a 60000.
+Se le entita' (cioe' mob, oggetti ecc. ecc.) volete assegnarle
+ad un'altra zona, clikkate su "Aggiorna le liste di
+inizializzazione" e scegliete la nuova zona da assegnare).
+
+Attenzione! Se rinumerate tutto, aggiornate i mob e gli
+oggetti presenti nel negozio, altrimenti rimarranno i
+riferimenti vecchi! Bisognera' farlo a mano, purtroppo.
+
+Alcune note importanti: e' possibile, con la voce di menu
+Visualizza/Note, o con l'apposito tasto nella barra degli
+strumenti, associare ad ogni area delle note, che vengono
+salvate nell'area in formato <nome area>.TXT
+Inoltre con Visualizza/Informazioni si potra' inserire
+il nome completo dell'area e dell'autore.
+E' anche possibile fare in modo che Eleutheria non chieda ogni
+volta che si chiude qualcosa di "applicare" le modifiche: questa
+opzione come le altre si trova nel menu Strumenti.
+Si puo' settare la barra di stato a scomparsa, che in questo
+modo portera' via meno spazio a chi utilizza Eleutheria in
+modalita' 640x480.
+
+"Scrivi i flag secondo il vecchio stile": Lavinio insegna:
+"Per chiarezza, i flag delle entita' vengono scritti su file come
+una serie di or (|) di successive potenze di due (ognuna delle
+quali corrisponde ad un flag): ad esempio, il valore 3, in un
+campo flag, verrebbe scritto 1|2; abilitando questa opzione, si
+disattiva questa 'traduzione' (e quindi 3 verrebbe scritto proprio
+come 3); puo' essere utile quando si lavora con dei MUD piuttosto
+datati (per sapere come comportarsi nei confronti del proprio,
+chiedere ad un imp)."
+
+Fase 8) Conclusione - ovvero: les jeux sont faites!
+
+Il tutorial finisce qui.
+Al momento, per creare aree e/o mob non serve altro.
+Eleutheria contiene altre piccolezze utilizzabili soltanto
+da chi ci lavora sopra da tanto tempo. Versioni successive
+del tutorial comunque le supporteranno.
+Se in questo manuale dovessero mancare annotazioni importanti o
+altro non esistate a farmelo sapere.
+
+Chiedo scusa ad eventuali puritani che saranno rimasti
+allibiti alla vista dell'esempio riportato in questo tutorial.
+Chiedo anche scusa ad eventuali "creatori" di aree ai quali
+ho rubato, senza volerlo, l'idea. =)
+
+Questo documento e' presente in versione TXT.
+
+Si ringrazia Lavinio Cerquetti per aver creato cio' per cui
+scrivo.
+Si ringraziano pure tutti quei giocatori che, diventando
+scemi ad usare Eleutheria, mi hanno spinto a scrivere
+questo manuale.
+Senza dimenticare Myra, la trolla che amo. :-) (AHIOOO!)
+
+Documentazione: Andrea Donati (Logan) - logan@nettuno.it
+Internet: http://www.netforward.com/poboxes/?lavinio
+oppure: http://www.multiplayer.it/muditalia
+
+Eleutheria e' opera di:
+Lavinio Cerquetti (Kwhune) - lavinio@poboxes.com

@@ -1,0 +1,81 @@
+#0
+Sommerlund~
+99 15 2
+*! Inizializzazione della zona 0
+
+M 0 0 1 7  *! Mob 0 (L' Alchimista) nella stanza 7 (L'antro dell' Alchimista)
+G 1 2 0  *! In inventario: 000002 (Bacchetta di Invisibilita')
+G 1 3 0  *! In inventario: 000003 (Bacchetta del Sonno)
+G 1 4 0  *! In inventario: 000004 (Ampolla blu)
+G 1 7 0  *! In inventario: 000007 (Pergamena di ritorno)
+G 1 8 0  *! In inventario: 000008 (Pergamena di Identificazione)
+
+M 0 1 1 8  *! Mob 1 (Anator l'armaiolo) nella stanza 8 (L'armeria di Sommerlund)
+
+M 0 2 1 11  *! Mob 2 (Il Fornaio) nella stanza 11 (Panetteria)
+
+M 0 3 1 14  *! Mob 3 (Un ragazzo) nella stanza 14 (Il Campo d'addestramento)
+
+M 0 4 1 13  *! Mob 4 (Un ragazzo) nella stanza 13 (Il Campo d'addestramento)
+
+M 0 5 1 16  *! Mob 5 (Un ragazzo) nella stanza 16 (Il Campo d'addestramento)
+
+M 0 6 1 17  *! Mob 6 (Un arciere elfico) nella stanza 17 (Il Campo d'addestramento)
+
+M 0 7 1 15  *! Mob 7 (Un mercenario) nella stanza 15 (Il Campo d'addestramento)
+E 1 16 1 16  *! Impugnato: 000016 (Una spada lorda di sangue)
+
+M 0 8 1 18  *! Mob 8 (un mago) nella stanza 18 (Il Campo d'addestramento)
+
+M 0 9 1 19  *! Mob 9 (un sottoufficiale) nella stanza 19 (Il Campo d'addestramento)
+
+M 0 10 1 20  *! Mob 10 (un prete) nella stanza 20 (Il Campo d'addestramento)
+
+M 0 11 1 21  *! Mob 11 (il ranger) nella stanza 21 (Il Campo d'addestramento)
+
+M 0 12 1 27  *! Mob 12 (Il Sergente) nella stanza 27 (Tenda del Sergente)
+
+M 0 13 1 28  *! Mob 13 (Il Generale) nella stanza 28 (Tenda del Generala)
+
+M 0 14 1 29  *! Mob 14 (Il Cavaliere Bianco) nella stanza 29 (Tenda del Cavaliere Bianco)
+
+M 0 15 1 30  *! Mob 15 (Il Cavaliere Nero) nella stanza 30 (Tenda del Cavaliere Nero)
+
+M 0 16 1 32  *! Mob 16 (Una Spia) nella stanza 32 (un buco nascosto)
+E 1 17 1 16  *! Impugnato: 000017 (Il Pugnale di Vashna)
+
+M 0 18 1 10  *! Mob 18 (Simon il Mercante) nella stanza 10 (L'antro del Mercante)
+
+O 0 2 0 7 1  *! Carica oggetto 2 (Bacchetta di Invisibilita') nella stanza 7 (L'antro dell' Alchimista)
+
+O 0 3 0 7 1  *! Carica oggetto 3 (Bacchetta del Sonno) nella stanza 7 (L'antro dell' Alchimista)
+
+O 0 4 0 7 1  *! Carica oggetto 4 (Ampolla blu) nella stanza 7 (L'antro dell' Alchimista)
+
+O 0 7 0 7 1  *! Carica oggetto 7 (Pergamena di ritorno) nella stanza 7 (L'antro dell' Alchimista)
+
+O 0 8 0 7 1  *! Carica oggetto 8 (Pergamena di Identificazione) nella stanza 7 (L'antro dell' Alchimista)
+
+O 0 9 0 8 1  *! Carica oggetto 9 (Armatura d'acciaio) nella stanza 8 (L'armeria di Sommerlund)
+
+O 0 10 0 8 1  *! Carica oggetto 10 (Scudo di ferro) nella stanza 8 (L'armeria di Sommerlund)
+
+O 0 11 0 8 1  *! Carica oggetto 11 (Elmo di ferro) nella stanza 8 (L'armeria di Sommerlund)
+
+O 0 12 0 8 1  *! Carica oggetto 12 (Una spada) nella stanza 8 (L'armeria di Sommerlund)
+
+O 0 13 0 8 1  *! Carica oggetto 13 (Bracciali di bronzo) nella stanza 8 (L'armeria di Sommerlund)
+
+O 0 14 0 11 0  *! Carica oggetto 14 (Una pagnotta secca) nella stanza 11 (Panetteria)
+
+O 0 15 0 11 1  *! Carica oggetto 15 (Uno sfilatino) nella stanza 11 (Panetteria)
+
+O 0 17 1 32 1  *! Carica oggetto 17 (Il Pugnale di Vashna) nella stanza 32 (un buco nascosto)
+
+O 0 19 0 10 1  *! Carica oggetto 19 (una borsa cucita male) nella stanza 10 (L'antro del Mercante)
+
+O 0 20 0 10 1  *! Carica oggetto 20 (un barile) nella stanza 10 (L'antro del Mercante)
+
+
+*! Fine dell'inizializzazione della zona 0
+S

@@ -1,0 +1,27 @@
+#60000
+buttafuori~
+un buttafuori~
+C'e' un immenso buttafuori davanti alla porta d'ingresso.
+~
+Sembra molto nervoso, e pure allenato a cacciare via i clienti indesiderati.
+~
+2|4|262144|1048576|4194304|134217728 128|33554432 100 L 4
+50 0 -10 400 5d8+10
+-1 1000 0 77
+8 8 4 16 0 4|8
+Il buttafuori afferra l'armatura di un cliente indesiderato e gliela riduce a brandelli!
+~
+Senti un ringhio pauroso e l'urlo di un cliente...
+~
+#60001
+moano~
+Moano~
+Moano, il passivo
+~
+Parrucca bionda, nudo, unto e flaccido.
+Siamo sicuri che sia lui a creare e vendere il Merlingo?
+~
+2|64|1048576 0 0 N
+50 20 10 0 1d8+1
+-1 5000 -1 1
+8 8 1

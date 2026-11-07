@@ -1,0 +1,91 @@
+#0
+capo gnomo~
+Il Capo Gnomo~
+Uno Gnometto dalla lunga barba bianca ti saluta sorridendo
+~
+Una cintura con agganciata una spada, gli cinge la pancia
+~
+2|16|64|128|1048576|2097152|4194304 2|128|2048|8192|65536|16777216|33554432|134217728 1000 L 3
+35 10 7 650 1d8+1
+-1 50000 20 5
+8 8 3 1024|2048|4096|16384|32768 0 1|8
+Lo gnomo ti dice: Bacche di bosco e pan di trifoglione, satollati!
+~
+~
+#1
+cinghiale~
+un cinghiale~
+un grosso e sporco cinghiale ti sbarra la strada
+~
+ti sta caricando!!!
+~
+4|32|4194304 0 -350 N
+5 20 10 155 3d8+5
+-1 0 0 23
+8 8 1
+#2
+fagiano~
+un fagiano~
+un colorito fagiano si muove tra le fronde
+~
+ha un piumaggio multicolore
+~
+128 0 -1000 N
+2 20 10 0 1d8+1
+-1 0 0 23
+8 8 2
+#3
+elementale acqua~
+L'Elementale dell' Acqua~
+Un getto d'acqua si innalza davanti a te prendendo forma umana
+~
+L'elementale dell'acqua
+~
+2|32|64|262144|2097152|4194304|8388608|134217728 2|128|2048|65536|16777216|33554432 -1000 A 5
+46 6 -10 800 5d8+5
+-1 75000 0 26
+8 8 0
+#4
+verme~
+Il Verme sotterraneo~
+Un Verme ENORME!
+~
+E' viscido ed emette una strana sostanza verde dal corpo
+~
+0 0 -1000 A 10
+31 10 10 800 2d8+1
+-1 2000 20 12
+8 8 5 16|16384 0 32|256
+#5
+gnomo~
+uno gnomo~
+uno gnomo passeggia per il villaggio guardandoti stranito
+~
+ti fa quasi tenerezza...
+~
+16|128|1048576|2097152 32768 -1000 N
+3 20 10 0 1d6+1
+-1 500 0 5
+8 8 0
+#6
+gnomo~
+uno gnomo~
+uno gnomo passeggia per il villaggio guardandoti stranito
+~
+ti fa quasi tenerezza...
+~
+16|128|1048576|2097152 32768 -1000 N
+3 20 10 0 1d6+1
+-1 500 0 5
+8 8 0
+#7
+strega nera retler~
+La Strega~
+La Strega nera di Retler prepara degli infusi nella sua casa sull'albero. 
+~
+Ha un'aspetto terrificante e un manto nero
+~
+2|4|32|64|32768|2097152 2|8|128|2048|32768|65536|16777216|33554432|67108864|134217728 -1000 A 2
+49 8 -7 200 1d10+3
+-1 30000 2 2
+8 8 2

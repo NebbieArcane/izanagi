@@ -1,0 +1,945 @@
+#0
+La Reception~
+~
+-1 8|16|32|64|128|8192|32768 0 
+D5
+[000001 (Il Salone)]
+~
+~
+0 0 1 -1
+S
+#1
+Il Salone~
+~
+-1 0 0 
+D0
+[000002 (Le Cucine)]
+~
+~
+0 0 2 -1
+D1
+[000003 (La Piazza delle Lance)]
+~
+~
+0 0 3 -1
+D4
+[000000 (La Reception)]
+~
+~
+0 0 0 -1
+S
+#2
+Le Cucine~
+~
+-1 0 0 
+D2
+[000001 (Il Salone)]
+~
+~
+0 0 1 -1
+S
+#3
+La Piazza di Sommerlund~
+~
+-1 0 1 
+D0
+[000005 (Strada di pietra)]
+~
+~
+0 0 5 -1
+D1
+[000004 (La sala Donazioni)]
+~
+~
+0 0 4 -1
+D2
+[000033 (Strada di pietra)]
+~
+~
+0 0 33 -1
+D3
+[000001 (Il Salone)]
+~
+~
+0 0 1 -1
+S
+#4
+La sala Donazioni~
+~
+-1 4|8|16|32|64|128|16384|32768 0 
+D3
+[000003 (La Piazza delle Lance)]
+~
+~
+0 0 3 -1
+S
+#5
+Strada di pietra~
+~
+-1 0 1 
+D0
+[000006 (Piazza del Mercato)]
+~
+~
+0 0 6 -1
+D2
+[000003 (La Piazza di Sommerlund)]
+~
+~
+0 0 3 -1
+S
+#6
+Piazza del Mercato~
+~
+-1 0 1 
+D0
+[000009 (Piazza del Mercato)]
+~
+~
+0 0 9 -1
+D1
+[000008 (L'armeria di Sommerlund)]
+~
+~
+0 0 8 -1
+D2
+[000005 (Strada di pietra)]
+~
+~
+0 0 5 -1
+D3
+[000007 (L'antro dell' Alchimista)]
+~
+~
+0 0 7 -1
+S
+#7
+L'antro dell' Alchimista~
+~
+-1 4|8 0 
+S
+#8
+L'armeria di Sommerlund~
+~
+-1 4|8|16|32|64|128|32768 0 
+D3
+[000006 (Piazza del Mercato)]
+~
+~
+0 0 6 -1
+S
+#9
+Piazza del Mercato~
+~
+-1 0 1 
+D1
+[000010 (L'antro del Mercante)]
+~
+~
+0 0 10 -1
+D2
+[000006 (Piazza del Mercato)]
+~
+~
+0 0 6 -1
+D3
+[000011 (Panetteria)]
+~
+~
+0 0 11 -1
+S
+#10
+L'antro del Mercante~
+~
+-1 4|8|16|32|64|128|32768 0 
+D3
+[000009 (Piazza del Mercato)]
+~
+~
+0 0 9 -1
+S
+#11
+Panetteria~
+~
+-1 8|16|32|64|128|16384|32768 0 
+D1
+[000009 (Piazza del Mercato)]
+~
+~
+0 0 9 -1
+S
+#12
+Entrata al campo d'addestramento~
+~
+-1 0 1 
+D1
+[000013 (Il Campo d'addestramento)]
+~
+~
+0 0 13 -1
+D3
+[000004 (La sala Donazioni)]
+~
+~
+0 0 4 -1
+S
+#13
+Il Campo d'addestramento~
+~
+-1 0 0 
+D0
+[000014 (Il Campo d'addestramento)]
+~
+~
+0 0 14 -1
+D1
+[000015 (Il Campo d'addestramento)]
+~
+~
+0 0 15 -1
+D2
+[000016 (Il Campo d'addestramento)]
+~
+~
+0 0 16 -1
+D3
+[000012 (Entrata al campo d'addestramento)]
+~
+~
+0 0 12 -1
+S
+#14
+Il Campo d'addestramento~
+~
+-1 0 0 
+D1
+[000017 (Il Campo d'addestramento)]
+~
+~
+0 0 17 -1
+D2
+[000013 (Il Campo d'addestramento)]
+~
+~
+0 0 13 -1
+S
+#15
+Il Campo d'addestramento~
+~
+-1 0 0 
+D0
+[000017 (Il Campo d'addestramento)]
+~
+~
+0 0 17 -1
+D1
+[000020 (Il Campo d'addestramento)]
+~
+~
+0 0 20 -1
+D2
+[000018 (Il Campo d'addestramento)]
+~
+~
+0 0 18 -1
+D3
+[000013 (Il Campo d'addestramento)]
+~
+~
+0 0 13 -1
+S
+#16
+Il Campo d'addestramento~
+~
+-1 0 0 
+D0
+[000013 (Il Campo d'addestramento)]
+~
+~
+0 0 13 -1
+D1
+[000018 (Il Campo d'addestramento)]
+~
+~
+0 0 18 -1
+S
+#17
+Il Campo d'addestramento~
+~
+-1 0 0 
+D2
+[000015 (Il Campo d'addestramento)]
+~
+~
+0 0 15 -1
+D3
+[000014 (Il Campo d'addestramento)]
+~
+~
+0 0 14 -1
+S
+#18
+Il Campo d'addestramento~
+~
+-1 0 0 
+D0
+[000015 (Il Campo d'addestramento)]
+~
+~
+0 0 15 -1
+D1
+[000021 (Il Campo d'addestramento)]
+~
+~
+0 0 21 -1
+D3
+[000016 (Il Campo d'addestramento)]
+~
+~
+0 0 16 -1
+S
+#19
+Il Campo d'addestramento~
+~
+-1 0 0 
+D2
+[000020 (Il Campo d'addestramento)]
+~
+~
+0 0 20 -1
+D3
+[000017 (Il Campo d'addestramento)]
+~
+~
+0 0 17 -1
+S
+#20
+Il Campo d'addestramento~
+~
+-1 0 0 
+D0
+[000019 (Il Campo d'addestramento)]
+~
+~
+0 0 19 -1
+D1
+[000022 (Senza nome)]
+~
+~
+0 0 22 -1
+D2
+[000021 (Il Campo d'addestramento)]
+~
+~
+0 0 21 -1
+D3
+[000015 (Il Campo d'addestramento)]
+~
+~
+0 0 15 -1
+S
+#21
+Il Campo d'addestramento~
+~
+-1 0 0 
+D0
+[000020 (Il Campo d'addestramento)]
+~
+~
+0 0 20 -1
+D3
+[000018 (Il Campo d'addestramento)]
+~
+~
+0 0 18 -1
+S
+#22
+un passaggio in terra battuta~
+~
+-1 0 1 
+D1
+[000023 (tende degli ufficiali)]
+~
+~
+0 0 23 -1
+D3
+[000020 (Il Campo d'addestramento)]
+~
+~
+0 0 20 -1
+S
+#23
+tende degli ufficiali~
+~
+-1 0 1 
+D1
+[000024 (tende degli ufficiali)]
+~
+~
+0 0 24 -1
+D2
+[000027 (Senza nome)]
+~
+~
+0 0 27 -1
+D3
+[000022 (un passaggio in terra battuta)]
+~
+~
+0 0 22 -1
+S
+#24
+tende degli ufficiali~
+~
+-1 0 1 
+D0
+[000028 (Senza nome)]
+~
+~
+0 0 28 -1
+D1
+[000025 (tende degli ufficiali)]
+~
+~
+0 0 25 -1
+D3
+[000023 (tende degli ufficiali)]
+~
+~
+0 0 23 -1
+S
+#25
+tende degli ufficiali~
+~
+-1 0 1 
+D1
+[000026 (tende degli ufficiali)]
+~
+~
+0 0 26 -1
+D2
+[000029 (Senza nome)]
+~
+~
+0 0 29 -1
+D3
+[000024 (tende degli ufficiali)]
+~
+~
+0 0 24 -1
+S
+#26
+tende degli ufficiali~
+~
+-1 0 1 
+D0
+[000030 (Senza nome)]
+~
+~
+0 0 30 -1
+D1
+[000031 (un'ammasso di ferraglia)]
+~
+~
+0 0 31 -1
+D3
+[000025 (tende degli ufficiali)]
+~
+~
+0 0 25 -1
+S
+#27
+Tenda del Sergente~
+~
+-1 4|8 0 
+D0
+[000023 (tende degli ufficiali)]
+~
+~
+0 0 23 -1
+S
+#28
+Tenda del Generala~
+~
+-1 4|8 0 
+D2
+[000024 (tende degli ufficiali)]
+~
+~
+0 0 24 -1
+S
+#29
+Tenda del Cavaliere Bianco~
+~
+-1 4|8 0 
+D0
+[000025 (tende degli ufficiali)]
+~
+~
+0 0 25 -1
+S
+#30
+Tenda del Cavaliere Nero~
+~
+-1 4|8 0 
+D2
+[000026 (tende degli ufficiali)]
+~
+~
+0 0 26 -1
+S
+#31
+un'ammasso di ferraglia~
+~
+-1 0 1 
+D3
+[000026 (tende degli ufficiali)]
+~
+~
+0 0 26 -1
+D5
+[000032 (Senza nome)]
+~
+buio~
+8|32|256|512 0 32 371
+S
+#32
+un buco nascosto~
+~
+-1 64|16384 1 
+D4
+[000031 (un'ammasso di ferraglia)]
+~
+~
+0 0 31 -1
+S
+#33
+Strada di pietra~
+~
+-1 0 1 
+D0
+[000003 (La Piazza di Sommerlund)]
+~
+~
+0 0 3 -1
+D1
+[000034 (Senza nome)]
+~
+~
+0 0 34 -1
+S
+#34
+Strada di pietra~
+~
+-1 0 1 
+D2
+[000035 (Senza nome)]
+~
+~
+0 0 35 -1
+D3
+[000033 (Strada di pietra)]
+~
+~
+0 0 33 -1
+S
+#35
+Strada di pietra~
+~
+-1 0 1 
+D0
+[000034 (Strada di pietra)]
+~
+~
+0 0 34 -1
+D1
+[000036 (Senza nome)]
+~
+~
+0 0 36 -1
+S
+#36
+Strada di pietra~
+~
+-1 0 1 
+D1
+[000054 (Senza nome)]
+~
+~
+0 0 54 -1
+D3
+[000035 (Strada di pietra)]
+~
+~
+0 0 35 -1
+S
+#37
+tra le case dei contadini~
+~
+-1 0 1 
+D1
+[000038 (tra le case dei contadini)]
+~
+~
+0 0 38 -1
+D2
+[000041 (tra le case dei contadini)]
+~
+~
+0 0 41 -1
+D3
+[000054 (Senza nome)]
+~
+~
+0 0 54 -1
+S
+#38
+tra le case dei contadini~
+~
+-1 0 1 
+D1
+[000039 (tra le case dei contadini)]
+~
+~
+0 0 39 -1
+D2
+[000042 (tra le case dei contadini)]
+~
+~
+0 0 42 -1
+D3
+[000037 (tra le case dei contadini)]
+~
+~
+0 0 37 -1
+S
+#39
+tra le case dei contadini~
+~
+-1 0 1 
+D1
+[000040 (tra le case dei contadini)]
+~
+~
+0 0 40 -1
+D2
+[000043 (tra le case dei contadini)]
+~
+~
+0 0 43 -1
+D3
+[000038 (tra le case dei contadini)]
+~
+~
+0 0 38 -1
+S
+#40
+tra le case dei contadini~
+~
+-1 0 1 
+D2
+[000044 (tra le case dei contadini)]
+~
+~
+0 0 44 -1
+D3
+[000039 (tra le case dei contadini)]
+~
+~
+0 0 39 -1
+S
+#41
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000037 (tra le case dei contadini)]
+~
+~
+0 0 37 -1
+D1
+[000042 (tra le case dei contadini)]
+~
+~
+0 0 42 -1
+D2
+[000046 (tra le case dei contadini)]
+~
+~
+0 0 46 -1
+S
+#42
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000038 (tra le case dei contadini)]
+~
+~
+0 0 38 -1
+D1
+[000043 (tra le case dei contadini)]
+~
+~
+0 0 43 -1
+D2
+[000047 (tra le case dei contadini)]
+~
+~
+0 0 47 -1
+D3
+[000041 (tra le case dei contadini)]
+~
+~
+0 0 41 -1
+S
+#43
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000039 (tra le case dei contadini)]
+~
+~
+0 0 39 -1
+D1
+[000044 (tra le case dei contadini)]
+~
+~
+0 0 44 -1
+D2
+[000048 (tra le case dei contadini)]
+~
+~
+0 0 48 -1
+D3
+[000042 (tra le case dei contadini)]
+~
+~
+0 0 42 -1
+S
+#44
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000040 (tra le case dei contadini)]
+~
+~
+0 0 40 -1
+D1
+[000045 (tra le case dei contadini)]
+~
+~
+0 0 45 -1
+D2
+[000049 (tra le case dei contadini)]
+~
+~
+0 0 49 -1
+D3
+[000043 (tra le case dei contadini)]
+~
+~
+0 0 43 -1
+S
+#45
+tra le case dei contadini~
+~
+-1 0 1 
+D2
+[000050 (tra le case dei contadini)]
+~
+~
+0 0 50 -1
+D3
+[000044 (tra le case dei contadini)]
+~
+~
+0 0 44 -1
+S
+#46
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000041 (tra le case dei contadini)]
+~
+~
+0 0 41 -1
+D1
+[000047 (tra le case dei contadini)]
+~
+~
+0 0 47 -1
+S
+#47
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000042 (tra le case dei contadini)]
+~
+~
+0 0 42 -1
+D1
+[000048 (tra le case dei contadini)]
+~
+~
+0 0 48 -1
+D2
+[000053 (tra le case dei contadini)]
+~
+~
+0 0 53 -1
+D3
+[000046 (tra le case dei contadini)]
+~
+~
+0 0 46 -1
+S
+#48
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000043 (tra le case dei contadini)]
+~
+~
+0 0 43 -1
+D1
+[000049 (tra le case dei contadini)]
+~
+~
+0 0 49 -1
+D2
+[000051 (tra le case dei contadini)]
+~
+~
+0 0 51 -1
+D3
+[000047 (tra le case dei contadini)]
+~
+~
+0 0 47 -1
+S
+#49
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000044 (tra le case dei contadini)]
+~
+~
+0 0 44 -1
+D1
+[000050 (tra le case dei contadini)]
+~
+~
+0 0 50 -1
+D2
+[000052 (tra le case dei contadini)]
+~
+~
+0 0 52 -1
+D3
+[000048 (tra le case dei contadini)]
+~
+~
+0 0 48 -1
+S
+#50
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000045 (tra le case dei contadini)]
+~
+~
+0 0 45 -1
+D3
+[000049 (tra le case dei contadini)]
+~
+~
+0 0 49 -1
+S
+#51
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000048 (tra le case dei contadini)]
+~
+~
+0 0 48 -1
+D1
+[000052 (tra le case dei contadini)]
+~
+~
+0 0 52 -1
+D3
+[000053 (tra le case dei contadini)]
+~
+~
+0 0 53 -1
+S
+#52
+tra le case dei contadini~
+~
+-1 0 1 
+D0
+[000049 (tra le case dei contadini)]
+~
+~
+0 0 49 -1
+D3
+[000051 (tra le case dei contadini)]
+~
+~
+0 0 51 -1
+S
+#53
+una casa in pietra~
+~
+-1 0 1 
+D0
+[000047 (tra le case dei contadini)]
+~
+~
+0 0 47 -1
+D1
+[000051 (tra le case dei contadini)]
+~
+~
+0 0 51 -1
+D5
+[000055 (la botola)]
+~
+~
+0 0 55 -1
+S
+#54
+Piazza Comune~
+~
+-1 0 1 
+D1
+[000037 (tra le case dei contadini)]
+~
+~
+0 0 37 -1
+D3
+[000036 (Strada di pietra)]
+~
+~
+0 0 36 -1
+S
+#55
+la botola~
+~
+-1 1|4|8|16|32|64|128|512|16384|32768 0 
+D4
+[000053 (una casa in pietra)]
+~
+floor~
+8|32|128|256|512 0 53 224
+S

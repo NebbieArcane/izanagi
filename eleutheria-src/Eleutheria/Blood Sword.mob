@@ -1,0 +1,220 @@
+#0
+alchimista~
+L' Alchimista~
+Un vecchio elfo ti saluta appena entri nel negozio
+~
+Sembra molto vecchio, ma non dimostra l'eta' che ha
+~
+16|64|1048576|2097152|8388608 8|128|2048|16777216|33554432|134217728 0 S
+50 1 0 250 10d8+1
+150000 2000000 
+8 8 4 32|1024|2048|131072 0 0
+#1
+anator armaiolo~
+Anator l'armaiolo~
+Un'imponente armaiolo ti sorride da dietro il bancone
+~
+Un armadio
+~
+2|16|64|1048576|4194304 0 0 B 3
+35 20 0 50 1d8+1
+-1 0 0 1
+8 8 1
+#2
+fornaio~
+Il Fornaio~
+Il fornaio sta preparando il pane
+~
+Berretto e grembiule bianco......e' un fornaio!!!
+~
+2|16|64|1048576|8388608|134217728 128|32768|16777216 -1000 N
+41 7 -10 550 3d6+2
+-1 150000 100 1
+8 8 4 0 2|4|8|64|128 1|16
+#3
+ragazzo~
+Un ragazzo~
+Un giovane ragazzo si sta dando da fare con la sua spada
+~
+Un ragazzo e' alto e robusto
+~
+2|64|4194304 0 0 N
+1 20 10 50 1d6+1
+-1 500 10 1
+8 8 0
+#4
+ragazzo~
+Un ragazzo~
+Un giovane ragazzo si allena con un arco 
+~
+Un ragazzo e' alto e robusto
+~
+2|64|4194304 0 0 N
+1 20 10 50 1d6+1
+-1 500 10 1
+8 8 0
+#5
+ragazzo~
+Un ragazzo~
+Un ragazzo sta facendo delle flessioni in terra
+~
+Un ragazzo e' alto e robusto
+~
+2|64|4194304 0 0 N
+1 20 10 50 1d6+1
+-1 500 10 1
+8 8 0
+#6
+elfo arciere~
+Un arciere elfico~
+Un arciere dalle sembianze elfiche sta scoccando delle frecce
+~
+E' un esperto arciere
+~
+2|64|2147483648 0 -1000 A 2
+5 18 10 50 1d8+2
+-1 0 23 1
+8 8 0
+#7
+mercenario~
+Un mercenario~
+un esperto mercenario
+~
+grande, grosso e verde!
+
+~
+2|64|134217728 0 -1000 A 2
+7 15 -2 59 1d8+2
+-1 500 23 31
+8 8 1
+#8
+mago~
+un mago~
+un esperto mercenario
+~
+grande, grosso e verde!
+
+~
+2|64|2097152 0 -1000 A 2
+6 18 -7 20 1d5+2
+-1 500 23 1
+8 8 4 4|8 0 256
+#9
+sottoufficiale ~
+un sottoufficiale~
+Un sottoufficiale sta impartendo ordini ai soldati
+~
+E' ricoperto da molte cicatrici, dovute alle battaglie passate
+~
+2|64|4194304 0 -1000 L 2
+8 10 -10 66 2d8+1
+-1 500 20 1
+8 8 1
+Preparate l'ariete da battaglia sfaticati!!!
+Non dovro' fare sempre tutto io spero!!
+~
+senti dei rumori nelle vicinanze
+~
+#10
+prete~
+un prete~
+Un umile prete sta medicando i soldati feriti
+~
+vestito di un saio e sandali il prete cura i poveri feriti
+~
+2|64|8388608|67108864 0 0 A 2
+9 10 -10 66 2d8+1
+-1 100 20 1
+8 8 1
+#11
+ranger uomo~
+il ranger~
+Un uomo alto sta insegnando ai soldati i segreti del bosco
+~
+L'uomo della foresta
+~
+2|64|536870912 0 0 A 3
+9 10 -7 66 2d8+2
+-1 100 21 1
+8 8 1
+#12
+sergente~
+Il Sergente~
+Un uomo vestito di armatura e' seduto nella sua tenda
+~
+Il Sergente e' alto e robusto
+~
+2|64|4194304 0 0 A 3
+15 10 -7 85 2d8+5
+-1 5000 5 1
+8 8 1
+#13
+generale~
+Il Generale~
+Un uomo vestito di armatura e' seduto nella sua tenda
+~
+Il Sergente e' alto e robusto
+~
+2|4|64|134217728 0 0 A 3
+16 10 -7 90 2d8+5
+-1 5000 6 1
+8 8 1
+#14
+cavaliere bianco~
+Il Cavaliere Bianco~
+Un nobile cavaliere vestito di bianco attende gli ordini 
+~
+Il Cavaliere bianco e' alto e robusto
+~
+2|64|1048576|268435456 0 1000 A 4
+20 8 -10 100 3d8+2
+-1 10000 10 2
+6 8 1
+#15
+cavaliere nero~
+Il Cavaliere Nero~
+Un nobile cavaliere vestito di nero attende gli ordini 
+~
+Il Cavaliere nero  e' alto e robusto
+~
+2|64|1048576|268435456 0 1000 A 4
+20 8 -10 100 3d8+2
+-1 10000 10 2
+6 8 1
+#16
+spia uomo~
+Una Spia~
+Un uomo nascosto tra la ferraglia
+~
+Una spia!!!
+~
+2|32|64|4194304|16777216 2|524288|1048576|33554432 -1000 A 2
+18 12 2 60 1d8+1
+-1 0 20 1
+8 8 1
+#17
+re roland~
+Roland il Re~
+Il Re sta seduto solennemente sul suo trono
+~
+E' un robusto re che impugna il suo scettro luminoso
+~
+2|64|1048576|8388608|536870912 2|8|128|2048|16777216|33554432|134217728 1000 L 4
+50 10 2 650 3d10+3
+-1 100000 10 1
+6 8 4 2|1024|8192|16384|32768|65536|131072 0 1|256
+Cosa ci fai nella nobile sala del Re???
+~
+senti una musica allegra di un liuto provenire dalla stanza adiacente
+~
+#18
+mercante simon~
+Simon il Mercante~
+Il mercante ti fa la linguaccia guardandoti con aria diffidente
+~
+Che hai da guardare??? Ti dice con la sua faccia da pesce lesso
+~
+2|64|1048576|16777216 8 -1000 N
+1 20 10 0 1d8+1
+-1 0 0 6
+8 8 0

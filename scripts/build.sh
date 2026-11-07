@@ -1,134 +1,45 @@
 #!/usr/bin/env bash
-# Cross-platform configure and build for Linux and macOS.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BUILD_DIR="$ROOT/build"
-BUILD_TYPE=Release
-WITH_QT=1
-WITH_TRANSLATOR=1
-MACOS_BUNDLE=0
-MACOS_BUNDLE_TRANSLATOR=0
-RUN_TESTS=0
-EXTRA_CMAKE_ARGS=()
+BUILD="${ROOT}/build"
+BUILD_TYPE="${1:-Release}"
+JOBS="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
 
-usage() {
-    cat <<'EOF'
-Usage: ./scripts/build.sh [options] [-- extra cmake args]
+CMAKE_ARGS=(-S "${ROOT}" -B "${BUILD}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}")
 
-Options:
-  --debug          Build Debug instead of Release
-  --no-qt          Skip Qt GUI (nebbieedit)
-  --no-translator  Skip translator GUI (nebbie-translate)
-  --macos-bundle   Build nebbieedit as .app on macOS
-  --macos-bundle-translator  Build nebbie-translate as .app on macOS
-  --test           Run ctest after build
-  -h, --help       Show this help
-
-Environment:
-  CMAKE_PREFIX_PATH   Qt 6 location (required on macOS if Qt is not auto-detected)
-  CXX                 C++ compiler (default: platform default)
-EOF
-}
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --debug) BUILD_TYPE=Debug; shift ;;
-        --no-qt) WITH_QT=0; shift ;;
-        --no-translator) WITH_TRANSLATOR=0; shift ;;
-        --macos-bundle) MACOS_BUNDLE=1; shift ;;
-        --macos-bundle-translator) MACOS_BUNDLE_TRANSLATOR=1; shift ;;
-        --test) RUN_TESTS=1; shift ;;
-        -h|--help) usage; exit 0 ;;
-        --)
-            shift
-            EXTRA_CMAKE_ARGS+=("$@")
+# Su macOS Homebrew Qt non e' nel path di default di CMake.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  if [[ -z "${CMAKE_PREFIX_PATH:-}" ]]; then
+    QT_PREFIX=""
+    if command -v brew >/dev/null 2>&1; then
+      for formula in qt qt@6 qt6; do
+        if brew --prefix "${formula}" >/dev/null 2>&1; then
+          candidate="$(brew --prefix "${formula}")"
+          if [[ -d "${candidate}/lib/cmake/Qt6" || -d "${candidate}/lib/cmake/Qt6Core" ]]; then
+            QT_PREFIX="${candidate}"
             break
-            ;;
-        *) echo "Unknown option: $1" >&2; usage; exit 1 ;;
-    esac
-done
+          fi
+        fi
+      done
+    fi
+    if [[ -z "${QT_PREFIX}" ]]; then
+      echo "Qt 6 non trovato. Installa con: brew install qt cmake" >&2
+      exit 1
+    fi
+    export CMAKE_PREFIX_PATH="${QT_PREFIX}"
+    echo "Usando Qt da: ${QT_PREFIX}"
+  fi
+  CMAKE_ARGS+=(-DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}")
+fi
 
-CMAKE_ARGS=(
-    -S "$ROOT"
-    -B "$BUILD_DIR"
-    -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-    -DNEBBIE_BUILD_QT="$WITH_QT"
-    -DNEBBIE_BUILD_TRANSLATOR="$WITH_TRANSLATOR"
-)
+cmake "${CMAKE_ARGS[@]}"
+cmake --build "${BUILD}" -j"${JOBS}"
+ctest --test-dir "${BUILD}" --output-on-failure
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
-    "${ROOT}/scripts/check-macos-toolchain.sh"
-    if [[ "$MACOS_BUNDLE" -eq 1 || "$MACOS_BUNDLE_TRANSLATOR" -eq 1 ]]; then
-        if [[ ! -f "${ROOT}/nebbie-qt/icons/izanagi.icns" && ! -f "${ROOT}/nebbie-qt/icons/nebbieedit.icns" ]]; then
-            echo "==> Generating macOS Izanagi icons"
-            python3 "${ROOT}/scripts/generate-nebbie-icons.py" nebbieedit
-        fi
-        if [[ "$MACOS_BUNDLE_TRANSLATOR" -eq 1 \
-              && ! -f "${ROOT}/nebbie-translator/icons/cypher.icns" \
-              && ! -f "${ROOT}/nebbie-translator/icons/nebbie-translate.icns" ]]; then
-            echo "==> Generating macOS Cypher icons"
-            python3 "${ROOT}/scripts/generate-nebbie-icons.py" nebbie-translate
-        fi
-    fi
-    CMAKE_ARGS+=(-DNEBBIE_MACOS_BUNDLE="$MACOS_BUNDLE")
-    CMAKE_ARGS+=(-DNEBBIE_MACOS_BUNDLE_TRANSLATOR="$MACOS_BUNDLE_TRANSLATOR")
-    if [[ -z "${CMAKE_PREFIX_PATH:-}" ]] && command -v brew >/dev/null 2>&1; then
-        if brew --prefix qt@6 >/dev/null 2>&1; then
-            export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
-        fi
-    fi
-fi
-
-if [[ -n "${CXX:-}" ]]; then
-    CMAKE_ARGS+=(-DCMAKE_CXX_COMPILER="$CXX")
-fi
-
-if [[ ${#EXTRA_CMAKE_ARGS[@]} -gt 0 ]]; then
-    CMAKE_ARGS+=("${EXTRA_CMAKE_ARGS[@]}")
-fi
-
-if [[ -n "${NEBBIE_VERSION:-}" ]]; then
-    CMAKE_ARGS+=(-DNEBBIE_VERSION="${NEBBIE_VERSION}")
-fi
-
-echo "==> cmake ${CMAKE_ARGS[*]}"
-cmake "${CMAKE_ARGS[@]}"
-
-echo "==> cmake --build $BUILD_DIR"
-cmake --build "$BUILD_DIR"
-
-if [[ "$RUN_TESTS" -eq 1 ]]; then
-    echo "==> ctest"
-    ctest --test-dir "$BUILD_DIR" --output-on-failure
-fi
-
-echo
-echo "Binaries:"
-echo "  CLI:  $BUILD_DIR/nebbiedit/nebbiedit"
-if [[ "$WITH_QT" -eq 1 ]]; then
-    if [[ -x "$BUILD_DIR/nebbie-qt/Izanagi.app/Contents/MacOS/Izanagi" ]]; then
-        echo "  GUI:  $BUILD_DIR/nebbie-qt/Izanagi.app"
-    elif [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit.app/Contents/MacOS/nebbieedit" ]]; then
-        echo "  GUI:  $BUILD_DIR/nebbie-qt/nebbieedit.app"
-    elif [[ -x "$BUILD_DIR/nebbie-qt/izanagi" ]]; then
-        echo "  GUI:  $BUILD_DIR/nebbie-qt/izanagi"
-    elif [[ -x "$BUILD_DIR/nebbie-qt/nebbieedit" ]]; then
-        echo "  GUI:  $BUILD_DIR/nebbie-qt/nebbieedit"
-    else
-        echo "  GUI:  (Qt not built — install Qt 6 and re-run without --no-qt)"
-    fi
-fi
-if [[ "$WITH_TRANSLATOR" -eq 1 ]]; then
-    if [[ -x "$BUILD_DIR/nebbie-translator/Cypher.app/Contents/MacOS/Cypher" ]]; then
-        echo "  Translate:  $BUILD_DIR/nebbie-translator/Cypher.app"
-    elif [[ -x "$BUILD_DIR/nebbie-translator/nebbie-translate.app/Contents/MacOS/nebbie-translate" ]]; then
-        echo "  Translate:  $BUILD_DIR/nebbie-translator/nebbie-translate.app"
-    elif [[ -x "$BUILD_DIR/nebbie-translator/cypher" ]]; then
-        echo "  Translate:  $BUILD_DIR/nebbie-translator/cypher"
-    elif [[ -x "$BUILD_DIR/nebbie-translator/nebbie-translate" ]]; then
-        echo "  Translate:  $BUILD_DIR/nebbie-translator/nebbie-translate"
-    else
-        echo "  Translate:  (not built — install Qt 6 and re-run without --no-translator)"
-    fi
+  echo "App: ${BUILD}/app/eleutheria.app"
+  echo "Avvio: open ${BUILD}/app/eleutheria.app"
+else
+  echo "Binary: ${BUILD}/app/eleutheria"
 fi

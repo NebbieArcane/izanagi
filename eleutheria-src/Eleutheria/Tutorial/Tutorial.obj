@@ -1,0 +1,40 @@
+#60000
+spada~
+la Spada nella Roccia~
+Una spada luminosa e' infilata in una roccia!~
+~
+5 8|256|1024|16384|131072 1|8192
+0 2 14 4 
+60 50000 0
+E
+spada roccia~
+Uhm... ma come si fa ad utilizzare una spada con una roccia piantata nella punta?
+~
+A
+18 1
+A
+19 5
+#60001
+cappuccio~
+un cappuccio~
+C'e' un cappuccio trasparente qui per terra.~
+~
+9 16|128|4096|131072|1048576 1|2048
+4 4 0 0 
+1 10000 0
+A
+6 1
+A
+14 -20
+A
+19 1
+A
+27 2
+#60002
+flacone~
+un flacone di Merlingo~
+C'e' un flacone qui per terra, e' il segreto dei pornomob!~
+~
+10 0 1|16384
+16 92 0 0 
+0 0 0

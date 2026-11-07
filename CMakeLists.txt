@@ -1,91 +1,25 @@
-cmake_minimum_required(VERSION 3.16)
-
-if(NOT DEFINED NEBBIE_VERSION)
-    set(NEBBIE_VERSION "0.1.0")
-endif()
-
-project(nebbie-editor VERSION ${NEBBIE_VERSION} LANGUAGES CXX)
-
-if(NOT NEBBIE_GIT_SHA)
-    find_package(Git QUIET)
-    if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-        execute_process(
-            COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
-            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-            OUTPUT_VARIABLE NEBBIE_GIT_SHA
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            ERROR_QUIET
-        )
-    endif()
-endif()
-if(NOT NEBBIE_GIT_SHA)
-    set(NEBBIE_GIT_SHA "dev")
-endif()
-
-string(TIMESTAMP NEBBIE_BUILD_TIMESTAMP UTC)
-
-configure_file(
-    "${CMAKE_SOURCE_DIR}/cmake/version.hpp.in"
-    "${CMAKE_BINARY_DIR}/generated/version.hpp"
-    @ONLY
-)
+cmake_minimum_required(VERSION 3.21)
+project(EleutheriaNebbie VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-option(NEBBIE_BUILD_QT "Build Qt GUI (nebbieedit)" ON)
-option(NEBBIE_BUILD_TRANSLATOR "Build lightweight translator GUI (nebbie-translate)" ON)
-option(NEBBIE_MACOS_BUNDLE "Build nebbieedit as a macOS .app bundle" OFF)
-option(NEBBIE_MACOS_BUNDLE_TRANSLATOR "Build nebbie-translate as a macOS .app bundle" OFF)
+option(ELEUTHERIA_BUILD_TESTS "Build smoke tests" ON)
 
-if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum supported macOS version")
+find_package(Qt6 REQUIRED COMPONENTS Widgets Gui Core)
+
+add_subdirectory(core)
+add_subdirectory(app)
+
+if(ELEUTHERIA_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
 endif()
 
-if(APPLE AND (NEBBIE_BUILD_QT OR NEBBIE_BUILD_TRANSLATOR))
-    find_program(_nebbie_brew brew)
-    if(_nebbie_brew)
-        execute_process(
-            COMMAND "${_nebbie_brew}" --prefix qt@6
-            OUTPUT_VARIABLE _nebbie_brew_qt6
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            ERROR_QUIET
-        )
-        if(_nebbie_brew_qt6 AND EXISTS "${_nebbie_brew_qt6}/lib/cmake/Qt6")
-            list(PREPEND CMAKE_PREFIX_PATH "${_nebbie_brew_qt6}")
-            message(STATUS "Using Homebrew Qt 6 at ${_nebbie_brew_qt6}")
-        endif()
-    endif()
-endif()
-
-if(MSVC)
-    add_compile_options(/utf-8 /EHsc)
-endif()
-
-add_subdirectory(nebbie-core)
-add_subdirectory(nebbiedit)
-
-if(NEBBIE_BUILD_QT)
-    find_package(Qt6 QUIET COMPONENTS Widgets)
-    if(Qt6_FOUND)
-        add_subdirectory(nebbie-qt)
-    else()
-        message(STATUS "Qt6 not found — nebbie-qt GUI will not be built")
-        message(STATUS "  Linux: sudo apt install qt6-base-dev")
-        message(STATUS "  macOS: brew install qt@6 && export CMAKE_PREFIX_PATH=\"$(brew --prefix qt@6)\"")
-        message(STATUS "  Windows: install Qt 6 (MSVC) and set CMAKE_PREFIX_PATH to the kit root")
-    endif()
-endif()
-
-if(NEBBIE_BUILD_TRANSLATOR)
-    find_package(Qt6 QUIET COMPONENTS Widgets)
-    if(Qt6_FOUND)
-        add_subdirectory(nebbie-translator)
-    else()
-        message(STATUS "Qt6 not found — nebbie-translate will not be built")
-    endif()
-endif()
-
-enable_testing()
-add_subdirectory(tests)
+install(TARGETS eleutheria RUNTIME DESTINATION bin BUNDLE DESTINATION .)
+install(DIRECTORY catalogs/ DESTINATION share/eleutheria/catalogs)
+install(DIRECTORY sample/ DESTINATION share/eleutheria/sample)

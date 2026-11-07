@@ -1,0 +1,834 @@
+#8101
+cinghiale~
+un cinghiale~
+Un animale selvatico sta trotterellando per il bosco.
+~
+Un animale selvatico da lunghi denti sporgenti ed aguzzi.
+~
+32|134217728 32768 -1000 L 2
+25 10 0 10 1d8+3
+-1 0 35 18
+8 8 4 2|32|64|2048 256|1024 1
+~
+Senti uno strano grugnito provenire da qui vicino.
+~
+#8102
+orso bruno~
+un orso bruno~
+Un orso dal pelo marrone sta girovagando per il bosco.
+~
+Un enorme orso dal pelo marrone.
+Riesci ad intravedere innumerevoli cicatrici.
+~
+262144|4194304 32768 -350 A 3
+28 3 -2 45 1d5+5
+-1 0 15 18
+8 8 4 1 256 2|512|1024|2048
+#8103
+orso rosso~
+un orso~
+Un'enorme creatura dal pelo rosso e' qui.
+~
+Un enorme creatura dal pelo rosso.
+Ha il corpo pieno di ferite ormai cicatrizzate.
+~
+32|262144|4194304 32768 -1000 A 3
+30 3 -4 60 1d5+6
+-1 0 32 18
+8 8 4 1 8|128|2048 2|4|256
+#8104
+ragno~
+un ragno~
+Un piccolo ragno sta tessendo la sua tela.
+~
+Un piccolo ragno a 7 gambe.
+Che porti fortuna ucciderlo?
+~
+128 32768|524288 -349 N
+5 16 7 4 2d2+1
+-1 0 31 12
+8 8 5 1|2|4|8|16|32|64|128|256|512|1024|2048|4096 0 0
+#8105
+serpente~
+un serpente~
+Un serpente sta strisciando per terra.
+~
+E' lungo un paio di metri e pare che la sua pelle sia durissima.
+~
+0 32768|524288 0 A 2
+21 7 -3 0 1d3+7
+-1 0 35 22
+8 8 4 512 256 1|2|128
+#8106
+passerotto~
+un passerotto~
+Un passerotto vola allegramente di ramo in ramo.
+~
+Un piccolissimo volatile.
+~
+128 2048|32768 1000 L 1
+7 12 7 10 2d5+1
+-1 0 25 16
+8 8 5 0 0 32
+Cip Cip Cip Cip
+~
+Senti cinguettare qui vicino.
+~
+#8107
+fagiano~
+un fagiano~
+Un fagiano sta svolazzando qui.
+~
+Un uccello con una lunga e variopinta coda fatta di piume.
+~
+128 2048|32768 -1000 A 2
+16 9 0 22 1d8+3
+-1 0 35 16
+8 8 1
+#8108
+lupo grigio~
+un lupo grigio~
+Un lupo si muove tra gli alberi.
+~
+Ha il manto grigio e ti sta ringhiando contro.
+~
+4|32|32768 32768 -1000 A 2
+27 8 -2 40 3d3+3
+-1 0 29 18
+8 8 4 2 256|1024 1
+#8109
+volpe~
+una volpe~
+Ti sembra di intravedere qualcosa con una grande coda.
+~
+Un animale dal pelo rosso.
+~
+128 32768|524288 -650 A 2
+17 7 0 14 1d8+3
+-1 0 28 18
+8 8 2
+#8110
+gufo~
+un gufo~
+Un vecchio gufo e' appollaiato su di un ramo.
+~
+E' molto vecchio.
+Emana saggezza e magia!
+~
+128|33554432 2048|32768 0 A 2
+23 6 0 0 2d3+3
+-1 2000 35 16
+8 8 4 1|2|4|8|16|32|64|128 0 256|512|1024|2048|4096
+#8111
+civetta~
+una civetta~
+Una piccola civetta sta cercando qualcosa.
+~
+Due occhi gialli tondi e un becco uncinato.
+~
+32|128 2048|32768 -400 N
+20 5 2 9 2d5+2
+-1 0 20 16
+8 8 2
+#8112
+donnola~
+una donnola~
+Una donnola sta passando velocemente di qui.
+~
+Ti sta osservando furbescamente.
+~
+128 32768|524288 -350 A 2
+18 6 2 20 4d2+3
+-1 0 27 18
+8 8 2
+#8113
+porcospino~
+un porcospino~
+Una pallina fatta di aghi e' qui per terra.
+~
+Sembra una palla fatta di aghi.
+~
+4|32|2147483648 32768 -450 A 4
+23 8 0 0 1d3+2
+-1 1000 31 18
+8 8 4 16 32 64
+#8114
+riccio~
+un riccio~
+Un piccolo animaletto fatto di aghi ti attacca.
+~
+E' ricoperto di aghi.
+~
+4|32|2147483648 32768 -585 A 4
+26 5 -2 0 1d4+2
+-1 1000 30 18
+8 8 4 16 32 64
+#8115
+istrice~
+un istrice~
+Un enorme animale fatto di aghi ti attacca.
+~
+Sembrerebbe un riccio, solo che e' mooolto piu' grande.
+~
+4|32|2147483648 32768 -800 A 5
+32 2 -7 5 1d6+4
+-1 0 29 18
+8 8 4 16 32 64
+#8116
+corvo nero~
+un corvo~
+Un corvaccio nero e' qui.
+~
+E' tutto nero!
+~
+4 2048 -500 N
+16 9 4 0 1d8+3
+-1 0 33 16
+8 8 1
+#8117
+cornacchia~
+una cornacchia~
+Una cornacchia e' qui.
+~
+Tutta nera con un becco giallo appuntito.
+~
+4 2048 -350 N
+19 6 0 10 2d2+3
+-1 0 32 16
+8 8 2
+#8118
+falena~
+una falena~
+Un piccolo insetto e' qui.
+~
+Un minuto insetto color legno chiaro.
+~
+128 2048|32768 -350 N
+3 13 10 6 2d2+2
+-1 0 22 12
+8 8 5 0 0 1|2|16
+#8119
+vespa~
+una vespa~
+Una vespa e' qui.
+~
+Ha un enorme pungiglione.
+~
+32|128|16777216 2048 -1000 L 2
+15 17 2 32 1d3+3
+-1 0 14 12
+8 8 5 0 32|256 0
+Bzzz Bzzz
+~
+Senti un lieve ronzare.
+~
+#8120
+cavalletta~
+una cavalletta~
+Una cavalletta verde e' qui.
+~
+Sta saltellando qui.
+~
+128 0 615 N
+6 20 0 13 4d2+3
+-1 0 26 12
+8 8 2
+#8121
+cimice~
+una cimice~
+Una cimice e' qui.
+~
+Okkio a non schiacciarla!
+~
+128 32768 -411 N
+6 18 4 8 3d2+2
+-1 0 16 12
+8 8 5 256 0 0
+#8122
+farfalla~
+una farfalla~
+Una farfalla e' qui su un fiore.
+~
+E' bellissima e le sue ali sono coloratissime.
+~
+16|128 2048 350 N
+5 12 9 8 4d1+3
+-1 0 32 12
+8 8 2
+#8123
+libellula~
+una libellula~
+Una libellula sta volando qui.
+~
+Ha un corpo allungato, quattro ali sottili trasparenti ed opalescenti.
+~
+0 2048|32768 0 N
+19 7 7 0 4d2+3
+-1 0 13 12
+8 8 2
+#8124
+lucertola~
+una lucertola~
+Una lucertola si muove silenziosamente.
+~
+Sembrerebbe una lucertola, ma con le fattezze di un uomo.
+~
+4|32|4194304 32768|524288 -600 A 2
+31 6 -2 10 2d3+6
+-1 0 33 6
+8 8 5 256|1024|2048 128|16384 0
+#8125
+formica~
+una formica~
+Una piccola formica sta cercando provviste.
+~
+E' piccolissima.
+~
+0 524288 0 N
+3 16 10 1 1d3+2
+-1 0 28 12
+8 8 2
+#8126
+mosca~
+una mosca~
+Una mosca ti sta volando noiosamente vicino alla testa.
+~
+E' veramente noiosa!
+~
+128 2048 -1000 A 2
+16 9 2 10 3d3+3
+-1 0 30 12
+8 8 5 256 0 512
+#8127
+pipistrello~
+un pipistrello~
+Vedi una sagoma scura pendere da un ramo.
+~
+Sembra un topo con le ali.
+~
+2|4 8|2048|32768|33554432 -700 A 2
+22 7 0 5 2d5+4
+-1 0 34 16
+8 8 4 256|1024|2048 512 32
+#8128
+lumaca~
+una lumaca~
+Una lumaca si sta lentamente spostando.
+~
+L'essere piu' lento che tu abbia mai visto in tutta la tua vita.
+~
+0 0 0 N
+4 17 8 2 1d5+3
+-1 0 28 12
+8 8 5 0 0 16384
+#8129
+rana~
+una rana~
+Una rana e' qui sopra ad un masso.
+~
+Un piccolo essere verde.
+~
+0 65536 350 L 2
+7 18 8 14 2d3+2
+-1 0 33 18
+8 8 5 0 0 2048
+Graa - Graa - Graa
+~
+Senti gracidare qui vicino.
+~
+#8130
+rospo~
+un rospo~
+Un rospo e' nascosto sotto alcune foglie.
+~
+BACIALO!
+Potrebbe essere il TUO Principe Azzurro!
+~
+0 65536 -350 L 2
+21 7 2 0 3d3+3
+-1 0 30 18
+8 8 1
+Graa - Graa - Graa
+~
+Senti gracidare qui vicino.
+~
+#8131
+merlo~
+un merlo~
+C'e' un merlo appollaiato su di un ramo.
+~
+E' tutto nero con il becco arancione.
+~
+128 2048 -55 N
+14 6 2 10 2d4+2
+-1 0 29 16
+8 8 1
+#8132
+cerbiatto bambi~
+un cerbiatto~
+Un cerbiatto e' qui che bruca.
+~
+BAMBI!!!!!!!
+Miiiiiii il mio cerbiatto preferito!!!!!!!
+~
+0 0 1000 N
+22 7 0 12 4d2+3
+-1 0 19 23
+8 8 1
+#8133
+lepre~
+una lepre~
+Una lepre ti vede e scappa via.
+~
+Ha il manto soffice e grigio.
+~
+128 524288 818 N
+9 16 4 25 1d6+3
+-1 0 13 23
+8 8 1
+#8134
+puzzola~
+una puzzola~
+C'e' una puzzola!
+~
+Ha il mantello striato di bianco e nero.
+Ha degli strani denti a castoro ...... mmm ti ricorda qualcuno.
+~
+0 32768 0 L 2
+19 8 0 0 2d2+3
+-1 0 28 18
+8 8 1
+L'odore e' veramente nauseabondo!
+~
+Il vento trasporta un orribile odore.
+~
+#8135
+pettirosso~
+un pettirosso~
+Un pettirosso vola allegramente.
+~
+Un volatile di piccole dimensioni col petto macchiato di rosso.
+~
+0 2048 759 L 2
+7 13 10 10 2d2+1
+-1 0 34 16
+8 8 1
+~
+Senti cinguettare qui vicino.
+~
+#8136
+talpa~
+una talpa~
+Una talpa sta scavando una buca.
+~
+Ha il corpo tozzo e si muove goffamente.
+~
+0 32768 -623 N
+20 7 -2 10 1d10+3
+-1 0 34 18
+8 8 2
+#8137
+calabrone~
+un calabrone~
+Senti un forte ronzio.
+~
+Un grosso insetto nero e peloso.
+~
+32 0 -900 N
+23 6 0 0 3d4+2
+-1 0 30 12
+8 8 1
+#8138
+tartaruga michelangelo ninja~
+una tartaruga ninja~
+Vedi muoversi qualcosa lentamente.
+~
+E' Michelangelo, la tartaruga ninja.
+~
+4194304 128|524288 600 A 3
+30 3 -4 12 1d3+9
+-1 3650 30 1
+8 8 4 32 4096 0
+#8139
+tartaruga raffaello ninja~
+una tartaruga ninja~
+Vedi muoversi qualcosa lentamente.
+~
+E' Raffaello, la tartaruga ninja.
+~
+67108864 128 605 A 3
+30 3 -4 4 1d3+8
+-1 3050 34 1
+8 8 4 32 2048 0
+#8140
+tartaruga leonardo ninja~
+una tartaruga ninja~
+Vedi muoversi qualcosa lentamente.
+~
+E' Leonardo, la tartaruga ninja.
+~
+536870912 524288 1000 A 4
+30 3 -4 62 1d3+9
+-1 3612 23 1
+8 8 4 32 256 0
+#8141
+tartaruga donatello ninja~
+una tartaruga ninja~
+Vedi muoversi qualcosa lentamente.
+~
+E' Donatello, la tartaruga ninja.
+~
+134217728 0 650 A 3
+30 3 -4 72 1d3+8
+-1 1850 35 1
+8 8 4 32 32768 128
+#8142
+troll boschi~
+un troll dei boschi~
+Una creatura gigantesca si muove molto goffamente.
+~
+E' enorme, bruttissimo ed emana un odore terribile.
+~
+32|262144|4194304 32768 -1000 L 2
+25 7 2 55 1d3+6
+-1 500 27 31
+8 8 4 0 256 2048
+~
+Sgrunt sgrunt.......
+
+~
+#8143
+cervo~
+un cervo~
+Un cervo ti osserva immobile.
+~
+Dal manto marrone e dalle grosse corna.
+~
+0 0 487 A 2
+20 9 0 31 1d6+3
+-1 0 31 23
+8 8 4 2048 0 0
+#8144
+leprotto tippete~
+un leprotto~
+Un leprotto batte il piede velocemente.
+~
+E' sicuramente Tippete, l'amico inseparabile di Bambi.
+~
+128 0 -1000 A 2
+15 6 4 12 3d3+1
+-1 0 26 23
+8 8 4 0 1024 2048
+#8145
+serpente gigante~
+il serpente gigante~
+C'e' qualcosa che ti insospettisce.
+~
+Enorme, velenosissimo ....... scappa prima che ti attacchi.
+~
+2|4|32|8192|262144 128|32768 -1000 A 3
+45 -1 -10 58 2d8+6
+-1 0 12 22
+8 8 4 0 256|2048 1024
+#8146
+fungo gigante~
+il fungo gigante~
+Un grossissimo fungo e' qui.
+~
+Il fungo piu' grande che tu abbia mai visto!
+~
+2|4|262144|2097152 8|32768 0 N
+30 3 -7 15 4d4+2
+-1 10000 29 25
+8 8 4 16|32|64 256 128|1024|4096
+#8147
+orso papa~
+Papa' Orso~
+Un orso russa sonoramente.
+~
+E' il capo degli orsi di bosco Cet.
+~
+2|32|262144 32768 350 L 3
+29 3 -10 70 3d5+5
+-1 0 29 18
+4 4 4 0 2048|4096 1024
+~
+Senti qualcuno russare sonoramente.
+~
+#8148
+mamma orsa~
+Mamma Orsa~
+Un'orsa sta accudendo i suoi cuccioli.
+~
+E' la consorte del piu' forte orso del bosco.
+~
+2|32 32768 350 A 2
+26 4 -4 25 3d3+3
+-1 0 34 18
+8 8 5 4096 1024 2048
+#8149
+orsetto~
+un orsetto~
+Un orsetto sta giocando qui con i suoi fratelli.
+~
+Uno dei figli di Papa' Orso.
+~
+2|4 32768 350 N
+11 10 7 0 1d4+3
+-1 0 30 18
+8 8 1
+#8150
+lupo mannaro~
+un lupo mannaro~
+Un animale cerca di morderti al collo!
+~
+Un servitore dell'Oscuro Signore ...... il potente Sauron.
+~
+4|32|4194304 8|128|32768|33554432 -1000 L 4
+43 -2 -10 270 1d3+6
+-1 6500 31 8
+8 8 4 1|2|4|8|16|32|64|131072 256|512|1024|2048|4096|8192 0
+~
+Senti ululare.
+~
+#8151
+hobbit cacciatore~
+un cacciatore hobbit~
+Un piccolo cacciatore e' in cerca della sua preda.
+~
+Un piccolo e buffo ometto.
+~
+4|4194304|16777216 32768 1000 A 2
+27 4 -7 40 1d3+11
+-1 1250 24 4
+8 8 1
+#8152
+quercia~
+una quercia~
+Una quercia e' qui.
+~
+Un enorme albero con moltissimi rami.
+~
+2|4|262144|8388608 8|128|32768|16777216|33554432 1000 A 5
+40 2 -10 20 3d5+3
+-1 0 16 24
+8 8 5 16|64 2048 1
+#8153
+quercia~
+una quercia~
+Una quercia e' qui.
+~
+Un enorme albero con moltissimi rami.
+~
+2|4|262144|2097152 8|32768|65536|134217728 -1000 A 5
+40 4 -10 50 5d3+2
+-1 0 11 24
+8 8 5 16|64 2048|4096 1
+#8154
+quercia~
+una quercia~
+Una quercia e' qui.
+~
+Un enorme albero con moltissimi rami.
+~
+2|4|262144|33554432 8|8192|32768|65536|33554432 0 A 5
+40 2 -10 50 2d8+3
+-1 0 11 24
+8 8 5 16|64 1024|2048 1|512
+#8155
+grande quercia~
+la Grande Quercia~
+Una grandissima quercia e' qui.
+~
+Sicuramente e' uno degli alberi piu' grandi che tu abbia mai visto.
+~
+2|4|262144|2097152|8388608 8|128|32768|65536|16777216|33554432|134217728 0 A 8
+50 -1 -10 500 3d5+5
+-1 0 42 24
+8 8 4 2|4|8|16|32|64|128 1024|2048|4096|65536 1
+#8156
+grande sequoia~
+la Grande Sequoia~
+Un albero dal tronco larghissimo.
+~
+L'albero piu' grosso di tutto Bosco Cet.
+~
+2|4|262144|4194304 8|128|32768|33554432|134217728 350 A 10
+52 0 -10 1500 3d6+6
+-1 0 72 24
+8 8 5 2|128 4|8|16|32|64|256|512|1024|2048|4096|131072 1
+#8157
+hobbit boscaiolo~
+un boscaiolo hobbit~
+Un piccolo boscaiolo sta ammucchiando della legna.
+~
+Un piccolo ometto dai piedi pelosi.
+~
+4|1048576|4194304 32768 623 A 2
+20 5 0 22 1d3+3
+-1 550 14 4
+8 8 1
+#8158
+ranger elfo~
+un ranger noldor~
+Un elfo si muove silenziosamente.
+~
+Un esploratore arrivato dalla lontana Lorien.
+~
+4|1048576|536870912 8|32768 1000 A 3
+27 2 -7 20 1d3+11
+-1 0 32 2
+8 8 4 0 1024|2048 0
+#8159
+animista dorwinadano scrotox~
+un animista dorwinadano~
+Un uomo con il naso rosso e' qui.
+~
+Di carnagione giallastra, occhi azzurri sottili e capelli castano scuro,
+lunghi e lisci. Porta il pizzo e degli strani vetri davanti agli occhi.
+Scrotox ha il naso rosso.....che gli piaccia bere?!?
+~
+4|33554432 8|2048|32768|16777216|33554432 0 L 2
+32 0 -10 70 1d3+18
+-1 11254 23 1
+8 8 4 256 2048 0
+[un animista dorwinadano] ti dice 'Hai mica visto, per caso, un simpaticone con i capelli riccioli?'
+~
+Rabbino?
+Dove sei rabbinooooo?
+~
+#8160
+mago noldor gil galed~
+un mago noldor~
+Un elfo dal nobile aspetto ti sta osservando.
+~
+Con uno sguardo altero ed orgoglioso, Gil Galed ha capelli neri ed
+occhi grigi. Non ha molta simpatia per gli uomini, soprattutto per gli
+Haradrim, che reputa molto inferiori a lui.
+~
+4|2097152 2|8|2048|32768|65536 1000 L 2
+30 0 -10 70 1d3+11
+-1 11225 33 2
+8 8 4 2 2048 0
+[un mago noldor] ti dice 'Hai visto un ranger noldor? Ha una pergamena per me.'
+~
+Aah......uuuh.......ooooh
+~
+#8161
+nano ladro profilax nanetto~
+uno scaltro nanetto~
+Una figura si nasconde tra le ombre.
+~
+Profilax e' basso, massiccio e forte. Ha gli occhi verdi e i capelli neri
+e lunghi. Una lunga barba legata in trecce nasconde parte della sua
+armatura.
+~
+4|16777216 32768|1048576 1000 L 2
+31 0 -10 100 1d3+18
+-1 9854 26 3
+8 8 4 1|2 2048 0
+[qualcuno] ti dice 'Hai visto i miei compagni?'
+~
+~
+#8162
+ranger mark favhon~
+un ranger del Mark~
+Un cavaliere del Mark sta cercando qualcosa.
+~
+Dalla carnagione chiara, occhi azzurri e capelli lunghissimi tra il
+biondo e il castano. La cosa che piu' ti colpisce e' il portamento fiero
+da anziano guerriero, nonostante abbia poco piu' di venti anni.
+~
+4|536870912 32768|524288|16777216 1000 L 3
+31 0 -10 100 1d3+20
+-1 10820 27 1
+8 8 4 0 2048 0
+[un ranger del Mark] ti dice 'Puzzi quanto un lurido Wose, amico!'
+~
+[qualcuno] grida 'Ragazzi, ho trovato le sue tracce da questa parte, venite!'
+~
+#8163
+uomo boschi mannus brutus~
+un uomo dei boschi~
+Un uomo sta fumando la sua pipa.
+~
+E' alto quasi due metri, di carnagione rossastra, ha gli occhi verdi, capelli
+neri corti. I lineamenti sono forti e spigolosi.
+Mannus Brutus e' sicuramente un guerriero, osservandolo attentamente
+noti infatti moltissime cicatrici.
+~
+4|4194304 0 1000 L 3
+28 0 0 100 1d3+18
+-1 7856 30 1
+8 8 4 0 2048 0
+Tre cerchi di fumo escono dalla pipa dell'uomo dei boschi.
+~
+Il vento ti porta dell'odore di tabacco.
+~
+#8164
+animista beorniano turgidor~
+un animista beorniano~
+Un uomo sta cercando delle erbe.
+~
+Ha carnagione rosea, occhi azzurri e capelli rossi. Lo potresti scambiare
+tranquillamente per un orso da quanto e' grosso.
+Noti poi una cosa strana, Turgidor ha un orecchio come deformato,
+lui dice "sbottonato".
+~
+33554432 8|2048|8192|32768|65536|33554432 0 L 2
+34 0 -5 60 1d3+17
+-1 4550 32 1
+8 8 4 0 2048 0
+[un animista beorniano] canticchia 'Fear of the dark, fear of the dark!'
+~
+Senti canticchiare stonatamente.
+~
+#8165
+nano master girsa~
+il TUO master di GiRSA~
+Un nano ti osserva attentamente.
+~
+Il piu' grosso e alto Nano che tu abbia mai visto.
+Ha i capelli neri, lunghi e riccioli ed e' sempre sorridente, come se
+volesse inc....., ehm, prepararti qualche brutto scherzo.
+~
+4|262144|2097152|4194304|8388608|16777216 2|8|128|2048|32768|65536|16777216|33554432|134217728 -1000 L 4
+48 0 -10 150 1d3+20
+-1 35000 29 3
+8 8 4 1|2|4|8|16|32|64|128 256|512|1024|2048|4096|65536 0
+$c0013[$c0015il TUO master di GiRSA$c0013] ti dice 'Perfetto! Vi do 120 punti esperienza in piu' a testa!'$c0007
+~
+~
+#8166
+bardo hirenior cittadino~
+un bardo di citta'~
+Un cittadino sta canticchiando qualcosa.
+~
+E' molto alto, ha i capelli castani, lunghi e lisci. Porta uno strano pizzo
+incolto (tipo qualche cantante eroinomane).
+Hirenior ha un abbigliamento abbastanza ....... particolare.
+~
+4|2097152|16777216 2|8|2048|32768|65536 1000 L 2
+32 0 -5 80 1d3+16
+-1 4585 32 1
+8 8 4 0 2048 0
+[un bardo] canta 'E allora e' proprio vero che ...'
+~
+Senti cantare.
+~
+#8167
+bardo ghandox dunedain~
+un bardo dunedain~
+Un bardo sta suonando la mia chitarra.
+~
+E' molto alto e robusto (o grasso????), ha occhi verdi e capelli neri.
+Ghandox e' un dunedain, la razza umana piu' nobile.
+~
+4|2097152|4194304 2|8|2048|32768|65536 1000 L 3
+33 0 -5 70 1d3+18
+-1 3598 28 1
+8 8 4 0 2048 0
+Il solito noiosissimo blues :-(
+~
+Senti qualcuno che sta strimpellando una chitarra.
+~

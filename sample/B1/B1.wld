@@ -1,0 +1,1950 @@
+#8100
+Init Bosco Cet~
+Questa e' la stanza di inizializzazione di Bosco Cet.
+In questo posto solo un Dio o un Immortale puo' entrare.
+Sei stato sfortunato ad arrivare in questo luogo, o mortale.
+Mandos ha risucchiato la tua anima.
+La MORTE sara' la tua nuova compagna!!!
+A nord c'e' l'ingresso al Bosco.
+Builder: Aragorn/Montero
+~
+68 2|4 0
+D0
+~
+~
+0 0 8101 -1
+S
+#8101
+La via nel bosco~
+ Stai seguendo un viottolo nel bosco, senti cinguettare gli uccellini
+e il rumore di piccoli animali che si aggirano nel sottobosco.
+La natura ha trovato qui la sua armonia con l'uomo, ti senti rinascere.
+Il viottolo continua serpeggiando tra gli alberi verso nord.
+~
+68 4 3
+D0
+Il viottolo prosegue tranquillo
+~
+nord north~
+0 0 8102 -1
+D2
+Antica Strada del Nord
+~
+~
+0 0 5804 0
+S
+#8102
+La via nel bosco~
+ Stai seguendo un viottolo nel bosco, senti cinguettare gli uccellini
+e il rumore di piccoli animali che si aggirano nel sottobosco.
+Il viottolo prosegue tranquillo lungo l'asse nord sud.
+~
+-1 0 3
+D0
+Il viottolo prosegue tranquillo
+~
+nord north~
+0 0 8103 -1
+D2
+Il viottolo prosegue tranquillo
+~
+sud south~
+0 0 8101 -1
+S
+#8103
+La via nel bosco~
+ Stai seguendo un viottolo nel bosco, senti cinguettare gli uccellini
+e il rumore di piccoli animali che si aggirano nel sottobosco.
+Verso nord gli alberi si fanno piu' fitti, mentre verso ovest vedi una
+strada assai meno trafficata di quella che stai percorrendo.
+~
+-1 0 3
+D0
+Il viottolo si fa' piu' stretto innanzi a te
+~
+north nord~
+0 0 8104 -1
+D2
+Il viottolo prosegue tranquillo
+~
+sud south~
+0 0 8102 -1
+D3
+Un viottolo piu' piccolo
+~
+west ovest~
+0 0 8120 -1
+S
+#8104
+La via nel bosco si stringe~
+ Gli alberi si fanno piu' vicini e il viottolo si restringe, riesci 
+ugualmente a vedere il cielo e la sensazione di pace continua a 
+regnare dentro di te.
+~
+-1 0 3
+D0
+Il viottolo continua tranquillo verso nord
+~
+nord north~
+0 0 8105 -1
+D2
+Gli alberi verso sud lasciano il posto ad un viottolo piu' ampio
+~
+south sud~
+0 0 8103 -1
+S
+#8105
+Il viottolo nel bosco~
+ Il sentiero si allarga nuovamente e ora cammini in modo molto piu' 
+agevole. Il rumore degli animali che vivono in questo bosco ti rende
+tranquillo e spensierato. Verso nord intravedi una diramazione nel
+sentiero. Gli immensi alberi ti permettono solamente di andare verso
+sud e verso nord.
+~
+-1 0 3
+D0
+Piu' avanti vedi che il sentiero si divide
+~
+nord north~
+0 0 8106 -1
+D2
+La strada si fa' piu' stretta ma prosegue tranquilla
+~
+sud south~
+0 0 8104 -1
+S
+#8106
+Una biforcazione~
+ Sei giunto fino ad una biforcazione nel sentiero principale, l'unica 
+parte da cui non puoi andare e' verso ovest perche' e bloccata da
+dei robusti alberi, mentre verso est la strada ti e' chiusa da dei
+semplici rovi che non dovrebbero crearti troppi problemi.
+~
+-1 0 3
+D0
+Il sentiero principale
+~
+nord north~
+0 0 8107 -1
+D1
+Vedi degli sterpi non troppo resistenti
+~
+rovo~
+1|8|128|512 -1 8128 496
+D2
+Il sentiero principale
+~
+south sud~
+0 0 8105 -1
+E
+alberi~
+Si si sono proprio robusti
+~
+S
+#8107
+Il viottolo nel bosco~
+ Continui a seguire il sentiero principale in questo lussureggiante 
+bosco, ti sembra proprio un bel posto e ti verrebbe quasi voglia di 
+costruire qui la tua casa quando sarai vecchio.
+~
+-1 0 3
+D0
+Il sentiero continua verso nord ma qualcosa ti dice che non continuera' per molto
+~
+nord north~
+0 0 8108 -1
+D2
+Il sentiero continua
+~
+sud south~
+0 0 8106 -1
+S
+#8108
+La fine del viottolo~
+ Sei arrivato alla fine del sentiero ben curato che passa attraverso
+il bosco verso sud, verso est entri nel bosco vero e proprio.
+Senti piu' vicino a te il rumore di sottofondo del bosco.
+~
+-1 0 3
+D1
+Gli alberi si fanno via via piu' fitti
+~
+east est~
+0 0 8174 -1
+D2
+Il sentiero tranquillo
+~
+sud south~
+0 0 8107 -1
+D3
+~
+~
+0 0 9820 -1
+S
+#8109
+Nel bosco~
+ Sei immerso nella foresta e verso sud vedi un grosso albero che
+ti sbarra la via (forse riesci a superarlo!!!!). Verso nord vedi un altro
+passaggio tra gli alberi.
+~
+-1 0 3
+D0
+Ricomincia un sentiero ben tenuto e che ti permette un agile passaggio.
+~
+north nord~
+0 0 8110 -1
+D2
+Vedi un tratto di sentiero
+~
+sud south~
+0 0 8108 -1
+S
+#8110
+Fine del viottolo~
+ Il sentiero che stavi seguendo si interrompe qui, puoi solamente 
+tornare indietro o addentrarti nell'interno del bosco.
+~
+-1 0 3
+D0
+Il sentiero prosegue verso nord
+~
+nord north~
+0 0 8111 -1
+D1
+Gli alberi ti chiudono la visuale
+~
+east est~
+0 0 8172 -1
+S
+#8111
+Il viottolo nel bosco~
+ Il sentiero si snoda attraverso gli alberi permettendoti un agevole 
+passaggio all'interno del bosco, il rumore degli animali allieta il tuo
+cammino.
+~
+-1 0 3
+D0
+Il sentiero prosegue verso nord
+~
+nord north~
+0 0 8112 -1
+D2
+Il sentiero termina di li a poco.
+~
+south sud~
+0 0 8110 -1
+S
+#8112
+Il viottolo nel bosco~
+ Sei lungo il sentiero principale del bosco che ti permette di 
+attraversarlo senza troppi problemi. Il sentiero svolta verso est e
+verso nord vedi che gli alberi si fanno piu' radi.
+~
+-1 0 3
+D0
+Vedi un luogo dove gli alberi si allargano lasciando molto spazio aperto
+~
+nord north~
+0 0 8113 -1
+D1
+Il sentiero continua verso est
+~
+east est~
+0 0 8152 -1
+D2
+Il sentiero prosegue
+~
+sud south~
+0 0 8111 -1
+S
+#8113
+Una radura~
+ Sei arrivato dopo tanto camminare fino ad una radura accogliente,
+vedi piccoli insetti che si muovono laboriosi tra i fili d'erba.
+Ti sembra il posto ideale per fare una bella sosta magari in compagnia
+di amici. Verso nord il bosco si infittisce mentre verso sud torni sul
+sentiero principale.
+~
+-1 0 2
+D0
+Il bosco e' piu' fitto verso nord ma il sentiero lo si puo' percorrere ugualmente
+~
+nord north~
+0 0 8114 -1
+D2
+Vedi una curva del sentiero che si dipana per il bosco.
+~
+sud south~
+0 0 8112 -1
+D3
+Vedi una serie intricata di rami ma li puoi attraversare con un minimo di agilita'
+~
+west ovest~
+0 0 8160 -1
+S
+#8114
+Il bosco si fa piu' fitto~
+ Sei nella zona del bosco dove gli alberi sono piu' fitti trovi difficile
+camminare a causa delle radici sporgenti e dei rami bassi ma 
+riesci ugualmente ad andare avanti. Verso sud scorgi in lontananza
+una radura mentre verso nord gli alberi sono ancora piu' fitti e la
+foresta si fa' piu' buia.
+~
+-1 1 3
+D0
+E' la direzione che ti porta al centro del bosco
+~
+nord north~
+0 0 8115 -1
+D2
+Vedi che il bosco si allarga formando una radura
+~
+sud south~
+0 0 8113 -1
+S
+#8115
+L'incrocio nel cuore del bosco~
+ Sei nel centro del bosco, la parte piu' fitta di tutta la foresta, da
+qui puoi scegliere di andare in tutte le direzioni. Ti senti veramente
+in contatto con una natura incontaminata e l'animale primordiale che 
+e' in te si sente a casa. Verso ovest scorgi un sentiero piu' facile da
+seguire mentre verso nord e verso est ti addentri nel bosco.
+~
+-1 1 3
+D0
+Nel mezzo al bosco vedi solo alberi e qualche animale
+~
+north nord~
+0 0 8116 -1
+D1
+Nel mezzo al bosco vedi solo alberi e qualche animale
+~
+east est~
+0 0 8199 -1
+D2
+Vedi gli alberi molto fitti e poco piu'
+~
+sud south~
+0 0 8114 -1
+D3
+Scorgi un sentiero tranquillo
+~
+west ovest~
+0 0 8178 -1
+S
+#8116
+Dentro al bosco~
+ Sei nel mezzo della natura ed hai qualche difficolta' a camminare
+ma tutto sommato non e' spiacevole. Puoi continuare soltanto verso
+nord o verso sud.
+~
+-1 0 3
+D0
+Nel mezzo al bosco vedi solo alberi e qualche animale
+~
+north nord~
+0 0 8117 -1
+D2
+Vedi una specie di incrocio
+~
+south sud~
+0 0 8115 -1
+S
+#8117
+Dentro al bosco~
+ Sei dentro al bosco ti conviene muoverti con cautela per non 
+spaventare qualche piccolo animale che ha fatto qui la sua casetta.
+Verso sud continui a camminare lungo il bosco verso nord invece il 
+bosco si fa' meno fitto.
+~
+-1 0 3
+D0
+Vedi sempre il bosco ma piu' chiaramente perche' gli alberi si diradano
+~
+nord north~
+0 0 8118 -1
+D2
+Nel mezzo al bosco vedi solo alberi e qualche animale
+~
+sud south~
+0 0 8116 -1
+E
+casa casetta~
+Vedi su un ramo un nido di fringuelli
+~
+S
+#8118
+Gli alberi si diradano~
+ Sei in una zona del bosco dove gli alberi sono piu' radi e ti 
+consentono di osservare meglio il cielo. Verso sud il bosco si fa'
+piu' fitto mentre verso est si dirada ulteriormente.
+~
+-1 0 3
+D0
+Gli alberi meno fitti ti fanno pensare ad un mutamento del carattere del bosco.
+~
+nord north~
+0 0 8119 -1
+D1
+Il bosco si dirada ulteriormente e la luce filtra meglio tra i rami: e' un bel posto
+~
+east est~
+0 0 8209 -1
+D2
+Nel mezzo al bosco vedi solo alberi e qualche animale
+~
+south sud~
+0 0 8117 -1
+E
+cielo~
+E' molto bello
+~
+S
+#8119
+Una svolta dentro al bosco~
+ Sei vicino alla fine del bosco, verso sud il bosco riempie tutto il 
+tuo orizzonte mentre verso est vedi che un ulteriore diradazione
+degli alberi, e' preludio della fine del bosco.
+Grossi alberi ti impediscono di andare verso nord e verso ovest
+ma tra i loro rami scorgi in lontananza un piccolo villaggio.
+~
+-1 0 3
+D1
+Scorgi il limitare del bosco.
+~
+east est~
+0 0 8215 -1
+D2
+Ti addentri verso il bosco piu' fitto, ma per ora la strada e' tranquilla e facilmente percorribile
+~
+sud south~
+0 0 8118 -1
+S
+#8120
+Un viottolo laterale~
+ Sei lungo un viottolo minore che attraversa il bosco, essendo
+meno trafficato e' anche un po' piu' impervio ma nulla di veramente 
+difficile, il piccolo sentiero continua verso nord mentre verso est si 
+ricongiunge col sentiero principale.
+~
+-1 0 3
+D0
+Il sentiero minore prosegue agilmente tra gli alberi verso nord
+~
+nord north~
+0 0 8121 -1
+D1
+Scorgi il sentiero principale che attraversa il bosco
+~
+east est~
+0 0 8103 -1
+S
+#8121
+Lungo il viottolo laterale~
+ Continui la tua marcia attraverso il bosco lungo questo piccolo 
+viottolo sei circondato da alberi secolari che ti fanno sentire quanto 
+sia breve la tua esistenza rispetto alla loro.
+~
+-1 0 3
+D0
+Attraverso gli alberi scorgi in lontananza una biforcazione.
+Argh una cosa enorme ti si avventa sul viso.
+No niente di preoccupante era solo un passerotto che era cascato dal nido e ti 
+e' caduto in faccia.
+~
+nord north~
+0 0 8122 -1
+D2
+Il sentiero prosegue facendo una svolta
+~
+sud south~
+0 0 8120 -1
+E
+alberi secolari~
+Sono grandi e robusti
+~
+S
+#8122
+Il viottolo si divide~
+ Il piccolo viottolo si divide e ti trovi a dover scegliere quale
+direzione seguire. Apparentemente il viottolo prosegue verso sud
+e verso nord, mentre verso ovest scorgi un piccolo spiazzo.
+~
+-1 0 3
+D0
+Per ora sembra che il viottolo prosegua verso nord anche se non ne sei tanto sicuro.
+~
+nord north~
+0 0 8123 -1
+D2
+Il piccolo viottolo prosegue verso sud
+~
+sud south~
+0 0 8121 -1
+D3
+Dopo qualche fila di alberi scorgi una radura.
+~
+west ovest~
+0 0 8125 -1
+S
+#8123
+La fine del viottolo laterale~
+ Il piccolo viottolo si interrompe bruscamente, sei circondato da
+alberi enormi, verso ovest una grande roccia ti impedisce il passaggio.
+L'unica cosa e' tornare indietro, oppure accamparsi qui.
+~
+-1 0 3
+D2
+Il viottolo si dirama a poca distanza da te verso questa direzione
+~
+sud south~
+0 0 8122 -1
+S
+#8124
+Lo spiazzo~
+ Sei nella parte nord di un enorme prato in cui praticamente non
+ci sono alberi, verso ovest scorgi in lontananza un enorme Ebano,
+mentre verso est scorgi la cima di un grande masso.
+~
+-1 0 2
+D1
+La cima del grande masso ti occlude la visuale, ma vedi a distanza che c'e' il 
+bosco poco piu' sotto e ancora piu' in lontananza scorgi la magnifica citta' di Brea.
+~
+east est~
+0 0 8123 -1
+D2
+Vedi che il prato continua ancora per un po' verso sud
+~
+sud south~
+0 0 8125 -1
+D3
+Uno spiazzo con un'enorme albero
+~
+ovest west~
+0 0 8127 -1
+E
+masso~
+Guardandolo attentamente ti accorgi che non sarebbe difficile 
+oltrepassarlo e calarsi di sotto
+~
+S
+#8125
+Uno spiazzo~
+ Sei nella parte sud di un grosso prato dove praticamente non ci
+sono alberi. Verso nord-ovest scorgi un enorme Ebano mentre
+verso nord-est la punta di un grande masso si erge dal prato.
+Il prato continua verso nord e verso ovest.
+~
+-1 0 2
+D0
+Il prato continua verso nord per un lungo tratto.
+~
+nord north~
+0 0 8124 -1
+D3
+Il prato continua verso ovest per un lungo tratto.
+~
+ovest west~
+0 0 8126 -1
+S
+#8126
+Un prato~
+ Sei nella parte ovest del grande prato che si trova all'interno del 
+bosco, tutte le uscite sono chiuse da alberi o rocce tranne che
+verso est dove continua il prato.
+Verso nord oltre le rocce scorgi gli ultimi rami di un grande Ebano.
+~
+-1 0 2
+D1
+Il prato continua verso est per un lungo tratto.
+~
+est east~
+0 0 8125 -1
+S
+#8127
+Di fronte al grande Ebano~
+ Ti trovi alle radici di un enorme albero d' Ebano, le dimensioni 
+stesse delle sue radici sono imponenti e le dimensioni dell'albero ti 
+impressionano notevolmente. Ti senti quasi opprimere da questa
+presenza e vorresti tornare nel prato verso est per riprendere fiato.
+~
+-1 0 2
+D1
+Lontano dalle fronde dell'albero di ebano scorgi un tratto di prato privo di alberi.
+~
+east est~
+0 0 8124 -1
+E
+albero ebano~
+E' enorme pensi che se tu potessi scavarlo potresti costruirci
+dentro non solo una semplice casa ma praticamente un
+CASTELLO!!!!
+~
+S
+#8128
+Un enorme rovo~
+ Sei entrato dentro un enorme rovo e ti muovi con difficolta', verso 
+ovest scorgi il sentiero dietro un mucchio di rovi mentre nelle altre 
+direzioni ti infili sempre piu' nel roveto.
+~
+-1 8|33554432 3
+D1
+Sempre piu' in mezzo ai rovi.
+~
+east est~
+0 0 8132 -1
+D2
+Sempre piu' in mezzo ai rovi.
+~
+south sud~
+0 0 8129 -1
+D3
+Vedi il sentiero principale del bosco, sicuramente dove ti vorresti trovare in 
+questo momento
+~
+rovo~
+1|8 -1 8106 496
+S
+#8129
+Dentro al rovo~
+ Sei immerso nei rovi fino alla testa la situazione non e' confortate
+e il rumore degli insetti che si agitano al tuo passaggio non fa' altro 
+che innervosirti.
+~
+-1 8|33554432 3
+D0
+Il roveto si fa' meno fitto.
+~
+north nord~
+0 0 8128 -1
+D2
+Sempre piu' in mezzo ai rovi.
+~
+south sud~
+0 0 8130 -1
+S
+#8130
+Dentro al rovo~
+ Sei immerso nei rovi fino alla testa la situazione non e' confortate
+e il rumore degli insetti che si agitano al tuo passaggio non fa' altro 
+che innervosirti. Verso sud scorgi una grossa buca in terra e un forte
+sibilo ti mette sul chi va la'.
+~
+-1 8|33554432 3
+D0
+Sempre piu' in mezzo ai rovi.
+~
+nord north~
+0 0 8129 -1
+D2
+Una grossa buca
+~
+sud south~
+0 0 8131 -1
+S
+#8131
+La tana del serpente~
+ Sei all'interno della tana di un enorme serpente a giudicare dai
+resti che trovi tutt'intorno al suo giaciglio. Spera di essere arrivato
+in un momento in cui il padrone di casa e' fuori per il pranzo se no
+rischi di essere TU il suo pranzo.
+~
+-1 8|33554432 3
+D0
+L'unica via di fuga e' attraverso un immenso roveto
+~
+nord north~
+0 0 8130 -1
+E
+resti~
+Con orrore oltre che hai resti semi-digeriti di vari animali 
+scorgi anche quel poco che rimane di un uomo.
+~
+S
+#8132
+Dentro al rovo~
+ Sei immerso nei rovi fino alla testa la situazione non e' confortate
+e il rumore degli insetti che si agitano al tuo passaggio non fa' altro 
+che innervosirti.
+~
+-1 8|33554432 3
+D1
+Vedi soltanto rovi in ogni direzione
+~
+east est~
+0 0 8133 -1
+D3
+Scorgi soltanto rovi in tutte le direzioni
+~
+west ovest~
+0 0 8128 -1
+S
+#8133
+Un enorme rovo~
+ Sei giunto al limitare di un enorme roveto, verso ovest ti aspettano 
+le spine mentre verso sud ti sembra che il roveto stia finendo e ti
+pare di scorgere qualcosa oltre il muro di spine.
+~
+-1 0 3
+D2
+Oltre un muro di rovi scorgi un viottolo
+~
+muro~
+1|8|32|512 -1 8134 495
+D3
+Vedi rovi a perdita d'occhio
+~
+west ovest~
+0 0 8132 -1
+S
+#8134
+Fine del viottolo~
+ Sei alla fine di un viottolo che si districa tra i roveti.
+~
+-1 0 3
+D0
+Vedi un muro di spine che non ti sembra eccezionalmente resistente
+~
+rovo~
+1|8|32|512 -1 8133 495
+D1
+Il viottolo che continua verso est non sara' grande ma almeno evita che tu ti 
+punga con i rovi.
+~
+east west~
+0 0 8135 -1
+S
+#8135
+Un viottolo fra i rovi~
+ Ti stai muovendo lungo un viottolo molto stretto e pieno di curve
+che si snoda tra i roveti presenti nel bosco.
+Non sara' comodo ma almeno evita che tu ti punga con le spine.
+~
+-1 0 3
+D1
+Il viottolo continua a volte piu' stretto a volte piu' largo, protesta (se arrivi a farlo)
+con i giardinieri di Brea
+~
+east est~
+0 0 8136 -1
+D3
+Il viottolo per tua sfortuna finisce di li a poco.
+~
+west ovest~
+0 0 8134 -1
+S
+#8136
+Un viottolo fra i rovi~
+ Ti stai muovendo lungo un viottolo molto stretto e pieno di curve
+che si snoda tra i roveti presenti nel bosco.
+Non sara' comodo ma almeno evita che tu ti punga con le spine.
+~
+-1 0 3
+D1
+Il viottolo continua a volte piu' stretto a volte piu' largo, protesta (se arrivi a farlo)
+con i giardinieri di Brea
+~
+east est~
+0 0 8137 -1
+D3
+Il viottolo continua a volte piu' stretto a volte piu' largo, protesta (se arrivi a farlo)
+con i giardinieri di Brea
+~
+west ovest~
+0 0 8135 -1
+S
+#8137
+Un viottolo fra i rovi~
+ Ti stai muovendo lungo un viottolo molto stretto e pieno di curve
+che si snoda tra i roveti presenti nel bosco. Non sara' comodo ma
+almeno evita che tu ti punga con le spine. A nord in lontananza si
+apre una distesa di funghi.
+~
+-1 0 3
+D0
+I rovi lasciano lo spazio ad un fungheto 
+~
+nord north~
+0 0 8138 -1
+D3
+Il viottolo continua a volte piu' stretto a volte piu' largo, protesta (se arrivi a farlo)
+con i giardinieri di Brea
+~
+west ovest~
+0 0 8136 -1
+S
+#8138
+Il limitare sud del fungheto~
+ Ti trovi nella parte meridionale di un fungheto che continua anche 
+verso ovest, mentre verso sud vedi un'immensa distesa di rovi 
+apparentemente attraversata da un viottolo.
+~
+-1 0 2
+D2
+Il viottolo sembra a volte piu' stretto a volte piu' largo, protesta (se arrivi a farlo)
+con i giardinieri di Brea
+~
+~
+0 0 8137 -1
+D3
+Il fungheto continua a perdita d'occhio verso ovest.
+~
+west ovest~
+0 0 8139 -1
+S
+#8139
+Nel fungheto~
+ Ti trovi su un enorme tappeto di funghi, non sai quanti di questi
+sono commestibili, potresti far provare a qualche tuo amico.
+Il fungheto forma una specie di elle e tu ti trovi nella parte centrale,
+verso nord e verso est il fungheto continua.
+~
+-1 0 2
+D0
+Il fungheto continua formando un enorme tappeto
+~
+north nord~
+0 0 8140 -1
+D1
+Il fungheto continua per quanto riescono a vedere i tuoi occhi
+~
+est east~
+0 0 8138 -1
+S
+#8140
+Nel fungheto~
+ Il fungheto continua ininterrotto lungo l'asse nord sud e ti sembra 
+non finire mai.
+~
+-1 0 2
+D0
+Il fungheto continua formando un enorme tappeto
+~
+nord north~
+0 0 8141 -1
+D2
+Il fungheto continua formando un enorme tappeto
+~
+sud south~
+0 0 8139 -1
+S
+#8141
+Nel fungheto~
+ Il fungheto compie una svolta lasciando posto verso nord e verso
+ovest al bosco mentre sembra formare un enorme serpentone che
+si incurva verso sud e verso est.
+~
+-1 0 2
+D1
+Il fungheto continua formando un enorme tappeto
+~
+east est~
+0 0 8142 -1
+D2
+Il fungheto continua formando un enorme tappeto
+~
+south sud~
+0 0 8140 -1
+S
+#8142
+Nel fungheto~
+ Sei circondato da funghi in ogni direzione il tappeto di cappelle di 
+ogni forma e colore si stende da est ad ovest mentre verso nord in 
+lontananza scorgi un bosco.
+~
+-1 0 2
+D0
+Riesci a scorgere in lontananza oltre le cappelle dei funghi un sentiero che 
+comincia al limitare del bosco.
+~
+north nord~
+0 0 8241 -1
+D1
+Il fungheto continua formando un enorme tappeto
+~
+east est~
+0 0 8143 -1
+D3
+Il fungheto continua formando un enorme tappeto
+~
+west ovest~
+0 0 8141 -1
+S
+#8143
+Nel fungheto~
+ La straripante abbondanza di funghi ti atterrisce, anche se sai
+cosa poter fare ora una volta andato in pensione come avventuriero,
+verso sud scorgi un enorme fungo.
+~
+-1 0 2
+D1
+Il fungheto continua formando un enorme tappeto
+~
+est east~
+0 0 8145 -1
+D2
+Vedi oltre a tanti piccoli funghi un enorme fungo
+~
+south sud~
+0 0 8144 -1
+D3
+Il fungheto continua formando un enorme tappeto
+~
+west ovest~
+0 0 8142 -1
+S
+#8144
+L'enorme fungo~
+ Ti trovi di fronte ad un fungo di dimensioni gigantesche e non sai 
+come comportarti nei suoi confronti. Ci potresti sfamare tutta Myst
+per un paio di settimane, poi un pensiero ti gela il sangue nelle vene,
+potrebbe essere lui a mangiarsi tutta Myst in due ore cominciando
+proprio da TE!
+~
+-1 4 3
+D0
+Il fungheto continua formando un enorme tappeto
+~
+nord north~
+0 0 8143 -1
+S
+#8145
+Il limitare est del fungheto~
+ Sei alla parte orientale del fungheto, si estende sotto i tuoi occhi 
+lungo quasi tutto l'orizzonte. Solo verso nord e verso east un bosco 
+limita l'avanzare dei funghi.
+~
+-1 0 2
+D0
+Vedi il bosco che rigoglioso cresce qui vicino a Brea.
+~
+north nord~
+0 0 8146 -1
+D3
+Il fungheto continua formando un enorme tappeto
+~
+west ovest~
+0 0 8143 -1
+S
+#8146
+Nel boschetto~
+ Sei al limitare di un bosco di alberi abbastanza giovani, in 
+lontananza verso sud-ovest scorgi la favolosa citta' di Brea ma
+ancora la riesci a malapena ad intravedere la staccionata.
+~
+-1 0 3
+D1
+Il sentiero ti porta verso oriente all'interno di un bosco di giovani alberi.
+~
+east est~
+0 0 8147 -1
+D2
+Scorgi una grossa quantita' di funghi che crescono alla rinfusa.
+~
+south sud~
+0 0 8145 -1
+S
+#8147
+Nel boschetto~
+ Ti muovi tranquillo all'interno del boschetto il sentiero che stai 
+percorrendo e' abbastanza facile da seguire e il rumore degli animali 
+ti rincuora.
+~
+-1 0 3
+D1
+Il sentiero continua nel bosco senza grandi cambiamenti, portandoti verso
+l'estremita' nord del bosco.
+~
+east est~
+0 0 8148 -1
+D3
+Il sentiero continua nel bosco senza grandi cambiamenti.
+~
+west ovest~
+0 0 8146 -1
+S
+#8148
+A nord nel boschetto~
+ Sei nella parte nord del piccolo boschetto, la tranquillita' regna 
+sovrana anche i piccoli animali sembrano aver abbassato i loro
+usuali rumori per permetterti di rilassarti.
+~
+-1 0 3
+D2
+Il sentiero continua nel bosco senza grandi cambiamenti, portandoti nel cuore 
+del piccolo boschetto
+~
+south sud~
+0 0 8149 -1
+D3
+Il sentiero continua nel bosco senza grandi cambiamenti.
+~
+west ovest~
+0 0 8147 -1
+S
+#8149
+Nel mezzo del boschetto~
+ Sei al centro del piccolo boschetto e il sentiero ti permette di
+muoverti agilmente tra gli alberi, il sentiero e' agibile andando verso 
+sud e verso nord mentre e' impossibile attraversare gli alberi nelle 
+altre direzioni.
+~
+-1 0 3
+D0
+Il sentiero continua nel bosco senza grandi cambiamenti.
+~
+north nord~
+0 0 8148 -1
+D2
+Il sentiero continua nel bosco senza grandi cambiamenti.
+~
+south sud~
+0 0 8150 -1
+S
+#8150
+A sud nel boschetto~
+ Sei nella parte meridionale del bosco nuovo, l'aria pulita e fresca
+ti riempie i polmoni e ti mette voglia di andare in cerca di avventure.
+E come per placare subito questa voglia scorgi verso ovest l'ingresso 
+di una galleria che a tutta l'aria di essere un posto interessante da 
+esplorare.
+~
+-1 0 3
+D0
+Il sentiero continua nel bosco senza grandi cambiamenti.
+~
+north nord~
+0 0 8149 -1
+D3
+L'ingresso di una caverna, ti sembra apparentemente sicuro e per ora non senti
+nessun rumore provenire dall'interno.
+~
+west ovest~
+0 0 8151 -1
+S
+#8151
+Una piccola caverna~
+ La caverna e' abbastanza grande e accogliente un ottimo posto
+per passarci la notte. Ma non lo devi aver pensato solamente te,
+i resti di un qualche pranzo sono disseminati un po' a caso sul
+pavimento, non riesci pero' a distinguere di cosa siano questi resti.
+~
+-1 1|4|8 0
+D1
+Oltre le pareti di roccia scorgi un piccolo boschetto
+~
+east est~
+0 0 8150 -1
+S
+#8152
+Un sentiero verso est~
+ Stai camminando lungo un sentiero che va' verso oriente.
+Gli alberi ti accompagnano nel tuo cammino.
+~
+-1 0 3
+D1
+Il sentiero prosegue tra gli alberi 
+~
+east west~
+0 0 8153 -1
+S
+#8153
+Un sentiero prosegue nel bosco~
+ Continui a camminare tranquillo alcuni piccoli animali ti fanno
+festa quando passi loro accanto.
+~
+-1 0 3
+D1
+Il sentiero prosegue tra gli alberi
+~
+east est~
+0 0 8154 -1
+D3
+Il sentiero prosegue tra gli alberi
+~
+west ovest~
+0 0 8152 -1
+S
+#8154
+Un sentiero prosegue nel bosco~
+ Continui a camminare tranquillo alcuni piccoli animali ti fanno
+festa quando passi loro accanto.
+~
+-1 0 3
+D1
+Il sentiero prosegue tra gli alberi e sembra incurvarsi in lontananza
+~
+east est~
+0 0 8155 -1
+D3
+Il sentiero prosegue tra gli alberi
+~
+west east~
+0 0 8153 -1
+S
+#8155
+La svolta del sentiero~
+ Continui a camminare tranquillo alcuni piccoli animali ti fanno
+festa quando passi loro accanto. Sei ad una svolta nel percorso
+del sentiero puoi proseguire verso nord o verso ovest.
+~
+-1 0 3
+D0
+Il sentiero prosegue tra gli alberi
+~
+nord north~
+0 0 8156 -1
+D3
+Il sentiero prosegue tra gli alberi
+~
+west ovest~
+0 0 8154 -1
+S
+#8156
+La svolta del sentiero~
+ Continui a camminare tranquillo alcuni piccoli animali ti fanno
+festa quando passi loro accanto. Il sentiero curva ancora verso
+sud e verso ovest.
+~
+-1 0 3
+D2
+Il sentiero prosegue tra gli alberi
+~
+south sud~
+0 0 8155 -1
+D3
+Il sentiero prosegue tra gli alberi
+~
+west ovest~
+0 0 8157 -1
+S
+#8157
+Un sentiero prosegue nel bosco~
+ Continui a camminare tranquillo alcuni piccoli animali ti fanno
+festa quando passi loro accanto.
+~
+-1 0 3
+D1
+Il sentiero prosegue tra gli alberi
+~
+east est~
+0 0 8156 -1
+D3
+Il sentiero prosegue tra gli alberi
+~
+ovest west~
+0 0 8158 -1
+S
+#8158
+Un sentiero prosegue nel bosco~
+ Continui a camminare tranquillo alcuni piccoli animali ti fanno
+festa quando passi loro accanto.
+~
+-1 0 3
+D1
+Il sentiero prosegue tra gli alberi
+~
+east est~
+0 0 8157 -1
+D3
+Il sentiero prosegue tra gli alberi
+~
+west ovest~
+0 0 8159 -1
+S
+#8159
+Un sentiero prosegue nel bosco~
+ Continui a camminare tranquillo alcuni piccoli animali ti fanno
+festa quando passi loro accanto.
+Senti una leggera brezza provenire da ovest.
+~
+-1 0 3
+D1
+Il sentiero prosegue tra gli alberi
+~
+east est~
+0 0 8158 -1
+D3
+In lontananza lungo il sentiero scorgi una radura
+~
+west ovest~
+0 0 8113 -1
+S
+#8160
+Un'apertura tra i fitti rami~
+ Ti stai districando tra una serie di rami e sterpi che ti impediscono 
+di muoverti con agilita', spesso i vestiti ti rimangono impigliati nelle
+spine ma tutto sommato riesci ad aprirti un varco.
+Ad un certo punto il tuo piede schiaccia qualcosa e senti un sinistro 
+scrach provenire da sotto il tuo piede vicino ad un sasso.
+~
+-1 0 3
+D1
+Vedi una serie intricata di rami ma li puoi attraversare con un minimo di agilita'
+~
+west ovest~
+0 0 8113 -1
+D3
+Vedi lo scintillio prodotto da dell'acqua che fuoriesce da una roccia
+~
+ovest west~
+0 0 8161 -1
+E
+sasso~
+Vicino al piccolo sasso vicino al tuo piede trovi i resti di quella che
+era una piccola coccinella.
+L'hai schiacciata VERGOGNATI!!!!!!!
+~
+S
+#8161
+Una piccola sorgente~
+ Sei ai piedi di un immensa roccia da cui sgorga una grande
+quantita' di acqua pura e fresca, l'acqua forma un piccolo ruscello
+che scivola placido verso sud.
+~
+-1 0 2
+D1
+Una serie di rami e sterpi sembra bloccarti la strada ma poi trovi un varco
+~
+east est~
+0 0 8160 -1
+D2
+Il ruscello scorre tranquillo
+~
+sud south~
+0 0 8162 -1
+S
+#8162
+Tra le acque del ruscello~
+ Il ruscello scorre tranquillo tra gli alberi e anche se la velocita' 
+dei flutti e' notevole non hai problemi a mantenere stabile la barca.
+Verso ovest vedi una spiaggetta.
+~
+-1 0 7 15 2
+D0
+Il ruscello scorre tranquillo, scorgi la sua fonte
+~
+nord north~
+0 0 8161 -1
+D2
+Il ruscello scorre tranquillo
+~
+south sud~
+0 0 8163 -1
+D3
+Vedi un piccolo approdo
+~
+west ovest~
+0 0 8171 -1
+S
+#8163
+Tra le acque del ruscello~
+ Il ruscello scorre tranquillo tra gli alberi e anche se la velocita'
+dei flutti e' notevole non hai problemi a mantenere stabile la barca.
+~
+-1 0 7 15 2
+D0
+Il ruscello scorre tranquillo
+~
+north nord~
+0 0 8162 -1
+D2
+Il ruscello scorre tranquillo
+~
+south sud~
+0 0 8164 -1
+S
+#8164
+Tra le acque del ruscello~
+ Il ruscello scorre tranquillo tra gli alberi e anche se la velocita' 
+dei flutti e' notevole non hai problemi a mantenere stabile la barca.
+~
+-1 0 7 15 2
+D0
+Il ruscello scorre tranquillo
+~
+nord north~
+0 0 8163 -1
+D2
+Il ruscello scorre tranquillo verso un piccolo laghetto
+~
+south sud~
+0 0 8165 -1
+S
+#8165
+Un piccolo laghetto~
+ L'acqua del ruscello rallenta fino a formare un piccolo laghetto,
+da qui o puoi risalire la corrente verso nord oppure approdare ad
+una spiaggia verso ovest.
+~
+-1 0 7 0 0
+D0
+Vedi il ruscello che produce questo laghetto
+~
+nord north~
+0 0 8164 -1
+D3
+Una spiaggia
+~
+west ovest~
+0 0 8166 -1
+S
+#8166
+La riva sud-ovest del ruscello~
+ Sei al limitare di un piccolo laghetto nel mezzo del bosco, verso
+nord c'e' un sentiero mentre per andare sul lago hai bisogno di una
+barca.
+~
+-1 0 3
+D0
+Vedi un viottolo che si snoda lungo la sponda del lago
+~
+nord north~
+0 0 8167 -1
+D1
+Vedi uno specchio di acqua pura 
+~
+east est~
+0 0 8165 -1
+S
+#8167
+Lungo la riva~
+ Cammini tranquillo lungo un sentiero che corre lungo la riva del 
+ruscello, il sentiero ti porta o verso nord o verso sud mentre verso 
+ovest un passaggio tra i due monconi di un albero di castagno. 
+~
+-1 0 3
+D0
+Il sentiero prosegue verso nord
+~
+nord north~
+0 0 8171 -1
+D2
+Il sentiero prosegue verso sud
+~
+~
+0 0 8166 -1
+D3
+Oltre i due pezzi dell'albero morto vedi un castagneto
+~
+west ovest~
+0 0 8168 -1
+E
+castagno albero~
+Deve essere stato spaccato da un fulmine, guardando le bruciature sul tronco.
+~
+S
+#8168
+Nel castagneto~
+ Stai camminando tra giovani alberi di castagno devi stare attento 
+perche' ogni tanto qualche animaletto distratto lascia cadere dagli 
+alberi qualche castagna. Tronchi caduti e alberi troppo fitti ti fanno
+proseguire solo verso nord e verso est.
+~
+-1 0 3
+D0
+Vedi altri castagni
+~
+nord north~
+0 0 8169 -1
+D1
+Attraverso un tronco arrivi su un sentiero che costeggia un ruscello
+~
+east est~
+0 0 8167 -1
+S
+#8169
+Nel castagneto~
+ Stai camminando su un sentiero attraverso un castagneto, l'aria 
+tranquilla ti fa' dimenticare che il pericolo si annida nei posti piu' 
+impensati.
+~
+-1 0 3
+D0
+Vedi altri castagni
+~
+nord north~
+0 0 8170 -1
+D2
+Vedi altri castagni
+~
+south sud~
+0 0 8168 -1
+S
+#8170
+Nel castagneto~
+ Stai camminando su un sentiero attraverso un castagneto, l'aria 
+tranquilla ti fa' dimenticare che il pericolo si annida nei posti piu' 
+impensati.
+~
+-1 0 3
+D1
+Vedi la sponda di un ruscello 
+~
+east est~
+0 0 8171 -1
+D2
+Vedi altri castagni
+~
+south sud~
+0 0 8169 -1
+S
+#8171
+La riva nord-ovest del ruscello~
+ Sei sulla sponda di un piccolo ruscello, verso sud vedi un sentiero 
+che corre parallelo al ruscello mentre verso ovest scorgi un folto 
+gruppo di castagni.
+Le acque del ruscello ti sembrano facilmente navigabili.
+~
+-1 0 3
+D1
+Un piccolo ruscello
+~
+east est~
+0 0 8162 -1
+D2
+Un sentiero
+~
+south sud~
+0 0 8167 -1
+D3
+Un sentiero tra i castagni
+~
+west ovest~
+0 0 8170 -1
+S
+#8172
+Nel bosco~
+ Ti trovi circondato da enormi alberi, sei nel pieno della foresta e 
+l'unica via percorribile e' quella dalla quale sei arrivato.
+(mhhhmmm sembrerebbe un buon posto per una trappola)
+~
+-1 0 3
+D2
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+south sud~
+0 0 8173 -1
+S
+#8173
+Nel bosco~
+ Il sentiero nel bosco fa' una piccola curva, le direzioni sono
+obbligate a meno che tu non voglia disboscare l'intera zona e non
+ti sembra proprio una cosa facile da farsi.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+north nord~
+0 0 8172 -1
+D3
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+west ovest~
+0 0 8109 -1
+S
+#8174
+Nel bosco~
+ Stai seguendo un sentiero nel bosco, il frusciare delle foglie sotto
+i tuoi piedi ti innervosisce ma la zona sembra tranquilla. Vedi inoltre 
+che il sentiero prosegue normalmente verso est mentre verso ovest 
+termina in un viottolo.
+~
+-1 0 3
+D1
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+east est~
+0 0 8175 -1
+D3
+Vedi la parte terminale di un viottolo 
+~
+west ovest~
+0 0 8108 -1
+S
+#8175
+Nel bosco~
+ Sei giunto ad un altra curva nel viottolo che percorre il bosco.
+Gli alberi straripano di fiori e gli animali si muovono rapidi sui loro 
+rami. Vedi in alto sui rami una coppia di scoiattoli.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+north nord~
+0 0 8176 -1
+D3
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+west ovest~
+0 0 8174 -1
+E
+scoiattoli~
+Devono essere maschio e femmina perche' sembra che si
+stiano facendo le coccole
+~
+S
+#8176
+Nel bosco~
+ Sei giunto ad una biforcazione nel sentiero che passa attraverso
+il bosco, puoi andare verso nord, verso sud e verso ovest. Le tre 
+direzioni ti sembrano apparentemente uguali.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+north nord~
+0 0 8177 -1
+D2
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+south sud~
+0 0 8175 -1
+D3
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+west ovest~
+0 0 8173 -1
+S
+#8177
+Nel bosco~
+ Sei giunto dopo tanto cammino tra questi alberi ad una curva del 
+sentiero, purtroppo se pensavi che gli alberi finissero qui ti sbagli 
+di grosso, oltre la curva il sentiero continua e gli alberi pure.
+Vedi un segno inciso su un pino.
+~
+-1 0 3
+D2
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+south sud~
+0 0 8176 -1
+D3
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+south sud~
+0 0 8173 -1
+E
+segno incisione~
+Fouler was here (18^ giorno, Mese del Grande Pianto, anno 49)
+~
+S
+#8178
+Il sentiero ovest~
+ Sei vicino al centro del bosco verso ovest vedi che il sentiero 
+continua mentre verso est arrivi a quello che ti pare un piccolo 
+incrocio nel cuore del bosco.
+~
+-1 0 3
+D1
+Vedi in lontananza un piccolo spiazzo
+~
+east est~
+0 0 8115 -1
+D3
+Intravedi un sentiero
+~
+west ovest~
+0 0 8179 -1
+S
+#8179
+La svolta a nord~
+ Il sentiero compie una grande curva, gli alberi sono piegati dal
+forte vento e tra i rami scorgi il cielo, verso sud la curva sembra 
+continuare compiendo un ampio curvone, mentre verso est il
+sentiero ti porta verso il centro del bosco.
+~
+-1 0 3
+D1
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+east est~
+0 0 8178 -1
+D2
+Il sentiero si incurva
+~
+south sud~
+0 0 8180 -1
+S
+#8180
+La svolta sud~
+ Il sentiero compie una grande curva, gli alberi sono piegati dal
+forte vento e tra i rami scorgi il cielo, verso nord il sentiero sembra 
+continuare compiendo un ampio curvone.
+Verso ovest il sentiero ti porta verso l'esterno del bosco.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+north nord~
+0 0 8179 -1
+D3
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+west ovest~
+0 0 8181 -1
+S
+#8181
+Il sentiero prosegue~
+ Il sentiero prosegue serpeggiando tra gli antichi alberi che formano
+questa foresta, i piccoli animali che la popolano ti guardano incuriositi.
+~
+-1 0 3
+D1
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+est east~
+0 0 8180 -1
+D3
+Gli alberi lasciano lo spazio necessario per poter passare e in lontananza vedi un bivio
+~
+west ovest~
+0 0 8182 -1
+S
+#8182
+Una piccola biforcazione~
+ Sei giunto ad una piccola biforcazione al limitare di un grande
+bosco, vedi un cartello con scritte alcune frasi, il sentiero prosegue
+verso nord e verso est.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+north nord~
+0 0 8183 -1
+D1
+Gli alberi lasciano lo spazio necessario per poter passare
+~
+east est~
+0 0 8181 -1
+E
+cartello~
+Ingresso ovest di Bosco Cet
+Arceto 2 miglia a ovest
+~
+S
+#8183
+Il sentiero prosegue a nord~
+ Stai seguendo un sentiero lungo il limitare del bosco che ti porta 
+verso nord e verso sud in lontananza verso ovest scorgi delle
+capanne di un villaggio.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare e il sentiero continua
+~
+north nord~
+0 0 8184 -1
+D2
+Gli alberi lasciano lo spazio necessario per poter passare e vedi un piccolo bivio
+~
+south sud~
+0 0 8182 -1
+S
+#8184
+Il sentiero nord~
+ Stai seguendo un sentiero lungo il limitare del bosco che ti porta 
+verso nord e verso sud in lontananza verso ovest scorgi delle
+capanne di un villaggio.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare e il sentiero continua
+~
+north nord~
+0 0 8185 -1
+D2
+Gli alberi lasciano lo spazio necessario per poter passare e il sentiero continua
+~
+south sud~
+0 0 8183 -1
+S
+#8185
+Il sentiero nord~
+ Stai seguendo un sentiero lungo il limitare del bosco che ti porta 
+verso nord e verso sud in lontananza verso ovest scorgi delle
+capanne di un villaggio.
+~
+-1 0 3
+D0
+Gli alberi lasciano lo spazio necessario per poter passare e il sentiero continua
+~
+north nord~
+0 0 8186 -1
+D2
+Gli alberi lasciano lo spazio necessario per poter passare e il sentiero continua
+~
+south sud~
+0 0 8184 -1
+S
+#8186
+La fine del sentiero~
+ Stai seguendo un sentiero lungo il limitare del bosco che ti porta 
+verso nord e verso sud in lontananza verso ovest scorgi delle
+capanne di un villaggio. Non puoi proseguire ulteriormente verso
+nord ma verso est qualcosa ti incuriosisce.
+~
+-1 0 3
+D1
+Vedi un passaggio tra alcuni alberi che si sono inclinati per il peso dei rami e per il vento
+~
+east est~
+0 0 8187 -1
+D2
+Gli alberi lasciano lo spazio necessario per poter passare e il sentiero continua
+~
+south sud~
+0 0 8185 -1
+S
+#8187
+Un passaggio tra gli alberi~
+ Ti muovi tra tronchi che si sono accatastati gli uni su gli altri a
+causa di un qualche smottamento del terreno. Verso nord vedi una
+gran quantita' di querce mentre verso ovest c'e' il sentiero che
+costeggia il bosco dal lato ovest.
+~
+-1 0 3
+D0
+Vedi una grande distesa di querce
+~
+north nord~
+0 0 8188 -1
+D3
+Oltre i tronchi vedi la fine di un sentiero
+~
+west ovest~
+0 0 8186 -1
+S
+#8188
+Dentro al querceto~
+ Cammini tra delle grosse querce secolari che ti impressionano
+per la loro possanza, ti senti impaurito finche' il rumore di qualche 
+cornacchia non ti riporta alla realta'.
+~
+-1 0 3
+D0
+Le querce continuano a perdita d'occhio 
+~
+nord north~
+0 0 8189 -1
+D2
+Vedi dei tronchi d'albero ammassati tra loro
+~
+south sud~
+0 0 8187 -1
+S
+#8189
+Dentro al querceto~
+ Cammini tra delle grosse querce secolari che ti impressionano
+per la loro possanza, ti senti impaurito finche' il rumore di qualche 
+cornacchia non ti riporta alla realta'.
+~
+-1 0 3
+D0
+Vedi un immensa quercia che sovrasta le altre per le sue dimensioni
+~
+north nord~
+0 0 8191 -1
+D1
+Le querce continuano a perdita d'occhio 
+~
+est east~
+0 0 8192 -1
+D2
+Le querce continuano a perdita d'occhio 
+~
+south sud~
+0 0 8188 -1
+D3
+Vedi un enorme quercia che sovrasta le altre per le sue dimensioni
+~
+west ovest~
+0 0 8190 -1
+S
+#8190
+Di fronte ad una quercia~
+ Ti trovi di fronte ad un enorme quercia. Tutta la tua visuale finisce 
+con lei e ti senti veramente impotente nei confronti della natura stessa.
+~
+-1 0 3
+D1
+Le querce continuano a perdita d'occhio 
+~
+east est~
+0 0 8189 -1
+S
+#8191
+Di fronte ad una quercia~
+ La grandezza di questa pianta ti fa' sentire veramente piccolo
+(anche se sei un gigante). Capisci quali sono i tuoi limiti
+scontrandoti con quelli che la Natura non ha.
+~
+-1 0 3
+D2
+Le querce continuano a perdita d'occhio 
+~
+south sud~
+0 0 8189 -1
+S
+#8192
+Dentro al querceto~
+ Cammini tra delle grosse querce secolari che ti impressionano
+per la loro possanza, ti senti impaurito finche' il rumore di qualche 
+cornacchia non ti riporta alla realta'.
+~
+-1 0 3
+D0
+Le querce continuano a perdita d'occhio 
+~
+north nord~
+0 0 8194 -1
+D1
+Le querce continuano a perdita d'occhio pero' vedi che gli alberi si fanno piu' radi
+~
+east est~
+0 0 8193 -1
+D3
+Le querce continuano a perdita d'occhio 
+~
+west ovest~
+0 0 8189 -1
+S
+#8193
+Una radura nel querceto~
+ Le querce in questa zona sono un po' piu' rade e ti permettono di 
+godere di un po' di relax senza la loro opprimente presenza, e' un 
+ottimo posto dove portare la ragazza. Le uniche vie che puoi seguire
+per uscire di qui sono verso sud e verso nord, nelle altre gli alberi
+sono troppo fitti per permetterti un agevole passaggio.
+~
+-1 0 3
+D0
+Le querce continuano a perdita d'occhio 
+~
+north nord~
+0 0 8195 -1
+D3
+Le querce continuano a perdita d'occhio 
+~
+west ovest~
+0 0 8192 -1
+S
+#8194
+Dentro al querceto~
+ Cammini tra delle grosse querce secolari che ti impressionano
+per la loro possanza, ti senti opprimere finche' il rumore di qualche 
+cornacchia non ti riporta alla realta'. 
+~
+-1 0 3
+D2
+Le querce continuano a perdita d'occhio 
+~
+south sud~
+0 0 8192 -1
+D3
+Le querce continuano a perdita d'occhio 
+~
+west ovest~
+0 0 8195 -1
+S
+#8195
+Dentro al querceto~
+ Cammini tra delle grosse querce secolari che ti impressionano
+per la loro possanza, ti senti opprimere finche' il rumore di qualche 
+cornacchia non ti riporta alla realta'. Un piccolo fiorellino e' qui isolato.
+~
+-1 0 3
+D0
+Le querce continuano a perdita d'occhio 
+~
+north nord~
+0 0 8197 -1
+D1
+Le querce continuano a perdita d'occhio 
+~
+east est~
+0 0 8194 -1
+D2
+Le querce continuano a perdita d'occhio, vedi uno spiazzo poco distante
+~
+south sud~
+0 0 8193 -1
+E
+fiore fiorellino~
+e' una piccola margherita
+~
+S
+#8196
+Di fronte alla Grande Quercia~
+ Ti trovi di fronte alla quercia piu' grande di tutto il bosco (e le altre
+non ti sembravano affatto piccole), sei ammutolito.
+Ti viene voglia di allontanarti da qui.
+~
+-1 0 3
+D1
+Le querce continuano a perdita d'occhio 
+~
+east est~
+0 0 8197 -1
+S
+#8197
+Dentro al querceto~
+ Cammini tra delle grosse querce secolari che ti impressionano
+per la loro possanza, ti senti impaurito finche' il rumore di qualche 
+cornacchia non ti riporta alla realta'. Verso ovest vedi una quercia
+talmente grande da far sembrare le altre dei semplici arbusti.
+~
+-1 0 3
+D0
+Le querce continuano a perdita d'occhio, vedi una quercia un po' piu' grande delle altre
+~
+north nord~
+0 0 8198 -1
+D2
+Le querce continuano a perdita d'occhio 
+~
+south sud~
+0 0 8195 -1
+D3
+Vedi un'immensa quercia
+~
+west ovest~
+0 0 8196 -1
+S
+#8198
+Di fronte ad una quercia~
+ Ti trovi di fronte ad una grossa quercia sui cui rami hanno fatto il 
+nido una grande quantita' di piccoli uccelli.
+~
+-1 0 3
+D2
+Le querce continuano a perdita d'occhio 
+~
+south sud~
+0 0 8197 -1
+S
+#8199
+Dentro al bosco~
+ Sei all'interno della boscaglia, gli alti alberi quasi ti impediscono 
+di vedere il sole o le stelle, verso ovest ti sembra di scorgere una 
+specie di incrocio nella foresta, mentre verso est non puoi fare a 
+meno di notare una immensa sequoia gigante.
+~
+-1 1 3
+D1
+Vedi l'imponente sequoia
+~
+east est~
+0 0 8200 -1
+D3
+Vedi un piccolo incrocio di viottoli
+~
+west ovest~
+0 0 8115 -1
+S

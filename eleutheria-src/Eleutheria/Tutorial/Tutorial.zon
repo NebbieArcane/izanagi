@@ -1,0 +1,13 @@
+#600
+La Casa Chiusa~
+60099 10 -1 1 2
+*! Inizializzazione della zona 600
+
+M 0 60000 1 60000  *! Mob 60000 (un buttafuori) nella stanza 60000 (Ingresso alla Casa Chiusa)
+H 1 4 6  *! Odio verso la classe Barbarians
+
+D 0 60000 1 1  *! Uscita east della stanza 60000 (Ingresso alla Casa Chiusa): chiusa
+D 0 60001 3 1  *! Uscita west della stanza 60001 (L'Atrio della Casa Chiusa): chiusa
+
+*! Fine dell'inizializzazione della zona 600
+S
