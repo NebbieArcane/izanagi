@@ -1,0 +1,70 @@
+name: Izanagi restyle (CI)
+
+# Solo restyle: la nuova codebase. NON gira su main.
+on:
+  push:
+    branches: ["restyle"]
+  pull_request:
+    branches: ["restyle"]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Configure and build
+        run: ./scripts/build.sh
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Binary exists
+        run: test -x build/app/eleutheria
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Configure and build
+        run: |
+          export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+          ./scripts/build.sh
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: App bundle exists
+        run: test -x build/app/eleutheria.app/Contents/MacOS/eleutheria
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.5.3"
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+
+      - name: Configure and build
+        shell: pwsh
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release -j $env:NUMBER_OF_PROCESSORS
+          ctest --test-dir build -C Release --output-on-failure
+
+      - name: Binary exists
+        shell: pwsh
+        run: Test-Path ./build/app/Release/eleutheria.exe
