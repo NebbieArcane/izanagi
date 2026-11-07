@@ -25,7 +25,7 @@ if [[ "${RUN_BUILD}" -eq 1 ]]; then
   "${ROOT}/scripts/build.sh"
 fi
 
-BIN="${BUILD}/app/eleutheria"
+BIN="${BUILD}/app/izanagi"
 if [[ ! -x "${BIN}" ]]; then
   echo "ERROR: manca ${BIN}" >&2
   exit 1
@@ -33,29 +33,29 @@ fi
 
 STAGING="${DIST}/linux-staging"
 rm -rf "${STAGING}"
-mkdir -p "${STAGING}/bin" "${STAGING}/share/eleutheria" "${DIST}"
+mkdir -p "${STAGING}/bin" "${STAGING}/share/izanagi" "${DIST}"
 
-cp -a "${BIN}" "${STAGING}/bin/eleutheria"
-cp -a "${ROOT}/sample" "${STAGING}/share/eleutheria/"
-cp -a "${ROOT}/catalogs" "${STAGING}/share/eleutheria/"
+cp -a "${BIN}" "${STAGING}/bin/izanagi"
+cp -a "${ROOT}/sample" "${STAGING}/share/izanagi/"
+cp -a "${ROOT}/catalogs" "${STAGING}/share/izanagi/"
 cp -a "${ROOT}/README.md" "${STAGING}/README.md"
 
 cat > "${STAGING}/LEGGIMI.txt" <<EOF
-Eleutheria / Izanagi (restyle) — Linux
+Izanagi / Izanagi (restyle) — Linux
 ======================================
 
 1. Estrai l'archivio
 2. Installa Qt6 runtime se manca, es. su Ubuntu/Debian:
      sudo apt install libqt6widgets6 libqt6gui6 libqt6core6
 3. Avvia:
-     ./bin/eleutheria
+     ./bin/izanagi
 
-Mondo di esempio: share/eleutheria/sample/B1
+Mondo di esempio: share/izanagi/sample/B1
 Versione pacchetto: ${VERSION}
 EOF
 
 ARCH="$(uname -m)"
-OUT="${DIST}/eleutheria_${VERSION}_linux_${ARCH}.tar.gz"
+OUT="${DIST}/izanagi_${VERSION}_linux_${ARCH}.tar.gz"
 tar -C "${STAGING}" -czf "${OUT}" .
 echo "Creato: ${OUT}"
 ls -la "${OUT}"

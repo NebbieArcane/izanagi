@@ -24,7 +24,7 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
       - name: Binary exists
-        run: test -x build/app/eleutheria
+        run: test -x build/app/izanagi
 
   build-macos:
     runs-on: macos-latest
@@ -43,7 +43,7 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
       - name: App bundle exists
-        run: test -x build/app/eleutheria.app/Contents/MacOS/eleutheria
+        run: test -x build/app/izanagi.app/Contents/MacOS/izanagi
 
   build-windows:
     runs-on: windows-latest
@@ -67,4 +67,4 @@ jobs:
 
       - name: Binary exists
         shell: pwsh
-        run: Test-Path ./build/app/Release/eleutheria.exe
+        run: Test-Path ./build/app/Release/izanagi.exe

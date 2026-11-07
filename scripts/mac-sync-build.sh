@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Eleutheria — sync dal VPS + build su macOS
+# Izanagi — sync dal VPS + build su macOS
 #
 # Uso tipico (dal Mac):
 #   ~/src/new-izanagi/scripts/mac-sync-build.sh
@@ -12,10 +12,10 @@
 #     bash /tmp/mac-sync-build.sh --bootstrap
 #   oppure esegui questo script se e' gia' sul Mac.
 #
-# Config (override con env o file ~/.config/eleutheria/sync.env):
-#   ELEUTHERIA_VPS=vps-tailscale
-#   ELEUTHERIA_REMOTE=/home/nebbie/new-izanagi
-#   ELEUTHERIA_LOCAL=$HOME/src/new-izanagi
+# Config (override con env o file ~/.config/izanagi/sync.env):
+#   IZANAGI_VPS=vps-tailscale
+#   IZANAGI_REMOTE=/home/nebbie/new-izanagi
+#   IZANAGI_LOCAL=$HOME/src/new-izanagi
 # =============================================================================
 set -euo pipefail
 
@@ -30,24 +30,24 @@ DRY_RUN=0
 
 usage() {
   cat <<EOF
-${SCRIPT_NAME} — sincronizza Eleutheria dal VPS e compila sul Mac
+${SCRIPT_NAME} — sincronizza Izanagi dal VPS e compila sul Mac
 
 Uso:
   ${SCRIPT_NAME} [opzioni]
 
 Opzioni:
   --bootstrap   Prima installazione: crea cartella locale, sync, deps, build
-  --open        Dopo la build, avvia eleutheria.app
+  --open        Dopo la build, avvia izanagi.app
   --only-open   Solo avvia l'app (niente sync, niente rebuild)
   --no-build    Solo sync, non compilare
   --no-test     Build senza ctest
   --dry-run     Mostra i comandi senza eseguirli
   -h, --help    Questa guida
 
-Default (modificabili con env o ~/.config/eleutheria/sync.env):
-  ELEUTHERIA_VPS=${ELEUTHERIA_VPS:-vps-tailscale}
-  ELEUTHERIA_REMOTE=${ELEUTHERIA_REMOTE:-/home/nebbie/new-izanagi}
-  ELEUTHERIA_LOCAL=${ELEUTHERIA_LOCAL:-\$HOME/src/new-izanagi}
+Default (modificabili con env o ~/.config/izanagi/sync.env):
+  IZANAGI_VPS=${IZANAGI_VPS:-vps-tailscale}
+  IZANAGI_REMOTE=${IZANAGI_REMOTE:-/home/nebbie/new-izanagi}
+  IZANAGI_LOCAL=${IZANAGI_LOCAL:-\$HOME/src/new-izanagi}
 
 Esempi:
   ${SCRIPT_NAME}              # sync + build
@@ -58,15 +58,15 @@ EOF
 }
 
 # Carica config utente se presente
-CONFIG_FILE="${ELEUTHERIA_SYNC_ENV:-$HOME/.config/eleutheria/sync.env}"
+CONFIG_FILE="${IZANAGI_SYNC_ENV:-$HOME/.config/izanagi/sync.env}"
 if [[ -f "${CONFIG_FILE}" ]]; then
   # shellcheck disable=SC1090
   source "${CONFIG_FILE}"
 fi
 
-ELEUTHERIA_VPS="${ELEUTHERIA_VPS:-vps-tailscale}"
-ELEUTHERIA_REMOTE="${ELEUTHERIA_REMOTE:-/home/nebbie/new-izanagi}"
-ELEUTHERIA_LOCAL="${ELEUTHERIA_LOCAL:-$HOME/src/new-izanagi}"
+IZANAGI_VPS="${IZANAGI_VPS:-vps-tailscale}"
+IZANAGI_REMOTE="${IZANAGI_REMOTE:-/home/nebbie/new-izanagi}"
+IZANAGI_LOCAL="${IZANAGI_LOCAL:-$HOME/src/new-izanagi}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -103,20 +103,20 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   die "Questo script e' pensato per macOS (sei su $(uname -s))."
 fi
 
-# Diagnostica: utile se eleutheria-sync e lo script "diretto" sembrano diversi
+# Diagnostica: utile se izanagi-sync e lo script "diretto" sembrano diversi
 SCRIPT_REAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 log "Script: ${SCRIPT_REAL}"
-log "Local:  ${ELEUTHERIA_LOCAL}"
-log "Remote: ${ELEUTHERIA_VPS}:${ELEUTHERIA_REMOTE}"
+log "Local:  ${IZANAGI_LOCAL}"
+log "Remote: ${IZANAGI_VPS}:${IZANAGI_REMOTE}"
 log "Config: ${CONFIG_FILE}"
 
-APP="${ELEUTHERIA_LOCAL}/build/app/eleutheria.app"
+APP="${IZANAGI_LOCAL}/build/app/izanagi.app"
 
 # Percorso rapido: solo aprire l'app gia' compilata
 if [[ "${DO_ONLY_OPEN}" -eq 1 ]]; then
   [[ -d "${APP}" ]] || die "App non trovata: ${APP}
 Compila almeno una volta con: ${SCRIPT_NAME}"
-  log "Avvio Eleutheria (senza sync/build)"
+  log "Avvio Izanagi (senza sync/build)"
   run open "${APP}"
   exit 0
 fi
@@ -125,18 +125,18 @@ command -v rsync >/dev/null || die "rsync non trovato"
 command -v ssh >/dev/null || die "ssh non trovato"
 
 if [[ "${DO_SYNC}" -eq 1 ]] || [[ "${DO_BOOTSTRAP}" -eq 1 ]]; then
-  log "Verifica SSH verso ${ELEUTHERIA_VPS} ..."
+  log "Verifica SSH verso ${IZANAGI_VPS} ..."
   if [[ "${DRY_RUN}" -eq 0 ]]; then
-    if ! ssh -o BatchMode=yes -o ConnectTimeout=8 "${ELEUTHERIA_VPS}" "test -d '${ELEUTHERIA_REMOTE}'"; then
-      die "SSH fallito verso '${ELEUTHERIA_VPS}' oppure manca ${ELEUTHERIA_REMOTE}.
+    if ! ssh -o BatchMode=yes -o ConnectTimeout=8 "${IZANAGI_VPS}" "test -d '${IZANAGI_REMOTE}'"; then
+      die "SSH fallito verso '${IZANAGI_VPS}' oppure manca ${IZANAGI_REMOTE}.
 Controlla ~/.ssh/config (Host vps-tailscale + IdentityFile) e che il VPS sia raggiungibile."
     fi
   fi
 fi
 
-if [[ "${DO_BOOTSTRAP}" -eq 1 ]] || [[ ! -d "${ELEUTHERIA_LOCAL}" ]]; then
-  log "Creo ${ELEUTHERIA_LOCAL}"
-  run mkdir -p "${ELEUTHERIA_LOCAL}"
+if [[ "${DO_BOOTSTRAP}" -eq 1 ]] || [[ ! -d "${IZANAGI_LOCAL}" ]]; then
+  log "Creo ${IZANAGI_LOCAL}"
+  run mkdir -p "${IZANAGI_LOCAL}"
 fi
 
 if [[ "${DO_BOOTSTRAP}" -eq 1 ]]; then
@@ -153,38 +153,38 @@ if [[ "${DO_BOOTSTRAP}" -eq 1 ]]; then
 fi
 
 if [[ "${DO_SYNC}" -eq 1 ]]; then
-  log "Sync ${ELEUTHERIA_VPS}:${ELEUTHERIA_REMOTE}/ -> ${ELEUTHERIA_LOCAL}/"
-  run mkdir -p "${ELEUTHERIA_LOCAL}"
+  log "Sync ${IZANAGI_VPS}:${IZANAGI_REMOTE}/ -> ${IZANAGI_LOCAL}/"
+  run mkdir -p "${IZANAGI_LOCAL}"
   run rsync -avz --delete \
     --exclude build \
-    --exclude eleutheria-src \
+    --exclude izanagi-src \
     --exclude '.git' \
     --exclude '*.user' \
     --exclude '.DS_Store' \
     --exclude '**/.*DS_Store' \
-    "${ELEUTHERIA_VPS}:${ELEUTHERIA_REMOTE}/" "${ELEUTHERIA_LOCAL}/"
+    "${IZANAGI_VPS}:${IZANAGI_REMOTE}/" "${IZANAGI_LOCAL}/"
 
-  run chmod +x "${ELEUTHERIA_LOCAL}/scripts/"*.sh 2>/dev/null || true
+  run chmod +x "${IZANAGI_LOCAL}/scripts/"*.sh 2>/dev/null || true
 
   if [[ "${DRY_RUN}" -eq 0 ]]; then
     mkdir -p "$(dirname "${CONFIG_FILE}")"
     cat > "${CONFIG_FILE}" <<EOF
 # Generato da ${SCRIPT_NAME} — modifica pure
-ELEUTHERIA_VPS="${ELEUTHERIA_VPS}"
-ELEUTHERIA_REMOTE="${ELEUTHERIA_REMOTE}"
-ELEUTHERIA_LOCAL="${ELEUTHERIA_LOCAL}"
+IZANAGI_VPS="${IZANAGI_VPS}"
+IZANAGI_REMOTE="${IZANAGI_REMOTE}"
+IZANAGI_LOCAL="${IZANAGI_LOCAL}"
 EOF
     log "Config salvata in ${CONFIG_FILE}"
   fi
 fi
 
 if [[ "${DO_BUILD}" -eq 1 ]]; then
-  log "Build in ${ELEUTHERIA_LOCAL}"
+  log "Build in ${IZANAGI_LOCAL}"
   if [[ "${DO_TEST}" -eq 1 ]]; then
-    run bash "${ELEUTHERIA_LOCAL}/scripts/build.sh"
+    run bash "${IZANAGI_LOCAL}/scripts/build.sh"
   else
     (
-      cd "${ELEUTHERIA_LOCAL}"
+      cd "${IZANAGI_LOCAL}"
       if [[ -z "${CMAKE_PREFIX_PATH:-}" ]]; then
         for formula in qt qt@6 qt6; do
           if brew --prefix "${formula}" >/dev/null 2>&1; then
@@ -205,17 +205,17 @@ if [[ "${DO_BUILD}" -eq 1 ]]; then
   fi
   log "App: ${APP}"
 elif [[ "${DO_SYNC}" -eq 1 ]]; then
-  log "Sync completato (--no-build). Codice in ${ELEUTHERIA_LOCAL}"
+  log "Sync completato (--no-build). Codice in ${IZANAGI_LOCAL}"
 fi
 
 if [[ "${DO_OPEN}" -eq 1 ]]; then
   [[ -d "${APP}" ]] || die "App non trovata: ${APP} (serve una build)"
-  log "Avvio Eleutheria"
+  log "Avvio Izanagi"
   run open "${APP}"
 fi
 
 log "Fatto."
 printf '\nComandi utili:\n  %s              # sync + build\n  %s --open       # sync + build + avvia\n  %s --only-open  # solo avvia\n' \
-  "${ELEUTHERIA_LOCAL}/scripts/mac-sync-build.sh" \
-  "${ELEUTHERIA_LOCAL}/scripts/mac-sync-build.sh" \
-  "${ELEUTHERIA_LOCAL}/scripts/mac-sync-build.sh"
+  "${IZANAGI_LOCAL}/scripts/mac-sync-build.sh" \
+  "${IZANAGI_LOCAL}/scripts/mac-sync-build.sh" \
+  "${IZANAGI_LOCAL}/scripts/mac-sync-build.sh"

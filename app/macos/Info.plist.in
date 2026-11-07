@@ -7,13 +7,13 @@
 	<key>CFBundleExecutable</key>
 	<string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.nebbiearcane.eleutheria</string>
+	<string>org.nebbiearcane.izanagi</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Eleutheria</string>
+	<string>Izanagi</string>
 	<key>CFBundleDisplayName</key>
-	<string>Eleutheria</string>
+	<string>Izanagi</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -29,12 +29,12 @@
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 	<key>NSDesktopFolderUsageDescription</key>
-	<string>Eleutheria apre e salva aree del mondo sulla Scrivania.</string>
+	<string>Izanagi apre e salva aree del mondo sulla Scrivania.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>Eleutheria apre e salva aree del mondo in Documenti.</string>
+	<string>Izanagi apre e salva aree del mondo in Documenti.</string>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string>Eleutheria apre e salva aree del mondo in Download.</string>
+	<string>Izanagi apre e salva aree del mondo in Download.</string>
 	<key>NSFileProviderDomainUsageDescription</key>
-	<string>Eleutheria apre file area dal disco locale.</string>
+	<string>Izanagi apre file area dal disco locale.</string>
 </dict>
 </plist>

@@ -1,4 +1,4 @@
-# Pacchetto Windows portable (.zip) con eleutheria.exe + Qt via windeployqt.
+# Pacchetto Windows portable (.zip) con izanagi.exe + Qt via windeployqt.
 param(
     [switch]$NoBuild
 )
@@ -19,29 +19,29 @@ if (-not $NoBuild) {
 }
 
 $ExeCandidates = @(
-    (Join-Path $Build "app\Release\eleutheria.exe"),
-    (Join-Path $Build "app\eleutheria.exe")
+    (Join-Path $Build "app\Release\izanagi.exe"),
+    (Join-Path $Build "app\izanagi.exe")
 )
 $Exe = $ExeCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $Exe) {
-    Write-Error "eleutheria.exe non trovato sotto build/app"
+    Write-Error "izanagi.exe non trovato sotto build/app"
 }
 
 Remove-Item -Recurse -Force $Staging -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Staging | Out-Null
 New-Item -ItemType Directory -Force -Path $Dist | Out-Null
 
-Copy-Item $Exe (Join-Path $Staging "eleutheria.exe")
+Copy-Item $Exe (Join-Path $Staging "izanagi.exe")
 Copy-Item -Recurse (Join-Path $Root "sample") (Join-Path $Staging "sample")
 Copy-Item -Recurse (Join-Path $Root "catalogs") (Join-Path $Staging "catalogs")
 Copy-Item (Join-Path $Root "README.md") (Join-Path $Staging "README.md") -ErrorAction SilentlyContinue
 
 $Readme = @"
-Eleutheria / Izanagi (restyle) — Windows portable
+Izanagi / Izanagi (restyle) — Windows portable
 =================================================
 
 1. Estrai tutto lo zip in una cartella
-2. Avvia eleutheria.exe
+2. Avvia izanagi.exe
 3. File -> Apri workspace / area
 
 Mondo di esempio: sample\B1
@@ -59,12 +59,12 @@ if (-not $Windeploy) {
     }
 }
 if ($Windeploy) {
-    & $Windeploy.Source (Join-Path $Staging "eleutheria.exe") --release --no-translations
+    & $Windeploy.Source (Join-Path $Staging "izanagi.exe") --release --no-translations
 } else {
     Write-Warning "windeployqt non trovato: lo zip potrebbe non avere le DLL Qt"
 }
 
-$Zip = Join-Path $Dist "eleutheria_${Version}_windows_portable.zip"
+$Zip = Join-Path $Dist "izanagi_${Version}_windows_portable.zip"
 Remove-Item $Zip -ErrorAction SilentlyContinue
 Compress-Archive -Path (Join-Path $Staging "*") -DestinationPath $Zip
 Write-Host "Creato: $Zip"

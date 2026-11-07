@@ -1,8 +1,8 @@
-# Eleutheria (Nebbie Arcane)
+# Izanagi (Nebbie Arcane)
 
 Editor di aree Diku/DaleMUD rifatto da zero per **Windows**, **macOS** e **Linux**, adattato al formato mondo di [Nebbie Arcane](https://github.com/NebbieArcane/Server).
 
-Ispirato a Eleutheria di Lavinio Cerquetti (solo UI/workflow: area `.ele` + compagni `.wld/.mob/.obj/.zon/.shp`). Il binario originale non aveva sorgenti; questo progetto e' un rewrite C++17 + Qt 6.
+Ispirato a Izanagi di Lavinio Cerquetti (solo UI/workflow: area `.ele` + compagni `.wld/.mob/.obj/.zon/.shp`). Il binario originale non aveva sorgenti; questo progetto e' un rewrite C++17 + Qt 6.
 
 ## Requisiti
 
@@ -20,11 +20,11 @@ Su **macOS** prima: `brew install qt cmake` (lo script trova Qt da Homebrew da s
 
 Dettagli per OS: [docs/PLATFORM.md](docs/PLATFORM.md).
 
-Binario: `build/app/eleutheria` (Linux), `eleutheria.exe` (Windows), `eleutheria.app` (macOS).
+Binario: `build/app/izanagi` (Linux), `izanagi.exe` (Windows), `izanagi.app` (macOS).
 
 ## Uso
 
-1. Avvia Eleutheria
+1. Avvia Izanagi
 2. **File → Apri area** e scegli un `.ele` / `.wld` (carica tutti i file compagni)
 3. Modifica stanze, mob, oggetti, zone
 4. **File → Salva**

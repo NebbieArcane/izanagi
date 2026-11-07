@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pacchetto macOS .dmg con eleutheria.app + Qt bundlato via macdeployqt.
+# Pacchetto macOS .dmg con izanagi.app + Qt bundlato via macdeployqt.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -26,7 +26,7 @@ if [[ "${RUN_BUILD}" -eq 1 ]]; then
   "${ROOT}/scripts/build.sh"
 fi
 
-APP="${BUILD}/app/eleutheria.app"
+APP="${BUILD}/app/izanagi.app"
 if [[ ! -d "${APP}" ]]; then
   echo "ERROR: manca ${APP}" >&2
   exit 1
@@ -57,17 +57,17 @@ mkdir -p "${STAGING}" "${DIST}"
 cp -R "${APP}" "${STAGING}/"
 ln -s /Applications "${STAGING}/Applications"
 cat > "${STAGING}/LEGGIMI.txt" <<EOF
-Eleutheria / Izanagi (restyle) — macOS
+Izanagi / Izanagi (restyle) — macOS
 ======================================
 
-Trascina eleutheria.app in Applicazioni, poi avviala.
+Trascina izanagi.app in Applicazioni, poi avviala.
 
 Mondo di esempio incluso in Contents/Resources/sample/B1
 Versione: ${VERSION}
 EOF
 
-OUT="${DIST}/eleutheria_${VERSION}_macos.dmg"
+OUT="${DIST}/izanagi_${VERSION}_macos.dmg"
 rm -f "${OUT}"
-hdiutil create -volname "Eleutheria" -srcfolder "${STAGING}" -ov -format UDZO "${OUT}"
+hdiutil create -volname "Izanagi" -srcfolder "${STAGING}" -ov -format UDZO "${OUT}"
 echo "Creato: ${OUT}"
 ls -la "${OUT}"

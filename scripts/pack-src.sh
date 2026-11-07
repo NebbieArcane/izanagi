@@ -2,10 +2,10 @@
 # Sul VPS: crea un tarball leggero da scaricare sul Mac (alternativa a rsync).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="${1:-$HOME/eleutheria-src.tgz}"
+OUT="${1:-$HOME/izanagi-src.tgz}"
 tar -C "${ROOT}" -czf "${OUT}" \
   --exclude build \
-  --exclude eleutheria-src \
+  --exclude izanagi-src \
   --exclude '.git' \
   CMakeLists.txt README.md .gitignore \
   app core catalogs docs sample scripts tests

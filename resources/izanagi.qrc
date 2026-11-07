@@ -1,0 +1,13 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/icons">
+    <file alias="izanagi-16.png">icons/izanagi-16.png</file>
+    <file alias="izanagi-32.png">icons/izanagi-32.png</file>
+    <file alias="izanagi-48.png">icons/izanagi-48.png</file>
+    <file alias="izanagi-64.png">icons/izanagi-64.png</file>
+    <file alias="izanagi-128.png">icons/izanagi-128.png</file>
+    <file alias="izanagi-256.png">icons/izanagi-256.png</file>
+    <file alias="izanagi-512.png">icons/izanagi-512.png</file>
+    <file alias="izanagi-1024.png">icons/izanagi-1024.png</file>
+  </qresource>
+</RCC>

@@ -20,30 +20,30 @@ Questo:
 2. clona/aggiorna il codice in `~/src/new-izanagi`
 3. installa qt/cmake se mancano
 4. compila
-5. crea il comando `~/bin/eleutheria-sync`
+5. crea il comando `~/bin/izanagi-sync`
 
 ## Ogni giorno
 
 ```bash
-eleutheria-sync               # sync + build
-eleutheria-sync --open        # sync + build + avvia l'app
-eleutheria-sync --only-open   # solo avvia (niente sync/rebuild)
-eleutheria-sync --no-build    # solo aggiorna i sorgenti
+izanagi-sync               # sync + build
+izanagi-sync --open        # sync + build + avvia l'app
+izanagi-sync --only-open   # solo avvia (niente sync/rebuild)
+izanagi-sync --no-build    # solo aggiorna i sorgenti
 ```
 
-`eleutheria-sync` e' un wrapper che esegue **sempre**
-`~/src/new-izanagi/scripts/mac-sync-build.sh` (path da `~/.config/eleutheria/sync.env`).
-Quindi `eleutheria-sync --open` e
+`izanagi-sync` e' un wrapper che esegue **sempre**
+`~/src/new-izanagi/scripts/mac-sync-build.sh` (path da `~/.config/izanagi/sync.env`).
+Quindi `izanagi-sync --open` e
 `/Users/.../src/new-izanagi/scripts/mac-sync-build.sh --open` devono fare la stessa cosa.
 
 Se vedi build diverse:
 1. controlla che lo script stampi lo stesso `Local:` / `Script:`
-2. se `~/bin/eleutheria-sync` e' un symlink/copia vecchia, rilancia `install-mac-sync.sh`
+2. se `~/bin/izanagi-sync` e' un symlink/copia vecchia, rilancia `install-mac-sync.sh`
 3. `--only-open` **non** ricompila: apre l'app gia' in `build/`
 
 Oppure direttamente:
 ```bash
-open ~/src/new-izanagi/build/app/eleutheria.app
+open ~/src/new-izanagi/build/app/izanagi.app
 ```
 
-Config salvata in `~/.config/eleutheria/sync.env` (VPS, path remoti/locali).
+Config salvata in `~/.config/izanagi/sync.env` (VPS, path remoti/locali).

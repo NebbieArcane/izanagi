@@ -10,7 +10,7 @@ QIcon load_app_icon() {
   QIcon icon;
   const int sizes[] = {16, 32, 48, 64, 128, 256, 512, 1024};
   for(int size : sizes) {
-    icon.addFile(QStringLiteral(":/icons/eleutheria-%1.png").arg(size), QSize(size, size));
+    icon.addFile(QStringLiteral(":/icons/izanagi-%1.png").arg(size), QSize(size, size));
   }
   return icon;
 }
@@ -19,7 +19,7 @@ QIcon load_app_icon() {
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
-  QApplication::setApplicationName("Eleutheria");
+  QApplication::setApplicationName("Izanagi");
   QApplication::setOrganizationName("NebbieArcane");
   QApplication::setOrganizationDomain("nebbiearcane.org");
   QApplication::setApplicationVersion("0.1.0");

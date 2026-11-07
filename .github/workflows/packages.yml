@@ -35,8 +35,8 @@ jobs:
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: eleutheria-linux-tar
-          path: dist/eleutheria_*_linux_*.tar.gz
+          name: izanagi-linux-tar
+          path: dist/izanagi_*_linux_*.tar.gz
           if-no-files-found: error
 
   macos:
@@ -55,8 +55,8 @@ jobs:
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: eleutheria-macos-dmg
-          path: dist/eleutheria_*_macos.dmg
+          name: izanagi-macos-dmg
+          path: dist/izanagi_*_macos.dmg
           if-no-files-found: error
 
   windows:
@@ -79,6 +79,6 @@ jobs:
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: eleutheria-windows-zip
-          path: dist/eleutheria_*_windows_portable.zip
+          name: izanagi-windows-zip
+          path: dist/izanagi_*_windows_portable.zip
           if-no-files-found: error

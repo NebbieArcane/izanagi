@@ -38,8 +38,8 @@ cmake --build "${BUILD}" -j"${JOBS}"
 ctest --test-dir "${BUILD}" --output-on-failure
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  echo "App: ${BUILD}/app/eleutheria.app"
-  echo "Avvio: open ${BUILD}/app/eleutheria.app"
+  echo "App: ${BUILD}/app/izanagi.app"
+  echo "Avvio: open ${BUILD}/app/izanagi.app"
 else
-  echo "Binary: ${BUILD}/app/eleutheria"
+  echo "Binary: ${BUILD}/app/izanagi"
 fi

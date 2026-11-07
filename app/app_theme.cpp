@@ -9,7 +9,7 @@
 namespace {
 
 constexpr const char* kOrg = "NebbieArcane";
-constexpr const char* kApp = "Eleutheria";
+constexpr const char* kApp = "Izanagi";
 constexpr const char* kThemeKey = "ui/theme";
 
 QPalette dark_palette() {
@@ -163,7 +163,7 @@ QString theme_label(AppTheme theme) {
     case AppTheme::Light:
       return QStringLiteral("Chiaro");
     case AppTheme::ClassicGray:
-      return QStringLiteral("Grigio anni '90 (Eleutheria)");
+      return QStringLiteral("Grigio anni '90");
     case AppTheme::Dark:
     default:
       return QStringLiteral("Scuro");

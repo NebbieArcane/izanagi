@@ -100,7 +100,7 @@ QString strip_zone_author(QString name, QString* author_out) {
 }  // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), catalog_(eleutheria::Catalog::nebbie_defaults()) {
-  setWindowTitle("Eleutheria (Nebbie Arcane)");
+  setWindowTitle("Izanagi (Nebbie Arcane)");
   resize(1180, 760);
   current_theme_ = load_saved_theme();
   applyCurrentTheme();
@@ -130,7 +130,7 @@ void MainWindow::setTheme(AppTheme theme) {
 }
 
 void MainWindow::loadMaxLineLength() {
-  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Eleutheria"));
+  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Izanagi"));
   int value = settings.value(QString::fromUtf8(kMaxLineLengthKey), 0).toInt();
   if(value < 0) {
     value = 0;
@@ -142,7 +142,7 @@ void MainWindow::loadMaxLineLength() {
 }
 
 void MainWindow::saveMaxLineLength() {
-  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Eleutheria"));
+  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Izanagi"));
   settings.setValue(QString::fromUtf8(kMaxLineLengthKey), max_line_length_);
 }
 
@@ -234,7 +234,7 @@ void MainWindow::buildUi() {
   tools_menu->addAction("Limite caratteri per &riga...", this, &MainWindow::editLineLengthLimit);
 
   auto* help_menu = menuBar()->addMenu("&?");
-  help_menu->addAction("Informazioni su Eleutheria...", this, &MainWindow::about);
+  help_menu->addAction("Informazioni su Izanagi...", this, &MainWindow::about);
 
   auto* tb = addToolBar("Main");
   tb->setMovable(false);
@@ -487,7 +487,7 @@ void MainWindow::refreshLists() {
 }
 
 void MainWindow::updateTitle() {
-  QString title = "Eleutheria (Nebbie Arcane)";
+  QString title = "Izanagi (Nebbie Arcane)";
   if(workspace_) {
     title += " [" + QString::fromStdString(workspace_->root.filename().string()) + "]";
   }
@@ -505,7 +505,7 @@ void MainWindow::setupWorkspaceColumnsMenu(QMenu* parent_menu) {
   workspace_column_actions_.clear();
   workspace_column_actions_.reserve(kWorkspaceColumnCount);
 
-  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Eleutheria"));
+  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Izanagi"));
   const QVariantList saved =
       settings.value(QString::fromUtf8(kWorkspaceColumnVisibleKey)).toList();
 
@@ -567,7 +567,7 @@ void MainWindow::saveWorkspaceTableState() {
   if(workspace_table_ == nullptr) {
     return;
   }
-  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Eleutheria"));
+  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Izanagi"));
   settings.setValue(QString::fromUtf8(kWorkspaceHeaderStateKey),
                     workspace_table_->horizontalHeader()->saveState());
   QVariantList visible;
@@ -582,7 +582,7 @@ void MainWindow::restoreWorkspaceTableState() {
   if(workspace_table_ == nullptr) {
     return;
   }
-  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Eleutheria"));
+  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Izanagi"));
   const QByteArray state =
       settings.value(QString::fromUtf8(kWorkspaceHeaderStateKey)).toByteArray();
   if(!state.isEmpty()) {
@@ -684,12 +684,12 @@ void MainWindow::onWorkspaceAreaActivated(QTableWidgetItem* item) {
 }
 
 void MainWindow::saveLastWorkspacePath(const QString& path) {
-  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Eleutheria"));
+  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Izanagi"));
   settings.setValue(QString::fromUtf8(kLastWorkspacePathKey), path);
 }
 
 void MainWindow::restoreLastWorkspace() {
-  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Eleutheria"));
+  QSettings settings(QStringLiteral("NebbieArcane"), QStringLiteral("Izanagi"));
   const QString path = settings.value(QString::fromUtf8(kLastWorkspacePathKey)).toString();
   if(path.isEmpty() || !QFileInfo::exists(path)) {
     return;
@@ -830,7 +830,7 @@ void MainWindow::openAreaFile() {
       current_base_.isEmpty() ? QString() : QFileInfo(current_base_).absolutePath();
   const QString path = eleutheria_ui::chooseOpenFile(
       this, QStringLiteral("Apri file area"),
-      QStringLiteral("Area Nebbie/Eleutheria (*.ele *.wld *.mob *.obj *.zon *.shp);;Tutti (*)"),
+      QStringLiteral("Area Nebbie/Izanagi (*.ele *.wld *.mob *.obj *.zon *.shp);;Tutti (*)"),
       start);
   if(path.isEmpty()) {
     return;
@@ -902,9 +902,9 @@ void MainWindow::validateArea() {
 
 void MainWindow::about() {
   QMessageBox::about(
-      this, "Eleutheria",
-      "Eleutheria — editor di aree per Nebbie Arcane\n"
-      "Rifacimento cross-platform ispirato a Eleutheria di Lavinio Cerquetti.\n"
+      this, "Izanagi",
+      "Izanagi — editor di aree per Nebbie Arcane\n"
+      "Rifacimento cross-platform ispirato a Izanagi di Lavinio Cerquetti.\n"
       "Formato file allineato al server Nebbie Arcane (db.cpp).\n"
       "Compilabile su Windows, macOS e Linux (Qt 6 / C++17).");
 }
