@@ -1,0 +1,84 @@
+name: Izanagi restyle (packages)
+
+# Solo restyle: pacchetti della nuova codebase. NON gira su main.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["restyle"]
+    paths:
+      - ".github/workflows/packages.yml"
+      - "app/**"
+      - "core/**"
+      - "resources/**"
+      - "scripts/**"
+      - "CMakeLists.txt"
+      - "sample/**"
+
+permissions:
+  contents: read
+
+env:
+  NEBBIE_VERSION: 0.2.${{ github.run_number }}
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Build package
+        run: ./scripts/package-linux.sh
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eleutheria-linux-tar
+          path: dist/eleutheria_*_linux_*.tar.gz
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Build package
+        run: |
+          export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+          ./scripts/package-macos.sh
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eleutheria-macos-dmg
+          path: dist/eleutheria_*_macos.dmg
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.5.3"
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+
+      - name: Build package
+        shell: pwsh
+        run: ./scripts/package-windows.ps1
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eleutheria-windows-zip
+          path: dist/eleutheria_*_windows_portable.zip
+          if-no-files-found: error
