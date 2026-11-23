@@ -18,6 +18,7 @@ class QLabel;
 class QCheckBox;
 class QGroupBox;
 class FlagEditor;
+class ExtraDescListEditor;
 
 class RoomEditor : public QWidget {
   Q_OBJECT
@@ -45,6 +46,7 @@ class RoomEditor : public QWidget {
   void equipSelectedMob();
   void giveSelectedMob();
   void removeSelectedReset();
+  void editSelectedResetLimits();
   void goToEnteredFrom();
   void goToReference();
 
@@ -54,6 +56,12 @@ class RoomEditor : public QWidget {
   eleutheria::Zone* currentZone();
   QString flagNames(std::uint64_t bits) const;
   QString entityLabel(char kind, std::int64_t vnum) const;
+  /** Short/name per commenti .zon; se assente: "xxx". */
+  QString commentEntityName(char kind, std::int64_t vnum) const;
+  std::string makeResetCommentM(std::int64_t mob_vnum, std::int64_t room_vnum) const;
+  std::string makeResetCommentO(std::int64_t obj_vnum, std::int64_t room_vnum) const;
+  std::string makeResetCommentE(std::int64_t obj_vnum, int wear_pos) const;
+  std::string makeResetCommentG(std::int64_t obj_vnum) const;
   std::size_t insertAfterMobChain(eleutheria::Zone& zone, std::size_t mob_index) const;
 
   const eleutheria::Catalog& catalog_;
@@ -71,7 +79,7 @@ class RoomEditor : public QWidget {
   FlagEditor* flags_ = nullptr;
   QComboBox* sector_ = nullptr;
   QTableWidget* exits_ = nullptr;
-  LineLimitedPlainTextEdit* extras_ = nullptr;
+  ExtraDescListEditor* extras_ = nullptr;
 
   QCheckBox* teleport_enable_ = nullptr;
   QLineEdit* tele_time_ = nullptr;
@@ -96,6 +104,7 @@ class RoomEditor : public QWidget {
   QPushButton* equip_btn_ = nullptr;
   QPushButton* give_btn_ = nullptr;
   QPushButton* remove_btn_ = nullptr;
+  QPushButton* edit_limits_btn_ = nullptr;
 };
 
 class MobEditor : public QWidget {
@@ -196,7 +205,7 @@ class ObjEditor : public QWidget {
   QLineEdit* cost_ = nullptr;
   QLineEdit* rent_ = nullptr;
   QTableWidget* affects_ = nullptr;
-  LineLimitedPlainTextEdit* extras_ = nullptr;
+  ExtraDescListEditor* extras_ = nullptr;
   QCheckBox* forbidden_enable_ = nullptr;
   LineLimitedPlainTextEdit* forbidden_char_ = nullptr;
   LineLimitedPlainTextEdit* forbidden_room_ = nullptr;

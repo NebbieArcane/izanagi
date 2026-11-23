@@ -14,6 +14,8 @@ add_executable(izanagi
   flag_editor.hpp
   line_limited_edit.cpp
   line_limited_edit.hpp
+  extra_desc_editor.cpp
+  extra_desc_editor.hpp
   editors.cpp
   editors.hpp
   ${IZANAGI_RESOURCES}

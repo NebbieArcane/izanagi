@@ -1,5 +1,6 @@
 #include "editors.hpp"
 
+#include "extra_desc_editor.hpp"
 #include "flag_editor.hpp"
 #include "line_limited_edit.hpp"
 
@@ -82,6 +83,44 @@ int combo_value(QComboBox* box) {
   return box->currentData().toInt();
 }
 
+char mob_letter_from_combo(const QComboBox* box) {
+  const QVariant data = box->currentData();
+  if(data.isValid() && !data.toString().isEmpty()) {
+    return data.toString().at(0).toLatin1();
+  }
+  const QString text = box->currentText().trimmed();
+  return text.isEmpty() ? 'A' : text.at(0).toLatin1();
+}
+
+void set_mob_letter_combo(QComboBox* box, char letter) {
+  const int idx = box->findData(QString(QChar(letter)));
+  if(idx >= 0) {
+    box->setCurrentIndex(idx);
+  } else {
+    box->setCurrentIndex(0);
+  }
+}
+
+void fill_mob_letter_combo(QComboBox* box) {
+  box->clear();
+  const struct {
+    char code;
+    const char* desc;
+  } types[] = {
+      {'N', "un attacco a round, senza rumori"},
+      {'A', "piu' attacchi a round, senza rumori"},
+      {'B', "come A, per mob non bashabili"},
+      {'L', "piu' attacchi; emette suoni periodici (stanza e vicine)"},
+      {'S', "formato semplice/vecchio (hit dice e XP assoluti)"},
+  };
+  for(const auto& t : types) {
+    box->addItem(QStringLiteral("%1 - %2").arg(QChar(t.code), QString::fromUtf8(t.desc)),
+                 QString(QChar(t.code)));
+  }
+  box->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+  box->setMinimumContentsLength(42);
+}
+
 void set_combo_value(QComboBox* box, int value) {
   const int idx = box->findData(value);
   if(idx >= 0) {
@@ -105,7 +144,99 @@ const char* kEquipPositions[] = {
     "Left ear",       "Eyes",           "Loaded weapon",  "Clan symbol",
 };
 
+/** Prefissi commento equip stile aree di produzione (E ... *! Sul corpo: ...). */
+const char* kEquipCommentPrefix[] = {
+    "Speciale",       "Dito destro",    "Dito sinistro",  "Collo 1",
+    "Collo 2",        "Sul corpo",      "Sulla testa",    "Sulle gambe",
+    "Ai piedi",       "Sulle mani",     "Sulle braccia",  "Come scudo",
+    "Intorno",        "In vita",        "Polso destro",   "Polso sinistro",
+    "Impugnato",      "In mano",        "Sulla schiena",  "Orecchio destro",
+    "Orecchio sinistro", "Sugli occhi", "Arma caricata",  "Simbolo clan",
+};
+
+constexpr int kEquipPositionCount =
+    static_cast<int>(sizeof(kEquipPositions) / sizeof(kEquipPositions[0]));
+
 constexpr const char* kPlaceholderChoice = "— Vnum esterno / placeholder... —";
+
+std::optional<std::int64_t> ask_reset_limit(QWidget* parent, const QString& title,
+                                            const QString& label, std::int64_t default_value) {
+  bool ok = false;
+  const QString text = QInputDialog::getText(parent, title, label, QLineEdit::Normal,
+                                             QString::number(default_value), &ok);
+  if(!ok) {
+    return std::nullopt;
+  }
+  bool parsed = false;
+  const auto value = text.trimmed().toLongLong(&parsed);
+  if(!parsed || value < 0) {
+    QMessageBox::warning(parent, title, QStringLiteral("Inserisci un intero >= 0."));
+    return std::nullopt;
+  }
+  return value;
+}
+
+/** arg2 + arg4 per reset M (posti/spawn e tetto stanza) o O (max mondo e stanza). */
+struct ResetCountLimits {
+  std::int64_t arg2 = 1;
+  std::int64_t arg4 = 1;
+};
+
+std::optional<ResetCountLimits> ask_mob_reset_limits(QWidget* parent, std::int64_t cur_arg2 = 1,
+                                                     std::int64_t cur_arg4 = 1) {
+  const auto arg2 = ask_reset_limit(
+      parent, QStringLiteral("Max mob"),
+      QStringLiteral(
+          "Max istanze di questa riga M (colonna \"Max mondo/riga\").\n"
+          "Se e' l'unica M di quel vnum in zona e il valore e' > 1, sono i posti di spawn.\n"
+          "Altrimenti ogni riga conta come 1 posto. 0 ammessi solo se sai cosa fai:"),
+      cur_arg2);
+  if(!arg2) {
+    return std::nullopt;
+  }
+  const auto arg4 = ask_reset_limit(
+      parent, QStringLiteral("Max in stanza"),
+      QStringLiteral(
+          "Max copie di questo mob in questa stanza (colonna \"Max stanza\").\n"
+          "0 = nessun tetto per stanza:"),
+      cur_arg4);
+  if(!arg4) {
+    return std::nullopt;
+  }
+  return ResetCountLimits{*arg2, *arg4};
+}
+
+std::optional<ResetCountLimits> ask_obj_room_reset_limits(QWidget* parent, std::int64_t cur_arg2 = 1,
+                                                          std::int64_t cur_arg4 = 1) {
+  const auto arg2 = ask_reset_limit(
+      parent, QStringLiteral("Max nel mondo"),
+      QStringLiteral(
+          "Max copie di questo oggetto nel mondo intero (colonna \"Max mondo/riga\").\n"
+          "0 = nessun tetto mondiale (puo' accumularsi a ogni reset):"),
+      cur_arg2);
+  if(!arg2) {
+    return std::nullopt;
+  }
+  const auto arg4 = ask_reset_limit(
+      parent, QStringLiteral("Max in stanza"),
+      QStringLiteral(
+          "Max copie di questo oggetto in questa stanza (colonna \"Max stanza\").\n"
+          "0 = nessun tetto per stanza:"),
+      cur_arg4);
+  if(!arg4) {
+    return std::nullopt;
+  }
+  return ResetCountLimits{*arg2, *arg4};
+}
+
+std::optional<std::int64_t> ask_obj_world_max(QWidget* parent, std::int64_t cur_arg2 = 1) {
+  return ask_reset_limit(
+      parent, QStringLiteral("Max nel mondo"),
+      QStringLiteral(
+          "Max copie di questo oggetto nel mondo intero (colonna \"Max mondo/riga\").\n"
+          "0 = nessun tetto mondiale. Equip/Give non hanno max stanza:"),
+      cur_arg2);
+}
 
 std::optional<std::int64_t> pick_placeholder_vnum(QWidget* parent, const QString& title) {
   bool ok = false;
@@ -264,9 +395,11 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   add_mob_btn_ = new QPushButton(QStringLiteral("Add mob..."), summary_page);
   add_obj_btn_ = new QPushButton(QStringLiteral("Add object..."), summary_page);
   remove_btn_ = new QPushButton(QStringLiteral("Remove..."), summary_page);
+  edit_limits_btn_ = new QPushButton(QStringLiteral("Modifica max..."), summary_page);
   equip_btn_ = new QPushButton(QStringLiteral("Equip..."), summary_page);
   give_btn_ = new QPushButton(QStringLiteral("Give..."), summary_page);
-  for(auto* b : {goto_ref_btn_, add_mob_btn_, add_obj_btn_, remove_btn_, equip_btn_, give_btn_}) {
+  for(auto* b : {goto_ref_btn_, add_mob_btn_, add_obj_btn_, edit_limits_btn_, remove_btn_,
+                 equip_btn_, give_btn_}) {
     btns->addWidget(b);
   }
   btns->addStretch();
@@ -340,11 +473,9 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
     emit edited();
   });
 
-  extras_ = new LineLimitedPlainTextEdit(room_page);
-  configure_mud_text_field(extras_);
-  extras_->setPlaceholderText(QStringLiteral("Extra desc: keywords|description  (una per riga)"));
-  room_layout->addWidget(new QLabel(QStringLiteral("Extra descriptions"), room_page));
-  room_layout->addWidget(extras_);
+  extras_ = new ExtraDescListEditor(room_page);
+  room_layout->addWidget(extras_, 1);
+  connect(extras_, &ExtraDescListEditor::edited, this, [this]() { emit edited(); });
   tabs_->addTab(room_page, QStringLiteral("Dettaglio"));
 
   // --- Avanzate (teleport / river / tunnel / bright) ---
@@ -402,6 +533,7 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   connect(equip_btn_, &QPushButton::clicked, this, &RoomEditor::equipSelectedMob);
   connect(give_btn_, &QPushButton::clicked, this, &RoomEditor::giveSelectedMob);
   connect(remove_btn_, &QPushButton::clicked, this, &RoomEditor::removeSelectedReset);
+  connect(edit_limits_btn_, &QPushButton::clicked, this, &RoomEditor::editSelectedResetLimits);
   connect(goto_entered_btn_, &QPushButton::clicked, this, &RoomEditor::goToEnteredFrom);
   connect(goto_ref_btn_, &QPushButton::clicked, this, &RoomEditor::goToReference);
   connect(entered_from_list_, &QListWidget::itemDoubleClicked, this,
@@ -515,6 +647,131 @@ QString RoomEditor::entityLabel(char kind, std::int64_t vnum) const {
   return QStringLiteral("?");
 }
 
+QString RoomEditor::commentEntityName(char kind, std::int64_t vnum) const {
+  auto clean = [](const std::string& raw) {
+    return QString::fromStdString(eleutheria::strip_mud_colors(raw)).trimmed();
+  };
+  if(kind == 'M') {
+    if(area_ != nullptr) {
+      const auto it = area_->mobiles.find(vnum);
+      if(it != area_->mobiles.end()) {
+        const QString name =
+            clean(it->second.short_descr.empty() ? it->second.name : it->second.short_descr);
+        if(!name.isEmpty()) {
+          return name;
+        }
+      }
+    }
+    if(workspace_index_ != nullptr) {
+      if(const auto* found = workspace_index_->find_mob(vnum)) {
+        QString label = QString::fromStdString(found->label).trimmed();
+        // label indice spesso "#vnum testo"
+        if(label.startsWith(QLatin1Char('#'))) {
+          const int sp = label.indexOf(QLatin1Char(' '));
+          if(sp > 0) {
+            label = label.mid(sp + 1).trimmed();
+          }
+        }
+        if(!label.isEmpty()) {
+          return label;
+        }
+      }
+    }
+    return QStringLiteral("xxx");
+  }
+  if(kind == 'O') {
+    if(area_ != nullptr) {
+      const auto it = area_->objects.find(vnum);
+      if(it != area_->objects.end()) {
+        const QString name = clean(it->second.short_description.empty() ? it->second.name
+                                                                        : it->second.short_description);
+        if(!name.isEmpty()) {
+          return name;
+        }
+      }
+    }
+    if(workspace_index_ != nullptr) {
+      if(const auto* found = workspace_index_->find_obj(vnum)) {
+        QString label = QString::fromStdString(found->label).trimmed();
+        if(label.startsWith(QLatin1Char('#'))) {
+          const int sp = label.indexOf(QLatin1Char(' '));
+          if(sp > 0) {
+            label = label.mid(sp + 1).trimmed();
+          }
+        }
+        if(!label.isEmpty()) {
+          return label;
+        }
+      }
+    }
+    return QStringLiteral("xxx");
+  }
+  if(kind == 'R') {
+    if(area_ != nullptr) {
+      const auto it = area_->rooms.find(vnum);
+      if(it != area_->rooms.end()) {
+        const QString name = clean(it->second.name);
+        if(!name.isEmpty()) {
+          return name;
+        }
+      }
+    }
+    if(workspace_index_ != nullptr) {
+      if(const auto* found = workspace_index_->find_room(vnum)) {
+        QString label = QString::fromStdString(found->label).trimmed();
+        if(label.startsWith(QLatin1Char('#'))) {
+          const int sp = label.indexOf(QLatin1Char(' '));
+          if(sp > 0) {
+            label = label.mid(sp + 1).trimmed();
+          }
+        }
+        if(!label.isEmpty()) {
+          return label;
+        }
+      }
+    }
+    return QStringLiteral("xxx");
+  }
+  return QStringLiteral("xxx");
+}
+
+std::string RoomEditor::makeResetCommentM(std::int64_t mob_vnum, std::int64_t room_vnum) const {
+  return QStringLiteral("*! Mob %1 (%2) nella stanza %3 (%4)")
+      .arg(mob_vnum)
+      .arg(commentEntityName('M', mob_vnum))
+      .arg(room_vnum)
+      .arg(commentEntityName('R', room_vnum))
+      .toStdString();
+}
+
+std::string RoomEditor::makeResetCommentO(std::int64_t obj_vnum, std::int64_t room_vnum) const {
+  return QStringLiteral("*! Carica oggetto %1 (%2) nella stanza %3 (%4)")
+      .arg(obj_vnum)
+      .arg(commentEntityName('O', obj_vnum))
+      .arg(room_vnum)
+      .arg(commentEntityName('R', room_vnum))
+      .toStdString();
+}
+
+std::string RoomEditor::makeResetCommentE(std::int64_t obj_vnum, int wear_pos) const {
+  const char* prefix = "Equip";
+  if(wear_pos >= 0 && wear_pos < kEquipPositionCount) {
+    prefix = kEquipCommentPrefix[wear_pos];
+  }
+  return QStringLiteral("*! %1: %2 (%3)")
+      .arg(QString::fromUtf8(prefix))
+      .arg(obj_vnum, 6, 10, QLatin1Char('0'))
+      .arg(commentEntityName('O', obj_vnum))
+      .toStdString();
+}
+
+std::string RoomEditor::makeResetCommentG(std::int64_t obj_vnum) const {
+  return QStringLiteral("*! In inventario: %1 (%2)")
+      .arg(obj_vnum, 6, 10, QLatin1Char('0'))
+      .arg(commentEntityName('O', obj_vnum))
+      .toStdString();
+}
+
 std::size_t RoomEditor::insertAfterMobChain(eleutheria::Zone& zone, std::size_t mob_index) const {
   std::size_t at = mob_index + 1;
   while(at < zone.commands.size()) {
@@ -563,12 +820,7 @@ void RoomEditor::load(const eleutheria::Room& room) {
   vnum_->blockSignals(false);
   name_->blockSignals(false);
   description_->blockSignals(false);
-  QString extra_text;
-  for(const auto& ed : room.extras) {
-    extra_text += QString::fromStdString(ed.keywords) + "|" +
-                  QString::fromStdString(ed.description).replace('\n', "\\n") + "\n";
-  }
-  extras_->setPlainText(extra_text);
+  extras_->setExtras(room.extras);
 
   teleport_enable_->setChecked(room.has_teleport);
   set_num(tele_time_, room.tele_time);
@@ -630,7 +882,11 @@ void RoomEditor::rebuildSummary() {
       last_mob = cmd.arg1;
       last_mob_index = i;
       auto* item = new QListWidgetItem(
-          QStringLiteral("Mobile: #%1 %2").arg(cmd.arg1).arg(entityLabel('M', cmd.arg1)));
+          QStringLiteral("Mobile: #%1 %2  [max riga %3, max stanza %4]")
+              .arg(cmd.arg1)
+              .arg(entityLabel('M', cmd.arg1))
+              .arg(cmd.arg2)
+              .arg(cmd.arg4));
       item->setData(Qt::UserRole, QChar('M'));
       item->setData(Qt::UserRole + 1, static_cast<qulonglong>(i));
       item->setData(Qt::UserRole + 2, static_cast<qlonglong>(cmd.arg1));
@@ -639,7 +895,11 @@ void RoomEditor::rebuildSummary() {
       last_mob = 0;
       last_mob_index = static_cast<std::size_t>(-1);
       auto* item = new QListWidgetItem(
-          QStringLiteral("Object: #%1 %2").arg(cmd.arg1).arg(entityLabel('O', cmd.arg1)));
+          QStringLiteral("Object: #%1 %2  [max mondo %3, max stanza %4]")
+              .arg(cmd.arg1)
+              .arg(entityLabel('O', cmd.arg1))
+              .arg(cmd.arg2)
+              .arg(cmd.arg4));
       item->setData(Qt::UserRole, QChar('O'));
       item->setData(Qt::UserRole + 1, static_cast<qulonglong>(i));
       item->setData(Qt::UserRole + 2, static_cast<qlonglong>(cmd.arg1));
@@ -650,17 +910,17 @@ void RoomEditor::rebuildSummary() {
       if(cmd.command == 'E') {
         const int pos = static_cast<int>(cmd.arg3);
         const char* pos_name =
-            (pos >= 0 && pos < static_cast<int>(sizeof(kEquipPositions) / sizeof(kEquipPositions[0])))
-                ? kEquipPositions[pos]
-                : "?";
-        detail = QStringLiteral("-- Equip: #%1 %2  [%3]")
+            (pos >= 0 && pos < kEquipPositionCount) ? kEquipPositions[pos] : "?";
+        detail = QStringLiteral("-- Equip: #%1 %2  [%3]  [max mondo %4]")
                      .arg(cmd.arg1)
                      .arg(entityLabel('O', cmd.arg1))
-                     .arg(QString::fromUtf8(pos_name));
+                     .arg(QString::fromUtf8(pos_name))
+                     .arg(cmd.arg2);
       } else {
-        detail = QStringLiteral("-- Give: #%1 %2")
+        detail = QStringLiteral("-- Give: #%1 %2  [max mondo %3]")
                      .arg(cmd.arg1)
-                     .arg(entityLabel('O', cmd.arg1));
+                     .arg(entityLabel('O', cmd.arg1))
+                     .arg(cmd.arg2);
       }
       auto* item = new QListWidgetItem(detail);
       item->setData(Qt::UserRole, QChar(cmd.command));
@@ -745,13 +1005,18 @@ void RoomEditor::addMobReset() {
   if(!mob_vnum) {
     return;
   }
+  const auto limits = ask_mob_reset_limits(this);
+  if(!limits) {
+    return;
+  }
   eleutheria::ResetCommand cmd;
   cmd.command = 'M';
   cmd.if_flag = 0;
   cmd.arg1 = *mob_vnum;
-  cmd.arg2 = 1;
+  cmd.arg2 = limits->arg2;
   cmd.arg3 = loaded_vnum_;
-  cmd.arg4 = 1;
+  cmd.arg4 = limits->arg4;
+  cmd.comment = makeResetCommentM(*mob_vnum, loaded_vnum_);
   zone->commands.push_back(cmd);
   emit areaResetsChanged();
   emit edited();
@@ -773,13 +1038,18 @@ void RoomEditor::addObjectReset() {
   if(!obj_vnum) {
     return;
   }
+  const auto limits = ask_obj_room_reset_limits(this);
+  if(!limits) {
+    return;
+  }
   eleutheria::ResetCommand cmd;
   cmd.command = 'O';
   cmd.if_flag = 0;
   cmd.arg1 = *obj_vnum;
-  cmd.arg2 = 1;
+  cmd.arg2 = limits->arg2;
   cmd.arg3 = loaded_vnum_;
-  cmd.arg4 = 1;
+  cmd.arg4 = limits->arg4;
+  cmd.comment = makeResetCommentO(*obj_vnum, loaded_vnum_);
   zone->commands.push_back(cmd);
   emit areaResetsChanged();
   emit edited();
@@ -803,8 +1073,8 @@ void RoomEditor::equipSelectedMob() {
     return;
   }
   QStringList pos_labels;
-  for(const char* p : kEquipPositions) {
-    pos_labels << QString::fromUtf8(p);
+  for(int i = 0; i < kEquipPositionCount; ++i) {
+    pos_labels << QString::fromUtf8(kEquipPositions[i]);
   }
   bool ok = false;
   const QString pos_name = QInputDialog::getItem(this, QStringLiteral("Wear location"),
@@ -813,12 +1083,17 @@ void RoomEditor::equipSelectedMob() {
     return;
   }
   const int pos = pos_labels.indexOf(pos_name);
+  const auto world_max = ask_obj_world_max(this);
+  if(!world_max) {
+    return;
+  }
   eleutheria::ResetCommand cmd;
   cmd.command = 'E';
   cmd.if_flag = 1;
   cmd.arg1 = *obj_vnum;
-  cmd.arg2 = 1;
+  cmd.arg2 = *world_max;
   cmd.arg3 = pos;
+  cmd.comment = makeResetCommentE(*obj_vnum, pos);
   const auto at = insertAfterMobChain(*zone, *mob_index);
   zone->commands.insert(zone->commands.begin() + static_cast<std::ptrdiff_t>(at), cmd);
   emit areaResetsChanged();
@@ -842,13 +1117,61 @@ void RoomEditor::giveSelectedMob() {
   if(!obj_vnum) {
     return;
   }
+  const auto world_max = ask_obj_world_max(this);
+  if(!world_max) {
+    return;
+  }
   eleutheria::ResetCommand cmd;
   cmd.command = 'G';
   cmd.if_flag = 1;
   cmd.arg1 = *obj_vnum;
-  cmd.arg2 = 1;
+  cmd.arg2 = *world_max;
+  cmd.comment = makeResetCommentG(*obj_vnum);
   const auto at = insertAfterMobChain(*zone, *mob_index);
   zone->commands.insert(zone->commands.begin() + static_cast<std::ptrdiff_t>(at), cmd);
+  emit areaResetsChanged();
+  emit edited();
+  rebuildSummary();
+}
+
+void RoomEditor::editSelectedResetLimits() {
+  const auto index = selectedResetIndex();
+  if(!index) {
+    QMessageBox::information(this, QStringLiteral("Max reset"),
+                             QStringLiteral("Seleziona prima un mob, oggetto, equip o give."));
+    return;
+  }
+  eleutheria::Zone* zone = currentZone();
+  if(zone == nullptr || *index >= zone->commands.size()) {
+    return;
+  }
+  auto& cmd = zone->commands[*index];
+  if(cmd.command == 'M') {
+    const auto limits = ask_mob_reset_limits(this, cmd.arg2, cmd.arg4);
+    if(!limits) {
+      return;
+    }
+    cmd.arg2 = limits->arg2;
+    cmd.arg4 = limits->arg4;
+  } else if(cmd.command == 'O') {
+    const auto limits = ask_obj_room_reset_limits(this, cmd.arg2, cmd.arg4);
+    if(!limits) {
+      return;
+    }
+    cmd.arg2 = limits->arg2;
+    cmd.arg4 = limits->arg4;
+  } else if(cmd.command == 'E' || cmd.command == 'G') {
+    const auto world_max = ask_obj_world_max(this, cmd.arg2);
+    if(!world_max) {
+      return;
+    }
+    cmd.arg2 = *world_max;
+  } else {
+    QMessageBox::information(
+        this, QStringLiteral("Max reset"),
+        QStringLiteral("I max si modificano solo per comandi M, O, E e G."));
+    return;
+  }
   emit areaResetsChanged();
   emit edited();
   rebuildSummary();
@@ -921,19 +1244,7 @@ eleutheria::Room RoomEditor::save(const eleutheria::Room* previous) const {
       ex.general_description = gdesc_item->text().toStdString();
     }
   }
-  room.extras.clear();
-  const auto lines = extras_->toPlainText().split('\n', Qt::SkipEmptyParts);
-  for(const auto& line : lines) {
-    const int bar = line.indexOf('|');
-    eleutheria::ExtraDesc ed;
-    if(bar < 0) {
-      ed.keywords = line.toStdString();
-    } else {
-      ed.keywords = line.left(bar).toStdString();
-      ed.description = line.mid(bar + 1).replace("\\n", "\n").toStdString();
-    }
-    room.extras.push_back(std::move(ed));
-  }
+  room.extras = extras_->extras();
 
   room.has_teleport = teleport_enable_->isChecked();
   room.tele_time = num_i64(tele_time_);
@@ -970,9 +1281,7 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   name_ = new QLineEdit(data_page);
   short_ = new QLineEdit(data_page);
   letter_ = new QComboBox(data_page);
-  for(const char* L : {"A", "L", "N", "B", "S"}) {
-    letter_->addItem(L);
-  }
+  fill_mob_letter_combo(letter_);
   alignment_ = make_num_edit(data_page);
   mult_att_ = make_num_edit(data_page);
   level_ = make_num_edit(data_page);
@@ -1047,9 +1356,15 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   text_layout->addWidget(long_, 2);
   text_layout->addWidget(new QLabel(QStringLiteral("Description"), text_page));
   text_layout->addWidget(description_, 2);
-  text_layout->addWidget(new QLabel(QStringLiteral("Sounds (tipo L)"), text_page));
+  text_layout->addWidget(new QLabel(
+      QStringLiteral(
+          "Suono in stanza (tipo L): messaggio periodico dove si trova il mob"),
+      text_page));
   text_layout->addWidget(sounds_, 1);
-  text_layout->addWidget(new QLabel(QStringLiteral("Distant sounds (tipo L)"), text_page));
+  text_layout->addWidget(new QLabel(
+      QStringLiteral(
+          "Suono stanze vicine (tipo L): messaggio sentito nelle room adiacenti"),
+      text_page));
   text_layout->addWidget(distant_sounds_, 1);
   tabs_->addTab(text_page, QStringLiteral("Testi"));
 
@@ -1123,7 +1438,9 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
 }
 
 void MobEditor::updateTypeDependentUi() {
-  const bool is_s = letter_->currentText() == QLatin1String("S");
+  const char letter = mob_letter_from_combo(letter_);
+  const bool is_s = letter == 'S';
+  const bool is_n = letter == 'N';
   hit_dice_->setEnabled(is_s);
   hit_bonus_->setEnabled(!is_s);
   if(hit_dice_label_ != nullptr) {
@@ -1132,7 +1449,7 @@ void MobEditor::updateTypeDependentUi() {
   if(hit_bonus_label_ != nullptr) {
     hit_bonus_label_->setEnabled(!is_s);
   }
-  mult_att_->setEnabled(letter_->currentText() != QLatin1String("N") && !is_s);
+  mult_att_->setEnabled(!is_n && !is_s);
 }
 
 void MobEditor::updateExpHint() {
@@ -1140,7 +1457,7 @@ void MobEditor::updateExpHint() {
     return;
   }
   eleutheria::Mobile probe;
-  probe.letter = letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
+  probe.letter = mob_letter_from_combo(letter_);
   probe.level = num_i64(level_);
   probe.exp = num_i64(exp_);
   probe.gold = num_i64(gold_);
@@ -1196,7 +1513,7 @@ void MobEditor::updateDamageEstimate() {
 
   const eleutheria::DiceValues dam = eleutheria::parse_dice_text(dam_dice_->text().toStdString());
   const char mobtype =
-      letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
+      mob_letter_from_combo(letter_);
   const int level = num_i(level_);
   const int mult = static_cast<int>(num_d(mult_att_));
   const int attacks = eleutheria::mob_type_uses_mult_att(mobtype) ? std::max(1, mult) : 1;
@@ -1295,7 +1612,7 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
   act_->setValue(static_cast<std::uint64_t>(mob.act));
   affect_->setValue(static_cast<std::uint64_t>(mob.affected_by));
   set_num(alignment_, mob.alignment);
-  letter_->setCurrentText(QString(QChar(mob.letter)));
+  set_mob_letter_combo(letter_, mob.letter);
   set_num_double(mult_att_, mob.mult_att);
   set_num(level_, mob.level);
   set_num(thac0_, mob.thac0);
@@ -1338,7 +1655,7 @@ eleutheria::Mobile MobEditor::save(const eleutheria::Mobile* previous) const {
   mob.act = static_cast<std::int64_t>(act_->value());
   mob.affected_by = static_cast<std::int64_t>(affect_->value());
   mob.alignment = num_i64(alignment_);
-  mob.letter = letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
+  mob.letter = mob_letter_from_combo(letter_);
   mob.mult_att = num_d(mult_att_);
   mob.level = num_i64(level_);
   mob.thac0 = num_i64(thac0_);
@@ -1487,11 +1804,9 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   // --- Extra / Forbidden ---
   auto* extra_page = new QWidget(tabs_);
   auto* extra_layout = new QVBoxLayout(extra_page);
-  extras_ = new LineLimitedPlainTextEdit(extra_page);
-  configure_mud_text_field(extras_);
-  extras_->setPlaceholderText(QStringLiteral("Extra desc E: keywords|description (una per riga)"));
-  extra_layout->addWidget(new QLabel(QStringLiteral("Extra descriptions (E)"), extra_page));
+  extras_ = new ExtraDescListEditor(extra_page);
   extra_layout->addWidget(extras_, 2);
+  connect(extras_, &ExtraDescListEditor::edited, this, [this]() { notifyEdited(); });
   forbidden_enable_ = new QCheckBox(QStringLiteral("Scrivi blocco P (forbidden)"), extra_page);
   forbidden_char_ = new LineLimitedPlainTextEdit(extra_page);
   forbidden_room_ = new LineLimitedPlainTextEdit(extra_page);
@@ -1522,7 +1837,6 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   connect(extra2_, &FlagEditor::valueChanged, this, notify);
   connect(wear_, &FlagEditor::valueChanged, this, notify);
   connect(affects_, &QTableWidget::itemChanged, this, notify);
-  connect(extras_, &QPlainTextEdit::textChanged, this, notify);
   connect(forbidden_enable_, &QCheckBox::toggled, this, [this](bool) { notifyEdited(); });
   connect(forbidden_char_, &QPlainTextEdit::textChanged, this, notify);
   connect(forbidden_room_, &QPlainTextEdit::textChanged, this, notify);
@@ -1607,12 +1921,7 @@ void ObjEditor::load(const eleutheria::GameObject& obj) {
     setAffectRow(row, location, modifier);
   }
 
-  QString extra_text;
-  for(const auto& ed : obj.extras) {
-    extra_text += QString::fromStdString(ed.keywords) + "|" +
-                  QString::fromStdString(ed.description).replace('\n', "\\n") + "\n";
-  }
-  extras_->setPlainText(extra_text);
+  extras_->setExtras(obj.extras);
   forbidden_enable_->setChecked(obj.has_forbidden);
   forbidden_char_->setPlainText(QString::fromStdString(obj.forbidden_to_char));
   forbidden_room_->setPlainText(QString::fromStdString(obj.forbidden_to_room));
@@ -1649,19 +1958,7 @@ eleutheria::GameObject ObjEditor::save(const eleutheria::GameObject* previous) c
     }
     obj.affects.push_back({loc, mod});
   }
-  obj.extras.clear();
-  const auto lines = extras_->toPlainText().split('\n', Qt::SkipEmptyParts);
-  for(const auto& line : lines) {
-    const int bar = line.indexOf('|');
-    eleutheria::ExtraDesc ed;
-    if(bar < 0) {
-      ed.keywords = line.toStdString();
-    } else {
-      ed.keywords = line.left(bar).toStdString();
-      ed.description = line.mid(bar + 1).replace("\\n", "\n").toStdString();
-    }
-    obj.extras.push_back(std::move(ed));
-  }
+  obj.extras = extras_->extras();
   obj.has_forbidden = forbidden_enable_->isChecked();
   obj.forbidden_to_char = forbidden_char_->toPlainText().toStdString();
   obj.forbidden_to_room = forbidden_room_->toPlainText().toStdString();
@@ -1684,12 +1981,19 @@ ZoneEditor::ZoneEditor(QWidget* parent) : QWidget(parent) {
   root->addLayout(form);
   root->addWidget(new QLabel(
       QStringLiteral(
-          "Arg1/Arg3 dei reset possono riferire mob/obj/stanze di altre aree o vnum "
-          "placeholder non ancora presenti nel workspace."),
+          "Reset .zon: Vnum e stanza/slot possono essere di altre aree o xxx esterni.\n"
+          "M: Max mondo/riga = posti spawn (se unica M del vnum), Max stanza = tetto in room.\n"
+          "O: Max mondo/riga = tetto mondiale, Max stanza = tetto in room.\n"
+          "E/G: solo Max mondo/riga (tetto mondiale); Max stanza non si usa.\n"
+          "D: Stanza/slot = direzione; altri campi come da formato zona."),
       this));
-  commands_ = new QTableWidget(0, 6, this);
-  commands_->setHorizontalHeaderLabels({"Cmd", "If", "Arg1", "Arg2", "Arg3", "Arg4/Note"});
+  commands_ = new QTableWidget(0, 7, this);
+  commands_->setHorizontalHeaderLabels(
+      {QStringLiteral("Cmd"), QStringLiteral("If"), QStringLiteral("Vnum"),
+       QStringLiteral("Max mondo/riga"), QStringLiteral("Stanza/slot"),
+       QStringLiteral("Max stanza"), QStringLiteral("Commento")});
   commands_->horizontalHeader()->setStretchLastSection(true);
+  commands_->verticalHeader()->setVisible(false);
   root->addWidget(commands_);
   auto notify = [this]() { emit edited(); };
   connect(number_, &QLineEdit::textChanged, this, notify);
@@ -1697,6 +2001,7 @@ ZoneEditor::ZoneEditor(QWidget* parent) : QWidget(parent) {
   connect(top_, &QLineEdit::textChanged, this, notify);
   connect(lifespan_, &QLineEdit::textChanged, this, notify);
   connect(reset_mode_, &QLineEdit::textChanged, this, notify);
+  connect(commands_, &QTableWidget::itemChanged, this, [this]() { emit edited(); });
 }
 
 void ZoneEditor::clear() { load(eleutheria::Zone{}); }
@@ -1708,13 +2013,14 @@ void ZoneEditor::load(const eleutheria::Zone& zone) {
   set_num(top_, zone.top);
   set_num(lifespan_, zone.lifespan);
   set_num(reset_mode_, zone.reset_mode);
+  const QSignalBlocker block_cmds(commands_);
   commands_->setRowCount(0);
   for(const auto& cmd : zone.commands) {
     const int row = commands_->rowCount();
     commands_->insertRow(row);
     if(cmd.is_comment) {
       commands_->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(cmd.raw_line)));
-      for(int c = 1; c < 6; ++c) {
+      for(int c = 1; c < 7; ++c) {
         commands_->setItem(row, c, new QTableWidgetItem);
       }
       continue;
@@ -1724,9 +2030,8 @@ void ZoneEditor::load(const eleutheria::Zone& zone) {
     commands_->setItem(row, 2, new QTableWidgetItem(QString::number(cmd.arg1)));
     commands_->setItem(row, 3, new QTableWidgetItem(QString::number(cmd.arg2)));
     commands_->setItem(row, 4, new QTableWidgetItem(QString::number(cmd.arg3)));
-    commands_->setItem(row, 5,
-                       new QTableWidgetItem(QString::number(cmd.arg4) + " " +
-                                            QString::fromStdString(cmd.comment)));
+    commands_->setItem(row, 5, new QTableWidgetItem(QString::number(cmd.arg4)));
+    commands_->setItem(row, 6, new QTableWidgetItem(QString::fromStdString(cmd.comment)));
   }
 }
 
@@ -1739,7 +2044,8 @@ eleutheria::Zone ZoneEditor::save() const {
   zone.reset_mode = num_i(reset_mode_);
   for(int row = 0; row < commands_->rowCount(); ++row) {
     eleutheria::ResetCommand cmd;
-    const QString c0 = commands_->item(row, 0)->text();
+    const QString c0 =
+        commands_->item(row, 0) ? commands_->item(row, 0)->text() : QString{};
     if(c0.startsWith('*') || c0.startsWith(';') || c0.size() > 1) {
       cmd.is_comment = true;
       cmd.raw_line = c0.toStdString();
@@ -1747,11 +2053,19 @@ eleutheria::Zone ZoneEditor::save() const {
       continue;
     }
     cmd.command = c0.isEmpty() ? '*' : c0.at(0).toLatin1();
-    cmd.if_flag = commands_->item(row, 1)->text().toInt();
-    cmd.arg1 = commands_->item(row, 2)->text().toLongLong();
-    cmd.arg2 = commands_->item(row, 3)->text().toLongLong();
-    cmd.arg3 = commands_->item(row, 4)->text().toLongLong();
-    cmd.comment = commands_->item(row, 5)->text().toStdString();
+    auto cell_ll = [&](int col) -> std::int64_t {
+      if(commands_->item(row, col) == nullptr) {
+        return 0;
+      }
+      return commands_->item(row, col)->text().toLongLong();
+    };
+    cmd.if_flag = static_cast<int>(cell_ll(1));
+    cmd.arg1 = cell_ll(2);
+    cmd.arg2 = cell_ll(3);
+    cmd.arg3 = cell_ll(4);
+    cmd.arg4 = cell_ll(5);
+    cmd.comment = commands_->item(row, 6) ? commands_->item(row, 6)->text().toStdString()
+                                          : std::string{};
     zone.commands.push_back(std::move(cmd));
   }
   return zone;
