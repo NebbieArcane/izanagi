@@ -3,6 +3,7 @@
 #include "flag_editor.hpp"
 #include "line_limited_edit.hpp"
 
+#include "eleutheria/mob_damage_estimate.hpp"
 #include "eleutheria/world.hpp"
 
 #include <algorithm>
@@ -27,6 +28,7 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSpinBox>
@@ -879,6 +881,15 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   form->addRow(QStringLiteral("Default pos"), default_pos_);
   form->addRow(QStringLiteral("Sex"), sex_);
   data_layout->addLayout(form);
+
+  damage_sim_box_ = new QGroupBox(QStringLiteral("Stima danni"), data_page);
+  auto* dam_layout = new QVBoxLayout(damage_sim_box_);
+  damage_estimate_ = new QLabel(damage_sim_box_);
+  damage_estimate_->setWordWrap(true);
+  damage_estimate_->setTextFormat(Qt::RichText);
+  damage_estimate_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  dam_layout->addWidget(damage_estimate_);
+  data_layout->addWidget(damage_sim_box_);
   data_layout->addStretch(1);
   tabs_->addTab(data_scroll, QStringLiteral("Dati"));
 
@@ -903,53 +914,54 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   text_layout->addWidget(distant_sounds_, 1);
   tabs_->addTab(text_page, QStringLiteral("Testi"));
 
-  // --- Flags ---
+  // --- Flags (layout compatto, scroll se serve) ---
   auto* flags_page = new QWidget(tabs_);
-  auto* flags_layout = new QHBoxLayout(flags_page);
+  auto* flags_scroll = new QScrollArea(tabs_);
+  flags_scroll->setWidgetResizable(true);
+  flags_scroll->setFrameShape(QFrame::NoFrame);
+  flags_scroll->setWidget(flags_page);
+  auto* flags_layout = new QVBoxLayout(flags_page);
+  flags_layout->setAlignment(Qt::AlignTop);
   act_ = new FlagEditor(flags_page);
   act_->setFlags(catalog_.act_flags());
   affect_ = new FlagEditor(flags_page);
   affect_->setFlags(catalog_.affect_flags());
-  auto* act_col = new QVBoxLayout();
-  auto* aff_col = new QVBoxLayout();
-  act_col->addWidget(new QLabel(QStringLiteral("Act flags"), flags_page));
-  act_col->addWidget(act_, 1);
-  aff_col->addWidget(new QLabel(QStringLiteral("Affect flags"), flags_page));
-  aff_col->addWidget(affect_, 1);
-  flags_layout->addLayout(act_col, 1);
-  flags_layout->addLayout(aff_col, 1);
-  tabs_->addTab(flags_page, QStringLiteral("Flags"));
+  flags_layout->addWidget(new QLabel(QStringLiteral("Act flags"), flags_page));
+  flags_layout->addWidget(act_, 0, Qt::AlignTop);
+  flags_layout->addWidget(new QLabel(QStringLiteral("Affect flags"), flags_page));
+  flags_layout->addWidget(affect_, 0, Qt::AlignTop);
+  flags_layout->addStretch(1);
+  tabs_->addTab(flags_scroll, QStringLiteral("Flags"));
 
   // --- Resistenze ---
   auto* res_page = new QWidget(tabs_);
+  auto* res_scroll = new QScrollArea(tabs_);
+  res_scroll->setWidgetResizable(true);
+  res_scroll->setFrameShape(QFrame::NoFrame);
+  res_scroll->setWidget(res_page);
   auto* res_layout = new QVBoxLayout(res_page);
+  res_layout->setAlignment(Qt::AlignTop);
   immunities_enable_ = new QCheckBox(
       QStringLiteral("Scrivi immune / M_immune / susc nel file (sex codificato +3)"), res_page);
   res_layout->addWidget(immunities_enable_);
-  auto* res_cols = new QHBoxLayout();
   immune_ = new FlagEditor(res_page);
   immune_->setFlags(catalog_.immunity_flags());
   m_immune_ = new FlagEditor(res_page);
   m_immune_->setFlags(catalog_.immunity_flags());
   susc_ = new FlagEditor(res_page);
   susc_->setFlags(catalog_.immunity_flags());
-  auto* i_col = new QVBoxLayout();
-  auto* m_col = new QVBoxLayout();
-  auto* s_col = new QVBoxLayout();
-  i_col->addWidget(new QLabel(QStringLiteral("Immune"), res_page));
-  i_col->addWidget(immune_, 1);
-  m_col->addWidget(new QLabel(QStringLiteral("M_immune"), res_page));
-  m_col->addWidget(m_immune_, 1);
-  s_col->addWidget(new QLabel(QStringLiteral("Susc"), res_page));
-  s_col->addWidget(susc_, 1);
-  res_cols->addLayout(i_col, 1);
-  res_cols->addLayout(m_col, 1);
-  res_cols->addLayout(s_col, 1);
-  res_layout->addLayout(res_cols, 1);
-  tabs_->addTab(res_page, QStringLiteral("Resistenze"));
+  res_layout->addWidget(new QLabel(QStringLiteral("Immune"), res_page));
+  res_layout->addWidget(immune_, 0, Qt::AlignTop);
+  res_layout->addWidget(new QLabel(QStringLiteral("M_immune"), res_page));
+  res_layout->addWidget(m_immune_, 0, Qt::AlignTop);
+  res_layout->addWidget(new QLabel(QStringLiteral("Susc"), res_page));
+  res_layout->addWidget(susc_, 0, Qt::AlignTop);
+  res_layout->addStretch(1);
+  tabs_->addTab(res_scroll, QStringLiteral("Resistenze"));
 
   auto notify = [this]() {
     updateExpHint();
+    updateDamageEstimate();
     emit edited();
   };
   connect(name_, &QLineEdit::textChanged, this, notify);
@@ -964,8 +976,11 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   connect(exp_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
   connect(gold_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
   connect(hit_bonus_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(mult_att_, qOverload<double>(&QDoubleSpinBox::valueChanged), this, notify);
+  connect(dam_dice_, &QLineEdit::textChanged, this, notify);
   updateTypeDependentUi();
   updateExpHint();
+  updateDamageEstimate();
 }
 
 void MobEditor::updateTypeDependentUi() {
@@ -1023,6 +1038,89 @@ void MobEditor::updateExpHint() {
     msg += QStringLiteral(" Attenzione: medit segnala bonus > 32 come troppo alto.");
   }
   exp_hint_->setText(msg);
+}
+
+void MobEditor::updateDamageEstimate() {
+  if(damage_estimate_ == nullptr || act_ == nullptr || damage_sim_box_ == nullptr) {
+    return;
+  }
+
+  QString mob_label = short_->text().trimmed();
+  if(mob_label.isEmpty()) {
+    mob_label = name_->text().trimmed();
+  }
+  if(mob_label.isEmpty()) {
+    mob_label = QStringLiteral("(nuovo mob)");
+  }
+  mob_label.remove(QRegularExpression(QStringLiteral("\\$[cC][0-9]{4}")));
+  mob_label = mob_label.simplified();
+
+  const eleutheria::DiceValues dam = eleutheria::parse_dice_text(dam_dice_->text().toStdString());
+  const char mobtype =
+      letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
+  const int level = level_->value();
+  const int mult = static_cast<int>(mult_att_->value());
+  const int attacks = eleutheria::mob_type_uses_mult_att(mobtype) ? std::max(1, mult) : 1;
+
+  const auto sim = eleutheria::simulate_mob_round_damage(static_cast<std::int64_t>(act_->value()),
+                                                         mobtype, level, mult, dam);
+
+  damage_sim_box_->setTitle(QStringLiteral("Stima danni — %1").arg(mob_label));
+
+  const QString dice_text =
+      QStringLiteral("%1d%2%3")
+          .arg(dam.number)
+          .arg(dam.size)
+          .arg(dam.plus > 0   ? QStringLiteral("+%1").arg(dam.plus)
+               : dam.plus < 0 ? QString::number(dam.plus)
+                              : QString());
+
+  const auto role_color = [](eleutheria::MobDamageRole role) -> QString {
+    switch(role) {
+      case eleutheria::MobDamageRole::Fighter:
+        return QStringLiteral("#1b7a3c");
+      case eleutheria::MobDamageRole::Mage:
+        return QStringLiteral("#1a5fad");
+      case eleutheria::MobDamageRole::Cleric:
+        return QStringLiteral("#a65b00");
+      case eleutheria::MobDamageRole::Psionic:
+        return QStringLiteral("#0b6e7a");
+    }
+    return QStringLiteral("#888888");
+  };
+
+  QString html;
+  html += QStringLiteral(
+              "<div style='line-height:1.35;'>"
+              "<div style='margin-bottom:6px;'>"
+              "<span style='opacity:0.85;'>"
+              "lvl <b>%1</b> · <b>%2</b> att · danno <b>%3</b>"
+              "</span></div>")
+              .arg(level)
+              .arg(attacks)
+              .arg(dice_text.toHtmlEscaped());
+
+  for(const auto& component : sim.components) {
+    QString label = QString::fromStdString(eleutheria::mob_damage_role_label(component.role));
+    if(!component.act_labels.empty()) {
+      label += QStringLiteral(" · %1").arg(QString::fromStdString(component.act_labels));
+    }
+    const QString color = role_color(component.role);
+    html += QStringLiteral(
+                "<div style='margin:3px 0;padding-left:6px;border-left:3px solid %1;'>"
+                "<span style='font-weight:700;color:%1;'>%2</span> "
+                "<span style='opacity:0.75;'>%3–%4</span> "
+                "<span style='font-weight:700;color:%1;'>media %5</span> "
+                "<span style='opacity:0.55;font-size:9pt;'>[%6]</span>"
+                "</div>")
+                .arg(color, label.toHtmlEscaped())
+                .arg(component.min_damage)
+                .arg(component.max_damage)
+                .arg(component.avg_damage, 0, 'f', 1)
+                .arg(QString::fromStdString(component.summary).toHtmlEscaped());
+  }
+  html += QStringLiteral("</div>");
+  damage_estimate_->setText(html);
 }
 
 void MobEditor::setMaxLineLength(int max_length) {
@@ -1089,6 +1187,7 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
   distant_sounds_->setPlainText(QString::fromStdString(mob.distant_sounds));
   updateTypeDependentUi();
   updateExpHint();
+  updateDamageEstimate();
 }
 
 eleutheria::Mobile MobEditor::save(const eleutheria::Mobile* previous) const {
@@ -1206,26 +1305,26 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
 
   // --- Flags ---
   auto* flags_page = new QWidget(tabs_);
-  auto* flags_layout = new QHBoxLayout(flags_page);
-  auto* extra_col = new QVBoxLayout();
-  auto* extra2_col = new QVBoxLayout();
-  auto* wear_col = new QVBoxLayout();
+  auto* flags_scroll = new QScrollArea(tabs_);
+  flags_scroll->setWidgetResizable(true);
+  flags_scroll->setFrameShape(QFrame::NoFrame);
+  flags_scroll->setWidget(flags_page);
+  auto* flags_layout = new QVBoxLayout(flags_page);
+  flags_layout->setAlignment(Qt::AlignTop);
   extra_ = new FlagEditor(flags_page);
   extra_->setFlags(catalog_.extra_flags());
   extra2_ = new FlagEditor(flags_page);
   extra2_->setFlags(catalog_.extra_flags2());
   wear_ = new FlagEditor(flags_page);
   wear_->setFlags(catalog_.wear_flags());
-  extra_col->addWidget(new QLabel(QStringLiteral("Extra flags"), flags_page));
-  extra_col->addWidget(extra_, 1);
-  extra2_col->addWidget(new QLabel(QStringLiteral("Extra flags 2 (F)"), flags_page));
-  extra2_col->addWidget(extra2_, 1);
-  wear_col->addWidget(new QLabel(QStringLiteral("Wear flags"), flags_page));
-  wear_col->addWidget(wear_, 1);
-  flags_layout->addLayout(extra_col, 1);
-  flags_layout->addLayout(extra2_col, 1);
-  flags_layout->addLayout(wear_col, 1);
-  tabs_->addTab(flags_page, QStringLiteral("Flags"));
+  flags_layout->addWidget(new QLabel(QStringLiteral("Extra flags"), flags_page));
+  flags_layout->addWidget(extra_, 0, Qt::AlignTop);
+  flags_layout->addWidget(new QLabel(QStringLiteral("Extra flags 2 (F)"), flags_page));
+  flags_layout->addWidget(extra2_, 0, Qt::AlignTop);
+  flags_layout->addWidget(new QLabel(QStringLiteral("Wear flags"), flags_page));
+  flags_layout->addWidget(wear_, 0, Qt::AlignTop);
+  flags_layout->addStretch(1);
+  tabs_->addTab(flags_scroll, QStringLiteral("Flags"));
 
   // --- Affects ---
   auto* affect_page = new QWidget(tabs_);

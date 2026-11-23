@@ -2,12 +2,14 @@
 
 #include <QCheckBox>
 #include <QGridLayout>
+#include <QSizePolicy>
 
 FlagEditor::FlagEditor(QWidget* parent) : QWidget(parent) {
   layout_ = new QGridLayout(this);
   layout_->setContentsMargins(0, 0, 0, 0);
-  layout_->setHorizontalSpacing(8);
-  layout_->setVerticalSpacing(2);
+  layout_->setHorizontalSpacing(6);
+  layout_->setVerticalSpacing(0);
+  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
 }
 
 void FlagEditor::setFlags(const std::vector<eleutheria::FlagDef>& defs) {
@@ -22,24 +24,31 @@ void FlagEditor::rebuild() {
   }
   boxes_.clear();
 
+  // Griglia compatta: piu' colonne, niente stretch verticale.
+  constexpr int kColumns = 4;
   int row = 0;
   int col = 0;
   for(const auto& def : defs_) {
     auto* box = new QCheckBox(QString::fromStdString(def.label), this);
     box->setToolTip(QString::fromStdString(def.key + " (bit " + std::to_string(def.bit_index) + ")"));
+    box->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     connect(box, &QCheckBox::toggled, this, [this](bool) {
       if(!updating_) {
         emit valueChanged(value());
       }
     });
-    layout_->addWidget(box, row, col);
+    layout_->addWidget(box, row, col, Qt::AlignLeft | Qt::AlignTop);
     boxes_.push_back(box);
     ++col;
-    if(col >= 3) {
+    if(col >= kColumns) {
       col = 0;
       ++row;
     }
   }
+  for(int c = 0; c < kColumns; ++c) {
+    layout_->setColumnStretch(c, 1);
+  }
+  layout_->setRowStretch(row + 1, 0);
 }
 
 void FlagEditor::setValue(std::uint64_t value) {

@@ -17,6 +17,7 @@ class QPushButton;
 class QTabWidget;
 class QLabel;
 class QCheckBox;
+class QGroupBox;
 class FlagEditor;
 
 class RoomEditor : public QWidget {
@@ -109,6 +110,7 @@ class MobEditor : public QWidget {
 
  private:
   void updateExpHint();
+  void updateDamageEstimate();
   void updateTypeDependentUi();
 
   const eleutheria::Catalog& catalog_;
@@ -132,6 +134,8 @@ class MobEditor : public QWidget {
   QSpinBox* gold_ = nullptr;
   QSpinBox* exp_ = nullptr;
   QLabel* exp_hint_ = nullptr;
+  QLabel* damage_estimate_ = nullptr;
+  QGroupBox* damage_sim_box_ = nullptr;
   QSpinBox* race_ = nullptr;
   QCheckBox* spellpower_enable_ = nullptr;
   QSpinBox* spellpower_ = nullptr;

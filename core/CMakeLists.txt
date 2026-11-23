@@ -5,6 +5,7 @@ add_library(eleutheria_core STATIC
   src/source_blocks.cpp
   src/world.cpp
   src/workspace.cpp
+  src/mob_damage_estimate.cpp
 )
 
 target_include_directories(eleutheria_core
