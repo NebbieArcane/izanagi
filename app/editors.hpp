@@ -69,6 +69,8 @@ class RoomEditor : public QWidget {
   const eleutheria::WorkspaceEntityIndex* workspace_index_ = nullptr;
   QString current_area_name_;
   std::int64_t loaded_vnum_ = -1;
+  /** True durante load(): evita che textChanged/toggled marchino l'area dirty. */
+  bool loading_ = false;
 
   QTabWidget* tabs_ = nullptr;
   QLineEdit* vnum_ = nullptr;
@@ -126,6 +128,7 @@ class MobEditor : public QWidget {
   void updateTypeDependentUi();
 
   const eleutheria::Catalog& catalog_;
+  bool loading_ = false;
   QTabWidget* tabs_ = nullptr;
   QLineEdit* vnum_ = nullptr;
   QLineEdit* name_ = nullptr;
@@ -183,6 +186,7 @@ class ObjEditor : public QWidget {
   void notifyEdited();
 
   const eleutheria::Catalog& catalog_;
+  bool loading_ = false;
   QTabWidget* tabs_ = nullptr;
   QLineEdit* vnum_ = nullptr;
   QLineEdit* name_ = nullptr;
@@ -223,6 +227,7 @@ class ZoneEditor : public QWidget {
   void edited();
 
  private:
+  bool loading_ = false;
   QLineEdit* number_ = nullptr;
   QLineEdit* name_ = nullptr;
   QLineEdit* top_ = nullptr;
@@ -253,6 +258,7 @@ class SpeEditor : public QWidget {
   eleutheria::Area* area_ = nullptr;
   const eleutheria::WorkspaceEntityIndex* workspace_index_ = nullptr;
   QString current_area_name_;
+  bool loading_ = false;
   QTableWidget* table_ = nullptr;
   QPushButton* add_btn_ = nullptr;
   QPushButton* browse_btn_ = nullptr;

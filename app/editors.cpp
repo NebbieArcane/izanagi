@@ -38,6 +38,15 @@
 
 namespace {
 
+/** Sopprime emit edited() mentre un editor carica dati da file. */
+struct LoadingGuard {
+  bool& flag;
+  explicit LoadingGuard(bool& loading) : flag(loading) { flag = true; }
+  ~LoadingGuard() { flag = false; }
+  LoadingGuard(const LoadingGuard&) = delete;
+  LoadingGuard& operator=(const LoadingGuard&) = delete;
+};
+
 QLineEdit* make_num_edit(QWidget* parent) {
   auto* e = new QLineEdit(parent);
   e->setClearButtonEnabled(false);
@@ -475,7 +484,12 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
 
   extras_ = new ExtraDescListEditor(room_page);
   room_layout->addWidget(extras_, 1);
-  connect(extras_, &ExtraDescListEditor::edited, this, [this]() { emit edited(); });
+  connect(extras_, &ExtraDescListEditor::edited, this, [this]() {
+    if(loading_) {
+      return;
+    }
+    emit edited();
+  });
   tabs_->addTab(room_page, QStringLiteral("Dettaglio"));
 
   // --- Avanzate (teleport / river / tunnel / bright) ---
@@ -541,7 +555,12 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   connect(contents_list_, &QListWidget::itemDoubleClicked, this,
           [this](QListWidgetItem*) { goToReference(); });
 
-  auto notify = [this]() { emit edited(); };
+  auto notify = [this]() {
+    if(loading_) {
+      return;
+    }
+    emit edited();
+  };
   connect(vnum_, &QLineEdit::textChanged, this, notify);
   connect(name_, &QLineEdit::textChanged, this, notify);
   connect(description_, &QPlainTextEdit::textChanged, this, notify);
@@ -786,6 +805,7 @@ std::size_t RoomEditor::insertAfterMobChain(eleutheria::Zone& zone, std::size_t 
 }
 
 void RoomEditor::load(const eleutheria::Room& room) {
+  const LoadingGuard guard(loading_);
   loaded_vnum_ = room.vnum;
   vnum_->blockSignals(true);
   name_->blockSignals(true);
@@ -1414,6 +1434,9 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   tabs_->addTab(res_scroll, QStringLiteral("Resistenze"));
 
   auto notify = [this]() {
+    if(loading_) {
+      return;
+    }
     updateExpHint();
     updateDamageEstimate();
     emit edited();
@@ -1597,6 +1620,7 @@ void MobEditor::setMaxLineLength(int max_length) {
 void MobEditor::clear() { load(eleutheria::Mobile{}); }
 
 void MobEditor::load(const eleutheria::Mobile& mob) {
+  const LoadingGuard guard(loading_);
   const QSignalBlocker b1(name_);
   const QSignalBlocker b2(short_);
   const QSignalBlocker b3(act_);
@@ -1864,7 +1888,12 @@ void ObjEditor::setAffectRow(int row, int location, int modifier) {
   affects_->setItem(row, 1, mod_item);
 }
 
-void ObjEditor::notifyEdited() { emit edited(); }
+void ObjEditor::notifyEdited() {
+  if(loading_) {
+    return;
+  }
+  emit edited();
+}
 
 void ObjEditor::setMaxLineLength(int max_length) {
   if(description_ != nullptr) {
@@ -1887,6 +1916,7 @@ void ObjEditor::setMaxLineLength(int max_length) {
 void ObjEditor::clear() { load(eleutheria::GameObject{}); }
 
 void ObjEditor::load(const eleutheria::GameObject& obj) {
+  const LoadingGuard guard(loading_);
   const QSignalBlocker b1(name_);
   const QSignalBlocker b2(short_);
   const QSignalBlocker b3(extra_);
@@ -1995,18 +2025,24 @@ ZoneEditor::ZoneEditor(QWidget* parent) : QWidget(parent) {
   commands_->horizontalHeader()->setStretchLastSection(true);
   commands_->verticalHeader()->setVisible(false);
   root->addWidget(commands_);
-  auto notify = [this]() { emit edited(); };
+  auto notify = [this]() {
+    if(loading_) {
+      return;
+    }
+    emit edited();
+  };
   connect(number_, &QLineEdit::textChanged, this, notify);
   connect(name_, &QLineEdit::textChanged, this, notify);
   connect(top_, &QLineEdit::textChanged, this, notify);
   connect(lifespan_, &QLineEdit::textChanged, this, notify);
   connect(reset_mode_, &QLineEdit::textChanged, this, notify);
-  connect(commands_, &QTableWidget::itemChanged, this, [this]() { emit edited(); });
+  connect(commands_, &QTableWidget::itemChanged, this, notify);
 }
 
 void ZoneEditor::clear() { load(eleutheria::Zone{}); }
 
 void ZoneEditor::load(const eleutheria::Zone& zone) {
+  const LoadingGuard guard(loading_);
   const QSignalBlocker bname(name_);
   set_num(number_, zone.number);
   name_->setText(QString::fromStdString(zone.name));
@@ -2141,10 +2177,13 @@ void SpeEditor::browseVnumForSelected() {
     table_->setItem(row, 1, new QTableWidgetItem);
   }
   table_->item(row, 1)->setText(QString::number(*vnum));
-  emit edited();
+  if(!loading_) {
+    emit edited();
+  }
 }
 
 void SpeEditor::load(const std::vector<eleutheria::SpecialAssignment>& specials) {
+  const LoadingGuard guard(loading_);
   const QSignalBlocker block(table_);
   table_->setRowCount(0);
   for(const auto& sa : specials) {
@@ -2214,7 +2253,9 @@ void SpeEditor::addRow() {
   table_->setItem(row, 1, new QTableWidgetItem(QStringLiteral("0")));
   table_->setItem(row, 2, new QTableWidgetItem(QStringLiteral("NomeSpecial")));
   table_->setItem(row, 3, new QTableWidgetItem);
-  emit edited();
+  if(!loading_) {
+    emit edited();
+  }
 }
 
 void SpeEditor::removeSelected() {
@@ -2227,7 +2268,7 @@ void SpeEditor::removeSelected() {
   for(int row : indexes) {
     table_->removeRow(row);
   }
-  if(!indexes.isEmpty()) {
+  if(!indexes.isEmpty() && !loading_) {
     emit edited();
   }
 }

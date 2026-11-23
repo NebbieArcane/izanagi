@@ -32,6 +32,7 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QTabWidget>
+#include <QTimer>
 #include <QToolBar>
 #include <QVariant>
 #include <QVBoxLayout>
@@ -109,7 +110,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), catalog_(eleuther
   loadMaxLineLength();
   applyMaxLineLength();
   newArea();
-  restoreLastWorkspace();
+  // Dopo show()/event loop: su macOS Intel setOverrideCursor nel costruttore
+  // crasha in CGImageCreate (Qt WaitCursor). Anche l'indice e' lavoro pesante.
+  QTimer::singleShot(0, this, &MainWindow::restoreLastWorkspace);
 }
 
 void MainWindow::applyCurrentTheme() {
@@ -437,7 +440,8 @@ void MainWindow::rebuildWorkspaceIndex() {
   }
   statusBar()->showMessage(
       QStringLiteral("Indicizzazione workspace (%1 aree)...").arg(workspace_areas_.size()));
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+  // Non usare QApplication::setOverrideCursor: su macOS Intel (Qt 6.11 + cocoa)
+  // puo' crashare in QImage::toCGImage / CGImageCreate, soprattutto all'avvio.
   try {
     workspace_index_.build_from_workspace(*workspace_, workspace_areas_);
     workspace_index_ready_ = true;
@@ -445,7 +449,6 @@ void MainWindow::rebuildWorkspaceIndex() {
     workspace_index_.clear();
     workspace_index_ready_ = false;
   }
-  QApplication::restoreOverrideCursor();
   applyWorkspaceIndexToEditors();
   statusBar()->showMessage(
       QStringLiteral("Indice workspace: %1 mob, %2 obj, %3 stanze")
