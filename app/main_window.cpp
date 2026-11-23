@@ -6,6 +6,7 @@
 
 #include "eleutheria/area_io.hpp"
 #include "eleutheria/workspace.hpp"
+#include "eleutheria/workspace_index.hpp"
 #include "eleutheria/world.hpp"
 
 #include <QApplication>
@@ -412,10 +413,62 @@ void MainWindow::setArea(eleutheria::Area area) {
   current_zone_.reset();
   room_editor_->setArea(&*area_);
   if(spe_editor_ != nullptr) {
+    spe_editor_->setArea(&*area_);
     spe_editor_->load(area_->specials);
   }
+  applyWorkspaceIndexToEditors();
   refreshLists();
   updateTitle();
+}
+
+QString MainWindow::currentAreaFolderName() const {
+  if(current_base_.isEmpty()) {
+    return {};
+  }
+  return QFileInfo(current_base_).fileName();
+}
+
+void MainWindow::rebuildWorkspaceIndex() {
+  workspace_index_.clear();
+  workspace_index_ready_ = false;
+  if(!workspace_ || workspace_areas_.empty()) {
+    applyWorkspaceIndexToEditors();
+    return;
+  }
+  statusBar()->showMessage(
+      QStringLiteral("Indicizzazione workspace (%1 aree)...").arg(workspace_areas_.size()));
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  try {
+    workspace_index_.build_from_workspace(*workspace_, workspace_areas_);
+    workspace_index_ready_ = true;
+  } catch(...) {
+    workspace_index_.clear();
+    workspace_index_ready_ = false;
+  }
+  QApplication::restoreOverrideCursor();
+  applyWorkspaceIndexToEditors();
+  statusBar()->showMessage(
+      QStringLiteral("Indice workspace: %1 mob, %2 obj, %3 stanze")
+          .arg(workspace_index_.mobiles.size())
+          .arg(workspace_index_.objects.size())
+          .arg(workspace_index_.rooms.size()),
+      8000);
+}
+
+void MainWindow::applyWorkspaceIndexToEditors() {
+  const QString folder = currentAreaFolderName();
+  if(area_ && workspace_index_ready_) {
+    workspace_index_.overlay_area(*area_, folder.toStdString());
+  }
+  const eleutheria::WorkspaceEntityIndex* idx =
+      workspace_index_ready_ ? &workspace_index_ : nullptr;
+  if(room_editor_ != nullptr) {
+    room_editor_->setWorkspaceIndex(idx, folder);
+  }
+  if(spe_editor_ != nullptr) {
+    spe_editor_->setWorkspaceIndex(idx, folder);
+    spe_editor_->setArea(area_ ? &*area_ : nullptr);
+  }
 }
 
 void MainWindow::refreshLists() {
@@ -669,6 +722,7 @@ void MainWindow::loadWorkspace(const QString& path) {
   }
   saveLastWorkspacePath(QString::fromStdString(root.string()));
   refreshWorkspaceList();
+  rebuildWorkspaceIndex();
   updateTitle();
   statusBar()->showMessage(
       QString("Workspace: %1  (%2 aree) — doppio clic su un'area per aprirla")
@@ -893,19 +947,41 @@ void MainWindow::validateArea() {
     return;
   }
   applyCurrentEditor();
-  const auto issues = eleutheria::validate_area(*area_);
+  applyWorkspaceIndexToEditors();
+  const auto* idx = workspace_index_ready_ ? &workspace_index_ : nullptr;
+  const auto issues = eleutheria::validate_area(*area_, idx);
   if(issues.empty()) {
     QMessageBox::information(this, "Validazione", "Nessun problema rilevato.");
     return;
   }
   QString msg;
+  int infos = 0;
+  int warnings = 0;
   for(const auto& issue : issues) {
-    msg += QString("[%1 #%2] %3\n")
+    const char* sev =
+        issue.severity == eleutheria::ValidationIssue::Severity::Info      ? "info"
+        : issue.severity == eleutheria::ValidationIssue::Severity::Warning ? "warn"
+                                                                           : "err";
+    if(issue.severity == eleutheria::ValidationIssue::Severity::Info) {
+      ++infos;
+    } else {
+      ++warnings;
+    }
+    msg += QString("[%1 %2 #%3] %4\n")
+               .arg(QString::fromUtf8(sev))
                .arg(QString::fromStdString(issue.kind))
                .arg(issue.vnum)
                .arg(QString::fromStdString(issue.message));
   }
-  QMessageBox::warning(this, "Validazione", msg);
+  if(warnings == 0) {
+    QMessageBox::information(
+        this, "Validazione",
+        QStringLiteral("Solo avvisi informativi (%1), nessun errore bloccante.\n\n%2")
+            .arg(infos)
+            .arg(msg));
+  } else {
+    QMessageBox::warning(this, "Validazione", msg);
+  }
 }
 
 void MainWindow::about() {

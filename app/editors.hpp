@@ -2,6 +2,7 @@
 
 #include "eleutheria/catalog.hpp"
 #include "eleutheria/types.hpp"
+#include "eleutheria/workspace_index.hpp"
 
 #include <QWidget>
 #include <optional>
@@ -25,6 +26,8 @@ class RoomEditor : public QWidget {
  public:
   explicit RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent = nullptr);
   void setArea(eleutheria::Area* area);
+  void setWorkspaceIndex(const eleutheria::WorkspaceEntityIndex* index,
+                         const QString& current_area_name = {});
   void load(const eleutheria::Room& room);
   /** Parte da previous (merge-on-save): campi non in UI restano intatti. */
   eleutheria::Room save(const eleutheria::Room* previous = nullptr) const;
@@ -57,6 +60,8 @@ class RoomEditor : public QWidget {
 
   const eleutheria::Catalog& catalog_;
   eleutheria::Area* area_ = nullptr;
+  const eleutheria::WorkspaceEntityIndex* workspace_index_ = nullptr;
+  QString current_area_name_;
   std::int64_t loaded_vnum_ = -1;
 
   QTabWidget* tabs_ = nullptr;
@@ -223,6 +228,9 @@ class SpeEditor : public QWidget {
   Q_OBJECT
  public:
   explicit SpeEditor(QWidget* parent = nullptr);
+  void setArea(eleutheria::Area* area);
+  void setWorkspaceIndex(const eleutheria::WorkspaceEntityIndex* index,
+                         const QString& current_area_name = {});
   void load(const std::vector<eleutheria::SpecialAssignment>& specials);
   std::vector<eleutheria::SpecialAssignment> save() const;
   void clear();
@@ -232,9 +240,14 @@ class SpeEditor : public QWidget {
 
  private:
   void addRow();
+  void browseVnumForSelected();
   void removeSelected();
 
+  eleutheria::Area* area_ = nullptr;
+  const eleutheria::WorkspaceEntityIndex* workspace_index_ = nullptr;
+  QString current_area_name_;
   QTableWidget* table_ = nullptr;
   QPushButton* add_btn_ = nullptr;
+  QPushButton* browse_btn_ = nullptr;
   QPushButton* remove_btn_ = nullptr;
 };

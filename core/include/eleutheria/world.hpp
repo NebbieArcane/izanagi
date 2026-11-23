@@ -8,6 +8,8 @@
 
 namespace eleutheria {
 
+struct WorkspaceEntityIndex;
+
 struct ValidationIssue {
   enum class Severity { Info, Warning, Error };
   Severity severity = Severity::Warning;
@@ -16,7 +18,9 @@ struct ValidationIssue {
   std::string message;
 };
 
-std::vector<ValidationIssue> validate_area(const Area& area);
+/** Se index != nullptr distingue vnum in altra area workspace vs placeholder. */
+std::vector<ValidationIssue> validate_area(const Area& area,
+                                           const WorkspaceEntityIndex* index = nullptr);
 
 /** Rimuove $cNNNN e simili per liste UI su una sola riga. */
 std::string strip_mud_colors(std::string_view text);

@@ -1,10 +1,25 @@
 #include "eleutheria/world.hpp"
 
+#include "eleutheria/workspace_index.hpp"
+
 #include <cctype>
 
 namespace eleutheria {
+namespace {
 
-std::vector<ValidationIssue> validate_area(const Area& area) {
+std::string describe_external_ref(const char* what, std::int64_t vnum,
+                                  const IndexedEntity* found) {
+  if(found != nullptr) {
+    return std::string(what) + " " + std::to_string(vnum) + " in altra area workspace (" +
+           found->area_name + ")";
+  }
+  return std::string(what) + " " + std::to_string(vnum) +
+         " non nel workspace (placeholder accettato)";
+}
+
+}  // namespace
+
+std::vector<ValidationIssue> validate_area(const Area& area, const WorkspaceEntityIndex* index) {
   std::vector<ValidationIssue> issues;
 
   auto add = [&](ValidationIssue::Severity sev, const std::string& kind, std::int64_t vnum,
@@ -22,10 +37,10 @@ std::vector<ValidationIssue> validate_area(const Area& area) {
         continue;
       }
       if(ex.to_room >= 0 && area.rooms.find(ex.to_room) == area.rooms.end()) {
-        // May be outside area — warning only
+        const IndexedEntity* found = index ? index->find_room(ex.to_room) : nullptr;
         add(ValidationIssue::Severity::Info, "room", vnum,
-            "Uscita " + std::to_string(d) + " verso stanza " + std::to_string(ex.to_room) +
-                " non presente in questa area");
+            "Uscita " + std::to_string(d) + ": " +
+                describe_external_ref("stanza", ex.to_room, found));
       }
     }
   }
@@ -36,33 +51,66 @@ std::vector<ValidationIssue> validate_area(const Area& area) {
         continue;
       }
       if(cmd.command == 'M' && area.mobiles.find(cmd.arg1) == area.mobiles.end()) {
-        add(ValidationIssue::Severity::Warning, "zone", num,
-            "Reset M riferisce mob " + std::to_string(cmd.arg1) + " assente");
+        const IndexedEntity* found = index ? index->find_mob(cmd.arg1) : nullptr;
+        add(ValidationIssue::Severity::Info, "zone", num,
+            std::string("Reset M: ") + describe_external_ref("mob", cmd.arg1, found));
       }
       if((cmd.command == 'O' || cmd.command == 'G' || cmd.command == 'E' || cmd.command == 'P') &&
          area.objects.find(cmd.arg1) == area.objects.end()) {
-        add(ValidationIssue::Severity::Warning, "zone", num,
-            std::string("Reset ") + cmd.command + " riferisce oggetto " +
-                std::to_string(cmd.arg1) + " assente");
-      }
-      if((cmd.command == 'M' || cmd.command == 'O' || cmd.command == 'D') && cmd.arg3 >= 0 &&
-         area.rooms.find(cmd.arg3) == area.rooms.end() && cmd.command != 'D') {
-        // M/O: arg3 is room
+        const IndexedEntity* found = index ? index->find_obj(cmd.arg1) : nullptr;
         add(ValidationIssue::Severity::Info, "zone", num,
-            std::string("Reset ") + cmd.command + " stanza " + std::to_string(cmd.arg3) +
-                " non in area");
+            std::string("Reset ") + cmd.command + ": " +
+                describe_external_ref("oggetto", cmd.arg1, found));
+      }
+      if((cmd.command == 'M' || cmd.command == 'O') && cmd.arg3 >= 0 &&
+         area.rooms.find(cmd.arg3) == area.rooms.end()) {
+        const IndexedEntity* found = index ? index->find_room(cmd.arg3) : nullptr;
+        add(ValidationIssue::Severity::Info, "zone", num,
+            std::string("Reset ") + cmd.command + ": " +
+                describe_external_ref("stanza", cmd.arg3, found));
       }
       if(cmd.command == 'D' && area.rooms.find(cmd.arg1) == area.rooms.end()) {
-        add(ValidationIssue::Severity::Warning, "zone", num,
-            "Reset D stanza " + std::to_string(cmd.arg1) + " assente");
+        const IndexedEntity* found = index ? index->find_room(cmd.arg1) : nullptr;
+        add(ValidationIssue::Severity::Info, "zone", num,
+            std::string("Reset D: ") + describe_external_ref("stanza", cmd.arg1, found));
       }
     }
   }
 
   for(const auto& [keeper, shop] : area.shops) {
     if(area.mobiles.find(shop.keeper) == area.mobiles.end()) {
-      add(ValidationIssue::Severity::Warning, "shop", shop.keeper,
-          "Shopkeeper mob assente nell'area");
+      const IndexedEntity* found = index ? index->find_mob(shop.keeper) : nullptr;
+      add(ValidationIssue::Severity::Info, "shop", shop.keeper,
+          describe_external_ref("shopkeeper mob", shop.keeper, found));
+    }
+    for(const auto produce : shop.producing) {
+      if(produce < 0) {
+        continue;
+      }
+      if(area.objects.find(produce) == area.objects.end()) {
+        const IndexedEntity* found = index ? index->find_obj(produce) : nullptr;
+        add(ValidationIssue::Severity::Info, "shop", shop.keeper,
+            describe_external_ref("shop produce oggetto", produce, found));
+      }
+    }
+  }
+
+  for(const auto& sa : area.specials) {
+    if(sa.is_comment) {
+      continue;
+    }
+    if(sa.kind == 'M' && area.mobiles.find(sa.vnum) == area.mobiles.end()) {
+      const IndexedEntity* found = index ? index->find_mob(sa.vnum) : nullptr;
+      add(ValidationIssue::Severity::Info, "spe", sa.vnum,
+          describe_external_ref("special mob", sa.vnum, found));
+    } else if(sa.kind == 'O' && area.objects.find(sa.vnum) == area.objects.end()) {
+      const IndexedEntity* found = index ? index->find_obj(sa.vnum) : nullptr;
+      add(ValidationIssue::Severity::Info, "spe", sa.vnum,
+          describe_external_ref("special oggetto", sa.vnum, found));
+    } else if(sa.kind == 'R' && area.rooms.find(sa.vnum) == area.rooms.end()) {
+      const IndexedEntity* found = index ? index->find_room(sa.vnum) : nullptr;
+      add(ValidationIssue::Severity::Info, "spe", sa.vnum,
+          describe_external_ref("special stanza", sa.vnum, found));
     }
   }
 

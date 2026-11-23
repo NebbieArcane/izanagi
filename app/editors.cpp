@@ -4,6 +4,7 @@
 #include "line_limited_edit.hpp"
 
 #include "eleutheria/mob_damage_estimate.hpp"
+#include "eleutheria/workspace_index.hpp"
 #include "eleutheria/world.hpp"
 
 #include <algorithm>
@@ -78,26 +79,102 @@ const char* kEquipPositions[] = {
     "Left ear",       "Eyes",           "Loaded weapon",  "Clan symbol",
 };
 
-std::optional<std::int64_t> pick_entity_vnum(QWidget* parent, const QString& title,
-                                            const std::map<std::int64_t, QString>& choices) {
-  if(choices.empty()) {
-    QMessageBox::information(parent, title, QStringLiteral("Nessuna entita' disponibile."));
+constexpr const char* kPlaceholderChoice = "— Vnum esterno / placeholder... —";
+
+std::optional<std::int64_t> pick_placeholder_vnum(QWidget* parent, const QString& title) {
+  bool ok = false;
+  const int value = QInputDialog::getInt(parent, title,
+                                         QStringLiteral("Vnum (anche se assente nel workspace):"), 0,
+                                         0, 999999999, 1, &ok);
+  if(!ok) {
     return std::nullopt;
   }
+  return static_cast<std::int64_t>(value);
+}
+
+/**
+ * Opzione B: lista da area corrente + altre aree workspace, oppure placeholder libero.
+ * kind: 'M' mob, 'O' object, 'R' room.
+ */
+std::optional<std::int64_t> pick_entity_vnum(QWidget* parent, const QString& title, char kind,
+                                            const eleutheria::Area* current_area,
+                                            const QString& current_area_name,
+                                            const eleutheria::WorkspaceEntityIndex* index) {
   QStringList labels;
   QList<std::int64_t> vnums;
-  for(const auto& [vnum, label] : choices) {
-    labels << QStringLiteral("%1  %2").arg(vnum, 6).arg(label);
+
+  auto add_row = [&](std::int64_t vnum, const QString& area_name, const QString& label,
+                     bool current) {
+    const QString prefix =
+        current ? QStringLiteral("[questa area]")
+                : QStringLiteral("[%1]").arg(area_name.isEmpty() ? QStringLiteral("?") : area_name);
+    labels << QStringLiteral("%1  %2  %3").arg(vnum, 6).arg(prefix, -14).arg(label);
     vnums << vnum;
+  };
+
+  if(kind == 'M' && current_area != nullptr) {
+    for(const auto& [vnum, mob] : current_area->mobiles) {
+      add_row(vnum, current_area_name,
+              QString::fromStdString(eleutheria::strip_mud_colors(eleutheria::mob_list_label(mob))),
+              true);
+    }
+  } else if(kind == 'O' && current_area != nullptr) {
+    for(const auto& [vnum, obj] : current_area->objects) {
+      add_row(vnum, current_area_name,
+              QString::fromStdString(eleutheria::strip_mud_colors(eleutheria::obj_list_label(obj))),
+              true);
+    }
+  } else if(kind == 'R' && current_area != nullptr) {
+    for(const auto& [vnum, room] : current_area->rooms) {
+      add_row(vnum, current_area_name,
+              QString::fromStdString(eleutheria::strip_mud_colors(eleutheria::room_list_label(room))),
+              true);
+    }
   }
+
+  if(index != nullptr) {
+    const auto* map = kind == 'M'   ? &index->mobiles
+                      : kind == 'O' ? &index->objects
+                                    : &index->rooms;
+    for(const auto& [vnum, ent] : *map) {
+      if(current_area != nullptr) {
+        if(kind == 'M' && current_area->mobiles.count(vnum)) {
+          continue;
+        }
+        if(kind == 'O' && current_area->objects.count(vnum)) {
+          continue;
+        }
+        if(kind == 'R' && current_area->rooms.count(vnum)) {
+          continue;
+        }
+      }
+      add_row(vnum, QString::fromStdString(ent.area_name), QString::fromStdString(ent.label),
+              false);
+    }
+  }
+
+  labels << QString::fromUtf8(kPlaceholderChoice);
+  vnums << -1;
+
+  if(labels.size() == 1) {
+    // Solo placeholder
+    return pick_placeholder_vnum(parent, title);
+  }
+
   bool ok = false;
-  const QString picked = QInputDialog::getItem(parent, title, QStringLiteral("Scegli:"), labels, 0,
-                                               false, &ok);
+  const QString picked = QInputDialog::getItem(
+      parent, title,
+      QStringLiteral("Scegli dal workspace, oppure \"Vnum esterno / placeholder\":"), labels, 0,
+      false, &ok);
   if(!ok || picked.isEmpty()) {
     return std::nullopt;
   }
+  if(picked.startsWith(QString::fromUtf8(kPlaceholderChoice).left(3)) ||
+     picked.contains(QStringLiteral("placeholder"))) {
+    return pick_placeholder_vnum(parent, title);
+  }
   const int idx = labels.indexOf(picked);
-  if(idx < 0 || idx >= vnums.size()) {
+  if(idx < 0 || idx >= vnums.size() || vnums[idx] < 0) {
     return std::nullopt;
   }
   return vnums[idx];
@@ -202,8 +279,35 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
       exits_->setItem(i, c, new QTableWidgetItem);
     }
   }
-  room_layout->addWidget(new QLabel(QStringLiteral("Uscite"), room_page));
+  room_layout->addWidget(new QLabel(
+      QStringLiteral(
+          "Uscite: To puo' essere stanza di questa area, di un'altra area, o placeholder."),
+      room_page));
   room_layout->addWidget(exits_);
+  auto* exit_btns = new QHBoxLayout();
+  auto* browse_exit_btn =
+      new QPushButton(QStringLiteral("Sfoglia destinazione (riga selezionata)..."), room_page);
+  exit_btns->addWidget(browse_exit_btn);
+  exit_btns->addStretch();
+  room_layout->addLayout(exit_btns);
+  connect(browse_exit_btn, &QPushButton::clicked, this, [this]() {
+    const int row = exits_->currentRow();
+    if(row < 0 || row >= 6) {
+      QMessageBox::information(this, QStringLiteral("Uscite"),
+                               QStringLiteral("Seleziona prima una riga uscita (N/E/S/W/U/D)."));
+      return;
+    }
+    const auto vnum = pick_entity_vnum(this, QStringLiteral("Destinazione uscita"), 'R', area_,
+                                       current_area_name_, workspace_index_);
+    if(!vnum) {
+      return;
+    }
+    if(exits_->item(row, 1) == nullptr) {
+      exits_->setItem(row, 1, new QTableWidgetItem);
+    }
+    exits_->item(row, 1)->setText(QString::number(*vnum));
+    emit edited();
+  });
 
   extras_ = new LineLimitedPlainTextEdit(room_page);
   configure_mud_text_field(extras_);
@@ -316,6 +420,12 @@ void RoomEditor::setMaxLineLength(int max_length) {
 
 void RoomEditor::setArea(eleutheria::Area* area) { area_ = area; }
 
+void RoomEditor::setWorkspaceIndex(const eleutheria::WorkspaceEntityIndex* index,
+                                   const QString& current_area_name) {
+  workspace_index_ = index;
+  current_area_name_ = current_area_name;
+}
+
 void RoomEditor::clear() {
   eleutheria::Room empty;
   load(empty);
@@ -333,31 +443,43 @@ QString RoomEditor::flagNames(std::uint64_t bits) const {
 }
 
 QString RoomEditor::entityLabel(char kind, std::int64_t vnum) const {
-  if(area_ == nullptr) {
-    return QStringLiteral("?");
-  }
-  if(kind == 'M') {
-    const auto it = area_->mobiles.find(vnum);
-    if(it == area_->mobiles.end()) {
-      return QStringLiteral("?");
+  auto from_index = [&](const eleutheria::IndexedEntity* found) -> QString {
+    if(found == nullptr) {
+      return QStringLiteral("(esterno/placeholder)");
     }
-    return QString::fromStdString(eleutheria::strip_mud_colors(
-        it->second.short_descr.empty() ? it->second.name : it->second.short_descr));
+    return QStringLiteral("[%1] %2")
+        .arg(QString::fromStdString(found->area_name))
+        .arg(QString::fromStdString(found->label));
+  };
+  if(kind == 'M') {
+    if(area_ != nullptr) {
+      const auto it = area_->mobiles.find(vnum);
+      if(it != area_->mobiles.end()) {
+        return QString::fromStdString(eleutheria::strip_mud_colors(
+            it->second.short_descr.empty() ? it->second.name : it->second.short_descr));
+      }
+    }
+    return from_index(workspace_index_ ? workspace_index_->find_mob(vnum) : nullptr);
   }
   if(kind == 'O') {
-    const auto it = area_->objects.find(vnum);
-    if(it == area_->objects.end()) {
-      return QStringLiteral("?");
+    if(area_ != nullptr) {
+      const auto it = area_->objects.find(vnum);
+      if(it != area_->objects.end()) {
+        return QString::fromStdString(eleutheria::strip_mud_colors(
+            it->second.short_description.empty() ? it->second.name
+                                                 : it->second.short_description));
+      }
     }
-    return QString::fromStdString(eleutheria::strip_mud_colors(
-        it->second.short_description.empty() ? it->second.name : it->second.short_description));
+    return from_index(workspace_index_ ? workspace_index_->find_obj(vnum) : nullptr);
   }
   if(kind == 'R') {
-    const auto it = area_->rooms.find(vnum);
-    if(it == area_->rooms.end()) {
-      return QStringLiteral("?");
+    if(area_ != nullptr) {
+      const auto it = area_->rooms.find(vnum);
+      if(it != area_->rooms.end()) {
+        return QString::fromStdString(eleutheria::strip_mud_colors(it->second.name));
+      }
     }
-    return QString::fromStdString(eleutheria::strip_mud_colors(it->second.name));
+    return from_index(workspace_index_ ? workspace_index_->find_room(vnum) : nullptr);
   }
   return QStringLiteral("?");
 }
@@ -587,11 +709,8 @@ void RoomEditor::addMobReset() {
                          QStringLiteral("Nessuna zona in cui inserire il reset. Crea prima una zona."));
     return;
   }
-  std::map<std::int64_t, QString> choices;
-  for(const auto& [vnum, mob] : area_->mobiles) {
-    choices[vnum] = entityLabel('M', vnum);
-  }
-  const auto mob_vnum = pick_entity_vnum(this, QStringLiteral("Add mob"), choices);
+  const auto mob_vnum = pick_entity_vnum(this, QStringLiteral("Add mob"), 'M', area_,
+                                         current_area_name_, workspace_index_);
   if(!mob_vnum) {
     return;
   }
@@ -618,11 +737,8 @@ void RoomEditor::addObjectReset() {
                          QStringLiteral("Nessuna zona in cui inserire il reset."));
     return;
   }
-  std::map<std::int64_t, QString> choices;
-  for(const auto& [vnum, obj] : area_->objects) {
-    choices[vnum] = entityLabel('O', vnum);
-  }
-  const auto obj_vnum = pick_entity_vnum(this, QStringLiteral("Add object"), choices);
+  const auto obj_vnum = pick_entity_vnum(this, QStringLiteral("Add object"), 'O', area_,
+                                         current_area_name_, workspace_index_);
   if(!obj_vnum) {
     return;
   }
@@ -650,11 +766,8 @@ void RoomEditor::equipSelectedMob() {
   if(zone == nullptr) {
     return;
   }
-  std::map<std::int64_t, QString> choices;
-  for(const auto& [vnum, obj] : area_->objects) {
-    choices[vnum] = entityLabel('O', vnum);
-  }
-  const auto obj_vnum = pick_entity_vnum(this, QStringLiteral("Equip object"), choices);
+  const auto obj_vnum = pick_entity_vnum(this, QStringLiteral("Equip object"), 'O', area_,
+                                         current_area_name_, workspace_index_);
   if(!obj_vnum) {
     return;
   }
@@ -693,11 +806,8 @@ void RoomEditor::giveSelectedMob() {
   if(zone == nullptr) {
     return;
   }
-  std::map<std::int64_t, QString> choices;
-  for(const auto& [vnum, obj] : area_->objects) {
-    choices[vnum] = entityLabel('O', vnum);
-  }
-  const auto obj_vnum = pick_entity_vnum(this, QStringLiteral("Give object"), choices);
+  const auto obj_vnum = pick_entity_vnum(this, QStringLiteral("Give object"), 'O', area_,
+                                         current_area_name_, workspace_index_);
   if(!obj_vnum) {
     return;
   }
@@ -1544,6 +1654,11 @@ ZoneEditor::ZoneEditor(QWidget* parent) : QWidget(parent) {
   form->addRow("Lifespan", lifespan_);
   form->addRow("Reset mode", reset_mode_);
   root->addLayout(form);
+  root->addWidget(new QLabel(
+      QStringLiteral(
+          "Arg1/Arg3 dei reset possono riferire mob/obj/stanze di altre aree o vnum "
+          "placeholder non ancora presenti nel workspace."),
+      this));
   commands_ = new QTableWidget(0, 6, this);
   commands_->setHorizontalHeaderLabels({"Cmd", "If", "Arg1", "Arg2", "Arg3", "Arg4/Note"});
   commands_->horizontalHeader()->setStretchLastSection(true);
@@ -1614,8 +1729,9 @@ SpeEditor::SpeEditor(QWidget* parent) : QWidget(parent) {
   root->addWidget(new QLabel(
       QStringLiteral(
           "Special .spe: M/O/R + vnum + nome (anche fittizio) + parms opzionali. "
-          "Il server assegna la procedura solo se il nome esiste; nel file puoi scrivere "
-          "qualsiasi nome."),
+          "Il vnum puo' essere di questa area, di un'altra area del workspace, "
+          "oppure un placeholder numerico. "
+          "Il server assegna la procedura solo se il nome esiste a runtime."),
       this));
   table_ = new QTableWidget(0, 4, this);
   table_->setHorizontalHeaderLabels(
@@ -1627,17 +1743,59 @@ SpeEditor::SpeEditor(QWidget* parent) : QWidget(parent) {
   root->addWidget(table_, 1);
   auto* btns = new QHBoxLayout();
   add_btn_ = new QPushButton(QStringLiteral("Aggiungi"), this);
+  browse_btn_ = new QPushButton(QStringLiteral("Sfoglia vnum..."), this);
   remove_btn_ = new QPushButton(QStringLiteral("Rimuovi"), this);
   btns->addWidget(add_btn_);
+  btns->addWidget(browse_btn_);
   btns->addWidget(remove_btn_);
   btns->addStretch();
   root->addLayout(btns);
   connect(add_btn_, &QPushButton::clicked, this, &SpeEditor::addRow);
+  connect(browse_btn_, &QPushButton::clicked, this, &SpeEditor::browseVnumForSelected);
   connect(remove_btn_, &QPushButton::clicked, this, &SpeEditor::removeSelected);
   connect(table_, &QTableWidget::itemChanged, this, [this]() { emit edited(); });
 }
 
+void SpeEditor::setArea(eleutheria::Area* area) { area_ = area; }
+
+void SpeEditor::setWorkspaceIndex(const eleutheria::WorkspaceEntityIndex* index,
+                                  const QString& current_area_name) {
+  workspace_index_ = index;
+  current_area_name_ = current_area_name;
+}
+
 void SpeEditor::clear() { load({}); }
+
+void SpeEditor::browseVnumForSelected() {
+  const int row = table_->currentRow();
+  if(row < 0) {
+    QMessageBox::information(this, QStringLiteral("Special"),
+                             QStringLiteral("Seleziona prima una riga M/O/R."));
+    return;
+  }
+  const QString kind_text =
+      table_->item(row, 0) ? table_->item(row, 0)->text().trimmed().toUpper() : QString();
+  if(kind_text.isEmpty() || kind_text.startsWith(QLatin1Char('*')) ||
+     kind_text.startsWith(QLatin1Char(';'))) {
+    QMessageBox::information(this, QStringLiteral("Special"),
+                             QStringLiteral("Sfoglia vale solo per righe M/O/R."));
+    return;
+  }
+  const char kind = kind_text.at(0).toLatin1();
+  if(kind != 'M' && kind != 'O' && kind != 'R') {
+    return;
+  }
+  const auto vnum = pick_entity_vnum(this, QStringLiteral("Special vnum"), kind, area_,
+                                     current_area_name_, workspace_index_);
+  if(!vnum) {
+    return;
+  }
+  if(table_->item(row, 1) == nullptr) {
+    table_->setItem(row, 1, new QTableWidgetItem);
+  }
+  table_->item(row, 1)->setText(QString::number(*vnum));
+  emit edited();
+}
 
 void SpeEditor::load(const std::vector<eleutheria::SpecialAssignment>& specials) {
   const QSignalBlocker block(table_);

@@ -4,6 +4,7 @@
 #include "eleutheria/catalog.hpp"
 #include "eleutheria/types.hpp"
 #include "eleutheria/workspace.hpp"
+#include "eleutheria/workspace_index.hpp"
 
 #include <QMainWindow>
 #include <QString>
@@ -79,6 +80,9 @@ class MainWindow : public QMainWindow {
   void openAreaFromWorkspace(const QString& area_path);
   void saveLastWorkspacePath(const QString& path);
   void restoreLastWorkspace();
+  void rebuildWorkspaceIndex();
+  void applyWorkspaceIndexToEditors();
+  QString currentAreaFolderName() const;
 
   eleutheria::Catalog catalog_;
   std::optional<eleutheria::Area> area_;
@@ -86,6 +90,8 @@ class MainWindow : public QMainWindow {
 
   std::optional<eleutheria::Workspace> workspace_;
   std::vector<eleutheria::WorkspaceArea> workspace_areas_;
+  eleutheria::WorkspaceEntityIndex workspace_index_;
+  bool workspace_index_ready_ = false;
 
   QTabWidget* tabs_ = nullptr;
   QListWidget* room_list_ = nullptr;
