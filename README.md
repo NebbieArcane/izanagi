@@ -2,7 +2,7 @@
 
 Editor di aree Diku/DaleMUD rifatto da zero per **Windows**, **macOS** e **Linux**, adattato al formato mondo di [Nebbie Arcane](https://github.com/NebbieArcane/Server).
 
-Ispirato a Izanagi di Lavinio Cerquetti (solo UI/workflow: area `.ele` + compagni `.wld/.mob/.obj/.zon/.shp`). Il binario originale non aveva sorgenti; questo progetto e' un rewrite C++17 + Qt 6.
+Ispirato a Eleutheria di Lavinio Cerquetti (solo UI/workflow: area `.ele` + compagni `.wld/.mob/.obj/.zon/.shp`). Il binario originale non aveva sorgenti; questo progetto e' un rewrite C++17 + Qt 6.
 
 ## Requisiti
 
