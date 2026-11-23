@@ -16,7 +16,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QStringList>
-#include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QFrame>
 #include <QGroupBox>
@@ -32,17 +31,44 @@
 #include <QRegularExpression>
 #include <QScrollArea>
 #include <QSignalBlocker>
-#include <QSpinBox>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
 namespace {
 
-QSpinBox* make_spin(QWidget* parent, int minv, int maxv) {
-  auto* s = new QSpinBox(parent);
-  s->setRange(minv, maxv);
-  return s;
+QLineEdit* make_num_edit(QWidget* parent) {
+  auto* e = new QLineEdit(parent);
+  e->setClearButtonEnabled(false);
+  return e;
+}
+
+void set_num(QLineEdit* edit, std::int64_t value) {
+  edit->setText(QString::number(value));
+}
+
+void set_num_double(QLineEdit* edit, double value) {
+  if(value == static_cast<double>(static_cast<std::int64_t>(value))) {
+    edit->setText(QString::number(static_cast<std::int64_t>(value)));
+  } else {
+    edit->setText(QString::number(value, 'g', 12));
+  }
+}
+
+std::int64_t num_i64(const QLineEdit* edit, std::int64_t fallback = 0) {
+  bool ok = false;
+  const auto value = edit->text().trimmed().toLongLong(&ok);
+  return ok ? value : fallback;
+}
+
+int num_i(const QLineEdit* edit, int fallback = 0) {
+  return static_cast<int>(num_i64(edit, fallback));
+}
+
+double num_d(const QLineEdit* edit, double fallback = 0.0) {
+  bool ok = false;
+  const auto value = edit->text().trimmed().toDouble(&ok);
+  return ok ? value : fallback;
 }
 
 void fill_named(QComboBox* box, const std::vector<eleutheria::NamedValue>& values) {
@@ -83,13 +109,18 @@ constexpr const char* kPlaceholderChoice = "â€” Vnum esterno / placeholder... â€
 
 std::optional<std::int64_t> pick_placeholder_vnum(QWidget* parent, const QString& title) {
   bool ok = false;
-  const int value = QInputDialog::getInt(parent, title,
-                                         QStringLiteral("Vnum (anche se assente nel workspace):"), 0,
-                                         0, 999999999, 1, &ok);
+  const QString text = QInputDialog::getText(
+      parent, title, QStringLiteral("Vnum (anche se assente nel workspace):"), QLineEdit::Normal,
+      QStringLiteral("0"), &ok);
   if(!ok) {
     return std::nullopt;
   }
-  return static_cast<std::int64_t>(value);
+  bool parsed = false;
+  const auto value = text.trimmed().toLongLong(&parsed);
+  if(!parsed) {
+    return std::nullopt;
+  }
+  return value;
 }
 
 /**
@@ -201,7 +232,7 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   auto* summary_layout = new QVBoxLayout(summary_page);
 
   auto* head = new QFormLayout();
-  vnum_ = make_spin(summary_page, 0, 999999);
+  vnum_ = make_num_edit(summary_page);
   name_ = new QLineEdit(summary_page);
   flags_summary_ = new QLineEdit(summary_page);
   flags_summary_->setReadOnly(true);
@@ -247,7 +278,7 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   auto* room_page = new QWidget(tabs_);
   auto* room_layout = new QVBoxLayout(room_page);
   auto* form = new QFormLayout();
-  zone_hint_ = make_spin(room_page, -1, 999999);
+  zone_hint_ = make_num_edit(room_page);
   sector_ = new QComboBox(room_page);
   fill_named(sector_, catalog_.sectors());
   form->addRow(QStringLiteral("Zone hint"), zone_hint_);
@@ -322,10 +353,10 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   auto* tele_box = new QGroupBox(QStringLiteral("Teleport (sector riga = -1)"), adv_page);
   auto* tele_form = new QFormLayout(tele_box);
   teleport_enable_ = new QCheckBox(QStringLiteral("Abilita teleport"), tele_box);
-  tele_time_ = make_spin(tele_box, 0, 999999);
-  tele_targ_ = make_spin(tele_box, -1, 999999);
-  tele_mask_ = make_spin(tele_box, 0, 2000000000);
-  tele_cnt_ = make_spin(tele_box, 0, 999999);
+  tele_time_ = make_num_edit(tele_box);
+  tele_targ_ = make_num_edit(tele_box);
+  tele_mask_ = make_num_edit(tele_box);
+  tele_cnt_ = make_num_edit(tele_box);
   tele_form->addRow(teleport_enable_);
   tele_form->addRow(QStringLiteral("tele_time"), tele_time_);
   tele_form->addRow(QStringLiteral("tele_targ"), tele_targ_);
@@ -336,8 +367,8 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   auto* river_box = new QGroupBox(QStringLiteral("River (settori acqua 7/9)"), adv_page);
   auto* river_form = new QFormLayout(river_box);
   river_enable_ = new QCheckBox(QStringLiteral("Scrivi river_speed/dir"), river_box);
-  river_speed_ = make_spin(river_box, 0, 999999);
-  river_dir_ = make_spin(river_box, 0, 5);
+  river_speed_ = make_num_edit(river_box);
+  river_dir_ = make_num_edit(river_box);
   river_form->addRow(river_enable_);
   river_form->addRow(QStringLiteral("river_speed"), river_speed_);
   river_form->addRow(QStringLiteral("river_dir (0-5)"), river_dir_);
@@ -346,7 +377,7 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   auto* tunnel_box = new QGroupBox(QStringLiteral("Tunnel / moblim"), adv_page);
   auto* tunnel_form = new QFormLayout(tunnel_box);
   tunnel_enable_ = new QCheckBox(QStringLiteral("Limite mob (flag TUNNEL)"), tunnel_box);
-  moblim_ = make_spin(tunnel_box, 1, 999999);
+  moblim_ = make_num_edit(tunnel_box);
   tunnel_form->addRow(tunnel_enable_);
   tunnel_form->addRow(QStringLiteral("moblim"), moblim_);
   adv_layout->addWidget(tunnel_box);
@@ -379,25 +410,25 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
           [this](QListWidgetItem*) { goToReference(); });
 
   auto notify = [this]() { emit edited(); };
-  connect(vnum_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(vnum_, &QLineEdit::textChanged, this, notify);
   connect(name_, &QLineEdit::textChanged, this, notify);
   connect(description_, &QPlainTextEdit::textChanged, this, notify);
-  connect(zone_hint_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(zone_hint_, &QLineEdit::textChanged, this, notify);
   connect(sector_, qOverload<int>(&QComboBox::currentIndexChanged), this, notify);
   connect(flags_, &FlagEditor::valueChanged, this, [this, notify]() {
     flags_summary_->setText(flagNames(flags_->value()));
     notify();
   });
   connect(teleport_enable_, &QCheckBox::toggled, this, notify);
-  connect(tele_time_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(tele_targ_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(tele_mask_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(tele_cnt_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(tele_time_, &QLineEdit::textChanged, this, notify);
+  connect(tele_targ_, &QLineEdit::textChanged, this, notify);
+  connect(tele_mask_, &QLineEdit::textChanged, this, notify);
+  connect(tele_cnt_, &QLineEdit::textChanged, this, notify);
   connect(river_enable_, &QCheckBox::toggled, this, notify);
-  connect(river_speed_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(river_dir_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(river_speed_, &QLineEdit::textChanged, this, notify);
+  connect(river_dir_, &QLineEdit::textChanged, this, notify);
   connect(tunnel_enable_, &QCheckBox::toggled, this, notify);
-  connect(moblim_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(moblim_, &QLineEdit::textChanged, this, notify);
   connect(bright_enable_, &QCheckBox::toggled, this, notify);
   connect(bright_night_, &QPlainTextEdit::textChanged, this, notify);
   connect(bright_day_, &QPlainTextEdit::textChanged, this, notify);
@@ -503,10 +534,10 @@ void RoomEditor::load(const eleutheria::Room& room) {
   name_->blockSignals(true);
   description_->blockSignals(true);
   const QSignalBlocker bflags(flags_);
-  vnum_->setValue(static_cast<int>(room.vnum));
+  set_num(vnum_, room.vnum);
   name_->setText(QString::fromStdString(eleutheria::strip_mud_colors(room.name)));
   description_->setPlainText(QString::fromStdString(room.description));
-  zone_hint_->setValue(static_cast<int>(room.zone_hint));
+  set_num(zone_hint_, room.zone_hint);
   flags_->setValue(static_cast<std::uint64_t>(room.room_flags));
   flags_summary_->setText(flagNames(static_cast<std::uint64_t>(room.room_flags)));
   set_combo_value(sector_, static_cast<int>(room.sector_type));
@@ -540,15 +571,15 @@ void RoomEditor::load(const eleutheria::Room& room) {
   extras_->setPlainText(extra_text);
 
   teleport_enable_->setChecked(room.has_teleport);
-  tele_time_->setValue(static_cast<int>(room.tele_time));
-  tele_targ_->setValue(static_cast<int>(room.tele_targ));
-  tele_mask_->setValue(static_cast<int>(room.tele_mask));
-  tele_cnt_->setValue(static_cast<int>(room.tele_cnt));
+  set_num(tele_time_, room.tele_time);
+  set_num(tele_targ_, room.tele_targ);
+  set_num(tele_mask_, room.tele_mask);
+  set_num(tele_cnt_, room.tele_cnt);
   river_enable_->setChecked(room.has_river);
-  river_speed_->setValue(static_cast<int>(room.river_speed));
-  river_dir_->setValue(static_cast<int>(room.river_dir));
+  set_num(river_speed_, room.river_speed);
+  set_num(river_dir_, room.river_dir);
   tunnel_enable_->setChecked(room.has_tunnel_limit);
-  moblim_->setValue(static_cast<int>(room.moblim < 1 ? 1 : room.moblim));
+  set_num(moblim_, room.moblim < 1 ? 1 : room.moblim);
   bright_enable_->setChecked(room.has_bright);
   bright_night_->setPlainText(QString::fromStdString(room.bright_night));
   bright_day_->setPlainText(QString::fromStdString(room.bright_day));
@@ -856,10 +887,10 @@ void RoomEditor::removeSelectedReset() {
 
 eleutheria::Room RoomEditor::save(const eleutheria::Room* previous) const {
   eleutheria::Room room = previous ? *previous : eleutheria::Room{};
-  room.vnum = vnum_->value();
+  room.vnum = num_i64(vnum_);
   room.name = name_->text().toStdString();
   room.description = description_->toPlainText().toStdString();
-  room.zone_hint = zone_hint_->value();
+  room.zone_hint = num_i64(zone_hint_);
   room.room_flags = static_cast<std::int64_t>(flags_->value());
   room.sector_type = combo_value(sector_);
   for(int i = 0; i < 6; ++i) {
@@ -905,15 +936,15 @@ eleutheria::Room RoomEditor::save(const eleutheria::Room* previous) const {
   }
 
   room.has_teleport = teleport_enable_->isChecked();
-  room.tele_time = tele_time_->value();
-  room.tele_targ = tele_targ_->value();
-  room.tele_mask = tele_mask_->value();
-  room.tele_cnt = tele_cnt_->value();
+  room.tele_time = num_i64(tele_time_);
+  room.tele_targ = num_i64(tele_targ_);
+  room.tele_mask = num_i64(tele_mask_);
+  room.tele_cnt = num_i64(tele_cnt_);
   room.has_river = river_enable_->isChecked();
-  room.river_speed = river_speed_->value();
-  room.river_dir = river_dir_->value();
+  room.river_speed = num_i64(river_speed_);
+  room.river_dir = num_i(river_dir_);
   room.has_tunnel_limit = tunnel_enable_->isChecked();
-  room.moblim = moblim_->value();
+  room.moblim = num_i64(moblim_);
   room.has_bright = bright_enable_->isChecked();
   room.bright_night = bright_night_->toPlainText().toStdString();
   room.bright_day = bright_day_->toPlainText().toStdString();
@@ -935,31 +966,29 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   data_scroll->setWidget(data_page);
   auto* data_layout = new QVBoxLayout(data_page);
   auto* form = new QFormLayout();
-  vnum_ = make_spin(data_page, 0, 999999);
+  vnum_ = make_num_edit(data_page);
   name_ = new QLineEdit(data_page);
   short_ = new QLineEdit(data_page);
   letter_ = new QComboBox(data_page);
   for(const char* L : {"A", "L", "N", "B", "S"}) {
     letter_->addItem(L);
   }
-  alignment_ = make_spin(data_page, -1000, 1000);
-  mult_att_ = new QDoubleSpinBox(data_page);
-  mult_att_->setRange(0, 20);
-  mult_att_->setDecimals(0);
-  level_ = make_spin(data_page, 0, 200);
-  thac0_ = make_spin(data_page, -50, 50);
-  armor_ = make_spin(data_page, -100, 100);
-  hit_bonus_ = make_spin(data_page, -500, 5000);
+  alignment_ = make_num_edit(data_page);
+  mult_att_ = make_num_edit(data_page);
+  level_ = make_num_edit(data_page);
+  thac0_ = make_num_edit(data_page);
+  armor_ = make_num_edit(data_page);
+  hit_bonus_ = make_num_edit(data_page);
   hit_dice_ = new QLineEdit(QStringLiteral("1d8+0"), data_page);
   dam_dice_ = new QLineEdit(QStringLiteral("1d4+0"), data_page);
-  gold_ = make_spin(data_page, -1, 2000000000);
-  exp_ = make_spin(data_page, -2000000000, 2000000000);
+  gold_ = make_num_edit(data_page);
+  exp_ = make_num_edit(data_page);
   exp_hint_ = new QLabel(data_page);
   exp_hint_->setWordWrap(true);
   exp_hint_->setStyleSheet(QStringLiteral("color: #888;"));
-  race_ = make_spin(data_page, 0, 1000);
+  race_ = make_num_edit(data_page);
   spellpower_enable_ = new QCheckBox(QStringLiteral("Scrivi spellpower nel file"), data_page);
-  spellpower_ = make_spin(data_page, 0, 127);
+  spellpower_ = make_num_edit(data_page);
   position_ = new QComboBox(data_page);
   default_pos_ = new QComboBox(data_page);
   sex_ = new QComboBox(data_page);
@@ -1082,11 +1111,11 @@ MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
     updateTypeDependentUi();
     notify();
   });
-  connect(level_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(exp_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(gold_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(hit_bonus_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(mult_att_, qOverload<double>(&QDoubleSpinBox::valueChanged), this, notify);
+  connect(level_, &QLineEdit::textChanged, this, notify);
+  connect(exp_, &QLineEdit::textChanged, this, notify);
+  connect(gold_, &QLineEdit::textChanged, this, notify);
+  connect(hit_bonus_, &QLineEdit::textChanged, this, notify);
+  connect(mult_att_, &QLineEdit::textChanged, this, notify);
   connect(dam_dice_, &QLineEdit::textChanged, this, notify);
   updateTypeDependentUi();
   updateExpHint();
@@ -1112,10 +1141,10 @@ void MobEditor::updateExpHint() {
   }
   eleutheria::Mobile probe;
   probe.letter = letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
-  probe.level = level_->value();
-  probe.exp = exp_->value();
-  probe.gold = gold_->value();
-  probe.hit_bonus = hit_bonus_->value();
+  probe.level = num_i64(level_);
+  probe.exp = num_i64(exp_);
+  probe.gold = num_i64(gold_);
+  probe.hit_bonus = num_i64(hit_bonus_);
   const auto est = eleutheria::estimate_mob_exp(probe);
   if(probe.letter == 'S') {
     exp_hint_->setText(QStringLiteral(
@@ -1168,8 +1197,8 @@ void MobEditor::updateDamageEstimate() {
   const eleutheria::DiceValues dam = eleutheria::parse_dice_text(dam_dice_->text().toStdString());
   const char mobtype =
       letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
-  const int level = level_->value();
-  const int mult = static_cast<int>(mult_att_->value());
+  const int level = num_i(level_);
+  const int mult = static_cast<int>(num_d(mult_att_));
   const int attacks = eleutheria::mob_type_uses_mult_att(mobtype) ? std::max(1, mult) : 1;
 
   const auto sim = eleutheria::simulate_mob_round_damage(static_cast<std::int64_t>(act_->value()),
@@ -1258,20 +1287,20 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
   const QSignalBlocker b5(immune_);
   const QSignalBlocker b6(m_immune_);
   const QSignalBlocker b7(susc_);
-  vnum_->setValue(static_cast<int>(mob.vnum));
+  set_num(vnum_, mob.vnum);
   name_->setText(QString::fromStdString(mob.name));
   short_->setText(QString::fromStdString(mob.short_descr));
   long_->setPlainText(QString::fromStdString(mob.long_descr));
   description_->setPlainText(QString::fromStdString(mob.description));
   act_->setValue(static_cast<std::uint64_t>(mob.act));
   affect_->setValue(static_cast<std::uint64_t>(mob.affected_by));
-  alignment_->setValue(static_cast<int>(mob.alignment));
+  set_num(alignment_, mob.alignment);
   letter_->setCurrentText(QString(QChar(mob.letter)));
-  mult_att_->setValue(mob.mult_att);
-  level_->setValue(static_cast<int>(mob.level));
-  thac0_->setValue(static_cast<int>(mob.thac0));
-  armor_->setValue(static_cast<int>(mob.armor));
-  hit_bonus_->setValue(static_cast<int>(mob.hit_bonus));
+  set_num_double(mult_att_, mob.mult_att);
+  set_num(level_, mob.level);
+  set_num(thac0_, mob.thac0);
+  set_num(armor_, mob.armor);
+  set_num(hit_bonus_, mob.hit_bonus);
   hit_dice_->setText(QStringLiteral("%1d%2+%3")
                          .arg(mob.hit_dice_n)
                          .arg(mob.hit_dice_s)
@@ -1280,12 +1309,11 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
                          .arg(mob.dam_dice_n)
                          .arg(mob.dam_dice_s)
                          .arg(mob.dam_bonus));
-  gold_->setValue(static_cast<int>(std::min<std::int64_t>(mob.gold, 2000000000)));
-  exp_->setValue(static_cast<int>(
-      std::max<std::int64_t>(-2000000000, std::min<std::int64_t>(mob.exp, 2000000000))));
-  race_->setValue(static_cast<int>(mob.race));
+  set_num(gold_, mob.gold);
+  set_num(exp_, mob.exp);
+  set_num(race_, mob.race);
   spellpower_enable_->setChecked(mob.has_spellpower);
-  spellpower_->setValue(static_cast<int>(mob.spellpower));
+  set_num(spellpower_, mob.spellpower);
   set_combo_value(position_, static_cast<int>(mob.position));
   set_combo_value(default_pos_, static_cast<int>(mob.default_pos));
   set_combo_value(sex_, static_cast<int>(mob.sex));
@@ -1302,20 +1330,20 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
 
 eleutheria::Mobile MobEditor::save(const eleutheria::Mobile* previous) const {
   eleutheria::Mobile mob = previous ? *previous : eleutheria::Mobile{};
-  mob.vnum = vnum_->value();
+  mob.vnum = num_i64(vnum_);
   mob.name = name_->text().toStdString();
   mob.short_descr = short_->text().toStdString();
   mob.long_descr = long_->toPlainText().toStdString();
   mob.description = description_->toPlainText().toStdString();
   mob.act = static_cast<std::int64_t>(act_->value());
   mob.affected_by = static_cast<std::int64_t>(affect_->value());
-  mob.alignment = alignment_->value();
+  mob.alignment = num_i64(alignment_);
   mob.letter = letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
-  mob.mult_att = mult_att_->value();
-  mob.level = level_->value();
-  mob.thac0 = thac0_->value();
-  mob.armor = armor_->value();
-  mob.hit_bonus = hit_bonus_->value();
+  mob.mult_att = num_d(mult_att_);
+  mob.level = num_i64(level_);
+  mob.thac0 = num_i64(thac0_);
+  mob.armor = num_i64(armor_);
+  mob.hit_bonus = num_i64(hit_bonus_);
   {
     const QString dice = hit_dice_->text().trimmed();
     int n = 1, s = 8, b = 0;
@@ -1335,11 +1363,11 @@ eleutheria::Mobile MobEditor::save(const eleutheria::Mobile* previous) const {
   if(previous == nullptr) {
     mob.gold_exp_race_form = true;
   }
-  mob.gold = gold_->value();
-  mob.exp = exp_->value();
-  mob.race = race_->value();
+  mob.gold = num_i64(gold_);
+  mob.exp = num_i64(exp_);
+  mob.race = num_i64(race_);
   mob.has_spellpower = spellpower_enable_->isChecked();
-  mob.spellpower = spellpower_->value();
+  mob.spellpower = num_i(spellpower_);
   mob.position = combo_value(position_);
   mob.default_pos = combo_value(default_pos_);
   mob.sex = combo_value(sex_);
@@ -1363,7 +1391,7 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   auto* data_page = new QWidget(tabs_);
   auto* data_layout = new QVBoxLayout(data_page);
   auto* identity = new QFormLayout();
-  vnum_ = make_spin(data_page, 0, 999999);
+  vnum_ = make_num_edit(data_page);
   name_ = new QLineEdit(data_page);
   short_ = new QLineEdit(data_page);
   type_ = new QComboBox(data_page);
@@ -1376,13 +1404,13 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
 
   auto* values_box = new QGroupBox(QStringLiteral("Values / economia"), data_page);
   auto* values = new QFormLayout(values_box);
-  v0_ = make_spin(values_box, -2000000000, 2000000000);
-  v1_ = make_spin(values_box, -2000000000, 2000000000);
-  v2_ = make_spin(values_box, -2000000000, 2000000000);
-  v3_ = make_spin(values_box, -2000000000, 2000000000);
-  weight_ = make_spin(values_box, 0, 2000000000);
-  cost_ = make_spin(values_box, 0, 2000000000);
-  rent_ = make_spin(values_box, 0, 2000000000);
+  v0_ = make_num_edit(values_box);
+  v1_ = make_num_edit(values_box);
+  v2_ = make_num_edit(values_box);
+  v3_ = make_num_edit(values_box);
+  weight_ = make_num_edit(values_box);
+  cost_ = make_num_edit(values_box);
+  rent_ = make_num_edit(values_box);
   v0_label_ = new QLabel(QStringLiteral("Value 0"), values_box);
   v1_label_ = new QLabel(QStringLiteral("Value 1"), values_box);
   v2_label_ = new QLabel(QStringLiteral("Value 2"), values_box);
@@ -1477,17 +1505,17 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   tabs_->addTab(extra_page, QStringLiteral("Extra / P"));
 
   auto notify = [this]() { notifyEdited(); };
-  connect(vnum_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(vnum_, &QLineEdit::textChanged, this, notify);
   connect(name_, &QLineEdit::textChanged, this, notify);
   connect(short_, &QLineEdit::textChanged, this, notify);
   connect(type_, qOverload<int>(&QComboBox::currentIndexChanged), this, notify);
-  connect(v0_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(v1_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(v2_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(v3_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(weight_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(cost_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
-  connect(rent_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(v0_, &QLineEdit::textChanged, this, notify);
+  connect(v1_, &QLineEdit::textChanged, this, notify);
+  connect(v2_, &QLineEdit::textChanged, this, notify);
+  connect(v3_, &QLineEdit::textChanged, this, notify);
+  connect(weight_, &QLineEdit::textChanged, this, notify);
+  connect(cost_, &QLineEdit::textChanged, this, notify);
+  connect(rent_, &QLineEdit::textChanged, this, notify);
   connect(description_, &QPlainTextEdit::textChanged, this, notify);
   connect(action_, &QPlainTextEdit::textChanged, this, notify);
   connect(extra_, &FlagEditor::valueChanged, this, notify);
@@ -1552,7 +1580,7 @@ void ObjEditor::load(const eleutheria::GameObject& obj) {
   const QSignalBlocker b5(type_);
   const QSignalBlocker b6(affects_);
   const QSignalBlocker b7(extra2_);
-  vnum_->setValue(static_cast<int>(obj.vnum));
+  set_num(vnum_, obj.vnum);
   name_->setText(QString::fromStdString(obj.name));
   short_->setText(QString::fromStdString(obj.short_description));
   description_->setPlainText(QString::fromStdString(obj.description));
@@ -1561,13 +1589,13 @@ void ObjEditor::load(const eleutheria::GameObject& obj) {
   extra_->setValue(static_cast<std::uint64_t>(obj.extra_flags));
   extra2_->setValue(static_cast<std::uint64_t>(obj.extra_flags2));
   wear_->setValue(static_cast<std::uint64_t>(obj.wear_flags));
-  v0_->setValue(static_cast<int>(obj.value[0]));
-  v1_->setValue(static_cast<int>(obj.value[1]));
-  v2_->setValue(static_cast<int>(obj.value[2]));
-  v3_->setValue(static_cast<int>(obj.value[3]));
-  weight_->setValue(static_cast<int>(obj.weight));
-  cost_->setValue(static_cast<int>(obj.cost));
-  rent_->setValue(static_cast<int>(obj.cost_per_day));
+  set_num(v0_, obj.value[0]);
+  set_num(v1_, obj.value[1]);
+  set_num(v2_, obj.value[2]);
+  set_num(v3_, obj.value[3]);
+  set_num(weight_, obj.weight);
+  set_num(cost_, obj.cost);
+  set_num(rent_, obj.cost_per_day);
 
   for(int row = 0; row < eleutheria::kMaxObjAffect; ++row) {
     int location = 0;
@@ -1592,7 +1620,7 @@ void ObjEditor::load(const eleutheria::GameObject& obj) {
 
 eleutheria::GameObject ObjEditor::save(const eleutheria::GameObject* previous) const {
   eleutheria::GameObject obj = previous ? *previous : eleutheria::GameObject{};
-  obj.vnum = vnum_->value();
+  obj.vnum = num_i64(vnum_);
   obj.name = name_->text().toStdString();
   obj.short_description = short_->text().toStdString();
   obj.description = description_->toPlainText().toStdString();
@@ -1602,10 +1630,10 @@ eleutheria::GameObject ObjEditor::save(const eleutheria::GameObject* previous) c
   obj.extra_flags2 = static_cast<std::int64_t>(extra2_->value());
   obj.has_extra_flags2 = obj.extra_flags2 != 0;
   obj.wear_flags = static_cast<std::int64_t>(wear_->value());
-  obj.value = {v0_->value(), v1_->value(), v2_->value(), v3_->value()};
-  obj.weight = weight_->value();
-  obj.cost = cost_->value();
-  obj.cost_per_day = rent_->value();
+  obj.value = {num_i64(v0_), num_i64(v1_), num_i64(v2_), num_i64(v3_)};
+  obj.weight = num_i64(weight_);
+  obj.cost = num_i64(cost_);
+  obj.cost_per_day = num_i64(rent_);
   obj.affects.clear();
   for(int row = 0; row < affects_->rowCount(); ++row) {
     int loc = 0;
@@ -1643,11 +1671,11 @@ eleutheria::GameObject ObjEditor::save(const eleutheria::GameObject* previous) c
 ZoneEditor::ZoneEditor(QWidget* parent) : QWidget(parent) {
   auto* root = new QVBoxLayout(this);
   auto* form = new QFormLayout();
-  number_ = make_spin(this, 0, 99999);
+  number_ = make_num_edit(this);
   name_ = new QLineEdit(this);
-  top_ = make_spin(this, 0, 999999);
-  lifespan_ = make_spin(this, 0, 10000);
-  reset_mode_ = make_spin(this, 0, 3);
+  top_ = make_num_edit(this);
+  lifespan_ = make_num_edit(this);
+  reset_mode_ = make_num_edit(this);
   form->addRow("Numero zona", number_);
   form->addRow("Nome", name_);
   form->addRow("Top vnum", top_);
@@ -1663,18 +1691,23 @@ ZoneEditor::ZoneEditor(QWidget* parent) : QWidget(parent) {
   commands_->setHorizontalHeaderLabels({"Cmd", "If", "Arg1", "Arg2", "Arg3", "Arg4/Note"});
   commands_->horizontalHeader()->setStretchLastSection(true);
   root->addWidget(commands_);
-  connect(name_, &QLineEdit::textChanged, this, [this]() { emit edited(); });
+  auto notify = [this]() { emit edited(); };
+  connect(number_, &QLineEdit::textChanged, this, notify);
+  connect(name_, &QLineEdit::textChanged, this, notify);
+  connect(top_, &QLineEdit::textChanged, this, notify);
+  connect(lifespan_, &QLineEdit::textChanged, this, notify);
+  connect(reset_mode_, &QLineEdit::textChanged, this, notify);
 }
 
 void ZoneEditor::clear() { load(eleutheria::Zone{}); }
 
 void ZoneEditor::load(const eleutheria::Zone& zone) {
   const QSignalBlocker bname(name_);
-  number_->setValue(zone.number);
+  set_num(number_, zone.number);
   name_->setText(QString::fromStdString(zone.name));
-  top_->setValue(static_cast<int>(zone.top));
-  lifespan_->setValue(static_cast<int>(zone.lifespan));
-  reset_mode_->setValue(static_cast<int>(zone.reset_mode));
+  set_num(top_, zone.top);
+  set_num(lifespan_, zone.lifespan);
+  set_num(reset_mode_, zone.reset_mode);
   commands_->setRowCount(0);
   for(const auto& cmd : zone.commands) {
     const int row = commands_->rowCount();
@@ -1699,11 +1732,11 @@ void ZoneEditor::load(const eleutheria::Zone& zone) {
 
 eleutheria::Zone ZoneEditor::save() const {
   eleutheria::Zone zone;
-  zone.number = number_->value();
+  zone.number = num_i(number_);
   zone.name = name_->text().toStdString();
-  zone.top = top_->value();
-  zone.lifespan = lifespan_->value();
-  zone.reset_mode = reset_mode_->value();
+  zone.top = num_i64(top_);
+  zone.lifespan = num_i64(lifespan_);
+  zone.reset_mode = num_i(reset_mode_);
   for(int row = 0; row < commands_->rowCount(); ++row) {
     eleutheria::ResetCommand cmd;
     const QString c0 = commands_->item(row, 0)->text();

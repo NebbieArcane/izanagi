@@ -8,10 +8,8 @@
 #include <optional>
 
 class QLineEdit;
-class QSpinBox;
 class LineLimitedPlainTextEdit;
 class QComboBox;
-class QDoubleSpinBox;
 class QTableWidget;
 class QListWidget;
 class QPushButton;
@@ -65,26 +63,26 @@ class RoomEditor : public QWidget {
   std::int64_t loaded_vnum_ = -1;
 
   QTabWidget* tabs_ = nullptr;
-  QSpinBox* vnum_ = nullptr;
+  QLineEdit* vnum_ = nullptr;
   QLineEdit* name_ = nullptr;
   QLineEdit* flags_summary_ = nullptr;
   LineLimitedPlainTextEdit* description_ = nullptr;
-  QSpinBox* zone_hint_ = nullptr;
+  QLineEdit* zone_hint_ = nullptr;
   FlagEditor* flags_ = nullptr;
   QComboBox* sector_ = nullptr;
   QTableWidget* exits_ = nullptr;
   LineLimitedPlainTextEdit* extras_ = nullptr;
 
   QCheckBox* teleport_enable_ = nullptr;
-  QSpinBox* tele_time_ = nullptr;
-  QSpinBox* tele_targ_ = nullptr;
-  QSpinBox* tele_mask_ = nullptr;
-  QSpinBox* tele_cnt_ = nullptr;
+  QLineEdit* tele_time_ = nullptr;
+  QLineEdit* tele_targ_ = nullptr;
+  QLineEdit* tele_mask_ = nullptr;
+  QLineEdit* tele_cnt_ = nullptr;
   QCheckBox* river_enable_ = nullptr;
-  QSpinBox* river_speed_ = nullptr;
-  QSpinBox* river_dir_ = nullptr;
+  QLineEdit* river_speed_ = nullptr;
+  QLineEdit* river_dir_ = nullptr;
   QCheckBox* tunnel_enable_ = nullptr;
-  QSpinBox* moblim_ = nullptr;
+  QLineEdit* moblim_ = nullptr;
   QCheckBox* bright_enable_ = nullptr;
   LineLimitedPlainTextEdit* bright_night_ = nullptr;
   LineLimitedPlainTextEdit* bright_day_ = nullptr;
@@ -120,30 +118,30 @@ class MobEditor : public QWidget {
 
   const eleutheria::Catalog& catalog_;
   QTabWidget* tabs_ = nullptr;
-  QSpinBox* vnum_ = nullptr;
+  QLineEdit* vnum_ = nullptr;
   QLineEdit* name_ = nullptr;
   QLineEdit* short_ = nullptr;
   LineLimitedPlainTextEdit* long_ = nullptr;
   LineLimitedPlainTextEdit* description_ = nullptr;
   FlagEditor* act_ = nullptr;
   FlagEditor* affect_ = nullptr;
-  QSpinBox* alignment_ = nullptr;
+  QLineEdit* alignment_ = nullptr;
   QComboBox* letter_ = nullptr;
-  QDoubleSpinBox* mult_att_ = nullptr;
-  QSpinBox* level_ = nullptr;
-  QSpinBox* thac0_ = nullptr;
-  QSpinBox* armor_ = nullptr;
-  QSpinBox* hit_bonus_ = nullptr;
+  QLineEdit* mult_att_ = nullptr;
+  QLineEdit* level_ = nullptr;
+  QLineEdit* thac0_ = nullptr;
+  QLineEdit* armor_ = nullptr;
+  QLineEdit* hit_bonus_ = nullptr;
   QLineEdit* hit_dice_ = nullptr;
   QLineEdit* dam_dice_ = nullptr;
-  QSpinBox* gold_ = nullptr;
-  QSpinBox* exp_ = nullptr;
+  QLineEdit* gold_ = nullptr;
+  QLineEdit* exp_ = nullptr;
   QLabel* exp_hint_ = nullptr;
   QLabel* damage_estimate_ = nullptr;
   QGroupBox* damage_sim_box_ = nullptr;
-  QSpinBox* race_ = nullptr;
+  QLineEdit* race_ = nullptr;
   QCheckBox* spellpower_enable_ = nullptr;
-  QSpinBox* spellpower_ = nullptr;
+  QLineEdit* spellpower_ = nullptr;
   QComboBox* position_ = nullptr;
   QComboBox* default_pos_ = nullptr;
   QComboBox* sex_ = nullptr;
@@ -177,7 +175,7 @@ class ObjEditor : public QWidget {
 
   const eleutheria::Catalog& catalog_;
   QTabWidget* tabs_ = nullptr;
-  QSpinBox* vnum_ = nullptr;
+  QLineEdit* vnum_ = nullptr;
   QLineEdit* name_ = nullptr;
   QLineEdit* short_ = nullptr;
   LineLimitedPlainTextEdit* description_ = nullptr;
@@ -186,17 +184,17 @@ class ObjEditor : public QWidget {
   FlagEditor* extra_ = nullptr;
   FlagEditor* extra2_ = nullptr;
   FlagEditor* wear_ = nullptr;
-  QSpinBox* v0_ = nullptr;
-  QSpinBox* v1_ = nullptr;
-  QSpinBox* v2_ = nullptr;
-  QSpinBox* v3_ = nullptr;
+  QLineEdit* v0_ = nullptr;
+  QLineEdit* v1_ = nullptr;
+  QLineEdit* v2_ = nullptr;
+  QLineEdit* v3_ = nullptr;
   QLabel* v0_label_ = nullptr;
   QLabel* v1_label_ = nullptr;
   QLabel* v2_label_ = nullptr;
   QLabel* v3_label_ = nullptr;
-  QSpinBox* weight_ = nullptr;
-  QSpinBox* cost_ = nullptr;
-  QSpinBox* rent_ = nullptr;
+  QLineEdit* weight_ = nullptr;
+  QLineEdit* cost_ = nullptr;
+  QLineEdit* rent_ = nullptr;
   QTableWidget* affects_ = nullptr;
   LineLimitedPlainTextEdit* extras_ = nullptr;
   QCheckBox* forbidden_enable_ = nullptr;
@@ -216,11 +214,11 @@ class ZoneEditor : public QWidget {
   void edited();
 
  private:
-  QSpinBox* number_ = nullptr;
+  QLineEdit* number_ = nullptr;
   QLineEdit* name_ = nullptr;
-  QSpinBox* top_ = nullptr;
-  QSpinBox* lifespan_ = nullptr;
-  QSpinBox* reset_mode_ = nullptr;
+  QLineEdit* top_ = nullptr;
+  QLineEdit* lifespan_ = nullptr;
+  QLineEdit* reset_mode_ = nullptr;
   QTableWidget* commands_ = nullptr;
 };
 

@@ -118,7 +118,7 @@ const char* classic_qss() {
     QMenu { background: #d4d0c8; border: 1px solid #808080; }
     QMenu::item:selected { background: #0a246a; color: white; }
     QToolBar { background: #d4d0c8; border: 1px solid #808080; spacing: 4px; }
-    QListWidget, QPlainTextEdit, QLineEdit, QSpinBox, QComboBox, QTableWidget, QTreeWidget {
+    QListWidget, QPlainTextEdit, QLineEdit, QComboBox, QTableWidget, QTreeWidget {
       background: #ffffff; border: 1px solid #808080; color: #000;
     }
     QTabWidget::pane { border: 1px solid #808080; background: #d4d0c8; }
