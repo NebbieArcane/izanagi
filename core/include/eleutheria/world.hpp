@@ -34,4 +34,21 @@ void preserve_flag_tokens(Room& edited, const Room& previous);
 void preserve_flag_tokens(Mobile& edited, const Mobile& previous);
 void preserve_flag_tokens(GameObject& edited, const GameObject& previous);
 
+/**
+ * Stima XP al load come Server DetermineExp + gold (tipi A/N/B/L con exp >= 0).
+ * Per exp < 0 o tipo S: XP assoluto = |exp| (senza formula).
+ */
+struct MobExpEstimate {
+  bool uses_bonus_formula = false;
+  std::int64_t file_value = 0;
+  std::int64_t estimated_hit = 0;
+  std::int64_t base = 0;
+  std::int64_t phit = 0;
+  std::int64_t sab = 0;
+  std::int64_t estimated_xp = 0;
+  bool bonus_unusually_high = false;  // > 32 come warning medit
+};
+
+MobExpEstimate estimate_mob_exp(const Mobile& mob);
+
 }  // namespace eleutheria

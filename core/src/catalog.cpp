@@ -163,6 +163,20 @@ Catalog Catalog::nebbie_defaults() {
       F(31, "ANTI-SORCERER", "Anti sorcerer"),
   };
 
+  c.extra_flags2_ = {
+      F(0, "QUEST-ITEM", "Quest item"),
+      F(1, "EDIT", "Edit"),
+      F(2, "NO-LOCATE", "No locate"),
+      F(3, "PERSONAL", "Personal"),
+      F(4, "HAS-GEMS", "Has gems"),
+      F(5, "NO-PRINCE", "No prince"),
+      F(6, "ONLY-PRINCE", "Only prince"),
+      F(7, "PROCAREA-REWARD", "Procarea reward"),
+      F(8, "DUSTED", "Dusted"),
+      F(9, "PAID-MALUS", "Paid malus"),
+      F(10, "VAULT", "Vault"),
+  };
+
   c.wear_flags_ = {
       F(0, "TAKE", "Take"),
       F(1, "FINGER", "Finger"),

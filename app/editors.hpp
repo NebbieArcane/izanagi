@@ -16,6 +16,7 @@ class QListWidget;
 class QPushButton;
 class QTabWidget;
 class QLabel;
+class QCheckBox;
 class FlagEditor;
 
 class RoomEditor : public QWidget {
@@ -24,7 +25,8 @@ class RoomEditor : public QWidget {
   explicit RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent = nullptr);
   void setArea(eleutheria::Area* area);
   void load(const eleutheria::Room& room);
-  eleutheria::Room save() const;
+  /** Parte da previous (merge-on-save): campi non in UI restano intatti. */
+  eleutheria::Room save(const eleutheria::Room* previous = nullptr) const;
   void clear();
   void rebuildSummary();
   void setMaxLineLength(int max_length);
@@ -67,6 +69,20 @@ class RoomEditor : public QWidget {
   QTableWidget* exits_ = nullptr;
   LineLimitedPlainTextEdit* extras_ = nullptr;
 
+  QCheckBox* teleport_enable_ = nullptr;
+  QSpinBox* tele_time_ = nullptr;
+  QSpinBox* tele_targ_ = nullptr;
+  QSpinBox* tele_mask_ = nullptr;
+  QSpinBox* tele_cnt_ = nullptr;
+  QCheckBox* river_enable_ = nullptr;
+  QSpinBox* river_speed_ = nullptr;
+  QSpinBox* river_dir_ = nullptr;
+  QCheckBox* tunnel_enable_ = nullptr;
+  QSpinBox* moblim_ = nullptr;
+  QCheckBox* bright_enable_ = nullptr;
+  LineLimitedPlainTextEdit* bright_night_ = nullptr;
+  LineLimitedPlainTextEdit* bright_day_ = nullptr;
+
   QListWidget* entered_from_list_ = nullptr;
   QListWidget* contents_list_ = nullptr;
   QPushButton* goto_entered_btn_ = nullptr;
@@ -83,7 +99,8 @@ class MobEditor : public QWidget {
  public:
   explicit MobEditor(const eleutheria::Catalog& catalog, QWidget* parent = nullptr);
   void load(const eleutheria::Mobile& mob);
-  eleutheria::Mobile save() const;
+  /** Parte da previous (merge-on-save): campi non in UI restano intatti. */
+  eleutheria::Mobile save(const eleutheria::Mobile* previous = nullptr) const;
   void clear();
   void setMaxLineLength(int max_length);
 
@@ -91,7 +108,11 @@ class MobEditor : public QWidget {
   void edited();
 
  private:
+  void updateExpHint();
+  void updateTypeDependentUi();
+
   const eleutheria::Catalog& catalog_;
+  QTabWidget* tabs_ = nullptr;
   QSpinBox* vnum_ = nullptr;
   QLineEdit* name_ = nullptr;
   QLineEdit* short_ = nullptr;
@@ -106,14 +127,25 @@ class MobEditor : public QWidget {
   QSpinBox* thac0_ = nullptr;
   QSpinBox* armor_ = nullptr;
   QSpinBox* hit_bonus_ = nullptr;
+  QLineEdit* hit_dice_ = nullptr;
   QLineEdit* dam_dice_ = nullptr;
   QSpinBox* gold_ = nullptr;
   QSpinBox* exp_ = nullptr;
+  QLabel* exp_hint_ = nullptr;
   QSpinBox* race_ = nullptr;
+  QCheckBox* spellpower_enable_ = nullptr;
+  QSpinBox* spellpower_ = nullptr;
   QComboBox* position_ = nullptr;
   QComboBox* default_pos_ = nullptr;
   QComboBox* sex_ = nullptr;
+  QCheckBox* immunities_enable_ = nullptr;
+  FlagEditor* immune_ = nullptr;
+  FlagEditor* m_immune_ = nullptr;
+  FlagEditor* susc_ = nullptr;
   LineLimitedPlainTextEdit* sounds_ = nullptr;
+  LineLimitedPlainTextEdit* distant_sounds_ = nullptr;
+  QLabel* hit_bonus_label_ = nullptr;
+  QLabel* hit_dice_label_ = nullptr;
 };
 
 class ObjEditor : public QWidget {
@@ -121,7 +153,8 @@ class ObjEditor : public QWidget {
  public:
   explicit ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent = nullptr);
   void load(const eleutheria::GameObject& obj);
-  eleutheria::GameObject save() const;
+  /** Parte da previous (merge-on-save): campi non in UI restano intatti. */
+  eleutheria::GameObject save(const eleutheria::GameObject* previous = nullptr) const;
   void clear();
   void setMaxLineLength(int max_length);
 
@@ -142,6 +175,7 @@ class ObjEditor : public QWidget {
   LineLimitedPlainTextEdit* action_ = nullptr;
   QComboBox* type_ = nullptr;
   FlagEditor* extra_ = nullptr;
+  FlagEditor* extra2_ = nullptr;
   FlagEditor* wear_ = nullptr;
   QSpinBox* v0_ = nullptr;
   QSpinBox* v1_ = nullptr;
@@ -155,6 +189,10 @@ class ObjEditor : public QWidget {
   QSpinBox* cost_ = nullptr;
   QSpinBox* rent_ = nullptr;
   QTableWidget* affects_ = nullptr;
+  LineLimitedPlainTextEdit* extras_ = nullptr;
+  QCheckBox* forbidden_enable_ = nullptr;
+  LineLimitedPlainTextEdit* forbidden_char_ = nullptr;
+  LineLimitedPlainTextEdit* forbidden_room_ = nullptr;
 };
 
 class ZoneEditor : public QWidget {
@@ -175,4 +213,24 @@ class ZoneEditor : public QWidget {
   QSpinBox* lifespan_ = nullptr;
   QSpinBox* reset_mode_ = nullptr;
   QTableWidget* commands_ = nullptr;
+};
+
+class SpeEditor : public QWidget {
+  Q_OBJECT
+ public:
+  explicit SpeEditor(QWidget* parent = nullptr);
+  void load(const std::vector<eleutheria::SpecialAssignment>& specials);
+  std::vector<eleutheria::SpecialAssignment> save() const;
+  void clear();
+
+ signals:
+  void edited();
+
+ private:
+  void addRow();
+  void removeSelected();
+
+  QTableWidget* table_ = nullptr;
+  QPushButton* add_btn_ = nullptr;
+  QPushButton* remove_btn_ = nullptr;
 };

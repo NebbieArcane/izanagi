@@ -23,6 +23,7 @@ class RoomEditor;
 class MobEditor;
 class ObjEditor;
 class ZoneEditor;
+class SpeEditor;
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -47,6 +48,7 @@ class MainWindow : public QMainWindow {
   void onMobSelected();
   void onObjSelected();
   void onZoneSelected();
+  void onSpeEdited();
   void onWorkspaceAreaActivated(QTableWidgetItem* item);
   void applyCurrentEditor();
   void addRoom();
@@ -98,6 +100,7 @@ class MainWindow : public QMainWindow {
   MobEditor* mob_editor_ = nullptr;
   ObjEditor* obj_editor_ = nullptr;
   ZoneEditor* zone_editor_ = nullptr;
+  SpeEditor* spe_editor_ = nullptr;
   QLabel* status_counts_ = nullptr;
   QActionGroup* theme_group_ = nullptr;
 

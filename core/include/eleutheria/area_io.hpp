@@ -35,6 +35,8 @@ void parse_zones_file(const std::string& text, std::map<int, Zone>* out,
                       std::vector<std::string>* warnings);
 void parse_shops_file(const std::string& text, std::map<std::int64_t, Shop>* out,
                       std::vector<std::string>* warnings);
+void parse_specials_file(const std::string& text, std::vector<SpecialAssignment>* out,
+                         std::vector<std::string>* warnings);
 AreaMeta parse_ele_file(const std::string& text);
 
 std::string serialize_rooms(const std::map<std::int64_t, Room>& rooms);
@@ -42,6 +44,7 @@ std::string serialize_mobiles(const std::map<std::int64_t, Mobile>& mobiles);
 std::string serialize_objects(const std::map<std::int64_t, GameObject>& objects);
 std::string serialize_zones(const std::map<int, Zone>& zones);
 std::string serialize_shops(const std::map<std::int64_t, Shop>& shops);
+std::string serialize_specials(const std::vector<SpecialAssignment>& specials);
 std::string serialize_ele(const AreaMeta& meta);
 
 }  // namespace eleutheria

@@ -28,6 +28,7 @@ class Catalog {
   const std::vector<FlagDef>& act_flags() const { return act_flags_; }
   const std::vector<FlagDef>& affect_flags() const { return affect_flags_; }
   const std::vector<FlagDef>& extra_flags() const { return extra_flags_; }
+  const std::vector<FlagDef>& extra_flags2() const { return extra_flags2_; }
   const std::vector<FlagDef>& wear_flags() const { return wear_flags_; }
   const std::vector<FlagDef>& immunity_flags() const { return immunity_flags_; }
 
@@ -47,6 +48,7 @@ class Catalog {
   std::vector<FlagDef> act_flags_;
   std::vector<FlagDef> affect_flags_;
   std::vector<FlagDef> extra_flags_;
+  std::vector<FlagDef> extra_flags2_;
   std::vector<FlagDef> wear_flags_;
   std::vector<FlagDef> immunity_flags_;
   std::vector<NamedValue> sectors_;

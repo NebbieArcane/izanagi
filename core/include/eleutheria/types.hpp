@@ -171,6 +171,16 @@ struct Shop {
   std::int64_t close2 = 0;
 };
 
+/** Riga di .spe: M/O/R vnum SpecName [parms], oppure commento/raw. */
+struct SpecialAssignment {
+  char kind = 'M';  // M, O, R
+  std::int64_t vnum = 0;
+  std::string name;
+  std::string parms;
+  bool is_comment = false;
+  std::string raw_line;
+};
+
 struct AreaMeta {
   std::string name;
   std::string author;
@@ -186,7 +196,10 @@ struct Area {
   std::map<std::int64_t, GameObject> objects;
   std::map<int, Zone> zones;
   std::map<std::int64_t, Shop> shops;
+  std::vector<SpecialAssignment> specials;
+  bool had_spe_file = false;
   bool dirty = false;
+  bool specials_dirty = false;
 
   // Preserve: blocchi originali e vnum modificati (solo quelli vengono riscritti).
   FileSourceBlocks wld_sources;

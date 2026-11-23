@@ -198,6 +198,7 @@ void MainWindow::buildUi() {
   view_menu->addAction("Mob", this, [this]() { tabs_->setCurrentIndex(1); });
   view_menu->addAction("Oggetti", this, [this]() { tabs_->setCurrentIndex(2); });
   view_menu->addAction("Zone", this, [this]() { tabs_->setCurrentIndex(3); });
+  view_menu->addAction("Special", this, [this]() { tabs_->setCurrentIndex(4); });
   view_menu->addSeparator();
   workspace_toggle_action_ =
       view_menu->addAction(QStringLiteral("Aree workspace"), this, [this]() {
@@ -321,6 +322,7 @@ void MainWindow::buildUi() {
   mob_editor_ = new MobEditor(catalog_, this);
   obj_editor_ = new ObjEditor(catalog_, this);
   zone_editor_ = new ZoneEditor(this);
+  spe_editor_ = new SpeEditor(this);
   connect(room_editor_, &RoomEditor::areaResetsChanged, this, [this]() {
     markDirty();
     if(current_room_ && area_) {
@@ -365,6 +367,7 @@ void MainWindow::buildUi() {
   tabs_->addTab(make_page(&mob_list_, mob_editor_), "Mob");
   tabs_->addTab(make_page(&obj_list_, obj_editor_), "Oggetti");
   tabs_->addTab(make_page(&zone_list_, zone_editor_), "Zone");
+  tabs_->addTab(spe_editor_, "Special");
 
   connect(room_list_, &QListWidget::currentRowChanged, this, &MainWindow::onRoomSelected);
   connect(mob_list_, &QListWidget::currentRowChanged, this, &MainWindow::onMobSelected);
@@ -395,6 +398,7 @@ void MainWindow::buildUi() {
       area_->dirty_zones.insert(*current_zone_);
     }
   });
+  connect(spe_editor_, &SpeEditor::edited, this, &MainWindow::onSpeEdited);
 
   status_counts_ = new QLabel(this);
   statusBar()->addWidget(status_counts_, 1);
@@ -407,6 +411,9 @@ void MainWindow::setArea(eleutheria::Area area) {
   current_obj_.reset();
   current_zone_.reset();
   room_editor_->setArea(&*area_);
+  if(spe_editor_ != nullptr) {
+    spe_editor_->load(area_->specials);
+  }
   refreshLists();
   updateTitle();
 }
@@ -478,12 +485,13 @@ void MainWindow::refreshLists() {
   }
 
   status_counts_->setText(
-      QString("Stanze: %1   Mob: %2   Oggetti: %3   Zone: %4   Shop: %5")
+      QString("Stanze: %1   Mob: %2   Oggetti: %3   Zone: %4   Shop: %5   Spe: %6")
           .arg(area_->rooms.size())
           .arg(area_->mobiles.size())
           .arg(area_->objects.size())
           .arg(area_->zones.size())
-          .arg(area_->shops.size()));
+          .arg(area_->shops.size())
+          .arg(area_->specials.size()));
 }
 
 void MainWindow::updateTitle() {
@@ -916,38 +924,44 @@ void MainWindow::applyCurrentEditor() {
   // Non chiamare refreshLists() qui: distruggerebbe gli item della lista
   // mentre e' ancora in corso currentRowChanged → crash.
   if(current_room_) {
-    auto room = room_editor_->save();
+    const eleutheria::Room* previous =
+        area_->rooms.count(*current_room_) ? &area_->rooms.at(*current_room_) : nullptr;
+    auto room = room_editor_->save(previous);
     if(room.vnum != *current_room_) {
       area_->rooms.erase(*current_room_);
       area_->dirty_rooms.erase(*current_room_);
       area_->dirty_rooms.insert(room.vnum);
       current_room_ = room.vnum;
-    } else if(area_->rooms.count(room.vnum)) {
-      eleutheria::preserve_flag_tokens(room, area_->rooms.at(room.vnum));
+    } else if(previous != nullptr) {
+      eleutheria::preserve_flag_tokens(room, *previous);
     }
     area_->rooms[room.vnum] = room;
   }
   if(current_mob_) {
-    auto mob = mob_editor_->save();
+    const eleutheria::Mobile* previous =
+        area_->mobiles.count(*current_mob_) ? &area_->mobiles.at(*current_mob_) : nullptr;
+    auto mob = mob_editor_->save(previous);
     if(mob.vnum != *current_mob_) {
       area_->mobiles.erase(*current_mob_);
       area_->dirty_mobs.erase(*current_mob_);
       area_->dirty_mobs.insert(mob.vnum);
       current_mob_ = mob.vnum;
-    } else if(area_->mobiles.count(mob.vnum)) {
-      eleutheria::preserve_flag_tokens(mob, area_->mobiles.at(mob.vnum));
+    } else if(previous != nullptr) {
+      eleutheria::preserve_flag_tokens(mob, *previous);
     }
     area_->mobiles[mob.vnum] = mob;
   }
   if(current_obj_) {
-    auto obj = obj_editor_->save();
+    const eleutheria::GameObject* previous =
+        area_->objects.count(*current_obj_) ? &area_->objects.at(*current_obj_) : nullptr;
+    auto obj = obj_editor_->save(previous);
     if(obj.vnum != *current_obj_) {
       area_->objects.erase(*current_obj_);
       area_->dirty_objects.erase(*current_obj_);
       area_->dirty_objects.insert(obj.vnum);
       current_obj_ = obj.vnum;
-    } else if(area_->objects.count(obj.vnum)) {
-      eleutheria::preserve_flag_tokens(obj, area_->objects.at(obj.vnum));
+    } else if(previous != nullptr) {
+      eleutheria::preserve_flag_tokens(obj, *previous);
     }
     area_->objects[obj.vnum] = obj;
   }
@@ -961,6 +975,26 @@ void MainWindow::applyCurrentEditor() {
     }
     area_->zones[zone.number] = zone;
   }
+  if(spe_editor_ != nullptr) {
+    area_->specials = spe_editor_->save();
+  }
+}
+
+void MainWindow::onSpeEdited() {
+  if(!area_ || spe_editor_ == nullptr) {
+    return;
+  }
+  area_->specials = spe_editor_->save();
+  area_->specials_dirty = true;
+  markDirty();
+  status_counts_->setText(
+      QString("Stanze: %1   Mob: %2   Oggetti: %3   Zone: %4   Shop: %5   Spe: %6")
+          .arg(area_->rooms.size())
+          .arg(area_->mobiles.size())
+          .arg(area_->objects.size())
+          .arg(area_->zones.size())
+          .arg(area_->shops.size())
+          .arg(area_->specials.size()));
 }
 
 void MainWindow::onRoomSelected() {

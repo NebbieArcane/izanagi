@@ -588,6 +588,81 @@ void parse_shops_file(const std::string& text, std::map<std::int64_t, Shop>* out
   (void)warnings;
 }
 
+void parse_specials_file(const std::string& text, std::vector<SpecialAssignment>* out,
+                         std::vector<std::string>* warnings) {
+  out->clear();
+  std::istringstream in(text);
+  std::string line;
+  while(std::getline(in, line)) {
+    if(!line.empty() && line.back() == '\r') {
+      line.pop_back();
+    }
+    std::string trimmed = line;
+    while(!trimmed.empty() && (trimmed[0] == ' ' || trimmed[0] == '\t')) {
+      trimmed.erase(trimmed.begin());
+    }
+    if(trimmed.empty()) {
+      continue;
+    }
+    const char first = trimmed[0];
+    if(first == '*' || first == ';' || first == '$') {
+      SpecialAssignment sa;
+      sa.is_comment = true;
+      sa.raw_line = line;
+      out->push_back(std::move(sa));
+      continue;
+    }
+    const char kind = static_cast<char>(std::toupper(static_cast<unsigned char>(first)));
+    if(kind != 'M' && kind != 'O' && kind != 'R') {
+      SpecialAssignment sa;
+      sa.is_comment = true;
+      sa.raw_line = line;
+      out->push_back(std::move(sa));
+      warn(warnings, std::string("spe: riga non riconosciuta, tenuta come commento: ") + line);
+      continue;
+    }
+    TokenReader r(trimmed.substr(1));
+    SpecialAssignment sa;
+    sa.kind = kind;
+    try {
+      sa.vnum = r.read_number();
+      sa.name = r.read_word();
+      r.skip_ws();
+      std::string parms;
+      while(!r.eof()) {
+        parms.push_back(r.get());
+      }
+      while(!parms.empty() && (parms.back() == ' ' || parms.back() == '\t')) {
+        parms.pop_back();
+      }
+      sa.parms = parms;
+      out->push_back(std::move(sa));
+    } catch(const IoError& e) {
+      SpecialAssignment bad;
+      bad.is_comment = true;
+      bad.raw_line = line;
+      out->push_back(std::move(bad));
+      warn(warnings, std::string("spe: ") + e.what() + " in: " + line);
+    }
+  }
+}
+
+std::string serialize_specials(const std::vector<SpecialAssignment>& specials) {
+  std::ostringstream out;
+  for(const auto& sa : specials) {
+    if(sa.is_comment) {
+      out << sa.raw_line << '\n';
+      continue;
+    }
+    out << sa.kind << ' ' << sa.vnum << ' ' << sa.name;
+    if(!sa.parms.empty()) {
+      out << ' ' << sa.parms;
+    }
+    out << '\n';
+  }
+  return out.str();
+}
+
 AreaMeta parse_ele_file(const std::string& text) {
   AreaMeta meta;
   std::istringstream in(text);
@@ -967,6 +1042,17 @@ LoadResult load_area(const std::filesystem::path& path) {
   load_if(".shp", [&](const std::string& t) {
     parse_shops_file(t, &result.area.shops, &result.warnings);
   });
+  {
+    const auto spe_path = std::filesystem::path(base.string() + ".spe");
+    if(std::filesystem::exists(spe_path)) {
+      result.area.had_spe_file = true;
+      try {
+        parse_specials_file(read_file(spe_path), &result.area.specials, &result.warnings);
+      } catch(const std::exception& e) {
+        result.warnings.push_back(std::string(".spe: ") + e.what());
+      }
+    }
+  }
 
   if(const auto blocks = capture_vnum_hash_file(base.string() + ".wld")) {
     result.area.wld_sources = *blocks;
@@ -1060,6 +1146,12 @@ void save_area(Area& area, const std::filesystem::path& base_path) {
 
   if(!area.shops.empty()) {
     write_file(base_path.string() + ".shp", serialize_shops(area.shops));
+  }
+
+  if(area.had_spe_file || !area.specials.empty() || area.specials_dirty) {
+    write_file(base_path.string() + ".spe", serialize_specials(area.specials));
+    area.had_spe_file = true;
+    area.specials_dirty = false;
   }
 }
 

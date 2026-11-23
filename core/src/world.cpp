@@ -209,4 +209,83 @@ void preserve_flag_tokens(GameObject& edited, const GameObject& previous) {
                      previous.extra_flags2_token);
 }
 
+namespace {
+
+void exp_table_for_level(int level, int* base, int* phit, int* sab) {
+  // Allineato a Server/src/utility.cpp DetermineExp (case 0..59 + default).
+  static constexpr int kBase[] = {
+      1,      8,      12,     17,     23,     30,     37,     47,     57,     70,
+      84,     101,    122,    146,    175,    209,    251,    301,    362,    435,
+      524,    632,    762,    919,    1110,   1339,   1617,   1951,   2354,   2838,
+      3421,   4120,   4960,   5968,   7175,   8621,   10351,  12422,  14897,  17857,
+      21394,  25619,  30666,  36692,  43889,  52482,  62742,  74992,  89618,  107084,
+      127942, 150000, 170000, 190000, 210000, 230000, 250000, 275000, 300000, 325000,
+  };
+  static constexpr int kPhit[] = {
+      1,  2,  2,  3,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  6,  6,  6,  7,  7,  8,
+      8,  9,  9,  10, 10, 11, 12, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26,
+      28, 29, 31, 33, 35, 37, 40, 42, 45, 47, 50, 53, 55, 57, 59, 61, 63, 65, 67, 69,
+  };
+  static constexpr int kSab[] = {
+      1,     2,     3,     4,     6,     7,     9,     12,    14,    17,    21,
+      25,    30,    36,    44,    52,    63,    75,    90,    109,   131,   158,
+      190,   230,   277,   335,   404,   488,   588,   710,   855,   1030,  1240,
+      1492,  1794,  2155,  2588,  3105,  3724,  4464,  5348,  6405,  7666,  9173,
+      10975, 13121, 15685, 18748, 22405, 26771, 31985, 37500, 42500, 47500, 52500,
+      57500, 62500, 68750, 75000, 71250,
+  };
+  if(level < 0) {
+    *base = 1;
+    *phit = 1;
+    *sab = 1;
+    return;
+  }
+  if(level <= 59) {
+    *base = kBase[level];
+    *phit = kPhit[level];
+    *sab = kSab[level];
+    return;
+  }
+  *base = 350000;
+  *phit = 70;
+  *sab = 87500;
+}
+
+}  // namespace
+
+MobExpEstimate estimate_mob_exp(const Mobile& mob) {
+  MobExpEstimate out;
+  out.file_value = mob.exp;
+  const int level = static_cast<int>(mob.level);
+
+  if(mob.letter == 'S') {
+    out.uses_bonus_formula = false;
+    out.estimated_xp = mob.exp < 0 ? -mob.exp : mob.exp;
+    return out;
+  }
+
+  if(mob.exp < 0) {
+    out.uses_bonus_formula = false;
+    out.estimated_xp = -mob.exp;
+    return out;
+  }
+
+  out.uses_bonus_formula = true;
+  out.bonus_unusually_high = mob.exp > 32;
+  int base = 0;
+  int phit = 0;
+  int sab = 0;
+  exp_table_for_level(level, &base, &phit, &sab);
+  out.base = base;
+  out.phit = phit;
+  out.sab = sab;
+  // A/N/B/L: max_hit = dice(level, 8) + hit_bonus → media level*4.5 + hit_bonus
+  out.estimated_hit = (static_cast<std::int64_t>(level) * 9) / 2 + mob.hit_bonus;
+  if(out.estimated_hit < 0) {
+    out.estimated_hit = 0;
+  }
+  out.estimated_xp = base + phit * out.estimated_hit + sab * mob.exp + mob.gold;
+  return out;
+}
+
 }  // namespace eleutheria

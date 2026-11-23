@@ -7,13 +7,16 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <functional>
 #include <map>
 
 #include <QAbstractItemView>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QStringList>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QFrame>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -24,6 +27,7 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -182,17 +186,17 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   room_layout->addWidget(new QLabel(QStringLiteral("Room flags"), room_page));
   room_layout->addWidget(flags_);
 
-  exits_ = new QTableWidget(6, 5, room_page);
+  exits_ = new QTableWidget(6, 6, room_page);
   exits_->setHorizontalHeaderLabels(
       {QStringLiteral("Dir"), QStringLiteral("To"), QStringLiteral("Flags"), QStringLiteral("Key"),
-       QStringLiteral("Keywords")});
+       QStringLiteral("Keywords"), QStringLiteral("Desc generale")});
   exits_->verticalHeader()->setVisible(false);
   exits_->horizontalHeader()->setStretchLastSection(true);
   const char* dirs[] = {"N", "E", "S", "W", "U", "D"};
   for(int i = 0; i < 6; ++i) {
     exits_->setItem(i, 0, new QTableWidgetItem(QString::fromUtf8(dirs[i])));
     exits_->item(i, 0)->setFlags(Qt::ItemIsEnabled);
-    for(int c = 1; c < 5; ++c) {
+    for(int c = 1; c < 6; ++c) {
       exits_->setItem(i, c, new QTableWidgetItem);
     }
   }
@@ -205,6 +209,56 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   room_layout->addWidget(new QLabel(QStringLiteral("Extra descriptions"), room_page));
   room_layout->addWidget(extras_);
   tabs_->addTab(room_page, QStringLiteral("Dettaglio"));
+
+  // --- Avanzate (teleport / river / tunnel / bright) ---
+  auto* adv_page = new QWidget(tabs_);
+  auto* adv_layout = new QVBoxLayout(adv_page);
+  auto* tele_box = new QGroupBox(QStringLiteral("Teleport (sector riga = -1)"), adv_page);
+  auto* tele_form = new QFormLayout(tele_box);
+  teleport_enable_ = new QCheckBox(QStringLiteral("Abilita teleport"), tele_box);
+  tele_time_ = make_spin(tele_box, 0, 999999);
+  tele_targ_ = make_spin(tele_box, -1, 999999);
+  tele_mask_ = make_spin(tele_box, 0, 2000000000);
+  tele_cnt_ = make_spin(tele_box, 0, 999999);
+  tele_form->addRow(teleport_enable_);
+  tele_form->addRow(QStringLiteral("tele_time"), tele_time_);
+  tele_form->addRow(QStringLiteral("tele_targ"), tele_targ_);
+  tele_form->addRow(QStringLiteral("tele_mask"), tele_mask_);
+  tele_form->addRow(QStringLiteral("tele_cnt (se mask ha COUNT)"), tele_cnt_);
+  adv_layout->addWidget(tele_box);
+
+  auto* river_box = new QGroupBox(QStringLiteral("River (settori acqua 7/9)"), adv_page);
+  auto* river_form = new QFormLayout(river_box);
+  river_enable_ = new QCheckBox(QStringLiteral("Scrivi river_speed/dir"), river_box);
+  river_speed_ = make_spin(river_box, 0, 999999);
+  river_dir_ = make_spin(river_box, 0, 5);
+  river_form->addRow(river_enable_);
+  river_form->addRow(QStringLiteral("river_speed"), river_speed_);
+  river_form->addRow(QStringLiteral("river_dir (0-5)"), river_dir_);
+  adv_layout->addWidget(river_box);
+
+  auto* tunnel_box = new QGroupBox(QStringLiteral("Tunnel / moblim"), adv_page);
+  auto* tunnel_form = new QFormLayout(tunnel_box);
+  tunnel_enable_ = new QCheckBox(QStringLiteral("Limite mob (flag TUNNEL)"), tunnel_box);
+  moblim_ = make_spin(tunnel_box, 1, 999999);
+  tunnel_form->addRow(tunnel_enable_);
+  tunnel_form->addRow(QStringLiteral("moblim"), moblim_);
+  adv_layout->addWidget(tunnel_box);
+
+  auto* bright_box = new QGroupBox(QStringLiteral("Bright (tag L)"), adv_page);
+  auto* bright_layout = new QVBoxLayout(bright_box);
+  bright_enable_ = new QCheckBox(QStringLiteral("Scrivi descrizioni bright"), bright_box);
+  bright_night_ = new LineLimitedPlainTextEdit(bright_box);
+  bright_day_ = new LineLimitedPlainTextEdit(bright_box);
+  configure_mud_text_field(bright_night_);
+  configure_mud_text_field(bright_day_);
+  bright_layout->addWidget(bright_enable_);
+  bright_layout->addWidget(new QLabel(QStringLiteral("Night"), bright_box));
+  bright_layout->addWidget(bright_night_);
+  bright_layout->addWidget(new QLabel(QStringLiteral("Day"), bright_box));
+  bright_layout->addWidget(bright_day_);
+  adv_layout->addWidget(bright_box, 1);
+  tabs_->addTab(adv_page, QStringLiteral("Avanzate"));
 
   connect(add_mob_btn_, &QPushButton::clicked, this, &RoomEditor::addMobReset);
   connect(add_obj_btn_, &QPushButton::clicked, this, &RoomEditor::addObjectReset);
@@ -222,10 +276,25 @@ RoomEditor::RoomEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   connect(vnum_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
   connect(name_, &QLineEdit::textChanged, this, notify);
   connect(description_, &QPlainTextEdit::textChanged, this, notify);
+  connect(zone_hint_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(sector_, qOverload<int>(&QComboBox::currentIndexChanged), this, notify);
   connect(flags_, &FlagEditor::valueChanged, this, [this, notify]() {
     flags_summary_->setText(flagNames(flags_->value()));
     notify();
   });
+  connect(teleport_enable_, &QCheckBox::toggled, this, notify);
+  connect(tele_time_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(tele_targ_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(tele_mask_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(tele_cnt_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(river_enable_, &QCheckBox::toggled, this, notify);
+  connect(river_speed_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(river_dir_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(tunnel_enable_, &QCheckBox::toggled, this, notify);
+  connect(moblim_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(bright_enable_, &QCheckBox::toggled, this, notify);
+  connect(bright_night_, &QPlainTextEdit::textChanged, this, notify);
+  connect(bright_day_, &QPlainTextEdit::textChanged, this, notify);
 }
 
 void RoomEditor::setMaxLineLength(int max_length) {
@@ -234,6 +303,12 @@ void RoomEditor::setMaxLineLength(int max_length) {
   }
   if(extras_ != nullptr) {
     extras_->setMaxLineLength(max_length);
+  }
+  if(bright_night_ != nullptr) {
+    bright_night_->setMaxLineLength(max_length);
+  }
+  if(bright_day_ != nullptr) {
+    bright_day_->setMaxLineLength(max_length);
   }
 }
 
@@ -312,23 +387,23 @@ void RoomEditor::load(const eleutheria::Room& room) {
   flags_summary_->setText(flagNames(static_cast<std::uint64_t>(room.room_flags)));
   set_combo_value(sector_, static_cast<int>(room.sector_type));
   for(int i = 0; i < 6; ++i) {
-    for(int c = 1; c < 5; ++c) {
+    for(int c = 1; c < 6; ++c) {
       if(exits_->item(i, c) == nullptr) {
         exits_->setItem(i, c, new QTableWidgetItem);
       }
     }
     const auto& ex = room.exits[static_cast<std::size_t>(i)];
     if(!ex.present) {
-      exits_->item(i, 1)->setText({});
-      exits_->item(i, 2)->setText({});
-      exits_->item(i, 3)->setText({});
-      exits_->item(i, 4)->setText({});
+      for(int c = 1; c < 6; ++c) {
+        exits_->item(i, c)->setText({});
+      }
       continue;
     }
     exits_->item(i, 1)->setText(QString::number(ex.to_room));
     exits_->item(i, 2)->setText(QString::number(ex.exit_info));
     exits_->item(i, 3)->setText(QString::number(ex.key));
     exits_->item(i, 4)->setText(QString::fromStdString(ex.keyword));
+    exits_->item(i, 5)->setText(QString::fromStdString(ex.general_description));
   }
   vnum_->blockSignals(false);
   name_->blockSignals(false);
@@ -339,6 +414,20 @@ void RoomEditor::load(const eleutheria::Room& room) {
                   QString::fromStdString(ed.description).replace('\n', "\\n") + "\n";
   }
   extras_->setPlainText(extra_text);
+
+  teleport_enable_->setChecked(room.has_teleport);
+  tele_time_->setValue(static_cast<int>(room.tele_time));
+  tele_targ_->setValue(static_cast<int>(room.tele_targ));
+  tele_mask_->setValue(static_cast<int>(room.tele_mask));
+  tele_cnt_->setValue(static_cast<int>(room.tele_cnt));
+  river_enable_->setChecked(room.has_river);
+  river_speed_->setValue(static_cast<int>(room.river_speed));
+  river_dir_->setValue(static_cast<int>(room.river_dir));
+  tunnel_enable_->setChecked(room.has_tunnel_limit);
+  moblim_->setValue(static_cast<int>(room.moblim < 1 ? 1 : room.moblim));
+  bright_enable_->setChecked(room.has_bright);
+  bright_night_->setPlainText(QString::fromStdString(room.bright_night));
+  bright_day_->setPlainText(QString::fromStdString(room.bright_day));
   rebuildSummary();
 }
 
@@ -653,8 +742,8 @@ void RoomEditor::removeSelectedReset() {
   rebuildSummary();
 }
 
-eleutheria::Room RoomEditor::save() const {
-  eleutheria::Room room;
+eleutheria::Room RoomEditor::save(const eleutheria::Room* previous) const {
+  eleutheria::Room room = previous ? *previous : eleutheria::Room{};
   room.vnum = vnum_->value();
   room.name = name_->text().toStdString();
   room.description = description_->toPlainText().toStdString();
@@ -664,22 +753,32 @@ eleutheria::Room RoomEditor::save() const {
   for(int i = 0; i < 6; ++i) {
     auto* to_item = exits_->item(i, 1);
     if(to_item == nullptr) {
+      room.exits[static_cast<std::size_t>(i)] = {};
       continue;
     }
     const QString to = to_item->text().trimmed();
     if(to.isEmpty()) {
+      room.exits[static_cast<std::size_t>(i)] = {};
       continue;
     }
     auto& ex = room.exits[static_cast<std::size_t>(i)];
+    const auto previous_ex =
+        previous ? previous->exits[static_cast<std::size_t>(i)] : eleutheria::Exit{};
+    ex = previous_ex;
     ex.present = true;
     ex.to_room = to.toLongLong();
     auto* flags_item = exits_->item(i, 2);
     auto* key_item = exits_->item(i, 3);
     auto* keyw_item = exits_->item(i, 4);
+    auto* gdesc_item = exits_->item(i, 5);
     ex.exit_info = flags_item ? flags_item->text().toLongLong() : 0;
     ex.key = (!key_item || key_item->text().isEmpty()) ? -1 : key_item->text().toLongLong();
     ex.keyword = keyw_item ? keyw_item->text().toStdString() : std::string{};
+    if(gdesc_item != nullptr) {
+      ex.general_description = gdesc_item->text().toStdString();
+    }
   }
+  room.extras.clear();
   const auto lines = extras_->toPlainText().split('\n', Qt::SkipEmptyParts);
   for(const auto& line : lines) {
     const int bar = line.indexOf('|');
@@ -692,84 +791,238 @@ eleutheria::Room RoomEditor::save() const {
     }
     room.extras.push_back(std::move(ed));
   }
+
+  room.has_teleport = teleport_enable_->isChecked();
+  room.tele_time = tele_time_->value();
+  room.tele_targ = tele_targ_->value();
+  room.tele_mask = tele_mask_->value();
+  room.tele_cnt = tele_cnt_->value();
+  room.has_river = river_enable_->isChecked();
+  room.river_speed = river_speed_->value();
+  room.river_dir = river_dir_->value();
+  room.has_tunnel_limit = tunnel_enable_->isChecked();
+  room.moblim = moblim_->value();
+  room.has_bright = bright_enable_->isChecked();
+  room.bright_night = bright_night_->toPlainText().toStdString();
+  room.bright_day = bright_day_->toPlainText().toStdString();
   return room;
 }
 
 MobEditor::MobEditor(const eleutheria::Catalog& catalog, QWidget* parent)
     : QWidget(parent), catalog_(catalog) {
   auto* root = new QVBoxLayout(this);
+  root->setContentsMargins(0, 0, 0, 0);
+  tabs_ = new QTabWidget(this);
+  root->addWidget(tabs_);
+
+  // --- Dati ---
+  auto* data_page = new QWidget(tabs_);
+  auto* data_scroll = new QScrollArea(tabs_);
+  data_scroll->setWidgetResizable(true);
+  data_scroll->setFrameShape(QFrame::NoFrame);
+  data_scroll->setWidget(data_page);
+  auto* data_layout = new QVBoxLayout(data_page);
   auto* form = new QFormLayout();
-  vnum_ = make_spin(this, 0, 999999);
-  name_ = new QLineEdit(this);
-  short_ = new QLineEdit(this);
-  letter_ = new QComboBox(this);
+  vnum_ = make_spin(data_page, 0, 999999);
+  name_ = new QLineEdit(data_page);
+  short_ = new QLineEdit(data_page);
+  letter_ = new QComboBox(data_page);
   for(const char* L : {"A", "L", "N", "B", "S"}) {
     letter_->addItem(L);
   }
-  alignment_ = make_spin(this, -1000, 1000);
-  mult_att_ = new QDoubleSpinBox(this);
+  alignment_ = make_spin(data_page, -1000, 1000);
+  mult_att_ = new QDoubleSpinBox(data_page);
   mult_att_->setRange(0, 20);
   mult_att_->setDecimals(0);
-  level_ = make_spin(this, 0, 200);
-  thac0_ = make_spin(this, -50, 50);
-  armor_ = make_spin(this, -100, 100);
-  hit_bonus_ = make_spin(this, -500, 5000);
-  dam_dice_ = new QLineEdit("1d4+0", this);
-  gold_ = make_spin(this, -1, 2000000000);
-  exp_ = make_spin(this, -2000000000, 2000000000);
-  race_ = make_spin(this, 0, 1000);
-  position_ = new QComboBox(this);
-  default_pos_ = new QComboBox(this);
-  sex_ = new QComboBox(this);
+  level_ = make_spin(data_page, 0, 200);
+  thac0_ = make_spin(data_page, -50, 50);
+  armor_ = make_spin(data_page, -100, 100);
+  hit_bonus_ = make_spin(data_page, -500, 5000);
+  hit_dice_ = new QLineEdit(QStringLiteral("1d8+0"), data_page);
+  dam_dice_ = new QLineEdit(QStringLiteral("1d4+0"), data_page);
+  gold_ = make_spin(data_page, -1, 2000000000);
+  exp_ = make_spin(data_page, -2000000000, 2000000000);
+  exp_hint_ = new QLabel(data_page);
+  exp_hint_->setWordWrap(true);
+  exp_hint_->setStyleSheet(QStringLiteral("color: #888;"));
+  race_ = make_spin(data_page, 0, 1000);
+  spellpower_enable_ = new QCheckBox(QStringLiteral("Scrivi spellpower nel file"), data_page);
+  spellpower_ = make_spin(data_page, 0, 127);
+  position_ = new QComboBox(data_page);
+  default_pos_ = new QComboBox(data_page);
+  sex_ = new QComboBox(data_page);
   fill_named(position_, catalog_.positions());
   fill_named(default_pos_, catalog_.positions());
   fill_named(sex_, catalog_.genders());
 
-  form->addRow("Vnum", vnum_);
-  form->addRow("Keywords", name_);
-  form->addRow("Short", short_);
-  form->addRow("Tipo", letter_);
-  form->addRow("Alignment", alignment_);
-  form->addRow("Attacchi", mult_att_);
-  form->addRow("Level", level_);
-  form->addRow("THAC0", thac0_);
-  form->addRow("AC", armor_);
-  form->addRow("Hit bonus", hit_bonus_);
-  form->addRow("Dam dice", dam_dice_);
-  form->addRow("Gold", gold_);
-  form->addRow("Exp", exp_);
-  form->addRow("Race", race_);
-  form->addRow("Position", position_);
-  form->addRow("Default pos", default_pos_);
-  form->addRow("Sex", sex_);
-  root->addLayout(form);
+  form->addRow(QStringLiteral("Vnum"), vnum_);
+  form->addRow(QStringLiteral("Keywords"), name_);
+  form->addRow(QStringLiteral("Short"), short_);
+  form->addRow(QStringLiteral("Tipo"), letter_);
+  form->addRow(QStringLiteral("Alignment"), alignment_);
+  form->addRow(QStringLiteral("Attacchi"), mult_att_);
+  form->addRow(QStringLiteral("Level"), level_);
+  form->addRow(QStringLiteral("THAC0"), thac0_);
+  form->addRow(QStringLiteral("AC"), armor_);
+  hit_bonus_label_ = new QLabel(QStringLiteral("Hit bonus (A/N/B/L)"), data_page);
+  form->addRow(hit_bonus_label_, hit_bonus_);
+  hit_dice_label_ = new QLabel(QStringLiteral("Hit dice (solo S)"), data_page);
+  form->addRow(hit_dice_label_, hit_dice_);
+  form->addRow(QStringLiteral("Dam dice"), dam_dice_);
+  form->addRow(QStringLiteral("Gold"), gold_);
+  form->addRow(QStringLiteral("Exp (valore nel .mob)"), exp_);
+  form->addRow(exp_hint_);
+  form->addRow(QStringLiteral("Race"), race_);
+  form->addRow(spellpower_enable_);
+  form->addRow(QStringLiteral("Spellpower"), spellpower_);
+  form->addRow(QStringLiteral("Position"), position_);
+  form->addRow(QStringLiteral("Default pos"), default_pos_);
+  form->addRow(QStringLiteral("Sex"), sex_);
+  data_layout->addLayout(form);
+  data_layout->addStretch(1);
+  tabs_->addTab(data_scroll, QStringLiteral("Dati"));
 
-  long_ = new LineLimitedPlainTextEdit(this);
-  description_ = new LineLimitedPlainTextEdit(this);
-  sounds_ = new LineLimitedPlainTextEdit(this);
+  // --- Testi ---
+  auto* text_page = new QWidget(tabs_);
+  auto* text_layout = new QVBoxLayout(text_page);
+  long_ = new LineLimitedPlainTextEdit(text_page);
+  description_ = new LineLimitedPlainTextEdit(text_page);
+  sounds_ = new LineLimitedPlainTextEdit(text_page);
+  distant_sounds_ = new LineLimitedPlainTextEdit(text_page);
   configure_mud_text_field(long_);
   configure_mud_text_field(description_);
   configure_mud_text_field(sounds_);
-  root->addWidget(new QLabel("Long description", this));
-  root->addWidget(long_);
-  root->addWidget(new QLabel("Description", this));
-  root->addWidget(description_);
+  configure_mud_text_field(distant_sounds_);
+  text_layout->addWidget(new QLabel(QStringLiteral("Long description"), text_page));
+  text_layout->addWidget(long_, 2);
+  text_layout->addWidget(new QLabel(QStringLiteral("Description"), text_page));
+  text_layout->addWidget(description_, 2);
+  text_layout->addWidget(new QLabel(QStringLiteral("Sounds (tipo L)"), text_page));
+  text_layout->addWidget(sounds_, 1);
+  text_layout->addWidget(new QLabel(QStringLiteral("Distant sounds (tipo L)"), text_page));
+  text_layout->addWidget(distant_sounds_, 1);
+  tabs_->addTab(text_page, QStringLiteral("Testi"));
 
-  act_ = new FlagEditor(this);
+  // --- Flags ---
+  auto* flags_page = new QWidget(tabs_);
+  auto* flags_layout = new QHBoxLayout(flags_page);
+  act_ = new FlagEditor(flags_page);
   act_->setFlags(catalog_.act_flags());
-  affect_ = new FlagEditor(this);
+  affect_ = new FlagEditor(flags_page);
   affect_->setFlags(catalog_.affect_flags());
-  root->addWidget(new QLabel("Act flags", this));
-  root->addWidget(act_);
-  root->addWidget(new QLabel("Affect flags", this));
-  root->addWidget(affect_);
-  root->addWidget(new QLabel("Sounds (L)", this));
-  root->addWidget(sounds_);
+  auto* act_col = new QVBoxLayout();
+  auto* aff_col = new QVBoxLayout();
+  act_col->addWidget(new QLabel(QStringLiteral("Act flags"), flags_page));
+  act_col->addWidget(act_, 1);
+  aff_col->addWidget(new QLabel(QStringLiteral("Affect flags"), flags_page));
+  aff_col->addWidget(affect_, 1);
+  flags_layout->addLayout(act_col, 1);
+  flags_layout->addLayout(aff_col, 1);
+  tabs_->addTab(flags_page, QStringLiteral("Flags"));
 
-  auto notify = [this]() { emit edited(); };
+  // --- Resistenze ---
+  auto* res_page = new QWidget(tabs_);
+  auto* res_layout = new QVBoxLayout(res_page);
+  immunities_enable_ = new QCheckBox(
+      QStringLiteral("Scrivi immune / M_immune / susc nel file (sex codificato +3)"), res_page);
+  res_layout->addWidget(immunities_enable_);
+  auto* res_cols = new QHBoxLayout();
+  immune_ = new FlagEditor(res_page);
+  immune_->setFlags(catalog_.immunity_flags());
+  m_immune_ = new FlagEditor(res_page);
+  m_immune_->setFlags(catalog_.immunity_flags());
+  susc_ = new FlagEditor(res_page);
+  susc_->setFlags(catalog_.immunity_flags());
+  auto* i_col = new QVBoxLayout();
+  auto* m_col = new QVBoxLayout();
+  auto* s_col = new QVBoxLayout();
+  i_col->addWidget(new QLabel(QStringLiteral("Immune"), res_page));
+  i_col->addWidget(immune_, 1);
+  m_col->addWidget(new QLabel(QStringLiteral("M_immune"), res_page));
+  m_col->addWidget(m_immune_, 1);
+  s_col->addWidget(new QLabel(QStringLiteral("Susc"), res_page));
+  s_col->addWidget(susc_, 1);
+  res_cols->addLayout(i_col, 1);
+  res_cols->addLayout(m_col, 1);
+  res_cols->addLayout(s_col, 1);
+  res_layout->addLayout(res_cols, 1);
+  tabs_->addTab(res_page, QStringLiteral("Resistenze"));
+
+  auto notify = [this]() {
+    updateExpHint();
+    emit edited();
+  };
   connect(name_, &QLineEdit::textChanged, this, notify);
   connect(short_, &QLineEdit::textChanged, this, notify);
   connect(act_, &FlagEditor::valueChanged, this, notify);
+  connect(affect_, &FlagEditor::valueChanged, this, notify);
+  connect(letter_, qOverload<int>(&QComboBox::currentIndexChanged), this, [this, notify](int) {
+    updateTypeDependentUi();
+    notify();
+  });
+  connect(level_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(exp_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(gold_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  connect(hit_bonus_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
+  updateTypeDependentUi();
+  updateExpHint();
+}
+
+void MobEditor::updateTypeDependentUi() {
+  const bool is_s = letter_->currentText() == QLatin1String("S");
+  hit_dice_->setEnabled(is_s);
+  hit_bonus_->setEnabled(!is_s);
+  if(hit_dice_label_ != nullptr) {
+    hit_dice_label_->setEnabled(is_s);
+  }
+  if(hit_bonus_label_ != nullptr) {
+    hit_bonus_label_->setEnabled(!is_s);
+  }
+  mult_att_->setEnabled(letter_->currentText() != QLatin1String("N") && !is_s);
+}
+
+void MobEditor::updateExpHint() {
+  if(exp_hint_ == nullptr) {
+    return;
+  }
+  eleutheria::Mobile probe;
+  probe.letter = letter_->currentText().isEmpty() ? 'A' : letter_->currentText().at(0).toLatin1();
+  probe.level = level_->value();
+  probe.exp = exp_->value();
+  probe.gold = gold_->value();
+  probe.hit_bonus = hit_bonus_->value();
+  const auto est = eleutheria::estimate_mob_exp(probe);
+  if(probe.letter == 'S') {
+    exp_hint_->setText(QStringLiteral(
+        "Tipo S: il valore e' l'XP assoluto del mob (niente formula bonus). XP = %1.")
+                           .arg(est.estimated_xp));
+    return;
+  }
+  if(!est.uses_bonus_formula) {
+    exp_hint_->setText(
+        QStringLiteral(
+            "XP assoluti al load: %1. "
+            "Valore negativo nel file = XP fisso (senza formula e senza aggiungere gold).")
+            .arg(est.estimated_xp));
+    return;
+  }
+  QString msg = QStringLiteral(
+                    "Bonus XP (tipico 0-32). Stima al load ~%1 = "
+                    "base(%2) + phit(%3)*hp_stimati(%4) + sab(%5)*bonus(%6) + gold(%7). "
+                    "Il bonus moltiplica sab: a lv %2 sab=%5, quindi bonus 1 aggiunge ~%5 XP, "
+                    "bonus 10 ~%8 XP (oltre a base/hp/gold).")
+                    .arg(est.estimated_xp)
+                    .arg(probe.level)
+                    .arg(est.phit)
+                    .arg(est.estimated_hit)
+                    .arg(est.sab)
+                    .arg(probe.exp)
+                    .arg(probe.gold)
+                    .arg(est.sab * 10);
+  if(est.bonus_unusually_high) {
+    msg += QStringLiteral(" Attenzione: medit segnala bonus > 32 come troppo alto.");
+  }
+  exp_hint_->setText(msg);
 }
 
 void MobEditor::setMaxLineLength(int max_length) {
@@ -782,6 +1035,9 @@ void MobEditor::setMaxLineLength(int max_length) {
   if(sounds_ != nullptr) {
     sounds_->setMaxLineLength(max_length);
   }
+  if(distant_sounds_ != nullptr) {
+    distant_sounds_->setMaxLineLength(max_length);
+  }
 }
 
 void MobEditor::clear() { load(eleutheria::Mobile{}); }
@@ -791,6 +1047,9 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
   const QSignalBlocker b2(short_);
   const QSignalBlocker b3(act_);
   const QSignalBlocker b4(affect_);
+  const QSignalBlocker b5(immune_);
+  const QSignalBlocker b6(m_immune_);
+  const QSignalBlocker b7(susc_);
   vnum_->setValue(static_cast<int>(mob.vnum));
   name_->setText(QString::fromStdString(mob.name));
   short_->setText(QString::fromStdString(mob.short_descr));
@@ -805,7 +1064,11 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
   thac0_->setValue(static_cast<int>(mob.thac0));
   armor_->setValue(static_cast<int>(mob.armor));
   hit_bonus_->setValue(static_cast<int>(mob.hit_bonus));
-  dam_dice_->setText(QString("%1d%2+%3")
+  hit_dice_->setText(QStringLiteral("%1d%2+%3")
+                         .arg(mob.hit_dice_n)
+                         .arg(mob.hit_dice_s)
+                         .arg(mob.hit_dice_b));
+  dam_dice_->setText(QStringLiteral("%1d%2+%3")
                          .arg(mob.dam_dice_n)
                          .arg(mob.dam_dice_s)
                          .arg(mob.dam_bonus));
@@ -813,14 +1076,23 @@ void MobEditor::load(const eleutheria::Mobile& mob) {
   exp_->setValue(static_cast<int>(
       std::max<std::int64_t>(-2000000000, std::min<std::int64_t>(mob.exp, 2000000000))));
   race_->setValue(static_cast<int>(mob.race));
+  spellpower_enable_->setChecked(mob.has_spellpower);
+  spellpower_->setValue(static_cast<int>(mob.spellpower));
   set_combo_value(position_, static_cast<int>(mob.position));
   set_combo_value(default_pos_, static_cast<int>(mob.default_pos));
   set_combo_value(sex_, static_cast<int>(mob.sex));
-  sounds_->setPlainText(QString::fromStdString(mob.sounds + "\n" + mob.distant_sounds));
+  immunities_enable_->setChecked(mob.has_immunities);
+  immune_->setValue(static_cast<std::uint64_t>(mob.immune));
+  m_immune_->setValue(static_cast<std::uint64_t>(mob.m_immune));
+  susc_->setValue(static_cast<std::uint64_t>(mob.susc));
+  sounds_->setPlainText(QString::fromStdString(mob.sounds));
+  distant_sounds_->setPlainText(QString::fromStdString(mob.distant_sounds));
+  updateTypeDependentUi();
+  updateExpHint();
 }
 
-eleutheria::Mobile MobEditor::save() const {
-  eleutheria::Mobile mob;
+eleutheria::Mobile MobEditor::save(const eleutheria::Mobile* previous) const {
+  eleutheria::Mobile mob = previous ? *previous : eleutheria::Mobile{};
   mob.vnum = vnum_->value();
   mob.name = name_->text().toStdString();
   mob.short_descr = short_->text().toStdString();
@@ -836,6 +1108,14 @@ eleutheria::Mobile MobEditor::save() const {
   mob.armor = armor_->value();
   mob.hit_bonus = hit_bonus_->value();
   {
+    const QString dice = hit_dice_->text().trimmed();
+    int n = 1, s = 8, b = 0;
+    sscanf(dice.toUtf8().constData(), "%dd%d+%d", &n, &s, &b);
+    mob.hit_dice_n = n;
+    mob.hit_dice_s = s;
+    mob.hit_dice_b = b;
+  }
+  {
     const QString dice = dam_dice_->text().trimmed();
     int n = 1, s = 4, b = 0;
     sscanf(dice.toUtf8().constData(), "%dd%d+%d", &n, &s, &b);
@@ -843,20 +1123,23 @@ eleutheria::Mobile MobEditor::save() const {
     mob.dam_dice_s = s;
     mob.dam_bonus = b;
   }
-  mob.gold_exp_race_form = true;
+  if(previous == nullptr) {
+    mob.gold_exp_race_form = true;
+  }
   mob.gold = gold_->value();
   mob.exp = exp_->value();
   mob.race = race_->value();
+  mob.has_spellpower = spellpower_enable_->isChecked();
+  mob.spellpower = spellpower_->value();
   mob.position = combo_value(position_);
   mob.default_pos = combo_value(default_pos_);
   mob.sex = combo_value(sex_);
-  const auto sound_lines = sounds_->toPlainText().split('\n');
-  if(!sound_lines.isEmpty()) {
-    mob.sounds = sound_lines[0].toStdString();
-  }
-  if(sound_lines.size() > 1) {
-    mob.distant_sounds = sound_lines[1].toStdString();
-  }
+  mob.has_immunities = immunities_enable_->isChecked();
+  mob.immune = static_cast<std::int64_t>(immune_->value());
+  mob.m_immune = static_cast<std::int64_t>(m_immune_->value());
+  mob.susc = static_cast<std::int64_t>(susc_->value());
+  mob.sounds = sounds_->toPlainText().toStdString();
+  mob.distant_sounds = distant_sounds_->toPlainText().toStdString();
   return mob;
 }
 
@@ -925,16 +1208,22 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   auto* flags_page = new QWidget(tabs_);
   auto* flags_layout = new QHBoxLayout(flags_page);
   auto* extra_col = new QVBoxLayout();
+  auto* extra2_col = new QVBoxLayout();
   auto* wear_col = new QVBoxLayout();
   extra_ = new FlagEditor(flags_page);
   extra_->setFlags(catalog_.extra_flags());
+  extra2_ = new FlagEditor(flags_page);
+  extra2_->setFlags(catalog_.extra_flags2());
   wear_ = new FlagEditor(flags_page);
   wear_->setFlags(catalog_.wear_flags());
   extra_col->addWidget(new QLabel(QStringLiteral("Extra flags"), flags_page));
   extra_col->addWidget(extra_, 1);
+  extra2_col->addWidget(new QLabel(QStringLiteral("Extra flags 2 (F)"), flags_page));
+  extra2_col->addWidget(extra2_, 1);
   wear_col->addWidget(new QLabel(QStringLiteral("Wear flags"), flags_page));
   wear_col->addWidget(wear_, 1);
   flags_layout->addLayout(extra_col, 1);
+  flags_layout->addLayout(extra2_col, 1);
   flags_layout->addLayout(wear_col, 1);
   tabs_->addTab(flags_page, QStringLiteral("Flags"));
 
@@ -958,6 +1247,26 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   affect_layout->addWidget(affects_, 1);
   tabs_->addTab(affect_page, QStringLiteral("Affects"));
 
+  // --- Extra / Forbidden ---
+  auto* extra_page = new QWidget(tabs_);
+  auto* extra_layout = new QVBoxLayout(extra_page);
+  extras_ = new LineLimitedPlainTextEdit(extra_page);
+  configure_mud_text_field(extras_);
+  extras_->setPlaceholderText(QStringLiteral("Extra desc E: keywords|description (una per riga)"));
+  extra_layout->addWidget(new QLabel(QStringLiteral("Extra descriptions (E)"), extra_page));
+  extra_layout->addWidget(extras_, 2);
+  forbidden_enable_ = new QCheckBox(QStringLiteral("Scrivi blocco P (forbidden)"), extra_page);
+  forbidden_char_ = new LineLimitedPlainTextEdit(extra_page);
+  forbidden_room_ = new LineLimitedPlainTextEdit(extra_page);
+  configure_mud_text_field(forbidden_char_);
+  configure_mud_text_field(forbidden_room_);
+  extra_layout->addWidget(forbidden_enable_);
+  extra_layout->addWidget(new QLabel(QStringLiteral("Forbidden to char"), extra_page));
+  extra_layout->addWidget(forbidden_char_, 1);
+  extra_layout->addWidget(new QLabel(QStringLiteral("Forbidden to room"), extra_page));
+  extra_layout->addWidget(forbidden_room_, 1);
+  tabs_->addTab(extra_page, QStringLiteral("Extra / P"));
+
   auto notify = [this]() { notifyEdited(); };
   connect(vnum_, qOverload<int>(&QSpinBox::valueChanged), this, notify);
   connect(name_, &QLineEdit::textChanged, this, notify);
@@ -973,8 +1282,13 @@ ObjEditor::ObjEditor(const eleutheria::Catalog& catalog, QWidget* parent)
   connect(description_, &QPlainTextEdit::textChanged, this, notify);
   connect(action_, &QPlainTextEdit::textChanged, this, notify);
   connect(extra_, &FlagEditor::valueChanged, this, notify);
+  connect(extra2_, &FlagEditor::valueChanged, this, notify);
   connect(wear_, &FlagEditor::valueChanged, this, notify);
   connect(affects_, &QTableWidget::itemChanged, this, notify);
+  connect(extras_, &QPlainTextEdit::textChanged, this, notify);
+  connect(forbidden_enable_, &QCheckBox::toggled, this, [this](bool) { notifyEdited(); });
+  connect(forbidden_char_, &QPlainTextEdit::textChanged, this, notify);
+  connect(forbidden_room_, &QPlainTextEdit::textChanged, this, notify);
 }
 
 QComboBox* ObjEditor::makeApplyCombo(QWidget* parent) const {
@@ -1008,6 +1322,15 @@ void ObjEditor::setMaxLineLength(int max_length) {
   if(action_ != nullptr) {
     action_->setMaxLineLength(max_length);
   }
+  if(extras_ != nullptr) {
+    extras_->setMaxLineLength(max_length);
+  }
+  if(forbidden_char_ != nullptr) {
+    forbidden_char_->setMaxLineLength(max_length);
+  }
+  if(forbidden_room_ != nullptr) {
+    forbidden_room_->setMaxLineLength(max_length);
+  }
 }
 
 void ObjEditor::clear() { load(eleutheria::GameObject{}); }
@@ -1019,6 +1342,7 @@ void ObjEditor::load(const eleutheria::GameObject& obj) {
   const QSignalBlocker b4(wear_);
   const QSignalBlocker b5(type_);
   const QSignalBlocker b6(affects_);
+  const QSignalBlocker b7(extra2_);
   vnum_->setValue(static_cast<int>(obj.vnum));
   name_->setText(QString::fromStdString(obj.name));
   short_->setText(QString::fromStdString(obj.short_description));
@@ -1026,6 +1350,7 @@ void ObjEditor::load(const eleutheria::GameObject& obj) {
   action_->setPlainText(QString::fromStdString(obj.action_description));
   set_combo_value(type_, static_cast<int>(obj.type_flag));
   extra_->setValue(static_cast<std::uint64_t>(obj.extra_flags));
+  extra2_->setValue(static_cast<std::uint64_t>(obj.extra_flags2));
   wear_->setValue(static_cast<std::uint64_t>(obj.wear_flags));
   v0_->setValue(static_cast<int>(obj.value[0]));
   v1_->setValue(static_cast<int>(obj.value[1]));
@@ -1044,10 +1369,20 @@ void ObjEditor::load(const eleutheria::GameObject& obj) {
     }
     setAffectRow(row, location, modifier);
   }
+
+  QString extra_text;
+  for(const auto& ed : obj.extras) {
+    extra_text += QString::fromStdString(ed.keywords) + "|" +
+                  QString::fromStdString(ed.description).replace('\n', "\\n") + "\n";
+  }
+  extras_->setPlainText(extra_text);
+  forbidden_enable_->setChecked(obj.has_forbidden);
+  forbidden_char_->setPlainText(QString::fromStdString(obj.forbidden_to_char));
+  forbidden_room_->setPlainText(QString::fromStdString(obj.forbidden_to_room));
 }
 
-eleutheria::GameObject ObjEditor::save() const {
-  eleutheria::GameObject obj;
+eleutheria::GameObject ObjEditor::save(const eleutheria::GameObject* previous) const {
+  eleutheria::GameObject obj = previous ? *previous : eleutheria::GameObject{};
   obj.vnum = vnum_->value();
   obj.name = name_->text().toStdString();
   obj.short_description = short_->text().toStdString();
@@ -1055,11 +1390,14 @@ eleutheria::GameObject ObjEditor::save() const {
   obj.action_description = action_->toPlainText().toStdString();
   obj.type_flag = combo_value(type_);
   obj.extra_flags = static_cast<std::int64_t>(extra_->value());
+  obj.extra_flags2 = static_cast<std::int64_t>(extra2_->value());
+  obj.has_extra_flags2 = obj.extra_flags2 != 0;
   obj.wear_flags = static_cast<std::int64_t>(wear_->value());
   obj.value = {v0_->value(), v1_->value(), v2_->value(), v3_->value()};
   obj.weight = weight_->value();
   obj.cost = cost_->value();
   obj.cost_per_day = rent_->value();
+  obj.affects.clear();
   for(int row = 0; row < affects_->rowCount(); ++row) {
     int loc = 0;
     if(auto* combo = qobject_cast<QComboBox*>(affects_->cellWidget(row, 0))) {
@@ -1074,6 +1412,22 @@ eleutheria::GameObject ObjEditor::save() const {
     }
     obj.affects.push_back({loc, mod});
   }
+  obj.extras.clear();
+  const auto lines = extras_->toPlainText().split('\n', Qt::SkipEmptyParts);
+  for(const auto& line : lines) {
+    const int bar = line.indexOf('|');
+    eleutheria::ExtraDesc ed;
+    if(bar < 0) {
+      ed.keywords = line.toStdString();
+    } else {
+      ed.keywords = line.left(bar).toStdString();
+      ed.description = line.mid(bar + 1).replace("\\n", "\n").toStdString();
+    }
+    obj.extras.push_back(std::move(ed));
+  }
+  obj.has_forbidden = forbidden_enable_->isChecked();
+  obj.forbidden_to_char = forbidden_char_->toPlainText().toStdString();
+  obj.forbidden_to_room = forbidden_room_->toPlainText().toStdString();
   return obj;
 }
 
@@ -1154,4 +1508,122 @@ eleutheria::Zone ZoneEditor::save() const {
     zone.commands.push_back(std::move(cmd));
   }
   return zone;
+}
+
+SpeEditor::SpeEditor(QWidget* parent) : QWidget(parent) {
+  auto* root = new QVBoxLayout(this);
+  root->addWidget(new QLabel(
+      QStringLiteral(
+          "Special .spe: M/O/R + vnum + nome (anche fittizio) + parms opzionali. "
+          "Il server assegna la procedura solo se il nome esiste; nel file puoi scrivere "
+          "qualsiasi nome."),
+      this));
+  table_ = new QTableWidget(0, 4, this);
+  table_->setHorizontalHeaderLabels(
+      {QStringLiteral("Tipo"), QStringLiteral("Vnum"), QStringLiteral("Nome"),
+       QStringLiteral("Parms / commento")});
+  table_->horizontalHeader()->setStretchLastSection(true);
+  table_->verticalHeader()->setVisible(false);
+  table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  root->addWidget(table_, 1);
+  auto* btns = new QHBoxLayout();
+  add_btn_ = new QPushButton(QStringLiteral("Aggiungi"), this);
+  remove_btn_ = new QPushButton(QStringLiteral("Rimuovi"), this);
+  btns->addWidget(add_btn_);
+  btns->addWidget(remove_btn_);
+  btns->addStretch();
+  root->addLayout(btns);
+  connect(add_btn_, &QPushButton::clicked, this, &SpeEditor::addRow);
+  connect(remove_btn_, &QPushButton::clicked, this, &SpeEditor::removeSelected);
+  connect(table_, &QTableWidget::itemChanged, this, [this]() { emit edited(); });
+}
+
+void SpeEditor::clear() { load({}); }
+
+void SpeEditor::load(const std::vector<eleutheria::SpecialAssignment>& specials) {
+  const QSignalBlocker block(table_);
+  table_->setRowCount(0);
+  for(const auto& sa : specials) {
+    const int row = table_->rowCount();
+    table_->insertRow(row);
+    if(sa.is_comment) {
+      table_->setItem(row, 0, new QTableWidgetItem(QStringLiteral("*")));
+      table_->setItem(row, 1, new QTableWidgetItem);
+      table_->setItem(row, 2, new QTableWidgetItem);
+      table_->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(sa.raw_line)));
+      continue;
+    }
+    table_->setItem(row, 0, new QTableWidgetItem(QString(QChar(sa.kind))));
+    table_->setItem(row, 1, new QTableWidgetItem(QString::number(sa.vnum)));
+    table_->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(sa.name)));
+    table_->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(sa.parms)));
+  }
+}
+
+std::vector<eleutheria::SpecialAssignment> SpeEditor::save() const {
+  std::vector<eleutheria::SpecialAssignment> out;
+  out.reserve(static_cast<std::size_t>(table_->rowCount()));
+  for(int row = 0; row < table_->rowCount(); ++row) {
+    eleutheria::SpecialAssignment sa;
+    const QString kind =
+        table_->item(row, 0) ? table_->item(row, 0)->text().trimmed() : QString{};
+    const QString col3 =
+        table_->item(row, 3) ? table_->item(row, 3)->text() : QString{};
+    if(kind.isEmpty() || kind.startsWith(QLatin1Char('*')) || kind.startsWith(QLatin1Char(';')) ||
+       kind.startsWith(QLatin1Char('$'))) {
+      sa.is_comment = true;
+      if(kind.size() <= 1 && !col3.isEmpty()) {
+        sa.raw_line = col3.toStdString();
+      } else if(!kind.isEmpty() && col3.isEmpty()) {
+        sa.raw_line = kind.toStdString();
+      } else {
+        sa.raw_line = (kind + QLatin1Char(' ') + col3).trimmed().toStdString();
+      }
+      out.push_back(std::move(sa));
+      continue;
+    }
+    sa.kind = kind.at(0).toUpper().toLatin1();
+    if(sa.kind != 'M' && sa.kind != 'O' && sa.kind != 'R') {
+      sa.is_comment = true;
+      sa.raw_line = (kind + QLatin1Char(' ') +
+                     (table_->item(row, 1) ? table_->item(row, 1)->text() : QString{}) +
+                     QLatin1Char(' ') +
+                     (table_->item(row, 2) ? table_->item(row, 2)->text() : QString{}) +
+                     QLatin1Char(' ') + col3)
+                        .trimmed()
+                        .toStdString();
+      out.push_back(std::move(sa));
+      continue;
+    }
+    sa.vnum = table_->item(row, 1) ? table_->item(row, 1)->text().toLongLong() : 0;
+    sa.name = table_->item(row, 2) ? table_->item(row, 2)->text().toStdString() : std::string{};
+    sa.parms = col3.toStdString();
+    out.push_back(std::move(sa));
+  }
+  return out;
+}
+
+void SpeEditor::addRow() {
+  const int row = table_->rowCount();
+  table_->insertRow(row);
+  table_->setItem(row, 0, new QTableWidgetItem(QStringLiteral("M")));
+  table_->setItem(row, 1, new QTableWidgetItem(QStringLiteral("0")));
+  table_->setItem(row, 2, new QTableWidgetItem(QStringLiteral("NomeSpecial")));
+  table_->setItem(row, 3, new QTableWidgetItem);
+  emit edited();
+}
+
+void SpeEditor::removeSelected() {
+  const auto rows = table_->selectionModel()->selectedRows();
+  QList<int> indexes;
+  for(const auto& idx : rows) {
+    indexes.push_back(idx.row());
+  }
+  std::sort(indexes.begin(), indexes.end(), std::greater<int>());
+  for(int row : indexes) {
+    table_->removeRow(row);
+  }
+  if(!indexes.isEmpty()) {
+    emit edited();
+  }
 }
