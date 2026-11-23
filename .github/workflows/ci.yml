@@ -26,8 +26,27 @@ jobs:
       - name: Binary exists
         run: test -x build/app/izanagi
 
-  build-macos:
+  build-macos-arm64:
     runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Configure and build
+        run: |
+          export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+          ./scripts/build.sh
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: App bundle exists
+        run: test -x build/app/izanagi.app/Contents/MacOS/izanagi
+
+  build-macos-intel:
+    runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v5
 

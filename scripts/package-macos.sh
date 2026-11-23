@@ -22,6 +22,13 @@ fi
 
 export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-$(brew --prefix qt@6 2>/dev/null || true)}"
 
+ARCH="$(uname -m)"
+case "${ARCH}" in
+  arm64|aarch64) ARCH_LABEL="arm64" ;;
+  x86_64|amd64) ARCH_LABEL="x86_64" ;;
+  *) ARCH_LABEL="${ARCH}" ;;
+esac
+
 if [[ "${RUN_BUILD}" -eq 1 ]]; then
   "${ROOT}/scripts/build.sh"
 fi
@@ -57,16 +64,17 @@ mkdir -p "${STAGING}" "${DIST}"
 cp -R "${APP}" "${STAGING}/"
 ln -s /Applications "${STAGING}/Applications"
 cat > "${STAGING}/LEGGIMI.txt" <<EOF
-Izanagi / Izanagi (restyle) — macOS
-======================================
+Izanagi / Izanagi (restyle) — macOS (${ARCH_LABEL})
+=================================================
 
 Trascina izanagi.app in Applicazioni, poi avviala.
 
+Architettura: ${ARCH_LABEL}
 Mondo di esempio incluso in Contents/Resources/sample/B1
 Versione: ${VERSION}
 EOF
 
-OUT="${DIST}/izanagi_${VERSION}_macos.dmg"
+OUT="${DIST}/izanagi_${VERSION}_macos_${ARCH_LABEL}.dmg"
 rm -f "${OUT}"
 hdiutil create -volname "Izanagi" -srcfolder "${STAGING}" -ov -format UDZO "${OUT}"
 echo "Creato: ${OUT}"

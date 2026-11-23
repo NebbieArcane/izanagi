@@ -39,7 +39,7 @@ jobs:
           path: dist/izanagi_*_linux_*.tar.gz
           if-no-files-found: error
 
-  macos:
+  macos-arm64:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -52,11 +52,32 @@ jobs:
           export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
           ./scripts/package-macos.sh
 
-      - name: Upload macOS artifact
+      - name: Upload macOS Apple Silicon artifact
         uses: actions/upload-artifact@v4
         with:
-          name: izanagi-macos-dmg
-          path: dist/izanagi_*_macos.dmg
+          name: izanagi-macos-arm64-dmg
+          path: dist/izanagi_*_macos_arm64.dmg
+          if-no-files-found: error
+
+  macos-intel:
+    # Runner Intel dedicato (non Apple Silicon).
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: ./scripts/install-deps.sh
+
+      - name: Build package
+        run: |
+          export CMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+          ./scripts/package-macos.sh
+
+      - name: Upload macOS Intel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: izanagi-macos-intel-dmg
+          path: dist/izanagi_*_macos_x86_64.dmg
           if-no-files-found: error
 
   windows:
